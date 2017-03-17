@@ -1,0 +1,1339 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<!--[if IE]><meta http-equiv="X-UA-Compatible" content="IE=edge"><![endif]-->
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<meta name="generator" content="Asciidoctor 1.5.4">
+<title>データベースアクセス</title>
+<link rel="stylesheet" href="./theme/css/readthedocs.css">
+<link rel="stylesheet" href="./theme/css/font-awesome.min.css">
+<link rel="stylesheet" href="./theme/css/coderay-asciidoctor.css">
+<link rel="stylesheet" href="./theme/css/footer.css">
+<title>TERASOLUNA Batch Framework for Java (5.x) Development Guideline</title>
+</head>
+<body id="Ch05_DBAccess" class="book toc2 toc-left">
+<div id="header">
+<h1>データベースアクセス</h1>
+<div id="toc" class="toc2">
+<div id="toctitle">Table of Contents</div>
+<ul class="sectlevel1">
+<li><a href="#Ch05_DBAccess_Overview">Overview</a></li>
+<li><a href="#Ch05_DBAccess_HowToUse">How to use</a>
+<ul class="sectlevel2">
+<li><a href="#Ch05_DBAccess_HowToUse_Config">共通設定</a>
+<ul class="sectlevel3">
+<li><a href="#Ch05_DBAccess_HowToUse_Config_DataSource">データソースの設定</a></li>
+<li><a href="#Ch05_DBAccess_HowToUse_Config_MyBatisConfig">MyBatisの設定</a></li>
+<li><a href="#Ch05_DBAccess_HowToUse_Config_MapperXML">Mapper XMLの定義</a></li>
+<li><a href="#Ch05_DBAccess_HowToUse_Config_Scan">MyBatis-Springの設定</a></li>
+</ul>
+</li>
+<li><a href="#Ch05_DBAccess_HowToUse_Input">ItemReaderにおけるデータベースアクセス</a>
+<ul class="sectlevel3">
+<li><a href="#Ch05_DBAccess_HowToUse_Input_MyBatisItemReader">MyBatisのItemReader</a></li>
+</ul>
+</li>
+<li><a href="#Ch05_DBAccess_HowToUse_Output">ItemWriterにおけるデータベースアクセス</a>
+<ul class="sectlevel3">
+<li><a href="#Ch05_DBAccess_HowToUse_Output_MyBatisItemWriter">MyBatisのItemWriter</a></li>
+</ul>
+</li>
+<li><a href="#Ch05_DBAccess_HowToUse_Processor">ItemReader・ItemWriter以外のデータベースアクセス</a>
+<ul class="sectlevel3">
+<li><a href="#Ch05_DBAccess_HowToUse_Output_MyBatisMapperInterface_ItemProcess">ItemProcessorでのデータベースアクセス</a></li>
+<li><a href="#Ch05_DBAccess_HowToUse_Output_MyBatisMapperInterface_Tasklet">Taskletでのデータベースアクセス</a></li>
+<li><a href="#Ch05_DBAccess_HowToUse_Output_MyBatisMapperInterface_listener">リスナーでのデータベースアクセス</a></li>
+</ul>
+</li>
+</ul>
+</li>
+</ul>
+</div>
+</div>
+<div id="content">
+<div class="sect1">
+<h2 id="Ch05_DBAccess_Overview"><a class="anchor" href="#Ch05_DBAccess_Overview"></a>Overview</h2>
+<div class="sectionbody">
+<div class="paragraph">
+<p>TERASOLUNA Batch 5.xでは、データベースアクセスの方法として、MyBatis3(以降、「MyBatis」と呼ぶ)を利用する。
+MyBatisによるデータベースアクセスの基本的な利用方法は、TERASOLUNA Server 5.x 開発ガイドラインの以下を参照してほしい。</p>
+</div>
+<div class="ulist">
+<ul>
+<li>
+<p><a href="http://terasolunaorg.github.io/guideline/5.3.0.RELEASE/ja/ArchitectureInDetail/DataAccessDetail/DataAccessCommon.html">データベースアクセス(共通編)</a></p>
+</li>
+<li>
+<p><a href="http://terasolunaorg.github.io/guideline/5.3.0.RELEASE/ja/ArchitectureInDetail/DataAccessDetail/DataAccessMyBatis3.html">データベースアクセス(MyBatis3編)</a></p>
+</li>
+</ul>
+</div>
+<div class="paragraph">
+<p>本節では、TERASOLUNA Batch 5.x特有の使い方を中心に説明する。</p>
+</div>
+<div class="paragraph">
+<p>本機能は、チャンクモデルとタスクレットモデルとで使い方が異なるため、それぞれについて説明する。</p>
+</div>
+</div>
+</div>
+<div class="sect1">
+<h2 id="Ch05_DBAccess_HowToUse"><a class="anchor" href="#Ch05_DBAccess_HowToUse"></a>How to use</h2>
+<div class="sectionbody">
+<div class="paragraph">
+<p>TERASOLUNA Batch 5.xでのデータベースアクセス方法を説明する。</p>
+</div>
+<div class="paragraph">
+<p>TERASOLUNA Batch 5.xでのデータベースアクセスは、以下の2つの方法がある。<br>
+これらはデータベースアクセスするコンポーネントによって使い分ける。</p>
+</div>
+<div class="olist arabic">
+<ol class="arabic">
+<li>
+<p>MyBatis用のItemReaderおよびItemReaderを利用する。</p>
+<div class="ulist">
+<ul>
+<li>
+<p>チャンクモデルでのデータベースアクセスによる入出力で使用する。</p>
+<div class="ulist">
+<ul>
+<li>
+<p>org.mybatis.spring.batch.MyBatisCursorItemReader</p>
+</li>
+<li>
+<p>org.mybatis.spring.batch.MyBatisBatchItemWriter</p>
+</li>
+</ul>
+</div>
+</li>
+</ul>
+</div>
+</li>
+<li>
+<p>Mapperインターフェースを利用する</p>
+<div class="ulist">
+<ul>
+<li>
+<p>チャンクモデルでのビジネスロジック処理で使用する。</p>
+<div class="ulist">
+<ul>
+<li>
+<p>ItemProcessor実装で利用する。</p>
+</li>
+</ul>
+</div>
+</li>
+<li>
+<p>タスクレットモデルでのデータベースアクセス全般で使用する。</p>
+<div class="ulist">
+<ul>
+<li>
+<p>Tasklet実装で利用する。</p>
+</li>
+</ul>
+</div>
+</li>
+</ul>
+</div>
+</li>
+</ol>
+</div>
+<div class="sect2">
+<h3 id="Ch05_DBAccess_HowToUse_Config"><a class="anchor" href="#Ch05_DBAccess_HowToUse_Config"></a>共通設定</h3>
+<div class="paragraph">
+<p>データベースアクセスにおいて必要な共通設定について説明を行う。</p>
+</div>
+<div class="olist arabic">
+<ol class="arabic">
+<li>
+<p><a href="#Ch05_DBAccess_HowToUse_Config_DataSource">データソースの設定</a></p>
+</li>
+<li>
+<p><a href="#Ch05_DBAccess_HowToUse_Config_MyBatisConfig">MyBatisの設定</a></p>
+</li>
+<li>
+<p><a href="#Ch05_DBAccess_HowToUse_Config_MapperXML">Mapper XMLの定義</a></p>
+</li>
+<li>
+<p><a href="#Ch05_DBAccess_HowToUse_Config_Scan">MyBatis-Springの設定</a></p>
+</li>
+</ol>
+</div>
+<div class="sect3">
+<h4 id="Ch05_DBAccess_HowToUse_Config_DataSource"><a class="anchor" href="#Ch05_DBAccess_HowToUse_Config_DataSource"></a>データソースの設定</h4>
+<div class="paragraph">
+<p>TERASOLUNA Batch 5.xでは、2つのデータソースを前提としている。
+<code>launch-context.xml</code>でデフォルト設定している2つのデータソースを示す。</p>
+</div>
+<table class="tableblock frame-all grid-all spread">
+<caption class="title">データソース一覧</caption>
+<colgroup>
+<col style="width: 30%;">
+<col style="width: 70%;">
+</colgroup>
+<thead>
+<tr>
+<th class="tableblock halign-left valign-top">データソース名</th>
+<th class="tableblock halign-left valign-top">説明</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><code>adminDataSource</code></p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">Spring BatchやTERASOLUNA Batch 5.xが利用するデータソース<br>
+JobRepositoryや<a href="Ch04_AsyncJobWithDB.html#Ch04_AsyncJobWithDB">非同期実行(DBポーリング)</a>で利用している。</p></td>
+</tr>
+<tr>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><code>jobDataSource</code></p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">ジョブが利用するデータソース</p></td>
+</tr>
+</tbody>
+</table>
+<div class="paragraph">
+<p>以下に、launch-context.xmlと接続情報のプロパティを示す。<br>
+これらをユーザの環境に合わせて設定すること。</p>
+</div>
+<div class="listingblock">
+<div class="title">resources\META-INF\spring\launch-context.xml</div>
+<div class="content">
+<pre class="CodeRay highlight"><code data-lang="xml"><span class="comment">&lt;!-- (1) --&gt;</span>
+<span class="tag">&lt;bean</span> <span class="attribute-name">id</span>=<span class="string"><span class="delimiter">&quot;</span><span class="content">adminDataSource</span><span class="delimiter">&quot;</span></span> <span class="attribute-name">class</span>=<span class="string"><span class="delimiter">&quot;</span><span class="content">org.apache.commons.dbcp2.BasicDataSource</span><span class="delimiter">&quot;</span></span>
+      <span class="attribute-name">destroy-method</span>=<span class="string"><span class="delimiter">&quot;</span><span class="content">close</span><span class="delimiter">&quot;</span></span>
+      <span class="attribute-name">p:driverClassName</span>=<span class="string"><span class="delimiter">&quot;</span><span class="content">${admin.jdbc.driver}</span><span class="delimiter">&quot;</span></span>
+      <span class="attribute-name">p:url</span>=<span class="string"><span class="delimiter">&quot;</span><span class="content">${admin.jdbc.url}</span><span class="delimiter">&quot;</span></span>
+      <span class="attribute-name">p:username</span>=<span class="string"><span class="delimiter">&quot;</span><span class="content">${admin.jdbc.username}</span><span class="delimiter">&quot;</span></span>
+      <span class="attribute-name">p:password</span>=<span class="string"><span class="delimiter">&quot;</span><span class="content">${admin.jdbc.password}</span><span class="delimiter">&quot;</span></span>
+      <span class="attribute-name">p:maxTotal</span>=<span class="string"><span class="delimiter">&quot;</span><span class="content">10</span><span class="delimiter">&quot;</span></span>
+      <span class="attribute-name">p:minIdle</span>=<span class="string"><span class="delimiter">&quot;</span><span class="content">1</span><span class="delimiter">&quot;</span></span>
+      <span class="attribute-name">p:maxWaitMillis</span>=<span class="string"><span class="delimiter">&quot;</span><span class="content">5000</span><span class="delimiter">&quot;</span></span>
+      <span class="attribute-name">p:defaultAutoCommit</span>=<span class="string"><span class="delimiter">&quot;</span><span class="content">false</span><span class="delimiter">&quot;</span></span><span class="tag">/&gt;</span>
+
+<span class="comment">&lt;!-- (2) --&gt;</span>
+<span class="tag">&lt;bean</span> <span class="attribute-name">id</span>=<span class="string"><span class="delimiter">&quot;</span><span class="content">jobDataSource</span><span class="delimiter">&quot;</span></span> <span class="attribute-name">class</span>=<span class="string"><span class="delimiter">&quot;</span><span class="content">org.apache.commons.dbcp2.BasicDataSource</span><span class="delimiter">&quot;</span></span><span class="error">　</span>
+      <span class="attribute-name">destroy-method</span>=<span class="string"><span class="delimiter">&quot;</span><span class="content">close</span><span class="delimiter">&quot;</span></span>
+      <span class="attribute-name">p:driverClassName</span>=<span class="string"><span class="delimiter">&quot;</span><span class="content">${jdbc.driver}</span><span class="delimiter">&quot;</span></span>
+      <span class="attribute-name">p:url</span>=<span class="string"><span class="delimiter">&quot;</span><span class="content">${jdbc.url}</span><span class="delimiter">&quot;</span></span>
+      <span class="attribute-name">p:username</span>=<span class="string"><span class="delimiter">&quot;</span><span class="content">${jdbc.username}</span><span class="delimiter">&quot;</span></span>
+      <span class="attribute-name">p:password</span>=<span class="string"><span class="delimiter">&quot;</span><span class="content">${jdbc.password}</span><span class="delimiter">&quot;</span></span>
+      <span class="attribute-name">p:maxTotal</span>=<span class="string"><span class="delimiter">&quot;</span><span class="content">10</span><span class="delimiter">&quot;</span></span>
+      <span class="attribute-name">p:minIdle</span>=<span class="string"><span class="delimiter">&quot;</span><span class="content">1</span><span class="delimiter">&quot;</span></span>
+      <span class="attribute-name">p:maxWaitMillis</span>=<span class="string"><span class="delimiter">&quot;</span><span class="content">5000</span><span class="delimiter">&quot;</span></span>
+      <span class="attribute-name">p:defaultAutoCommit</span>=<span class="string"><span class="delimiter">&quot;</span><span class="content">false</span><span class="delimiter">&quot;</span></span> <span class="tag">/&gt;</span></code></pre>
+</div>
+</div>
+<div class="listingblock">
+<div class="title">batch-application.properties</div>
+<div class="content">
+<pre class="CodeRay highlight"><code data-lang="properties"># (3)
+# Admin DataSource settings.
+admin.h2.jdbc.driver=org.h2.Driver
+admin.h2.jdbc.url=jdbc:h2:mem:batch;DB_CLOSE_DELAY=-1
+admin.h2.jdbc.username=sa
+admin.h2.jdbc.password=
+
+# (4)
+# Job DataSource settings.
+jdbc.driver=org.postgresql.Driver
+jdbc.url=jdbc:postgresql://localhost:5432/postgres
+jdbc.username=postgres
+jdbc.password=postgres</code></pre>
+</div>
+</div>
+<table class="tableblock frame-all grid-all spread">
+<caption class="title">説明</caption>
+<colgroup>
+<col style="width: 10%;">
+<col style="width: 90%;">
+</colgroup>
+<thead>
+<tr>
+<th class="tableblock halign-left valign-top">項番</th>
+<th class="tableblock halign-left valign-top">説明</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td class="tableblock halign-left valign-top"><p class="tableblock">(1)</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><code>adminDataSource</code>の定義。(3)の接続情報が設定される。</p></td>
+</tr>
+<tr>
+<td class="tableblock halign-left valign-top"><p class="tableblock">(2)</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><code>jobDataSource</code>の定義。(4)の接続情報が設定される。</p></td>
+</tr>
+<tr>
+<td class="tableblock halign-left valign-top"><p class="tableblock">(3)</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><code>adminDataSource</code>で利用するデータベースへの接続情報<br>
+この例では、H2を利用している。</p></td>
+</tr>
+<tr>
+<td class="tableblock halign-left valign-top"><p class="tableblock">(4)</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><code>jobDataSource</code>で利用するデータベースへの接続情報<br>
+この例では、PostgreSQLを利用している。</p></td>
+</tr>
+</tbody>
+</table>
+</div>
+<div class="sect3">
+<h4 id="Ch05_DBAccess_HowToUse_Config_MyBatisConfig"><a class="anchor" href="#Ch05_DBAccess_HowToUse_Config_MyBatisConfig"></a>MyBatisの設定</h4>
+<div class="paragraph">
+<p>TERASOLUNA Batch 5.xで、MyBatisの設定をする上で重要な点について説明をする。</p>
+</div>
+<div class="paragraph">
+<p>バッチ処理を実装する際の重要なポイントの1つとして「大量のデータを一定のリソースで効率よく処理する」が挙げられる。<br>
+これに関する設定を説明する。</p>
+</div>
+<div class="ulist">
+<ul>
+<li>
+<p><code>fetchSize</code></p>
+<div class="ulist">
+<ul>
+<li>
+<p>一般的なバッチ処理では、大量のデータを処理する際の通信コストを低減するために、
+JDBCドライバに適切な<code>fetchSize</code>を指定することが必須である。
+<code>fetchSize</code>とは、JDBCドライバとデータベース間とで1回の通信で取得するデータ件数を設定するパラメータである。
+この値は出来る限り大きい値を設定することが望ましいが、大きすぎるとメモリを圧迫するため、注意が必要である。
+ユーザにてチューニングする必要がある箇所と言える。</p>
+</li>
+<li>
+<p>MyBatisでは、全クエリ共通の設定として<code>defaultFetchSize</code>を設定することができ、さらにクエリごとの<code>fetchSize</code>設定で上書きできる。</p>
+</li>
+</ul>
+</div>
+</li>
+<li>
+<p><code>executorType</code></p>
+<div class="ulist">
+<ul>
+<li>
+<p>一般的なバッチ処理では、同一トランザクション内で同じSQLを<code>全データ件数/fetchSize</code>の回数分実行することになる。
+この際、都度ステートメントを作成するのではなく再利用することで効率よく処理できる。</p>
+</li>
+<li>
+<p>MyBatisの設定における、<code>defaultExecutorType</code>に<code>REUSE</code>を設定することでステートメントの再利用ができ、
+処理スループット向上に寄与する。</p>
+</li>
+<li>
+<p>大量のデータを一度に更新する場合、JDBCのバッチ更新を利用することで性能向上が期待できる。<br>
+そのため、<code>MyBatisBatchItemWriter</code>で利用する<code>SqlSessionTemplate</code>には、<br>
+<code>executorType</code>に(<code>REUSE</code>ではなく)<code>BATCH</code>が設定されている。</p>
+</li>
+</ul>
+</div>
+</li>
+</ul>
+</div>
+<div class="paragraph">
+<p>TERASOLUNA Batch 5.xでは、同時に2つの異なる<code>ExecutorType</code>が存在する。
+一方の<code>ExecutorType</code>で実装する場合が多いと想定するが、併用時は特に注意が必要である。
+この点は、<a href="#Ch05_DBAccess_HowToUse_Processor">ItemReader・ItemWriter以外のデータベースアクセス</a>にて詳しく説明する。</p>
+</div>
+<div class="admonitionblock note">
+<table>
+<tr>
+<td class="icon">
+<i class="fa icon-note" title="Note"></i>
+</td>
+<td class="content">
+<div class="title">MyBatisのその他のパラメータ</div>
+<div class="paragraph">
+<p>その他のパラメータに関しては以下リンクを参照し、 アプリケーションの特性にあった設定を行うこと。<br>
+<a href="http://www.mybatis.org/mybatis-3/configuration.html" class="bare">http://www.mybatis.org/mybatis-3/configuration.html</a></p>
+</div>
+</td>
+</tr>
+</table>
+</div>
+<div class="paragraph">
+<p>以下にデフォルト提供されている設定を示す。</p>
+</div>
+<div class="listingblock">
+<div class="title">META-INF/spring/launch-context.xml</div>
+<div class="content">
+<pre class="CodeRay highlight"><code data-lang="xml"><span class="tag">&lt;bean</span> <span class="attribute-name">id</span>=<span class="string"><span class="delimiter">&quot;</span><span class="content">jobSqlSessionFactory</span><span class="delimiter">&quot;</span></span>
+      <span class="attribute-name">class</span>=<span class="string"><span class="delimiter">&quot;</span><span class="content">org.mybatis.spring.SqlSessionFactoryBean</span><span class="delimiter">&quot;</span></span>
+      <span class="attribute-name">p:dataSource-ref</span>=<span class="string"><span class="delimiter">&quot;</span><span class="content">jobDataSource</span><span class="delimiter">&quot;</span></span><span class="tag">&gt;</span>
+    <span class="comment">&lt;!-- (1) --&gt;</span>
+    <span class="tag">&lt;property</span> <span class="attribute-name">name</span>=<span class="string"><span class="delimiter">&quot;</span><span class="content">configuration</span><span class="delimiter">&quot;</span></span><span class="tag">&gt;</span>
+        <span class="tag">&lt;bean</span> <span class="attribute-name">class</span>=<span class="string"><span class="delimiter">&quot;</span><span class="content">org.apache.ibatis.session.Configuration</span><span class="delimiter">&quot;</span></span>
+              <span class="attribute-name">p:localCacheScope</span>=<span class="string"><span class="delimiter">&quot;</span><span class="content">STATEMENT</span><span class="delimiter">&quot;</span></span>
+              <span class="attribute-name">p:lazyLoadingEnabled</span>=<span class="string"><span class="delimiter">&quot;</span><span class="content">true</span><span class="delimiter">&quot;</span></span>
+              <span class="attribute-name">p:aggressiveLazyLoading</span>=<span class="string"><span class="delimiter">&quot;</span><span class="content">false</span><span class="delimiter">&quot;</span></span>
+              <span class="attribute-name">p:defaultFetchSize</span>=<span class="string"><span class="delimiter">&quot;</span><span class="content">1000</span><span class="delimiter">&quot;</span></span>
+              <span class="attribute-name">p:defaultExecutorType</span>=<span class="string"><span class="delimiter">&quot;</span><span class="content">REUSE</span><span class="delimiter">&quot;</span></span><span class="tag">/&gt;</span>
+    <span class="tag">&lt;/property&gt;</span>
+<span class="tag">&lt;/bean&gt;</span>
+
+<span class="comment">&lt;!-- (2) --&gt;</span>
+<span class="tag">&lt;bean</span> <span class="attribute-name">id</span>=<span class="string"><span class="delimiter">&quot;</span><span class="content">batchModeSqlSessionTemplate</span><span class="delimiter">&quot;</span></span>
+      <span class="attribute-name">class</span>=<span class="string"><span class="delimiter">&quot;</span><span class="content">org.mybatis.spring.SqlSessionTemplate</span><span class="delimiter">&quot;</span></span>
+      <span class="attribute-name">c:sqlSessionFactory-ref</span>=<span class="string"><span class="delimiter">&quot;</span><span class="content">jobSqlSessionFactory</span><span class="delimiter">&quot;</span></span>
+      <span class="attribute-name">c:executorType</span>=<span class="string"><span class="delimiter">&quot;</span><span class="content">BATCH</span><span class="delimiter">&quot;</span></span><span class="tag">/&gt;</span></code></pre>
+</div>
+</div>
+<table class="tableblock frame-all grid-all spread">
+<caption class="title">説明</caption>
+<colgroup>
+<col style="width: 10%;">
+<col style="width: 90%;">
+</colgroup>
+<thead>
+<tr>
+<th class="tableblock halign-left valign-top">項番</th>
+<th class="tableblock halign-left valign-top">説明</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td class="tableblock halign-left valign-top"><p class="tableblock">(1)</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">MyBatisの各種設定を行う。<br>
+デフォルトでは、fetchSizeを1000に設定している。</p></td>
+</tr>
+<tr>
+<td class="tableblock halign-left valign-top"><p class="tableblock">(2)</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><code>MyBatisBatchItemWriter</code>のために、<code>executorType</code>が<code>BATCH</code>の<code>SqlSessionTemplate</code>を定義している。</p></td>
+</tr>
+</tbody>
+</table>
+<div class="admonitionblock note">
+<table>
+<tr>
+<td class="icon">
+<i class="fa icon-note" title="Note"></i>
+</td>
+<td class="content">
+<div class="title">adminDataSourceを利用したSqlSessionFactoryの定義箇所について</div>
+<div class="paragraph">
+<p>同期実行をする場合は、adminDataSourceを利用した<code>SqlSessionFactory</code>は不要であるため、定義がされていない。
+<a href="Ch04_AsyncJobWithDB.html#Ch04_AsyncJobWithDB">非同期実行(DBポーリング)</a>を利用する場合、ジョブ要求テーブルへアクセスするために
+<code>META-INF/spring/async-batch-daemon.xml</code>内に定義されている。</p>
+</div>
+<div class="listingblock">
+<div class="title">META-INF/spring/async-batch-daemon.xml</div>
+<div class="content">
+<pre class="CodeRay highlight"><code data-lang="xml"><span class="tag">&lt;bean</span> <span class="attribute-name">id</span>=<span class="string"><span class="delimiter">&quot;</span><span class="content">adminSqlSessionFactory</span><span class="delimiter">&quot;</span></span>
+      <span class="attribute-name">class</span>=<span class="string"><span class="delimiter">&quot;</span><span class="content">org.mybatis.spring.SqlSessionFactoryBean</span><span class="delimiter">&quot;</span></span>
+      <span class="attribute-name">p:dataSource-ref</span>=<span class="string"><span class="delimiter">&quot;</span><span class="content">adminDataSource</span><span class="delimiter">&quot;</span></span> <span class="tag">&gt;</span>
+    <span class="tag">&lt;property</span> <span class="attribute-name">name</span>=<span class="string"><span class="delimiter">&quot;</span><span class="content">configuration</span><span class="delimiter">&quot;</span></span><span class="tag">&gt;</span>
+        <span class="tag">&lt;bean</span> <span class="attribute-name">class</span>=<span class="string"><span class="delimiter">&quot;</span><span class="content">org.apache.ibatis.session.Configuration</span><span class="delimiter">&quot;</span></span>
+              <span class="attribute-name">p:localCacheScope</span>=<span class="string"><span class="delimiter">&quot;</span><span class="content">STATEMENT</span><span class="delimiter">&quot;</span></span>
+              <span class="attribute-name">p:lazyLoadingEnabled</span>=<span class="string"><span class="delimiter">&quot;</span><span class="content">true</span><span class="delimiter">&quot;</span></span>
+              <span class="attribute-name">p:aggressiveLazyLoading</span>=<span class="string"><span class="delimiter">&quot;</span><span class="content">false</span><span class="delimiter">&quot;</span></span>
+              <span class="attribute-name">p:defaultFetchSize</span>=<span class="string"><span class="delimiter">&quot;</span><span class="content">1000</span><span class="delimiter">&quot;</span></span>
+              <span class="attribute-name">p:defaultExecutorType</span>=<span class="string"><span class="delimiter">&quot;</span><span class="content">REUSE</span><span class="delimiter">&quot;</span></span><span class="tag">/&gt;</span>
+    <span class="tag">&lt;/property&gt;</span>
+<span class="tag">&lt;/bean&gt;</span></code></pre>
+</div>
+</div>
+</td>
+</tr>
+</table>
+</div>
+</div>
+<div class="sect3">
+<h4 id="Ch05_DBAccess_HowToUse_Config_MapperXML"><a class="anchor" href="#Ch05_DBAccess_HowToUse_Config_MapperXML"></a>Mapper XMLの定義</h4>
+<div class="paragraph">
+<p>TERASOLUNA Batch 5.x特有の説明事項はないので、TERASOLUNA Server 5.x 開発ガイドラインの
+<a href="http://terasolunaorg.github.io/guideline/5.3.0.RELEASE/ja/ArchitectureInDetail/DataAccessDetail/DataAccessMyBatis3.html#dataaccessmybatis3howtodababaseaccess">データベースアクセス処理の実装</a>を参照してほしい。</p>
+</div>
+</div>
+<div class="sect3">
+<h4 id="Ch05_DBAccess_HowToUse_Config_Scan"><a class="anchor" href="#Ch05_DBAccess_HowToUse_Config_Scan"></a>MyBatis-Springの設定</h4>
+<div class="paragraph">
+<p>MyBatis-Springが提供するItemReaderおよびItemWriterを使用する場合、MapperのConfigで使用するMapper XMLを設定する必要がある。</p>
+</div>
+<div class="paragraph">
+<p>設定方法としては、以下の2つが考えられる。</p>
+</div>
+<div class="olist arabic">
+<ol class="arabic">
+<li>
+<p>共通設定として、すべてのジョブで使用するMapper XMLを登録する。</p>
+<div class="ulist">
+<ul>
+<li>
+<p><code>META-INF/spring/launch-context.xml</code>にすべてのMapper XMLを記述することになる。</p>
+</li>
+</ul>
+</div>
+</li>
+<li>
+<p>個別設定として、ジョブ単位で利用するMapper XMLを登録する。</p>
+<div class="ulist">
+<ul>
+<li>
+<p><code>META-INF/jobs/</code>配下のBean定義に、個々のジョブごとに必要なMapper XMLを記述することになる。</p>
+</li>
+</ul>
+</div>
+</li>
+</ol>
+</div>
+<div class="paragraph">
+<p>共通設定をしてしまうと、同期実行をする際に実行するジョブのMapper XMLだけでなく、その他のジョブが使用するMapper XMLも読み込んでしまうために以下に示す弊害が生じる。</p>
+</div>
+<div class="ulist">
+<ul>
+<li>
+<p>ジョブの起動までに時間がかかる</p>
+</li>
+<li>
+<p>メモリリソースの消費が大きくなる</p>
+</li>
+</ul>
+</div>
+<div class="paragraph">
+<p>これを回避するために、TERASOLUNA Batch 5.xでは、個別設定として、個々のジョブ定義でそのジョブが必要とするMapper XMLだけを指定する設定方法を採用する。</p>
+</div>
+<div class="paragraph">
+<p>基本的な設定方法については、TERASOLUNA Server 5.x 開発ガイドラインの
+<a href="http://terasolunaorg.github.io/guideline/5.3.0.RELEASE/ja/ArchitectureInDetail/DataAccessDetail/DataAccessMyBatis3.html#dataaccessmybatis3howtousesettingsmybatis-spring">MyBatis-Springの設定</a>を参照してほしい。</p>
+</div>
+<div class="paragraph">
+<p>TERASOLUNA Batch 5.xでは、複数の<code>SqlSessionFactory</code>および<code>SqlSessionTemplate</code>が定義されているため、
+どれを利用するか明示的に指定する必要がある。<br>
+基本的には<code>jobSqlSessionFactory</code>を指定すればよい。</p>
+</div>
+<div class="paragraph">
+<p>以下に設定例を示す。</p>
+</div>
+<div class="listingblock">
+<div class="title">META-INF/jobs/common/jobCustomerList01.xml</div>
+<div class="content">
+<pre class="CodeRay highlight"><code data-lang="xml"><span class="comment">&lt;!-- (1) --&gt;</span>
+<span class="tag">&lt;mybatis:scan</span>
+    <span class="attribute-name">base-package</span>=<span class="string"><span class="delimiter">&quot;</span><span class="content">org.terasoluna.batch.functionaltest.app.repository.mst</span><span class="delimiter">&quot;</span></span>
+    <span class="attribute-name">factory-ref</span>=<span class="string"><span class="delimiter">&quot;</span><span class="content">jobSqlSessionFactory</span><span class="delimiter">&quot;</span></span><span class="tag">/&gt;</span></code></pre>
+</div>
+</div>
+<table class="tableblock frame-all grid-all spread">
+<caption class="title">説明</caption>
+<colgroup>
+<col style="width: 10%;">
+<col style="width: 90%;">
+</colgroup>
+<thead>
+<tr>
+<th class="tableblock halign-left valign-top">項番</th>
+<th class="tableblock halign-left valign-top">説明</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td class="tableblock halign-left valign-top"><p class="tableblock">(1)</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><code>&lt;mybatis:scan&gt;</code>の<code>factory-ref</code>属性に<code>jobSqlSessionFactory</code>を設定する。</p></td>
+</tr>
+</tbody>
+</table>
+</div>
+</div>
+<div class="sect2">
+<h3 id="Ch05_DBAccess_HowToUse_Input"><a class="anchor" href="#Ch05_DBAccess_HowToUse_Input"></a>ItemReaderにおけるデータベースアクセス</h3>
+<div class="paragraph">
+<p>ここではItemReaderによるデータベースアクセスについて説明する。</p>
+</div>
+<div class="sect3">
+<h4 id="Ch05_DBAccess_HowToUse_Input_MyBatisItemReader"><a class="anchor" href="#Ch05_DBAccess_HowToUse_Input_MyBatisItemReader"></a>MyBatisのItemReader</h4>
+<div class="paragraph">
+<p>MyBatis-Springが提供するItemReaderとして下記の2つが存在する。</p>
+</div>
+<div class="ulist">
+<ul>
+<li>
+<p><code>org.mybatis.spring.batch.MyBatisCursorItemReader</code></p>
+</li>
+<li>
+<p><code>org.mybatis.spring.batch.MyBatisPagingItemReader</code></p>
+</li>
+</ul>
+</div>
+<div class="paragraph">
+<p><code>MyBatisPagingItemReader</code>は、TERASOLUNA Server 5.x 開発ガイドラインの
+<a href="http://terasolunaorg.github.io/guideline/5.3.0.RELEASE/ja/ArchitectureInDetail/DataAccessDetail/DataAccessMyBatis3.html#entity-sql">Entityのページネーション検索(SQL絞り込み方式)</a>で
+説明している仕組みを利用したItemReaderである。<br>
+一定件数を取得した後に再度SQLを発行するため、データの一貫性が保たれない可能性がある。
+そのため、バッチ処理で利用するには危険であることから、TERASOLUNA Batch 5.xでは原則使用しない。<br>
+TERASOLUNA Batch 5.xでは<code>MyBatisCursorItemReader</code>のみを利用する。</p>
+</div>
+<div class="paragraph">
+<p>TERASOLUNA Batch 5.xでは、<a href="#Ch05_DBAccess_HowToUse_Config_Scan">MyBatis-Springの設定</a>で説明したとおり、
+<code>mybatis:scan</code>によって動的にMapper XMLを登録する方法を採用している。
+そのため、Mapper XMLに対応するインターフェースを用意する必要がある。
+詳細については、TERASOLUNA Server 5.x 開発ガイドラインの
+<a href="http://terasolunaorg.github.io/guideline/5.3.0.RELEASE/ja/ArchitectureInDetail/DataAccessDetail/DataAccessMyBatis3.html#dataaccessmybatis3howtodababaseaccess">データベースアクセス処理の実装</a>を参照。</p>
+</div>
+<div class="paragraph">
+<p><code>MyBatisCursorItemReader</code>の利用例を以下に示す。</p>
+</div>
+<div class="listingblock">
+<div class="title">META-INF/jobs/common/jobCustomerList01.xml</div>
+<div class="content">
+<pre class="CodeRay highlight"><code data-lang="xml"><span class="comment">&lt;!-- (1) --&gt;</span>
+<span class="tag">&lt;mybatis:scan</span>
+    <span class="attribute-name">base-package</span>=<span class="string"><span class="delimiter">&quot;</span><span class="content">org.terasoluna.batch.functionaltest.app.repository.mst</span><span class="delimiter">&quot;</span></span>
+    <span class="attribute-name">factory-ref</span>=<span class="string"><span class="delimiter">&quot;</span><span class="content">jobSqlSessionFactory</span><span class="delimiter">&quot;</span></span><span class="tag">/&gt;</span>
+
+<span class="comment">&lt;!-- (2) (3) (4) --&gt;</span>
+<span class="tag">&lt;bean</span> <span class="attribute-name">id</span>=<span class="string"><span class="delimiter">&quot;</span><span class="content">reader</span><span class="delimiter">&quot;</span></span>
+      <span class="attribute-name">class</span>=<span class="string"><span class="delimiter">&quot;</span><span class="content">org.mybatis.spring.batch.MyBatisCursorItemReader</span><span class="delimiter">&quot;</span></span> <span class="attribute-name">scope</span>=<span class="string"><span class="delimiter">&quot;</span><span class="content">step</span><span class="delimiter">&quot;</span></span>
+      <span class="attribute-name">p:queryId</span>=<span class="string"><span class="delimiter">&quot;</span><span class="content">org.terasoluna.batch.functionaltest.app.repository.mst.CustomerRepository.findAll</span><span class="delimiter">&quot;</span></span>
+      <span class="attribute-name">p:sqlSessionFactory-ref</span>=<span class="string"><span class="delimiter">&quot;</span><span class="content">jobSqlSessionFactory</span><span class="delimiter">&quot;</span></span><span class="tag">/&gt;</span></code></pre>
+</div>
+</div>
+<div class="listingblock">
+<div class="title">org/terasoluna/batch/functionaltest/app/repository/mst/CustomerRepository.xml</div>
+<div class="content">
+<pre class="CodeRay highlight"><code data-lang="xml"><span class="comment">&lt;!-- (5) --&gt;</span>
+<span class="tag">&lt;mapper</span> <span class="attribute-name">namespace</span>=<span class="string"><span class="delimiter">&quot;</span><span class="content">org.terasoluna.batch.functionaltest.app.repository.mst.CustomerRepository</span><span class="delimiter">&quot;</span></span><span class="tag">&gt;</span>
+
+    <span class="comment">&lt;!-- (6) --&gt;</span>
+    <span class="tag">&lt;select</span> <span class="attribute-name">id</span>=<span class="string"><span class="delimiter">&quot;</span><span class="content">findAll</span><span class="delimiter">&quot;</span></span>
+            <span class="attribute-name">resultType</span>=<span class="string"><span class="delimiter">&quot;</span><span class="content">org.terasoluna.batch.functionaltest.app.model.mst.Customer</span><span class="delimiter">&quot;</span></span><span class="tag">&gt;</span>
+        <span class="inline-delimiter">&lt;![CDATA[</span>
+        SELECT
+            customer_id AS customerId,
+            customer_name AS customerName,
+            customer_address AS customerAddress,
+            customer_tel AS customerTel,
+            charge_branch_id AS chargeBranchId,
+            create_date AS createDate,
+            update_date AS updateDate
+        FROM
+            customer_mst
+        ORDER by
+            charge_branch_id ASC, customer_id ASC
+        <span class="inline-delimiter">]]&gt;</span>
+    <span class="tag">&lt;/select&gt;</span>
+
+    <span class="comment">&lt;!-- omitted --&gt;</span>
+<span class="tag">&lt;/mapper&gt;</span></code></pre>
+</div>
+</div>
+<div class="listingblock">
+<div class="title">org.terasoluna.batch.functionaltest.app.repository.mst.CustomerRepository</div>
+<div class="content">
+<pre class="CodeRay highlight"><code data-lang="java"><span class="directive">public</span> <span class="type">interface</span> <span class="class">CustomerRepository</span> {
+    <span class="comment">// (7)</span>
+    <span class="predefined-type">List</span>&lt;Customer&gt; findAll();
+
+    <span class="comment">// omitted</span>
+}</code></pre>
+</div>
+</div>
+<table class="tableblock frame-all grid-all spread">
+<caption class="title">説明</caption>
+<colgroup>
+<col style="width: 10%;">
+<col style="width: 90%;">
+</colgroup>
+<thead>
+<tr>
+<th class="tableblock halign-left valign-top">項番</th>
+<th class="tableblock halign-left valign-top">説明</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td class="tableblock halign-left valign-top"><p class="tableblock">(1)</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">Mapper XMLの登録を行う。</p></td>
+</tr>
+<tr>
+<td class="tableblock halign-left valign-top"><p class="tableblock">(2)</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><code>MyBatisCursorItemReader</code>を定義する。</p></td>
+</tr>
+<tr>
+<td class="tableblock halign-left valign-top"><p class="tableblock">(3)</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><code>queryId</code>のプロパティに、(6)で定義しているSQLのIDを(5)の<code>namespace</code> + <code>&lt;メソッド名&gt;</code>で指定する。</p></td>
+</tr>
+<tr>
+<td class="tableblock halign-left valign-top"><p class="tableblock">(4)</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><code>sqlSessionFactory</code>のプロパティに、アクセスするデータベースの<code>SqlSessionFactory</code>を指定する。</p></td>
+</tr>
+<tr>
+<td class="tableblock halign-left valign-top"><p class="tableblock">(5)</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">Mapper XMLを定義する。namespaceの値とインターフェースのFQCNを一致させること。</p></td>
+</tr>
+<tr>
+<td class="tableblock halign-left valign-top"><p class="tableblock">(6)</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">SQLを定義する。</p></td>
+</tr>
+<tr>
+<td class="tableblock halign-left valign-top"><p class="tableblock">(7)</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">(6)で定義したSQLのIDに対応するメソッドをインターフェースに定義する。</p></td>
+</tr>
+</tbody>
+</table>
+</div>
+</div>
+<div class="sect2">
+<h3 id="Ch05_DBAccess_HowToUse_Output"><a class="anchor" href="#Ch05_DBAccess_HowToUse_Output"></a>ItemWriterにおけるデータベースアクセス</h3>
+<div class="paragraph">
+<p>ここではItemWriterによるデータベースアクセスについて説明する。</p>
+</div>
+<div class="sect3">
+<h4 id="Ch05_DBAccess_HowToUse_Output_MyBatisItemWriter"><a class="anchor" href="#Ch05_DBAccess_HowToUse_Output_MyBatisItemWriter"></a>MyBatisのItemWriter</h4>
+<div class="paragraph">
+<p>MyBatis-Springが提供するItemWriterは以下の1つのみである。</p>
+</div>
+<div class="ulist">
+<ul>
+<li>
+<p><code>org.mybatis.spring.batch.MyBatisBatchItemWriter</code></p>
+</li>
+</ul>
+</div>
+<div class="paragraph">
+<p>基本的な設定については、<a href="#Ch05_DBAccess_HowToUse_Input_MyBatisItemReader">MyBatisのItemReader</a>と同じである。
+<code>MyBatisBatchItemWriter</code>では、<a href="#Ch05_DBAccess_HowToUse_Config_MyBatisConfig">MyBatisの設定</a>で説明した
+<code>batchModeSqlSessionTemplate</code>を指定する必要がる。</p>
+</div>
+<div class="paragraph">
+<p><code>MyBatisBatchItemWriter</code>の定義例を以下に示す。</p>
+</div>
+<div class="listingblock">
+<div class="title">META-INF/jobs/common/jobSalesPlan01.xml</div>
+<div class="content">
+<pre class="CodeRay highlight"><code data-lang="xml"><span class="comment">&lt;!-- (1) --&gt;</span>
+<span class="tag">&lt;mybatis:scan</span>
+    <span class="attribute-name">base-package</span>=<span class="string"><span class="delimiter">&quot;</span><span class="content">org.terasoluna.batch.functionaltest.app.repository.plan</span><span class="delimiter">&quot;</span></span>
+    <span class="attribute-name">factory-ref</span>=<span class="string"><span class="delimiter">&quot;</span><span class="content">jobSqlSessionFactory</span><span class="delimiter">&quot;</span></span><span class="tag">/&gt;</span>
+
+<span class="comment">&lt;!-- (2) (3) (4) --&gt;</span>
+<span class="tag">&lt;bean</span> <span class="attribute-name">id</span>=<span class="string"><span class="delimiter">&quot;</span><span class="content">detailWriter</span><span class="delimiter">&quot;</span></span> <span class="attribute-name">class</span>=<span class="string"><span class="delimiter">&quot;</span><span class="content">org.mybatis.spring.batch.MyBatisBatchItemWriter</span><span class="delimiter">&quot;</span></span>
+      <span class="attribute-name">p:statementId</span>=<span class="string"><span class="delimiter">&quot;</span><span class="content">org.terasoluna.batch.functionaltest.app.repository.plan.SalesPlanDetailRepository.create</span><span class="delimiter">&quot;</span></span>
+      <span class="attribute-name">p:sqlSessionTemplate</span>=<span class="string"><span class="delimiter">&quot;</span><span class="content">batchModeSqlSessionTemplate</span><span class="delimiter">&quot;</span></span><span class="tag">/&gt;</span>
+
+<span class="comment">&lt;!-- omitted --&gt;</span></code></pre>
+</div>
+</div>
+<div class="listingblock">
+<div class="title">org/terasoluna/batch/functionaltest/app/repository/plan/SalesPlanDetailRepository.xml</div>
+<div class="content">
+<pre class="CodeRay highlight"><code data-lang="xml"><span class="comment">&lt;!-- (5) --&gt;</span>
+<span class="tag">&lt;mapper</span> <span class="attribute-name">namespace</span>=<span class="string"><span class="delimiter">&quot;</span><span class="content">org.terasoluna.batch.functionaltest.app.repository.plan.SalesPlanDetailRepository</span><span class="delimiter">&quot;</span></span><span class="tag">&gt;</span>
+
+    <span class="comment">&lt;!-- (6) --&gt;</span>
+    <span class="tag">&lt;insert</span> <span class="attribute-name">id</span>=<span class="string"><span class="delimiter">&quot;</span><span class="content">create</span><span class="delimiter">&quot;</span></span>
+            <span class="attribute-name">parameterType</span>=<span class="string"><span class="delimiter">&quot;</span><span class="content">org.terasoluna.batch.functionaltest.app.model.plan.SalesPlanDetail</span><span class="delimiter">&quot;</span></span><span class="tag">&gt;</span>
+        <span class="inline-delimiter">&lt;![CDATA[</span>
+        INSERT INTO
+            sales_plan_detail(branch_id, year, month, customer_id, amount)
+        VALUES (
+            #{branchId}, #{year}, #{month}, #{customerId}, #{amount}
+        )
+        <span class="inline-delimiter">]]&gt;</span>
+    <span class="tag">&lt;/insert&gt;</span>
+
+    <span class="comment">&lt;!-- omitted --&gt;</span>
+<span class="tag">&lt;/mapper&gt;</span></code></pre>
+</div>
+</div>
+<div class="listingblock">
+<div class="title">org.terasoluna.batch.functionaltest.app.repository.plan.SalesPlanDetailRepository</div>
+<div class="content">
+<pre class="CodeRay highlight"><code data-lang="java"><span class="directive">public</span> <span class="type">interface</span> <span class="class">SalesPlanDetailRepository</span> {
+
+    <span class="comment">// (7)</span>
+    <span class="type">void</span> create(SalesPlanDetail salesPlanDetail);
+
+    <span class="comment">// omitted</span>
+}</code></pre>
+</div>
+</div>
+<table class="tableblock frame-all grid-all spread">
+<caption class="title">説明</caption>
+<colgroup>
+<col style="width: 10%;">
+<col style="width: 90%;">
+</colgroup>
+<thead>
+<tr>
+<th class="tableblock halign-left valign-top">項番</th>
+<th class="tableblock halign-left valign-top">説明</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td class="tableblock halign-left valign-top"><p class="tableblock">(1)</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">Mapper XMLの登録を行う。</p></td>
+</tr>
+<tr>
+<td class="tableblock halign-left valign-top"><p class="tableblock">(2)</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><code>MyBatisBatchItemWriter</code>を定義する。</p></td>
+</tr>
+<tr>
+<td class="tableblock halign-left valign-top"><p class="tableblock">(3)</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><code>statementId</code>のプロパティに、(6)で定義しているSQLのIDを(5)の<code>namespace</code> + <code>&lt;メソッド名&gt;</code>で指定する。</p></td>
+</tr>
+<tr>
+<td class="tableblock halign-left valign-top"><p class="tableblock">(4)</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><code>sqlSessionTemplate</code>のプロパティに、アクセスするデータベースの<code>SessionTemplate</code>を指定する。<br>
+指定する<code>SessionTemplate</code>は、<code>executorType</code>が<code>BATCH</code>に設定されていることが必須である。</p></td>
+</tr>
+<tr>
+<td class="tableblock halign-left valign-top"><p class="tableblock">(5)</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">Mapper XMLを定義する。namespaceの値とインターフェースのFQCNを一致させること。</p></td>
+</tr>
+<tr>
+<td class="tableblock halign-left valign-top"><p class="tableblock">(6)</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">SQLを定義する。</p></td>
+</tr>
+<tr>
+<td class="tableblock halign-left valign-top"><p class="tableblock">(7)</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">(6)で定義したSQLのIDに対応するメソッドをインターフェースに定義する。</p></td>
+</tr>
+</tbody>
+</table>
+</div>
+</div>
+<div class="sect2">
+<h3 id="Ch05_DBAccess_HowToUse_Processor"><a class="anchor" href="#Ch05_DBAccess_HowToUse_Processor"></a>ItemReader・ItemWriter以外のデータベースアクセス</h3>
+<div class="paragraph">
+<p>ItemReader・ItemWriter以外のデータベースアクセスについて説明する。</p>
+</div>
+<div class="paragraph">
+<p>ItemReader・ItemWriter以外でデータベースアクセスするには、Mapperインターフェースを利用する。
+Mapperインターフェースを利用するにあたって、TERASOLUNA Batch 5.xでは以下の制約を設けている。</p>
+</div>
+<table class="tableblock frame-all grid-all spread">
+<caption class="title">Mapperインターフェースの利用可能な箇所</caption>
+<colgroup>
+<col style="width: 10%;">
+<col style="width: 30%;">
+<col style="width: 30%;">
+<col style="width: 30%;">
+</colgroup>
+<thead>
+<tr>
+<th class="tableblock halign-left valign-top">処理</th>
+<th class="tableblock halign-left valign-top">ItemProcessor</th>
+<th class="tableblock halign-left valign-top">Tasklet</th>
+<th class="tableblock halign-left valign-top">リスナー</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td class="tableblock halign-left valign-top"><p class="tableblock">参照</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">利用可</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">利用可</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">利用可</p></td>
+</tr>
+<tr>
+<td class="tableblock halign-left valign-top"><p class="tableblock">更新</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">条件付で利用可</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">利用可</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">利用不可</p></td>
+</tr>
+</tbody>
+</table>
+<div class="dlist">
+<dl>
+<dt class="hdlist1">ItemProcessorでの制約</dt>
+<dd>
+<p>MyBatisには、同一トランザクション内で2つ以上の<code>ExecutorType</code>で実行してはいけないという制約がある。<br>
+「ItemWriterに<code>MyBatisBatchItemWriter</code>を使用する」と「ItemProcessorでMapperインターフェースを使用し参照更新をする」を
+同時に満たす場合は、この制約に抵触する。<br>
+制約を回避するには、ItemProcessorでは<code>ExecutorType</code>が<code>BATCH</code>のMapperインターフェースによって
+データベースアクセスすることになる。<br>
+加えて、<code>MyBatisBatchItemWriter</code>ではSQL実行後のステータスチェックにより、自身が発行したSQLかどうかチェックしているのだが、
+当然ItemProcessorによるSQL実行は管理できないためエラーが発生してしまう。<br>
+よって、<code>MyBatisBatchItemWriter</code>を利用している場合は、Mapperインターフェースによる更新はできなくなり、参照のみとなる。</p>
+</dd>
+</dl>
+</div>
+<div class="admonitionblock caution">
+<table>
+<tr>
+<td class="icon">
+<i class="fa icon-caution" title="Caution"></i>
+</td>
+<td class="content">
+<div class="paragraph">
+<p><code>MyBatisBatchItemWriter</code>のエラーチェックを無効化する設定ができるが、予期せぬ動作が起きる可能性があるため無効化は禁止する。</p>
+</div>
+</td>
+</tr>
+</table>
+</div>
+<div class="dlist">
+<dl>
+<dt class="hdlist1">Taskletでの制約</dt>
+<dd>
+<p>Taskletでは、Mapperインターフェースを利用することが基本であるため、ItemProcessorのような影響はない。<br>
+<code>MyBatisBatchItemWriter</code>をInjectして利用することも考えられるが、その場合はMapperインターフェース自体を
+<code>BATCH</code>設定で処理すればよい。つまり、Taskletでは、<code>MyBatisBatchItemWriter</code>をInjectして使う必要は基本的にない。</p>
+</dd>
+<dt class="hdlist1">リスナーでの制約</dt>
+<dd>
+<p>リスナーでもItemProcessorでの制約と同じ制約が成立する。
+加えて、リスナーでは、更新を必要とするユースケースが考えにくい。よって、リスナーでは、更新系処理を禁止する。</p>
+</dd>
+</dl>
+</div>
+<div class="admonitionblock note">
+<table>
+<tr>
+<td class="icon">
+<i class="fa icon-note" title="Note"></i>
+</td>
+<td class="content">
+<div class="title">リスナーで想定される更新処理の代替</div>
+<div class="dlist">
+<dl>
+<dt class="hdlist1">ジョブの状態管理</dt>
+<dd>
+<p>Spring BatchのJobRepositoryによって行われている</p>
+</dd>
+<dt class="hdlist1">データベースへのログ出力</dt>
+<dd>
+<p>ログのAppenderで実施すべき。ジョブのトランザクションとも別管理する必要がある。</p>
+</dd>
+</dl>
+</div>
+</td>
+</tr>
+</table>
+</div>
+<div class="sect3">
+<h4 id="Ch05_DBAccess_HowToUse_Output_MyBatisMapperInterface_ItemProcess"><a class="anchor" href="#Ch05_DBAccess_HowToUse_Output_MyBatisMapperInterface_ItemProcess"></a>ItemProcessorでのデータベースアクセス</h4>
+<div class="paragraph">
+<p>ItemProcessorでのデータベースアクセス例を説明する。</p>
+</div>
+<div class="listingblock">
+<div class="title">ItemProcessorでの実装例</div>
+<div class="content">
+<pre class="CodeRay highlight"><code data-lang="java"><span class="annotation">@Component</span>
+<span class="directive">public</span> <span class="type">class</span> <span class="class">UpdateItemFromDBProcessor</span> <span class="directive">implements</span>
+        ItemProcessor&lt;SalesPerformanceDetail, SalesPlanDetail&gt; {
+
+    <span class="comment">// (1)</span>
+    <span class="annotation">@Inject</span>
+    CustomerRepository customerRepository;
+
+    <span class="annotation">@Override</span>
+    <span class="directive">public</span> SalesPlanDetail process(SalesPerformanceDetail readItem) <span class="directive">throws</span> <span class="exception">Exception</span> {
+
+        <span class="comment">// (2)</span>
+        Customer customer = customerRepository.findOne(readItem.getCustomerId());
+
+        <span class="comment">// (3)</span>
+        SalesPlanDetail writeItem = <span class="keyword">new</span> SalesPlanDetail();
+        writeItem.setBranchId(customer.getChargeBranchId());
+        writeItem.setYear(readItem.getYear());
+        writeItem.setMonth(readItem.getMonth());
+        writeItem.setCustomerId(readItem.getCustomerId());
+        writeItem.setAmount(readItem.getAmount());
+        <span class="keyword">return</span> writeItem;
+    }
+}</code></pre>
+</div>
+</div>
+<div class="listingblock">
+<div class="title">Bean定義</div>
+<div class="content">
+<pre class="CodeRay highlight"><code data-lang="xml"><span class="comment">&lt;!-- (2) --&gt;</span>
+<span class="tag">&lt;mybatis:scan</span>
+        <span class="attribute-name">base-package</span>=<span class="string"><span class="delimiter">&quot;</span><span class="content">org.terasoluna.batch.functionaltest.app.repository</span><span class="delimiter">&quot;</span></span>
+        <span class="attribute-name">template-ref</span>=<span class="string"><span class="delimiter">&quot;</span><span class="content">batchModeSqlSessionTemplate</span><span class="delimiter">&quot;</span></span><span class="tag">/&gt;</span>
+
+<span class="tag">&lt;bean</span> <span class="attribute-name">id</span>=<span class="string"><span class="delimiter">&quot;</span><span class="content">reader</span><span class="delimiter">&quot;</span></span> <span class="attribute-name">class</span>=<span class="string"><span class="delimiter">&quot;</span><span class="content">org.mybatis.spring.batch.MyBatisCursorItemReader</span><span class="delimiter">&quot;</span></span>
+      <span class="attribute-name">p:queryId</span><span class="error">&quot;</span><span class="attribute-name">org.terasoluna.batch.functionaltest.app.repository.performance.SalesPerformanceDetailRepository.findAll</span><span class="error">&quot;</span>
+      <span class="attribute-name">p:sqlSessionFactory-ref</span>=<span class="string"><span class="delimiter">&quot;</span><span class="content">jobSqlSessionFactory</span><span class="delimiter">&quot;</span></span><span class="tag">/&gt;</span>
+
+<span class="comment">&lt;!-- (3) --&gt;</span>
+<span class="tag">&lt;bean</span> <span class="attribute-name">id</span>=<span class="string"><span class="delimiter">&quot;</span><span class="content">writer</span><span class="delimiter">&quot;</span></span> <span class="attribute-name">class</span>=<span class="string"><span class="delimiter">&quot;</span><span class="content">org.mybatis.spring.batch.MyBatisBatchItemWriter</span><span class="delimiter">&quot;</span></span>
+      <span class="attribute-name">p:statementId</span>=<span class="string"><span class="delimiter">&quot;</span><span class="content">org.terasoluna.batch.functionaltest.app.repository.plan.SalesPlanDetailRepository.create</span><span class="delimiter">&quot;</span></span>
+      <span class="attribute-name">p:sqlSessionTemplate-ref</span>=<span class="string"><span class="delimiter">&quot;</span><span class="content">batchModeSqlSessionTemplate</span><span class="delimiter">&quot;</span></span><span class="tag">/&gt;</span>
+
+<span class="tag">&lt;batch:job</span> <span class="attribute-name">id</span>=<span class="string"><span class="delimiter">&quot;</span><span class="content">DBAccessByItemProcessor</span><span class="delimiter">&quot;</span></span> <span class="attribute-name">job-repository</span>=<span class="string"><span class="delimiter">&quot;</span><span class="content">jobRepository</span><span class="delimiter">&quot;</span></span><span class="tag">&gt;</span>
+    <span class="tag">&lt;batch:step</span> <span class="attribute-name">id</span>=<span class="string"><span class="delimiter">&quot;</span><span class="content">DBAccessByItemProcessor.step01</span><span class="delimiter">&quot;</span></span><span class="tag">&gt;</span>
+        <span class="tag">&lt;batch:tasklet</span> <span class="attribute-name">transaction-manager</span>=<span class="string"><span class="delimiter">&quot;</span><span class="content">jobTransactionManager</span><span class="delimiter">&quot;</span></span><span class="tag">&gt;</span>
+            <span class="comment">&lt;!-- (4) --&gt;</span>
+            <span class="tag">&lt;batch:chunk</span> <span class="attribute-name">reader</span>=<span class="string"><span class="delimiter">&quot;</span><span class="content">reader</span><span class="delimiter">&quot;</span></span>
+                         <span class="attribute-name">processor</span>=<span class="string"><span class="delimiter">&quot;</span><span class="content">updateItemFromDBProcessor</span><span class="delimiter">&quot;</span></span>
+                         <span class="attribute-name">writer</span>=<span class="string"><span class="delimiter">&quot;</span><span class="content">writer</span><span class="delimiter">&quot;</span></span> <span class="attribute-name">commit-interval</span>=<span class="string"><span class="delimiter">&quot;</span><span class="content">10</span><span class="delimiter">&quot;</span></span><span class="tag">/&gt;</span>
+        <span class="tag">&lt;/batch:tasklet&gt;</span>
+    <span class="tag">&lt;/batch:step&gt;</span>
+<span class="tag">&lt;/batch:job&gt;</span></code></pre>
+</div>
+</div>
+<div class="paragraph">
+<p>MapperインターフェースとMapper XMLは省略する。</p>
+</div>
+<table class="tableblock frame-all grid-all spread">
+<caption class="title">説明</caption>
+<colgroup>
+<col style="width: 10%;">
+<col style="width: 90%;">
+</colgroup>
+<tbody>
+<tr>
+<td class="tableblock halign-left valign-top"><p class="tableblock">項番</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">説明</p></td>
+</tr>
+<tr>
+<td class="tableblock halign-left valign-top"><p class="tableblock">(1)</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">MapperインターフェースをInjectする。</p></td>
+</tr>
+<tr>
+<td class="tableblock halign-left valign-top"><p class="tableblock">(2)</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">Mapper XMLの登録を行う。<br>
+<code>template-ref</code>属性に<code>BATCH</code>設定されている<code>batchModeSqlSessionTemplate</code>を指定することで、
+ItemProcessorでのデータベースアクセスは<code>BATCH</code>となる。
+ここで、<code>factory-ref="jobSqlSessionFactory"</code>としてしまうと、前述の制約に抵触し、
+<code>MyBatisBatchItemWriter</code>実行時に例外が発生してしまう。</p></td>
+</tr>
+<tr>
+<td class="tableblock halign-left valign-top"><p class="tableblock">(3)</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><code>MyBatisBatchItemWriter</code>を定義する。<br>
+<code>sqlSessionTemplate</code>プロパティに<code>BATCH</code>設定されている<code>batchModeSqlSessionTemplate</code>を指定する。</p></td>
+</tr>
+<tr>
+<td class="tableblock halign-left valign-top"><p class="tableblock">(4)</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">MapperインターフェースをInjectしたItemProcessorを設定する。</p></td>
+</tr>
+</tbody>
+</table>
+<div class="admonitionblock important">
+<table>
+<tr>
+<td class="icon">
+<i class="fa icon-important" title="Important"></i>
+</td>
+<td class="content">
+<div class="title">MyBatisCursorItemReader設定の補足</div>
+<div class="paragraph">
+<p>以下に示す定義例のように、MyBatisCursorItemReaderとMyBatisBatchItemWriterで異なる<code>ExecutorType</code>を使用しても問題ない。
+これは、MyBatisCursorItemReaderによるリソースのオープンが、トランザクション開始前に行われているからである。</p>
+</div>
+<div class="listingblock">
+<div class="content">
+<pre class="CodeRay highlight"><code data-lang="xml"><span class="tag">&lt;bean</span> <span class="attribute-name">id</span>=<span class="string"><span class="delimiter">&quot;</span><span class="content">reader</span><span class="delimiter">&quot;</span></span> <span class="attribute-name">class</span>=<span class="string"><span class="delimiter">&quot;</span><span class="content">org.mybatis.spring.batch.MyBatisCursorItemReader</span><span class="delimiter">&quot;</span></span>
+      <span class="attribute-name">p:queryId</span>=<span class="string"><span class="delimiter">&quot;</span><span class="content">xxx</span><span class="delimiter">&quot;</span></span>
+      <span class="attribute-name">p:sqlSessionFactory-ref</span>=<span class="string"><span class="delimiter">&quot;</span><span class="content">jobSqlSessionFactory</span><span class="delimiter">&quot;</span></span><span class="tag">/&gt;</span>
+
+<span class="tag">&lt;bean</span> <span class="attribute-name">id</span>=<span class="string"><span class="delimiter">&quot;</span><span class="content">writer</span><span class="delimiter">&quot;</span></span> <span class="attribute-name">class</span>=<span class="string"><span class="delimiter">&quot;</span><span class="content">org.mybatis.spring.batch.MyBatisBatchItemWriter</span><span class="delimiter">&quot;</span></span>
+      <span class="attribute-name">p:statementId</span>=<span class="string"><span class="delimiter">&quot;</span><span class="content">yyy</span><span class="delimiter">&quot;</span></span>
+      <span class="attribute-name">p:sqlSessionTemplate-ref</span>=<span class="string"><span class="delimiter">&quot;</span><span class="content">batchModeSqlSessionTemplate</span><span class="delimiter">&quot;</span></span><span class="tag">/&gt;</span></code></pre>
+</div>
+</div>
+</td>
+</tr>
+</table>
+</div>
+</div>
+<div class="sect3">
+<h4 id="Ch05_DBAccess_HowToUse_Output_MyBatisMapperInterface_Tasklet"><a class="anchor" href="#Ch05_DBAccess_HowToUse_Output_MyBatisMapperInterface_Tasklet"></a>Taskletでのデータベースアクセス</h4>
+<div class="paragraph">
+<p>Taskletでのデータベースアクセス例を説明する。</p>
+</div>
+<div class="listingblock">
+<div class="title">Taskletでの実装例</div>
+<div class="content">
+<pre class="CodeRay highlight"><code data-lang="java"><span class="annotation">@Component</span>
+<span class="directive">public</span> <span class="type">class</span> <span class="class">OptimisticLockTasklet</span> <span class="directive">implements</span> Tasklet {
+
+    <span class="comment">// (1)</span>
+    <span class="annotation">@Inject</span>
+    ExclusiveControlRepository repository;
+
+    <span class="comment">// omitted</span>
+
+    <span class="annotation">@Override</span>
+    <span class="directive">public</span> RepeatStatus execute(StepContribution contribution,
+            ChunkContext chunkContext) <span class="directive">throws</span> <span class="exception">Exception</span> {
+
+        Branch branch = repository.branchFindOne(branchId); <span class="comment">// (2)</span>
+        ExclusiveBranch exclusiveBranch = <span class="keyword">new</span> ExclusiveBranch();
+
+        exclusiveBranch.setBranchId(branch.getBranchId());
+        exclusiveBranch.setBranchName(branch.getBranchName() + <span class="string"><span class="delimiter">&quot;</span><span class="content"> - </span><span class="delimiter">&quot;</span></span> + identifier);
+        exclusiveBranch.setBranchAddress(branch.getBranchAddress() + <span class="string"><span class="delimiter">&quot;</span><span class="content"> - </span><span class="delimiter">&quot;</span></span> + identifier);
+        exclusiveBranch.setBranchTel(branch.getBranchTel());
+        exclusiveBranch.setCreateDate(branch.getUpdateDate());
+        exclusiveBranch.setUpdateDate(<span class="keyword">new</span> <span class="predefined-type">Timestamp</span>(<span class="predefined-type">System</span>.currentTimeMillis()));
+        exclusiveBranch.setOldBranchName(branch.getBranchName());
+
+        <span class="type">int</span> result = repository.branchExclusiveUpdate(exclusiveBranch); <span class="comment">// (3)</span>
+
+        <span class="keyword">return</span> RepeatStatus.FINISHED;
+    }
+}</code></pre>
+</div>
+</div>
+<div class="listingblock">
+<div class="title">Bean定義</div>
+<div class="content">
+<pre class="CodeRay highlight"><code data-lang="xml"><span class="comment">&lt;!-- (4) --&gt;</span>
+<span class="tag">&lt;mybatis:scan</span>
+        <span class="attribute-name">base-package</span>=<span class="string"><span class="delimiter">&quot;</span><span class="content">org.terasoluna.batch.functionaltest.ch05.exclusivecontrol.repository</span><span class="delimiter">&quot;</span></span>
+        <span class="attribute-name">factory-ref</span>=<span class="string"><span class="delimiter">&quot;</span><span class="content">jobSqlSessionFactory</span><span class="delimiter">&quot;</span></span><span class="tag">/&gt;</span>
+
+<span class="tag">&lt;batch:job</span> <span class="attribute-name">id</span>=<span class="string"><span class="delimiter">&quot;</span><span class="content">taskletOptimisticLockCheckJob</span><span class="delimiter">&quot;</span></span> <span class="attribute-name">job-repository</span>=<span class="string"><span class="delimiter">&quot;</span><span class="content">jobRepository</span><span class="delimiter">&quot;</span></span><span class="tag">&gt;</span>
+    <span class="tag">&lt;batch:step</span> <span class="attribute-name">id</span>=<span class="string"><span class="delimiter">&quot;</span><span class="content">taskletOptimisticLockCheckJob.step01</span><span class="delimiter">&quot;</span></span><span class="tag">&gt;</span>
+        <span class="tag">&lt;batch:tasklet</span> <span class="attribute-name">transaction-manager</span>=<span class="string"><span class="delimiter">&quot;</span><span class="content">jobTransactionManager</span><span class="delimiter">&quot;</span></span>
+                       <span class="attribute-name">ref</span>=<span class="string"><span class="delimiter">&quot;</span><span class="content">optimisticLockTasklet</span><span class="delimiter">&quot;</span></span><span class="tag">&gt;</span> <span class="comment">&lt;!-- (5) --&gt;</span>
+        <span class="tag">&lt;/batch:tasklet&gt;</span>
+    <span class="tag">&lt;/batch:step&gt;</span>
+<span class="tag">&lt;/batch:job&gt;</span></code></pre>
+</div>
+</div>
+<div class="paragraph">
+<p>MapperインターフェースとMapper XMLは省略する。</p>
+</div>
+<table class="tableblock frame-all grid-all spread">
+<caption class="title">説明</caption>
+<colgroup>
+<col style="width: 10%;">
+<col style="width: 90%;">
+</colgroup>
+<tbody>
+<tr>
+<td class="tableblock halign-left valign-top"><p class="tableblock">項番</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">説明</p></td>
+</tr>
+<tr>
+<td class="tableblock halign-left valign-top"><p class="tableblock">(1)</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">MapperインターフェースをInjectする。</p></td>
+</tr>
+<tr>
+<td class="tableblock halign-left valign-top"><p class="tableblock">(2)</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">Mapperインターフェースで検索処理を実行する。</p></td>
+</tr>
+<tr>
+<td class="tableblock halign-left valign-top"><p class="tableblock">(3)</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">Mapperインターフェースで更新処理を実行する。</p></td>
+</tr>
+<tr>
+<td class="tableblock halign-left valign-top"><p class="tableblock">(4)</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">Mapper XMLの登録を行う。<br>
+<code>factory-ref</code>属性に<code>REUSE</code>設定されている<code>jobSqlSessionFactory</code>を指定する。</p></td>
+</tr>
+<tr>
+<td class="tableblock halign-left valign-top"><p class="tableblock">(5)</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">MapperインターフェースをInjectしTaskletを設定する。</p></td>
+</tr>
+</tbody>
+</table>
+<div class="admonitionblock note">
+<table>
+<tr>
+<td class="icon">
+<i class="fa icon-note" title="Note"></i>
+</td>
+<td class="content">
+<div class="title">batchModeSqlSessionTemplateの利用</div>
+<div class="paragraph">
+<p>タスクレットモデルでの更新処理が多い場合は、<code>factory-ref</code>属性に<code>`batchModeSqlSessionTemplate</code>を設定する。
+これにより、バッチ更新処理が行われるので、性能向上が期待できる。
+ただし、バッチ更新の実行は<code>flush</code>を明示的に呼ぶ必要があるため、注意すること。
+詳細は、
+<a href="http://terasolunaorg.github.io/guideline/5.3.0.RELEASE/ja/ArchitectureInDetail/DataAccessDetail/DataAccessMyBatis3.html#dataaccessmybatis3howtoextendexecutortypebatchnotes">バッチモードのRepository利用時の注意点</a>
+を参照のこと。</p>
+</div>
+</td>
+</tr>
+</table>
+</div>
+</div>
+<div class="sect3">
+<h4 id="Ch05_DBAccess_HowToUse_Output_MyBatisMapperInterface_listener"><a class="anchor" href="#Ch05_DBAccess_HowToUse_Output_MyBatisMapperInterface_listener"></a>リスナーでのデータベースアクセス</h4>
+<div class="paragraph">
+<p>リスナーでのデータベースアクセスは他のコンポーネントと連携することが多い。
+使用するリスナー及び実装方法によっては、Mapperインターフェースで取得したデータを、
+他のコンポーネントへ引き渡す仕組みを追加で用意する必要がある。</p>
+</div>
+<div class="paragraph">
+<p>ここでは一例として、<a href="Ch04_Listener.html#Ch04_Listener_Overview_Types_StepExecutionListener">StepExecutionListener</a>で
+ステップ実行前にデータを取得して、ItemProcessorで取得したデータを利用する例を示す。</p>
+</div>
+<div class="listingblock">
+<div class="title">リスナーでの実装例</div>
+<div class="content">
+<pre class="CodeRay highlight"><code data-lang="java"><span class="directive">public</span> <span class="type">class</span> <span class="class">CacheSetListener</span> <span class="directive">extends</span> StepExecutionListenerSupport {
+
+    <span class="comment">// (1)</span>
+    <span class="annotation">@Inject</span>
+    CustomerRepository customerRepository;
+
+    <span class="comment">// (2)</span>
+    <span class="annotation">@Inject</span>
+    CustomerCache cache;
+
+    <span class="annotation">@Override</span>
+    <span class="directive">public</span> <span class="type">void</span> beforeStep(StepExecution stepExecution) {
+        <span class="comment">// (3)</span>
+        customerRepository.findAll().forEach(customer -&gt;
+                cache.addCustomer(customer.getCustomerId(), customer));
+    }
+}</code></pre>
+</div>
+</div>
+<div class="listingblock">
+<div class="title">ItemProcessorでの利用例</div>
+<div class="content">
+<pre class="CodeRay highlight"><code data-lang="java"><span class="annotation">@Component</span>
+<span class="directive">public</span> <span class="type">class</span> <span class="class">UpdateItemFromCacheProcessor</span> <span class="directive">implements</span>
+        ItemProcessor&lt;SalesPerformanceDetail, SalesPlanDetail&gt; {
+
+    <span class="comment">// (4)</span>
+    <span class="annotation">@Inject</span>
+    CustomerCache cache;
+
+    <span class="annotation">@Override</span>
+    <span class="directive">public</span> SalesPlanDetail process(SalesPerformanceDetail readItem) <span class="directive">throws</span> <span class="exception">Exception</span> {
+        Customer customer = cache.getCustomer(readItem.getCustomerId());  <span class="comment">// (5)</span>
+
+        SalesPlanDetail writeItem = <span class="keyword">new</span> SalesPlanDetail();
+
+        <span class="comment">// omitted</span>
+        writerItem.setCustomerName(customer.getCustomerName); <span class="comment">// (6)</span>
+
+        <span class="keyword">return</span> writeItem;
+    }
+}</code></pre>
+</div>
+</div>
+<div class="listingblock">
+<div class="title">キャッシュクラス</div>
+<div class="content">
+<pre class="CodeRay highlight"><code data-lang="java"><span class="comment">// (7)</span>
+<span class="annotation">@Component</span>
+<span class="directive">public</span> <span class="type">class</span> <span class="class">CustomerCache</span> {
+
+    <span class="predefined-type">Map</span>&lt;<span class="predefined-type">String</span>, Customer&gt; customerMap = <span class="keyword">new</span> <span class="predefined-type">HashMap</span>&lt;&gt;();
+
+    <span class="directive">public</span> Customer getCustomer(<span class="predefined-type">String</span> customerId) {
+        <span class="keyword">return</span> customerMap.get(customerId);
+    }
+
+    <span class="directive">public</span> <span class="type">void</span> addCustomer(<span class="predefined-type">String</span> id, Customer customer) {
+        customerMap.put(id, customer);
+    }
+}</code></pre>
+</div>
+</div>
+<div class="listingblock">
+<div class="title">Bean定義</div>
+<div class="content">
+<pre class="CodeRay highlight"><code data-lang="xml"><span class="comment">&lt;!-- omitted --&gt;</span>
+
+<span class="comment">&lt;!-- (8) --&gt;</span>
+<span class="tag">&lt;mybatis:scan</span>
+        <span class="attribute-name">base-package</span>=<span class="string"><span class="delimiter">&quot;</span><span class="content">org.terasoluna.batch.functionaltest.app.repository</span><span class="delimiter">&quot;</span></span>
+        <span class="attribute-name">template-ref</span>=<span class="string"><span class="delimiter">&quot;</span><span class="content">batchModeSqlSessionTemplate</span><span class="delimiter">&quot;</span></span><span class="tag">/&gt;</span>
+<span class="comment">&lt;!-- (9) --&gt;</span>
+<span class="tag">&lt;bean</span> <span class="attribute-name">id</span>=<span class="string"><span class="delimiter">&quot;</span><span class="content">cacheSetListener</span><span class="delimiter">&quot;</span></span>
+      <span class="attribute-name">class</span>=<span class="string"><span class="delimiter">&quot;</span><span class="content">org.terasoluna.batch.functionaltest.ch05.dbaccess.CacheSetListener</span><span class="delimiter">&quot;</span></span><span class="tag">/&gt;</span>
+
+<span class="comment">&lt;!-- omitted --&gt;</span>
+
+<span class="tag">&lt;batch:job</span> <span class="attribute-name">id</span>=<span class="string"><span class="delimiter">&quot;</span><span class="content">DBAccessByItemListener</span><span class="delimiter">&quot;</span></span> <span class="attribute-name">job-repository</span>=<span class="string"><span class="delimiter">&quot;</span><span class="content">jobRepository</span><span class="delimiter">&quot;</span></span><span class="tag">&gt;</span>
+    <span class="tag">&lt;batch:step</span> <span class="attribute-name">id</span>=<span class="string"><span class="delimiter">&quot;</span><span class="content">DBAccessByItemListener.step01</span><span class="delimiter">&quot;</span></span><span class="tag">&gt;</span>
+        <span class="tag">&lt;batch:tasklet</span> <span class="attribute-name">transaction-manager</span>=<span class="string"><span class="delimiter">&quot;</span><span class="content">jobTransactionManager</span><span class="delimiter">&quot;</span></span><span class="tag">&gt;</span>
+            <span class="tag">&lt;batch:chunk</span> <span class="attribute-name">reader</span>=<span class="string"><span class="delimiter">&quot;</span><span class="content">reader</span><span class="delimiter">&quot;</span></span>
+                         <span class="attribute-name">processor</span>=<span class="string"><span class="delimiter">&quot;</span><span class="content">updateItemFromCacheProcessor</span><span class="delimiter">&quot;</span></span>
+                         <span class="attribute-name">writer</span>=<span class="string"><span class="delimiter">&quot;</span><span class="content">writer</span><span class="delimiter">&quot;</span></span> <span class="attribute-name">commit-interval</span>=<span class="string"><span class="delimiter">&quot;</span><span class="content">10</span><span class="delimiter">&quot;</span></span><span class="tag">/&gt;</span> <span class="comment">&lt;!-- (10) --&gt;</span>
+            <span class="comment">&lt;!-- (11) --&gt;</span>
+            <span class="tag">&lt;batch:listeners&gt;</span>
+                <span class="tag">&lt;batch:listener</span> <span class="attribute-name">ref</span>=<span class="string"><span class="delimiter">&quot;</span><span class="content">cacheSetListener</span><span class="delimiter">&quot;</span></span><span class="tag">/&gt;</span>
+            <span class="tag">&lt;/batch:listeners&gt;</span>
+        <span class="tag">&lt;/batch:tasklet&gt;</span>
+    <span class="tag">&lt;/batch:step&gt;</span>
+<span class="tag">&lt;/batch:job&gt;</span></code></pre>
+</div>
+</div>
+<table class="tableblock frame-all grid-all spread">
+<caption class="title">説明</caption>
+<colgroup>
+<col style="width: 10%;">
+<col style="width: 90%;">
+</colgroup>
+<tbody>
+<tr>
+<td class="tableblock halign-left valign-top"><p class="tableblock">項番</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">説明</p></td>
+</tr>
+<tr>
+<td class="tableblock halign-left valign-top"><p class="tableblock">(1)</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">MapperインターフェースをInjectする。</p></td>
+</tr>
+<tr>
+<td class="tableblock halign-left valign-top"><p class="tableblock">(2)</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">Mapperインターフェースから取得したデータをキャッシュするためのBeanをInjectする。</p></td>
+</tr>
+<tr>
+<td class="tableblock halign-left valign-top"><p class="tableblock">(3)</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">リスナーにて、Mapperインターフェースからデータを取得してキャッシュする。<br>
+ここでは、<code>StepExecutionListener#beforeStep</code>にてステップ実行前にキャッシュを作成し、
+以降の処理ではキャッシュを参照することで、I/Oを低減し処理効率を高めている。</p></td>
+</tr>
+<tr>
+<td class="tableblock halign-left valign-top"><p class="tableblock">(4)</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">(2)で設定したキャッシュと同じBeanをInjectする。</p></td>
+</tr>
+<tr>
+<td class="tableblock halign-left valign-top"><p class="tableblock">(5)</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">キャッシュから該当するデータを取得する。</p></td>
+</tr>
+<tr>
+<td class="tableblock halign-left valign-top"><p class="tableblock">(6)</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">更新データにキャッシュからのデータを反映する。</p></td>
+</tr>
+<tr>
+<td class="tableblock halign-left valign-top"><p class="tableblock">(7)</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">キャッシュクラスをコンポーネントとして実装する。<br>
+ここではBeanスコープは<code>singleton</code>にしている。ジョブに応じて設定すること。</p></td>
+</tr>
+<tr>
+<td class="tableblock halign-left valign-top"><p class="tableblock">(8)</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">Mapper XMLの登録を行う。<br>
+<code>template-ref</code>属性に<code>BATCH</code>が設定されている<code>batchModeSqlSessionTemplate</code>を指定する。</p></td>
+</tr>
+<tr>
+<td class="tableblock halign-left valign-top"><p class="tableblock">(9)</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">Mapperインターフェースを利用するリスナーを定義する。</p></td>
+</tr>
+<tr>
+<td class="tableblock halign-left valign-top"><p class="tableblock">(10)</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">キャッシュを利用するItemProcessorを指定する。</p></td>
+</tr>
+<tr>
+<td class="tableblock halign-left valign-top"><p class="tableblock">(11)</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">(9)で定義したリスナーを登録する。</p></td>
+</tr>
+</tbody>
+</table>
+<div class="admonitionblock note">
+<table>
+<tr>
+<td class="icon">
+<i class="fa icon-note" title="Note"></i>
+</td>
+<td class="content">
+<div class="title">リスナーでのSqlSessionFactoryの利用</div>
+<div class="paragraph">
+<p>上記の例では、<code>batchModeSqlSessionTemplate</code>を設定しているが、<code>jobSqlSessionFactory</code>を設定してもよい。</p>
+</div>
+<div class="paragraph">
+<p>チャンクのスコープ外で動作するリスナーについては、トランザクション外で処理されるため、
+<code>jobSqlSessionFactory</code>を設定しても問題ない。</p>
+</div>
+</td>
+</tr>
+</table>
+</div>
+</div>
+</div>
+</div>
+</div>
+</div>
+<div class="footer-navi">
+  <a href="index.html">index</a>
+</div>
+
+<div class="footer-copyright">
+ &copy; Copyright 2017 NTT DATA Corporation.
+</div>
+</body>
+</html>

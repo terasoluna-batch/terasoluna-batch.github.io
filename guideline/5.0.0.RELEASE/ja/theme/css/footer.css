@@ -1,0 +1,16 @@
+div.footer-navi {
+    background-color: #93a1a1;
+    color: #eee;
+    padding: 3px 8px 3px 0;
+    clear: both;
+    font-size: 0.8em;
+    text-align: left;
+}
+div.footer-copyright {
+    background-color: #93a1a1;
+    color: #eee;
+    padding: 3px 8px 3px 0;
+    clear: both;
+    font-size: 0.8em;
+    text-align: right;
+}
