@@ -125,7 +125,7 @@ handling exception in the framework.</p></td>
 <td class="tableblock halign-left valign-top"><p class="tableblock">Exception caused by illegal request of job request is handled in the framework and performs exception handling.
 </p><p class="tableblock"><span class="icon"><i class="fa fa-warning"></i></span> In case of <a href="Ch04_AsyncJobWithDB.html#Ch04_AsyncJobWithDB">Asynchronous execution(DB polling)</a>
 in the polling process, the validity of the job request is not verified.Therefore, it is desirable that the input check for the request is made in advance by the application that registers the job request.
-</p><p class="tableblock"><span class="icon"><i class="fa fa-warning"></i></span> In case of <a href="h04_AsyncJobWithWebContainer.html#Ch04_AsyncJobWithWeb">Asynchronous execution(Web container)</a>
+</p><p class="tableblock"><span class="icon"><i class="fa fa-warning"></i></span> In case of <a href="Ch04_AsyncJobWithWebContainer.html#Ch04_AsyncJobWithWeb">Asynchronous execution(Web container)</a>
 It is assumed that the input check for the request is made in advance by the Web application.
 </p><p class="tableblock">Therefore, exception handling is performed in an application that accepts requests or job requests.</p></td>
 <td class="tableblock halign-left valign-top"><p class="tableblock"><a href="#Ch06_ExceptionHandling_Overview_Type_IllegalRequest">Invalid job request error</a></p></td>

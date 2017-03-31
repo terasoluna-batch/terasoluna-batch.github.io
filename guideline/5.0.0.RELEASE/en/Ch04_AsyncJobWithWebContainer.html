@@ -97,7 +97,7 @@ of job to be referred from  <code>JobRepository</code> even after stopping Web c
 </div>
 <div class="paragraph">
 <div class="title">Usage scene</div>
-<p>It is same as <a href="Ch04_AsyncJobWithDB.html#Ch04_AsyncJobWithDB_OverView">Asynchronous execution (DB polling) - Overview</a>.</p>
+<p>It is same as <a href="Ch04_AsyncJobWithDB.html#Ch04_AsyncJobWithDB_Overview">Asynchronous execution (DB polling) - Overview</a>.</p>
 </div>
 <div class="admonitionblock tip">
 <table>
@@ -109,7 +109,7 @@ of job to be referred from  <code>JobRepository</code> even after stopping Web c
 <div class="title">Difference with asynchronous execution (DB polling)</div>
 <div class="paragraph">
 <p>On the architecture front, immediacy at the time of asynchronous execution and presence or absence of request management table are different.<br>
-<a href="#Ch04_AsyncJobWithDB.adoc">Asynchronous execution (DB polling)</a> performs asynchronous execution of multiple jobs registered in the request management table.<br>
+<a href="Ch04_AsyncJobWithDB.html#Ch04_AsyncJobWithDB">Asynchronous execution (DB polling)</a> performs asynchronous execution of multiple jobs registered in the request management table.<br>
 On the other hand, this function does not require request management table and accepts asynchronous execution on the Web container instead.<br>
 It is suitable for a short batch which requires immediacy till the start of the operation in order to execute the operation immediately by sending a Web request.</p>
 </div>
@@ -319,7 +319,7 @@ One of the methods of confirmation include using <code>JobExplorer</code> while 
 <div class="sect2">
 <h3 id="Ch04_AsyncJobWithWeb_Arch_Components"><a class="anchor" href="#Ch04_AsyncJobWithWeb_Arch_Components"></a>Application configuration of asynchronous execution (Web container)</h3>
 <div class="paragraph">
-<p>The function is same as <a href="#Ch04_AsyncJobWithDB.adoc">Asynchronous execution (DB polling)</a> and use
+<p>The function is same as <a href="Ch04_AsyncJobWithDB.html#Ch04_AsyncJobWithDB">Asynchronous execution (DB polling)</a> and use
 <code>async</code> and <code>AutomaticJobRegistrar</code> of Spring profile as a configuration specific to asynchronous execution.</p>
 </div>
 <div class="paragraph">
@@ -464,7 +464,9 @@ and library dependency besides making the development project testing easier to 
 </div>
 <div class="paragraph">
 <p>For how to create a batch application project and how to implement a basic job, refer
-<a href="#Ch03_CreateProject.adoc">How to create a project</a> and <a href="#Ch04_AsyncJobWithDB.adoc">Asynchronous execution (DB polling)</a>.</p>
+<a href="Ch03_CreateProject.html#Ch03_CreateProject_HowToCreate">How to create a project</a>,
+<a href="Ch03_CreateTaskletJob.html#Ch03_CreateTaskletJob">Creation of chunk model job</a>,
+<a href="Ch03_CreateChunkJob.html#Ch03_CreateChunkJob">Creation of tasklet model job</a>.</p>
 </div>
 <div class="paragraph">
 <p>Here, we will focus on starting a batch application from a Web application.</p>
@@ -1131,7 +1133,7 @@ Basically the format is as below.<br>
 <code>{Job parameter 1}={Value 1},{Job parameter 2}={Value 2},&#8230;&#8203;</code></p>
 </div>
 <div class="paragraph">
-<p>This is same as the method of specifying job parameters in <a href="#Ch04_AsyncJobWithDB.adoc">Asynchronous execution (DB polling)</a>.</p>
+<p>This is same as the method of specifying job parameters in <a href="Ch04_AsyncJobWithDB.html#Ch04_AsyncJobWithDB">Asynchronous execution (DB polling)</a>.</p>
 </div>
 </td>
 </tr>
@@ -1474,7 +1476,7 @@ When this premise is met, an implementation for stopping and restarting asynchro
 </div>
 <div class="paragraph">
 <p>Further, a method to add job stopping (stop) and restarting (restart) is explained
-for <code>JobController</code> of <a href="#Ch04_AsyncJobWithWeb_Imprement_Controller">Implementation of controller</a>.</p>
+for <code>JobController</code> of <a href="#Ch04_AsyncJobWithWeb_HowToUse_WebApp_Controller">Implementation of controller</a>.</p>
 </div>
 <div class="admonitionblock note">
 <table>
@@ -1585,7 +1587,7 @@ By sharing an external RDBMS, it is possible to wait for an asynchronous job to 
 </div>
 <div class="paragraph">
 <p>Applications include load balancing and redundancy for specific jobs.
-However, as described in <a href="#Ch04_AsyncJobWithWeb_HowToUse_WebContainerApp">Web application implementation</a>,
+However, as described in <a href="#Ch04_AsyncJobWithWeb_HowToUse_WebApp">Implementation of Web application</a>,
 these effects cannot be obtained easily just by starting multiple Web containers or enhancing parallel operations.
 Sometimes measures similar to a general Web application need to be taken in order to obtain the effect.
 An example is given below.</p>
