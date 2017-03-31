@@ -1,0 +1,252 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<!--[if IE]><meta http-equiv="X-UA-Compatible" content="IE=edge"><![endif]-->
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<meta name="generator" content="Asciidoctor 1.5.4">
+<title>Synchronous job</title>
+<link rel="stylesheet" href="./theme/css/readthedocs.css">
+<link rel="stylesheet" href="./theme/css/font-awesome.min.css">
+<link rel="stylesheet" href="./theme/css/coderay-asciidoctor.css">
+<link rel="stylesheet" href="./theme/css/footer.css">
+<title>TERASOLUNA Batch Framework for Java (5.x) Development Guideline</title>
+</head>
+<body id="Ch04_SyncJob" class="book toc2 toc-left">
+<div id="header">
+<h1>Synchronous job</h1>
+<div id="toc" class="toc2">
+<div id="toctitle">Table of Contents</div>
+<ul class="sectlevel1">
+<li><a href="#Ch04_SyncJob_Overview">Overview</a></li>
+<li><a href="#Ch04_SyncJob_HowToUse">How to use</a>
+<ul class="sectlevel2">
+<li><a href="#Ch04_SyncJob_HowToUse_Run">How to run</a></li>
+<li><a href="#Ch04_SyncJob_HowToUse_Options">Options</a></li>
+</ul>
+</li>
+</ul>
+</div>
+</div>
+<div id="content">
+<div class="sect1">
+<h2 id="Ch04_SyncJob_Overview"><a class="anchor" href="#Ch04_SyncJob_Overview"></a>Overview</h2>
+<div class="sectionbody">
+<div class="paragraph">
+<p>Synchronous job is explained.
+Synchronous job is the execution method of launching a new process through shell by job scheduler and returning the execution result of the job to the caller.</p>
+</div>
+<div class="imageblock">
+<div class="content">
+<img src="./images/Ch04_syncJob_overview.png" alt="overview of sync job">
+</div>
+<div class="title">Overview of synchronous job</div>
+</div>
+<div class="imageblock">
+<div class="content">
+<img src="./images/Ch04_syncjob_seq.png" alt="sequence of sync job">
+</div>
+<div class="title">Sequence of synchronous job</div>
+</div>
+<div class="paragraph">
+<p>The usage method of this function is same in the chunk model as well as tasklet model.</p>
+</div>
+</div>
+</div>
+<div class="sect1">
+<h2 id="Ch04_SyncJob_HowToUse"><a class="anchor" href="#Ch04_SyncJob_HowToUse"></a>How to use</h2>
+<div class="sectionbody">
+<div class="paragraph">
+<p>How to running a job by <code>CommandLineJobRunner</code> is explained.</p>
+</div>
+<div class="paragraph">
+<p>Refer to <a href="Ch03_CreateProject.html#Ch03_CreateProject">Create project</a> for building and executing the application.
+Refer to <a href="Ch04_JobParameter.html">Job parameters</a> for how to specify and use job parameters.
+Some explanation given in the above reference and in this section overlap however, the elements of synchronous job are mainly explained.</p>
+</div>
+<div class="sect2">
+<h3 id="Ch04_SyncJob_HowToUse_Run"><a class="anchor" href="#Ch04_SyncJob_HowToUse_Run"></a>How to run</h3>
+<div class="paragraph">
+<p>In TERASOLUNA Batch 5.x, run the synchronous job using <code>CommandLineJobRunner</code> provided by Spring Batch.
+Start <code>CommandLineJobRunner</code> by issuing java command as shown below.</p>
+</div>
+<div id="Ch04_SyncJob_HowToUse_Run_Syntax" class="listingblock">
+<div class="title">CommandLineJobRunner syntax</div>
+<div class="content">
+<pre class="CodeRay highlight"><code data-lang="console">$ java org.springframework.batch.core.launch.support.CommandLineJobRunner &lt;jobPath&gt; &lt;options&gt; &lt;jobIdentifier&gt; &lt;jobParameters&gt;</code></pre>
+</div>
+</div>
+<table class="tableblock frame-all grid-all spread">
+<caption class="title">Items to be specified by the arguments</caption>
+<colgroup>
+<col style="width: 10%;">
+<col style="width: 80%;">
+<col style="width: 10%;">
+</colgroup>
+<thead>
+<tr>
+<th class="tableblock halign-left valign-top">Items to be specified</th>
+<th class="tableblock halign-left valign-top">Explanation</th>
+<th class="tableblock halign-left valign-top">Required</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td class="tableblock halign-left valign-top"><p class="tableblock">jobPath</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">Bean definition file path where the settings of the job to be run are described. Specify by relative path from classpath.</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><span class="icon"><i class="fa fa-check"></i></span></p></td>
+</tr>
+<tr>
+<td class="tableblock halign-left valign-top"><p class="tableblock">options</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">Specify various options (stop, restart etc.) at the time of launching.</p></td>
+<td class="tableblock halign-left valign-top"></td>
+</tr>
+<tr>
+<td class="tableblock halign-left valign-top"><p class="tableblock">jobIdentifier</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">Specify job name in Bean definition or job run ID after job execution as the job identifier.
+Normally, specify job name. Specify job run ID only when specifying stop and restart options.</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><span class="icon"><i class="fa fa-check"></i></span></p></td>
+</tr>
+<tr>
+<td class="tableblock halign-left valign-top"><p class="tableblock">jobParameters</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">Specify job arguments. Specify in <code>key=value</code> format.</p></td>
+<td class="tableblock halign-left valign-top"></td>
+</tr>
+</tbody>
+</table>
+<div class="paragraph">
+<p>The execution example when only the required items are specified, is shown below.</p>
+</div>
+<div class="listingblock">
+<div class="content">
+<pre class="CodeRay highlight"><code data-lang="console">. Execution example 1 of CommandLineJobRunner
+----
+$ java -cp 'target/archetypeId-version.jar:lib/*' \ # (1)
+    org.springframework.batch.core.launch.support.CommandLineJobRunner \ # (2)
+    META-INF/jobs/job01.xml job01 # (3)
+----</code></pre>
+</div>
+</div>
+<div class="listingblock">
+<div class="title">Settings of Bean definition(Abstract)</div>
+<div class="content">
+<pre class="CodeRay highlight"><code data-lang="xml"><span class="tag">&lt;batch:job</span> <span class="attribute-name">id</span>=<span class="string"><span class="delimiter">&quot;</span><span class="content">job01</span><span class="delimiter">&quot;</span></span> <span class="attribute-name">job-repository</span>=<span class="string"><span class="delimiter">&quot;</span><span class="content">jobRepository</span><span class="delimiter">&quot;</span></span><span class="tag">&gt;</span> <span class="comment">&lt;!-- (3) --&gt;</span>
+    <span class="tag">&lt;batch:step</span> <span class="attribute-name">id</span>=<span class="string"><span class="delimiter">&quot;</span><span class="content">job01.step01</span><span class="delimiter">&quot;</span></span><span class="tag">&gt;</span>
+        <span class="tag">&lt;batch:tasklet</span> <span class="attribute-name">transaction-manager</span>=<span class="string"><span class="delimiter">&quot;</span><span class="content">jobTransactionManager</span><span class="delimiter">&quot;</span></span><span class="tag">&gt;</span>
+            <span class="tag">&lt;batch:chunk</span> <span class="attribute-name">reader</span>=<span class="string"><span class="delimiter">&quot;</span><span class="content">employeeReader</span><span class="delimiter">&quot;</span></span>
+                         <span class="attribute-name">processor</span>=<span class="string"><span class="delimiter">&quot;</span><span class="content">employeeProcessor</span><span class="delimiter">&quot;</span></span>
+                         <span class="attribute-name">writer</span>=<span class="string"><span class="delimiter">&quot;</span><span class="content">employeeWriter</span><span class="delimiter">&quot;</span></span> <span class="attribute-name">commit-interval</span>=<span class="string"><span class="delimiter">&quot;</span><span class="content">10</span><span class="delimiter">&quot;</span></span> <span class="tag">/&gt;</span>
+        <span class="tag">&lt;/batch:tasklet&gt;</span>
+    <span class="tag">&lt;/batch:step&gt;</span>
+<span class="tag">&lt;/batch:job&gt;</span></code></pre>
+</div>
+</div>
+<table class="tableblock frame-all grid-all spread">
+<caption class="title">Items list of setting contents</caption>
+<colgroup>
+<col style="width: 10%;">
+<col style="width: 90%;">
+</colgroup>
+<thead>
+<tr>
+<th class="tableblock halign-left valign-top">Sr. No.</th>
+<th class="tableblock halign-left valign-top">Explanation</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td class="tableblock halign-left valign-top"><p class="tableblock">(1)</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">Specify the batch application jar and dependent jar in <code>classpath</code> at the time of executing <code>java</code> command.
+ Here, it is specified by command arguments however, environment variables can also be used.</p></td>
+</tr>
+<tr>
+<td class="tableblock halign-left valign-top"><p class="tableblock">(2)</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">Specify <code>CommandLineJobRunner</code> with FQCN in the class to be run.</p></td>
+</tr>
+<tr>
+<td class="tableblock halign-left valign-top"><p class="tableblock">(3)</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">Pass the run arguments along the <code>CommandLineJobRunner</code>.
+Here, 2 job names are specified as <code>jobPath</code> and <code>jobIdentifier</code>.</p></td>
+</tr>
+</tbody>
+</table>
+<div class="paragraph">
+<p>Execution example when launch parameters are specified as the optional items, is shown below.</p>
+</div>
+<div class="listingblock">
+<div class="title">Execution example 2 of CommandLineJobRunner</div>
+<div class="content">
+<pre class="CodeRay highlight"><code data-lang="console">$ java -cp 'target/archetypeId-version.jar:lib/*' \
+    org.springframework.batch.core.launch.support.CommandLineJobRunner \
+    META-INF/jobs/setupJob.xml setupJob target=server1 outputFile=/tmp/result.csv # (1)</code></pre>
+</div>
+</div>
+<table class="tableblock frame-all grid-all spread">
+<caption class="title">Items list of setting contents</caption>
+<colgroup>
+<col style="width: 10%;">
+<col style="width: 90%;">
+</colgroup>
+<thead>
+<tr>
+<th class="tableblock halign-left valign-top">Sr. No.</th>
+<th class="tableblock halign-left valign-top">Explanation</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td class="tableblock halign-left valign-top"><p class="tableblock">(1)</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><code>target=server1</code> and <code>outputFile=/tmp/result.csv</code> are specified as job running parameters.</p></td>
+</tr>
+</tbody>
+</table>
+</div>
+<div class="sect2">
+<h3 id="Ch04_SyncJob_HowToUse_Options"><a class="anchor" href="#Ch04_SyncJob_HowToUse_Options"></a>Options</h3>
+<div class="paragraph">
+<p>Supplement the options indicated in <a href="#Ch04_SyncJob_HowToUse_Run_Syntax">CommandLineJobRunner syntax</a>.</p>
+</div>
+<div class="paragraph">
+<p>In <code>CommandLineJobRunner</code>, the following 4 launch options can be used.
+Here, only the overview of each option is explained.</p>
+</div>
+<div class="dlist">
+<dl>
+<dt class="hdlist1">-restart</dt>
+<dd>
+<p>Restarts the failed job. Refer to <a href="Ch06_ReProcessing.html">Reprocessing</a> for the details.</p>
+</dd>
+<dt class="hdlist1">-stop</dt>
+<dd>
+<p>Stops a running job. Refer to <a href="Ch07_JobManagement.html">Job management</a> for the details.</p>
+</dd>
+<dt class="hdlist1">-abandon</dt>
+<dd>
+<p>Abandons a stopped job. The abandoned job cannot be restarted.
+In TERASOLUNA Batch 5.x, there is no case of using this option, hence it is not explained.</p>
+</dd>
+<dt class="hdlist1">-next</dt>
+<dd>
+<p>Runs the job executed once in the past, again. However, in TERASOLUNA Batch 5.x, this option is not used.<br>
+In TERASOLUNA Batch 5.x, it is for avoiding the restriction "Running the job by the same parameter is recognized as the same job and the same job can be executed only once"
+that is given by default in Spring Batch.<br>
+The details are explained in <a href="Ch04_JobParameter.html#Ch04_JobParameter_HowToUse_Converter">regarding parameter conversion class</a>.<br>
+For using this option, implementation class of <code>JobParametersIncrementer</code> interface is required,
+it is not set inTERASOLUNA Batch 5.x.<br>
+Therefore, when this option is specified and launched, an error occurs because the required Bean definition does not exist.</p>
+</dd>
+</dl>
+</div>
+</div>
+</div>
+</div>
+</div>
+<div class="footer-navi">
+  <a href="index.html">index</a>
+</div>
+
+<div class="footer-copyright">
+ &copy; Copyright 2017-3-17, NTT DATA Corporation.
+</div>
+</body>
+</html>

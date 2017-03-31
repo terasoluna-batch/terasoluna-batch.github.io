@@ -1,0 +1,274 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<!--[if IE]><meta http-equiv="X-UA-Compatible" content="IE=edge"><![endif]-->
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<meta name="generator" content="Asciidoctor 1.5.4">
+<title>Introduction</title>
+<link rel="stylesheet" href="./theme/css/readthedocs.css">
+<link rel="stylesheet" href="./theme/css/font-awesome.min.css">
+<link rel="stylesheet" href="./theme/css/coderay-asciidoctor.css">
+<link rel="stylesheet" href="./theme/css/footer.css">
+<title>TERASOLUNA Batch Framework for Java (5.x) Development Guideline</title>
+</head>
+<body id="Ch01_Intro" class="book toc2 toc-left">
+<div id="header">
+<h1>Introduction</h1>
+<div id="toc" class="toc2">
+<div id="toctitle">Table of Contents</div>
+<ul class="sectlevel1">
+<li><a href="#Ch01_Goal">Goal of guideline</a></li>
+<li><a href="#Ch01_TargetReaders">Target readers</a></li>
+<li><a href="#Ch01_Structure">Structure of guideline</a></li>
+<li><a href="#Ch01_HowToReadGuide">How to read guideline</a>
+<ul class="sectlevel2">
+<li><a href="#Ch01_representation">Notations in guideline</a></li>
+</ul>
+</li>
+<li><a href="#Ch01_TestedEnviroments">Tested environments of guideline</a></li>
+</ul>
+</div>
+</div>
+<div id="content">
+<div class="sect1">
+<h2 id="Ch01_Goal"><a class="anchor" href="#Ch01_Goal"></a>Goal of guideline</h2>
+<div class="sectionbody">
+<div class="paragraph">
+<p>This guideline provides best practices to develop high maintainability Batch applications
+using full stack framework focusing on Spring Framework, Spring Batch and MyBatis.</p>
+</div>
+<div class="paragraph">
+<p>This guideline helps to proceed with the software development (mainly coding) smoothly.</p>
+</div>
+</div>
+</div>
+<div class="sect1">
+<h2 id="Ch01_TargetReaders"><a class="anchor" href="#Ch01_TargetReaders"></a>Target readers</h2>
+<div class="sectionbody">
+<div class="paragraph">
+<p>This guideline is written for architects and programmers having software development experience
+and knowledge of the following.</p>
+</div>
+<div class="ulist">
+<ul>
+<li>
+<p>Basic knowledge of DI and AOP of Spring Framework</p>
+</li>
+<li>
+<p>Application development experience using Java</p>
+</li>
+<li>
+<p>Knowledge of SQL</p>
+</li>
+<li>
+<p>Have experiences on using Maven</p>
+</li>
+</ul>
+</div>
+<div class="paragraph">
+<p>This guideline is not for beginners.</p>
+</div>
+<div class="paragraph">
+<p>In order to check whether one has enough basic knowledge to understand the document,
+refer to
+<a href="http://terasolunaorg.github.io/guideline/5.3.0.RELEASE/ja/Appendix/SpringComprehensionCheck.html">Spring Framework Comprehension Check</a>
+If one is not able to answer 40% of the comprehension test, then it is recommended to study the following books separately.</p>
+</div>
+<div class="ulist">
+<ul>
+<li>
+<p><a href="http://www.shoeisha.co.jp/book/detail/9784798142470">Spring徹底入門 (翔泳社) [日本語] </a></p>
+</li>
+<li>
+<p><a href="http://gihyo.jp/book/2016/978-4-7741-8217-9">［改訂新版］Spring入門――Javaフレームワーク・より良い設計とアーキテクチャ [日本語]</a></p>
+</li>
+<li>
+<p><a href="http://www.apress.com/9781430261513">Pro Spring 4th Edition (Apress)</a></p>
+</li>
+</ul>
+</div>
+</div>
+</div>
+<div class="sect1">
+<h2 id="Ch01_Structure"><a class="anchor" href="#Ch01_Structure"></a>Structure of guideline</h2>
+<div class="sectionbody">
+<div class="paragraph">
+<p>The most important thing is that the guideline is considered as the subset of
+<a href="http://terasolunaorg.github.io/guideline/5.3.0.RELEASE/ja/index.html">TERASOLUNA Server Framework for Java (5.x) Development Guideline</a>
+(hereafter, referred to as TERASOLUNA Server 5.x Development Guideline).
+By using TERASOLUNA Server 5.x Development Guideline, you can eliminate duplication in explanation and reduce the cost of learning as much as possible.
+Since it indicates reference to TERASOLUNA Server 5.x Development Guideline everywhere, we would like you to proceed with the development by using both guides.</p>
+</div>
+<div class="dlist">
+<dl>
+<dt class="hdlist1"><a href="Ch02_index.html#Ch02">TERASOLUNA Batch Framework for Java (5.x) concept</a></dt>
+<dd>
+<p>Explains the basic concept of batch processing and the basic concept of TERASOLUNA Batch Framework for Java (5.x) and the overview of Spring Batch.</p>
+</dd>
+<dt class="hdlist1"><a href="Ch03_index.html#Ch03">Methodology of application development</a></dt>
+<dd>
+<p>Explains the knowledge and method to be kept in mind while developing an application using TERASOLUNA Batch Framework for Java (5.x).</p>
+</dd>
+<dt class="hdlist1"><a href="Ch04_index.html#Ch04">Running a Job</a></dt>
+<dd>
+<p>Explains how to running a job as Synchronous, Asynchronous and provide job parameters.</p>
+</dd>
+<dt class="hdlist1"><a href="Ch05_index.html#Ch05">Input/output of data</a></dt>
+<dd>
+<p>Explains how to provide Input/Output to various resources such as Database, File access etc.</p>
+</dd>
+<dt class="hdlist1"><a href="Ch06_index.html#Ch06">Handling for abnormal condition</a></dt>
+<dd>
+<p>Explains how to handle the abnormal conditions like Input checks, Exceptions.</p>
+</dd>
+<dt class="hdlist1"><a href="Ch07_JobManagement.html#Ch07_JobManagement">Job management</a></dt>
+<dd>
+<p>Explains how to manage the Job execution.</p>
+</dd>
+<dt class="hdlist1"><a href="Ch08_index.html#Ch08">Flow control and parallel/multiple processing</a></dt>
+<dd>
+<p>Explains the processing of parallel/multiple Job execution.</p>
+</dd>
+</dl>
+</div>
+</div>
+</div>
+<div class="sect1">
+<h2 id="Ch01_HowToReadGuide"><a class="anchor" href="#Ch01_HowToReadGuide"></a>How to read guideline</h2>
+<div class="sectionbody">
+<div class="paragraph">
+<p>It is strongly recommended for all the developers to read the following contents for using TERASOLUNA Batch Framework for Java (5.x).</p>
+</div>
+<div class="ulist">
+<ul>
+<li>
+<p><a href="Ch02_index.html#Ch02">TERASOLUNA Batch Framework for Java (5.x)concept</a></p>
+</li>
+<li>
+<p><a href="Ch03_index.html#Ch03">Methodology of application development</a></p>
+</li>
+</ul>
+</div>
+<div class="paragraph">
+<p>The following contents usually required, so you should read in advance.
+It is better to select according to the development feature of the job.</p>
+</div>
+<div class="ulist">
+<ul>
+<li>
+<p><a href="Ch04_index.html#Ch04">Running a Job</a></p>
+</li>
+<li>
+<p><a href="Ch05_index.html#Ch05">Input/output of data</a></p>
+</li>
+<li>
+<p><a href="Ch06_index.html#Ch06">Handling for abnormal condition</a></p>
+</li>
+<li>
+<p><a href="Ch07_JobManagement.html#Ch07_JobManagement">Job management</a></p>
+</li>
+</ul>
+</div>
+<div class="paragraph">
+<p>Refer to the following contents for the first time when proceeding advanced implementation.</p>
+</div>
+<div class="ulist">
+<ul>
+<li>
+<p><a href="Ch08_index.html#Ch08">Flow control and parallel/multiple processing</a></p>
+</li>
+</ul>
+</div>
+<div class="sect2">
+<h3 id="Ch01_representation"><a class="anchor" href="#Ch01_representation"></a>Notations in guideline</h3>
+<div class="paragraph">
+<p>This section describe for the notations of this guideline.</p>
+</div>
+<div class="dlist">
+<dl>
+<dt class="hdlist1">About Windows command prompt and Unix terminal</dt>
+<dd>
+<p>If command syntax in Windows and Unix are different, it describe both.
+Otherwise, standardize the notations of Unix.</p>
+<div class="dlist">
+<dl>
+<dt class="hdlist1">Prompt sign</dt>
+<dd>
+<p>Describe as <code>$</code> in Unix.</p>
+</dd>
+</dl>
+</div>
+</dd>
+</dl>
+</div>
+<div class="listingblock">
+<div class="title">Prompt notation example</div>
+<div class="content">
+<pre class="CodeRay highlight"><code data-lang="bash">$ java -version</code></pre>
+</div>
+</div>
+<div class="dlist">
+<dl>
+<dt class="hdlist1">About defining properties and constructor of Bean definition</dt>
+<dd>
+<p>In this guideline, it is described by using namespace of <code>p</code> and <code>c</code>.
+The use of namespace helps in simplifying and clarifying the description of Bean definition.</p>
+</dd>
+</dl>
+</div>
+<div class="listingblock">
+<div class="title">Description wherein namespace is used</div>
+<div class="content">
+<pre class="CodeRay highlight"><code data-lang="xml"><span class="tag">&lt;bean</span> <span class="attribute-name">class</span>=<span class="string"><span class="delimiter">&quot;</span><span class="content">org.springframework.batch.item.file.mapping.DefaultLineMapper</span><span class="delimiter">&quot;</span></span><span class="tag">&gt;</span>
+    <span class="tag">&lt;property</span> <span class="attribute-name">name</span>=<span class="string"><span class="delimiter">&quot;</span><span class="content">lineTokenizer</span><span class="delimiter">&quot;</span></span><span class="tag">&gt;</span>
+        <span class="tag">&lt;bean</span> <span class="attribute-name">class</span>=<span class="string"><span class="delimiter">&quot;</span><span class="content">org.terasoluna.batch.item.file.transform.FixedByteLengthLineTokenizer</span><span class="delimiter">&quot;</span></span>
+              <span class="attribute-name">c:ranges</span>=<span class="string"><span class="delimiter">&quot;</span><span class="content">1-6, 7-10, 11-12, 13-22, 23-32</span><span class="delimiter">&quot;</span></span>
+              <span class="attribute-name">c:charset</span>=<span class="string"><span class="delimiter">&quot;</span><span class="content">MS932</span><span class="delimiter">&quot;</span></span>
+              <span class="attribute-name">p:names</span>=<span class="string"><span class="delimiter">&quot;</span><span class="content">branchId,year,month,customerId,amount</span><span class="delimiter">&quot;</span></span><span class="tag">/&gt;</span>
+    <span class="tag">&lt;/property&gt;</span>
+<span class="tag">&lt;/bean&gt;</span></code></pre>
+</div>
+</div>
+<div class="paragraph">
+<p>For your reference, the description not using namespace is shown.</p>
+</div>
+<div class="listingblock">
+<div class="title">Description not using namespace</div>
+<div class="content">
+<pre class="CodeRay highlight"><code data-lang="xml"><span class="tag">&lt;bean</span> <span class="attribute-name">class</span>=<span class="string"><span class="delimiter">&quot;</span><span class="content">org.springframework.batch.item.file.mapping.DefaultLineMapper</span><span class="delimiter">&quot;</span></span><span class="tag">&gt;</span>
+    <span class="tag">&lt;property</span> <span class="attribute-name">name</span>=<span class="string"><span class="delimiter">&quot;</span><span class="content">lineTokenizer</span><span class="delimiter">&quot;</span></span><span class="tag">&gt;</span>
+        <span class="tag">&lt;bean</span> <span class="attribute-name">class</span>=<span class="string"><span class="delimiter">&quot;</span><span class="content">org.terasoluna.batch.item.file.transform.FixedByteLengthLineTokenizer</span><span class="delimiter">&quot;</span></span><span class="tag">&gt;</span>
+            <span class="tag">&lt;constructor-arg</span> <span class="attribute-name">index</span>=<span class="string"><span class="delimiter">&quot;</span><span class="content">0</span><span class="delimiter">&quot;</span></span> <span class="attribute-name">value</span>=<span class="string"><span class="delimiter">&quot;</span><span class="content">1-6, 7-10, 11-12, 13-22, 23-32</span><span class="delimiter">&quot;</span></span><span class="tag">/&gt;</span>
+            <span class="tag">&lt;constructor-arg</span> <span class="attribute-name">index</span>=<span class="string"><span class="delimiter">&quot;</span><span class="content">1</span><span class="delimiter">&quot;</span></span> <span class="attribute-name">value</span>=<span class="string"><span class="delimiter">&quot;</span><span class="content">MS932</span><span class="delimiter">&quot;</span></span><span class="tag">/&gt;</span>
+            <span class="tag">&lt;property</span> <span class="attribute-name">name</span>=<span class="string"><span class="delimiter">&quot;</span><span class="content">names</span><span class="delimiter">&quot;</span></span> <span class="attribute-name">value</span>=<span class="string"><span class="delimiter">&quot;</span><span class="content">branchId,year,month,customerId,amount</span><span class="delimiter">&quot;</span></span><span class="tag">/&gt;</span>
+    <span class="tag">&lt;/property&gt;</span>
+<span class="tag">&lt;/bean&gt;</span></code></pre>
+</div>
+</div>
+<div class="paragraph">
+<p>This guideline does not force the user to use namespace.
+We would like to consider it for simplifying the explanation.</p>
+</div>
+</div>
+</div>
+</div>
+<div class="sect1">
+<h2 id="Ch01_TestedEnviroments"><a class="anchor" href="#Ch01_TestedEnviroments"></a>Tested environments of guideline</h2>
+<div class="sectionbody">
+<div class="paragraph">
+<p>For tested environments of contents described in this guideline,
+refer to " <a href="https://github.com/terasoluna-batch/v5-functionaltest/wiki/Tested-Environment">Tested Environment</a>".</p>
+</div>
+</div>
+</div>
+</div>
+<div class="footer-navi">
+  <a href="index.html">index</a>
+</div>
+
+<div class="footer-copyright">
+ &copy; Copyright 2017-3-17, NTT DATA Corporation.
+</div>
+</body>
+</html>

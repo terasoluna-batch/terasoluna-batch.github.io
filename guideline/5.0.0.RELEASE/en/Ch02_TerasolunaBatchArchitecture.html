@@ -1,0 +1,555 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<!--[if IE]><meta http-equiv="X-UA-Compatible" content="IE=edge"><![endif]-->
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<meta name="generator" content="Asciidoctor 1.5.4">
+<title>Architecture of TERASOLUNA Batch Framework for Java (5.x)</title>
+<link rel="stylesheet" href="./theme/css/readthedocs.css">
+<link rel="stylesheet" href="./theme/css/font-awesome.min.css">
+<link rel="stylesheet" href="./theme/css/coderay-asciidoctor.css">
+<link rel="stylesheet" href="./theme/css/footer.css">
+<title>TERASOLUNA Batch Framework for Java (5.x) Development Guideline</title>
+</head>
+<body id="Ch02_TerasolunaBatchArch" class="book toc2 toc-left">
+<div id="header">
+<h1>Architecture of TERASOLUNA Batch Framework for Java (5.x)</h1>
+<div id="toc" class="toc2">
+<div id="toctitle">Table of Contents</div>
+<ul class="sectlevel1">
+<li><a href="#Ch02_TerasolunaBatchArch_Overview">Overview</a></li>
+<li><a href="#Ch02_TerasolunaBatchArch_JobComponents">Structural elements of job</a>
+<ul class="sectlevel2">
+<li><a href="#Ch02_TerasolunaBatchArch_Overview_Job">Job</a></li>
+<li><a href="#Ch02_TerasolunaBatchArch_Overview_Step">Step</a></li>
+</ul>
+</li>
+<li><a href="#Ch02_TerasolunaBatchArch_StepImpl">How to implement Step</a>
+<ul class="sectlevel2">
+<li><a href="#Ch02_TerasolunaBatchArch_StepImpl_ChunkOriented">Chunk model</a></li>
+<li><a href="#Ch02_TerasolunaBatchArch_StepImpl_TaskletOriented">Tasket model</a></li>
+<li><a href="#Ch02_TerasolunaBatchArch_StepImpl_diffOfChunkAndTasklet">Function difference between chunk model and Tasket model</a></li>
+</ul>
+</li>
+<li><a href="#Ch02_TerasolunaBatchArch_LaunchMethod">Running a job method</a>
+<ul class="sectlevel2">
+<li><a href="#Ch02_TerasolunaBatchArch_LaunchMethod_Sync">Synchronous execution method</a></li>
+<li><a href="#Ch02_TerasolunaBatchArch_LaunchMethod_Async">Asynchronous execution method</a>
+<ul class="sectlevel3">
+<li><a href="#Ch02_TerasolunaBatchArch_LaunchMethod_Async_DB">Asynchronous execution method (DB polling)</a></li>
+<li><a href="#Ch02_TerasolunaBatchArch_LaunchMethod_Async_Web">Asynchronous execution method (Web container)</a></li>
+</ul>
+</li>
+</ul>
+</li>
+<li><a href="#Ch02_TerasolunaBatchArch_DecisionPoints">Points to consider while using</a></li>
+</ul>
+</div>
+</div>
+<div id="content">
+<div class="sect1">
+<h2 id="Ch02_TerasolunaBatchArch_Overview"><a class="anchor" href="#Ch02_TerasolunaBatchArch_Overview"></a>Overview</h2>
+<div class="sectionbody">
+<div class="paragraph">
+<p>Overall architecture of TERASOLUNA Batch Framework for Java (5.x) is explained.</p>
+</div>
+<div class="paragraph">
+<p>In TERASOLUNA Batch Framework for Java (5.x), as described in <a href="Ch02_GeneralBatchProcessing.html#Ch02_GeneralBatchProcess">General batch processing system</a>, it is implemented
+by using OSS combination focused on Spring Batch.</p>
+</div>
+<div class="paragraph">
+<p>A configuration schematic diagram of TERASOLUNA Batch Framework for Java (5.x) including hierarchy architecture of Spring Batch is shown below.</p>
+</div>
+<div class="imageblock">
+<div class="content">
+<img src="./images/Ch02_TerasolunaBatchArchitecture_Stack.png" alt="TERASOLUNA Batch Framework for Java (5.x) Stack">
+</div>
+<div class="title">Configuration schematic diagram of TERASOLUNA Batch Framework for Java (5.x)</div>
+</div>
+<div class="dlist">
+<div class="title">Description of hierarchy architecture of Spring Batch</div>
+<dl>
+<dt class="hdlist1">Business Application</dt>
+<dd>
+<p>All job definitions and business logic written by developers.</p>
+</dd>
+<dt class="hdlist1">spring batch core</dt>
+<dd>
+<p>A core runtime class required to start and control batch jobs offered by Spring Batch.</p>
+</dd>
+<dt class="hdlist1">spring batch infrastructure</dt>
+<dd>
+<p>Implementation of general ItemReader/ItemProcessor/ItemWriter offered by Spring Batch which are used by developers and core framework itself.</p>
+</dd>
+</dl>
+</div>
+</div>
+</div>
+<div class="sect1">
+<h2 id="Ch02_TerasolunaBatchArch_JobComponents"><a class="anchor" href="#Ch02_TerasolunaBatchArch_JobComponents"></a>Structural elements of job</h2>
+<div class="sectionbody">
+<div class="paragraph">
+<p>A configuration schematic diagram of jobs is shown below in order to explain structural elements of the job.</p>
+</div>
+<div class="imageblock">
+<div class="content">
+<img src="./images/Ch02_TerasolunaBatchArchitecture_JobComponents.png" alt="Job Components">
+</div>
+<div class="title">Configuration schematic diagram of job</div>
+</div>
+<div class="paragraph">
+<p>This section also talks about guidelines which should be finely configured for job and step.</p>
+</div>
+<div class="sect2">
+<h3 id="Ch02_TerasolunaBatchArch_Overview_Job"><a class="anchor" href="#Ch02_TerasolunaBatchArch_Overview_Job"></a>Job</h3>
+<div class="paragraph">
+<p>A job is an entity that encapsulates entire batch process and is a container for storing steps.<br>
+A job can consist of one or more steps.</p>
+</div>
+<div class="paragraph">
+<p>A job is defined in the Bean definition file by using XML.
+Multiple jobs can be defined in the job definition file, however, managing jobs tend to become complex.</p>
+</div>
+<div class="paragraph">
+<p>Hence, TERASOLUNA Batch Framework for Java (5.x) uses following guidelines.</p>
+</div>
+<div class="paragraph">
+<p><span class="icon"><i class="fa fa-tags"></i></span> 1 job = 1 job definition file</p>
+</div>
+</div>
+<div class="sect2">
+<h3 id="Ch02_TerasolunaBatchArch_Overview_Step"><a class="anchor" href="#Ch02_TerasolunaBatchArch_Overview_Step"></a>Step</h3>
+<div class="paragraph">
+<p>Step defines information required for controlling a batch process.
+A chunk model and a tasket model can be defined in the step.</p>
+</div>
+<div class="dlist">
+<dl>
+<dt class="hdlist1">Chunk model</dt>
+<dd>
+<div class="ulist">
+<ul>
+<li>
+<p>It is configured by ItemReader, ItemProcessor and ItemWriter.</p>
+</li>
+</ul>
+</div>
+</dd>
+<dt class="hdlist1">Tasket model</dt>
+<dd>
+<div class="ulist">
+<ul>
+<li>
+<p>It is configured only by Tasklet.</p>
+</li>
+</ul>
+</div>
+</dd>
+</dl>
+</div>
+<div class="paragraph">
+<p>As given in <a href="Ch02_GeneralBatchProcessing.html#Ch02_GeneralBatchProcess_Considerations">Rules and precautions to be considered in batch processing</a>,
+it is necessary to simplify as much as possible and avoid complex logical structures in a single batch process.</p>
+</div>
+<div class="paragraph">
+<p>Hence, TERASOLUNA Batch Framework for Java (5.x) uses following guidelines.</p>
+</div>
+<div class="paragraph">
+<p><span class="icon"><i class="fa fa-tags"></i></span> 1 step = 1 batch process = 1 business logic</p>
+</div>
+<div class="admonitionblock note">
+<table>
+<tr>
+<td class="icon">
+<i class="fa icon-note" title="Note"></i>
+</td>
+<td class="content">
+<div class="title">Distribution of business logic in chunk model</div>
+<div class="paragraph">
+<p>If a single business logic is complex and large-scale, the business logic is divided into units.
+As clear from the schematic diagram, since only one ItemProcessor can be set in 1 step, it looks like the division of business logic is not possible.
+However, since CompositeItemProcssor which is an ItemProcessor consisting of multiple ItemProcessors exist,
+the business logic can be divided and executed by using this implementation.</p>
+</div>
+</td>
+</tr>
+</table>
+</div>
+</div>
+</div>
+</div>
+<div class="sect1">
+<h2 id="Ch02_TerasolunaBatchArch_StepImpl"><a class="anchor" href="#Ch02_TerasolunaBatchArch_StepImpl"></a>How to implement Step</h2>
+<div class="sectionbody">
+<div class="sect2">
+<h3 id="Ch02_TerasolunaBatchArch_StepImpl_ChunkOriented"><a class="anchor" href="#Ch02_TerasolunaBatchArch_StepImpl_ChunkOriented"></a>Chunk model</h3>
+<div class="paragraph">
+<p>Definition of chunk model and purpose of use are explained.</p>
+</div>
+<div class="dlist">
+<dl>
+<dt class="hdlist1">Definition</dt>
+<dd>
+<p>ItemReader, ItemProcessor and ItemWriter implementation and number of chunks are set in ChunkOrientedTasklet. Respective roles are explained.</p>
+<div class="ulist">
+<ul>
+<li>
+<p>ChunkOrientedTasklet&#8230;&#8203;Call ItemReader/ItemProcessor and create a chunk. Pass created chunk to ItemWriter.</p>
+</li>
+<li>
+<p>ItemReader&#8230;&#8203;Read input data.</p>
+</li>
+<li>
+<p>ItemProcessor&#8230;&#8203;Process read data.</p>
+</li>
+<li>
+<p>ItemWriter&#8230;&#8203;Output processed data in chunk units.</p>
+</li>
+</ul>
+</div>
+</dd>
+<dt class="hdlist1"></dt>
+<dd>
+<p>For overview of chunk model, refer <a href="Ch02_SpringBatchArchitecture.html#Ch02_SpringBatchArch_Detail_BusinessLogic_Chunk">Chunk model</a>.</p>
+</dd>
+</dl>
+</div>
+<div class="listingblock">
+<div class="title">How to set a job in chunk model</div>
+<div class="content">
+<pre class="CodeRay highlight"><code data-lang="xml"><span class="tag">&lt;batch:job</span> <span class="attribute-name">id</span>=<span class="string"><span class="delimiter">&quot;</span><span class="content">exampleJob</span><span class="delimiter">&quot;</span></span><span class="tag">&gt;</span>
+    <span class="tag">&lt;batch:step</span> <span class="attribute-name">id</span>=<span class="string"><span class="delimiter">&quot;</span><span class="content">exampleStep</span><span class="delimiter">&quot;</span></span><span class="tag">&gt;</span>
+        <span class="tag">&lt;batch:tasklet&gt;</span>
+            <span class="tag">&lt;batch:chunk</span> <span class="attribute-name">reader</span>=<span class="string"><span class="delimiter">&quot;</span><span class="content">reader</span><span class="delimiter">&quot;</span></span>
+                         <span class="attribute-name">processor</span>=<span class="string"><span class="delimiter">&quot;</span><span class="content">processor</span><span class="delimiter">&quot;</span></span>
+                         <span class="attribute-name">writer</span>=<span class="string"><span class="delimiter">&quot;</span><span class="content">writer</span><span class="delimiter">&quot;</span></span>
+                         <span class="attribute-name">commit-interval</span>=<span class="string"><span class="delimiter">&quot;</span><span class="content">100</span><span class="delimiter">&quot;</span></span> <span class="tag">/&gt;</span>
+        <span class="tag">&lt;/batch:tasklet&gt;</span>
+    <span class="tag">&lt;/batch:step&gt;</span>
+<span class="tag">&lt;/batch:job&gt;</span></code></pre>
+</div>
+</div>
+<div class="dlist">
+<dl>
+<dt class="hdlist1">Purpose of use</dt>
+<dd>
+<p>Since it handles a certain amount of data collectively, it is used while handling a large amount of data.</p>
+</dd>
+</dl>
+</div>
+</div>
+<div class="sect2">
+<h3 id="Ch02_TerasolunaBatchArch_StepImpl_TaskletOriented"><a class="anchor" href="#Ch02_TerasolunaBatchArch_StepImpl_TaskletOriented"></a>Tasket model</h3>
+<div class="paragraph">
+<p>Definition of tasket model and purpose of use are explained.</p>
+</div>
+<div class="dlist">
+<dl>
+<dt class="hdlist1">Definition</dt>
+<dd>
+<p>Only Tasklet implementation is set.<br>
+For overview of Tasket model, refer <a href="Ch02_SpringBatchArchitecture.html#Ch02_SpringBatchArch_Detail_BusinessLogic_Tasklet">Tasket model</a>.</p>
+</dd>
+</dl>
+</div>
+<div class="listingblock">
+<div class="title">How to set a job in Tasket model</div>
+<div class="content">
+<pre class="CodeRay highlight"><code data-lang="xml"><span class="tag">&lt;batch:job</span> <span class="attribute-name">id</span>=<span class="string"><span class="delimiter">&quot;</span><span class="content">exampleJob</span><span class="delimiter">&quot;</span></span><span class="tag">&gt;</span>
+    <span class="tag">&lt;batch:step</span> <span class="attribute-name">id</span>=<span class="string"><span class="delimiter">&quot;</span><span class="content">exampleStep</span><span class="delimiter">&quot;</span></span><span class="tag">&gt;</span>
+        <span class="tag">&lt;batch:tasklet</span> <span class="attribute-name">ref</span>=<span class="string"><span class="delimiter">&quot;</span><span class="content">myTasklet</span><span class="delimiter">&quot;</span></span><span class="tag">&gt;</span>
+    <span class="tag">&lt;/batch:step&gt;</span>
+<span class="tag">&lt;/batch:job&gt;</span></code></pre>
+</div>
+</div>
+<div class="dlist">
+<dl>
+<dt class="hdlist1">Purpose of use</dt>
+<dd>
+<p>It can be used for executing a process which is not associated with I/O like execution of system commands etc.<br>
+Further, it can also be used while committing the data in batches.</p>
+</dd>
+</dl>
+</div>
+</div>
+<div class="sect2">
+<h3 id="Ch02_TerasolunaBatchArch_StepImpl_diffOfChunkAndTasklet"><a class="anchor" href="#Ch02_TerasolunaBatchArch_StepImpl_diffOfChunkAndTasklet"></a>Function difference between chunk model and Tasket model</h3>
+<div class="paragraph">
+<p>Explanation is given for the function difference between chunk model and Tasket model.
+Here, only outline is given. Refer section for each function for details.</p>
+</div>
+<table class="tableblock frame-all grid-all spread">
+<caption class="title">List of function differences</caption>
+<colgroup>
+<col style="width: 20%;">
+<col style="width: 40%;">
+<col style="width: 40%;">
+</colgroup>
+<thead>
+<tr>
+<th class="tableblock halign-left valign-top">Function</th>
+<th class="tableblock halign-left valign-top">Chunk model</th>
+<th class="tableblock halign-left valign-top">Tasket model</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td class="tableblock halign-left valign-top"><p class="tableblock">Structural elements</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">Configured by ItemReader/ItemProcessor/ItemWriter/ChunkOrientedTasklet.</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">Configured only by Takslet.</p></td>
+</tr>
+<tr>
+<td class="tableblock halign-left valign-top"><p class="tableblock">Transaction</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">A transaction is generated in a chunk unit.</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">Processed in 1 transaction.</p></td>
+</tr>
+<tr>
+<td class="tableblock halign-left valign-top"><p class="tableblock">Recommended reprocessing method</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">Re-run and re-start can be used.</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">As a rule, only re-run is used.</p></td>
+</tr>
+<tr>
+<td class="tableblock halign-left valign-top"><p class="tableblock">Exception handling</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">Handling process becomes easier by using a listener. Individual implementation is also possible.</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">Individual implementation is required.</p></td>
+</tr>
+</tbody>
+</table>
+</div>
+</div>
+</div>
+<div class="sect1">
+<h2 id="Ch02_TerasolunaBatchArch_LaunchMethod"><a class="anchor" href="#Ch02_TerasolunaBatchArch_LaunchMethod"></a>Running a job method</h2>
+<div class="sectionbody">
+<div class="paragraph">
+<p>Running a job method is explained. This contains following.</p>
+</div>
+<div class="ulist">
+<ul>
+<li>
+<p><a href="#Ch02_TerasolunaBatchArch_LaunchMethod_Sync">Synchronous execution method</a></p>
+</li>
+<li>
+<p><a href="#Ch02_TerasolunaBatchArch_LaunchMethod_Async">Asynchronous execution method</a></p>
+</li>
+</ul>
+</div>
+<div class="paragraph">
+<p>Respective methods are explained.</p>
+</div>
+<div class="sect2">
+<h3 id="Ch02_TerasolunaBatchArch_LaunchMethod_Sync"><a class="anchor" href="#Ch02_TerasolunaBatchArch_LaunchMethod_Sync"></a>Synchronous execution method</h3>
+<div class="paragraph">
+<p>Synchronous execution method is an execution method wherein the control is not given back to the boot source from job start to job completion.</p>
+</div>
+<div class="paragraph">
+<p>A schematic diagram which starts a job from job scheduler is shown.</p>
+</div>
+<div class="imageblock">
+<div class="content">
+<img src="./images/Ch02_TerasolunaBatchArchitecture_SynchronizedExec.png" alt="Synchronized Execution">
+</div>
+<div class="title">Schematic diagram for synchronous execution</div>
+</div>
+<div class="olist arabic">
+<ol class="arabic">
+<li>
+<p>Start a shell script to run a job from job scheduler.<br>
+Job scheduler waits until the exit code (numeric value) is returned.</p>
+</li>
+<li>
+<p>Start <code>CommandLineJonRunner</code> to run a job from shell script.<br>
+Shell script waits until <code>CommandLineJonRunner</code> returns an exit code (numeric value).</p>
+</li>
+<li>
+<p><code>CommandLineJonRunner</code> runs a job. Job returns an exit code (string) to <code>CommandLineJonRunner</code> after processing is completed.<br>
+<code>CommandLineJonRunner</code> converts exit code (string) returned from the job to exit code (numeric value) and returns it to the shell script.</p>
+</li>
+</ol>
+</div>
+</div>
+<div class="sect2">
+<h3 id="Ch02_TerasolunaBatchArch_LaunchMethod_Async"><a class="anchor" href="#Ch02_TerasolunaBatchArch_LaunchMethod_Async"></a>Asynchronous execution method</h3>
+<div class="paragraph">
+<p>Asynchronous execution method is an execution method wherein the control is given back to boot source immediately after running a job, by executing a job on a different execution base than boot source (a separate thread etc).
+In this method, it is necessary to fetch job execution results by a means different from that of running a job.</p>
+</div>
+<div class="paragraph">
+<p>Following 2 methods are explained in TERASOLUNA Batch Framework for Java (5.x).</p>
+</div>
+<div class="ulist">
+<ul>
+<li>
+<p><a href="#Ch02_TerasolunaBatchArch_LaunchMethod_Async_DB">Asynchronous execution method (DB polling)</a></p>
+</li>
+<li>
+<p><a href="#Ch02_TerasolunaBatchArch_LaunchMethod_Async_Web">Asynchronous execution method (Web container)</a></p>
+</li>
+</ul>
+</div>
+<div class="admonitionblock note">
+<table>
+<tr>
+<td class="icon">
+<i class="fa icon-note" title="Note"></i>
+</td>
+<td class="content">
+<div class="title">Other asynchronous execution methods</div>
+<div class="paragraph">
+<p>Asynchronous execution can also be performed by using messages like MQ, however since the job execution points are identical, description will be omitted in {batch5_guide}.</p>
+</div>
+</td>
+</tr>
+</table>
+</div>
+<div class="sect3">
+<h4 id="Ch02_TerasolunaBatchArch_LaunchMethod_Async_DB"><a class="anchor" href="#Ch02_TerasolunaBatchArch_LaunchMethod_Async_DB"></a>Asynchronous execution method (DB polling)</h4>
+<div class="paragraph">
+<p><a href="Ch04_AsyncJobWithDB.html#Ch04_AsyncJobWithDB">Asynchronous execution (DB polling)</a> is a method wherein
+a job execution request is registered in the database, polling of the request is done and job is executed.</p>
+</div>
+<div class="paragraph">
+<p>TERASOLUNA Batch Framework for Java (5.x) supports DB polling function. The schematic diagram of start by DB polling offered is shown.</p>
+</div>
+<div class="imageblock">
+<div class="content">
+<img src="./images/Ch02_TerasolunaBatchArchitecture_ASynchronized_DBPolling.png" alt="DB Polling">
+</div>
+<div class="title">DB polling schematic diagram</div>
+</div>
+<div class="olist arabic">
+<ol class="arabic">
+<li>
+<p>User registers a job request to the database.</p>
+</li>
+<li>
+<p>DB polling function periodically monitors the registration of the job request and executes the corresponding job when the registration is detected.</p>
+<div class="ulist">
+<ul>
+<li>
+<p>Run the job from SimpleJobOperator and receive <code>JobExecutionId</code> after completion of the job.</p>
+</li>
+<li>
+<p>JobExecutionId is an ID which uniquely identifies job execution and execution results are browsed from JobRepository by using this ID.</p>
+</li>
+<li>
+<p>Job execution results are registered in JobRepository by using Spring Batch system.</p>
+</li>
+<li>
+<p>DB polling is itself executed asynchronously.</p>
+</li>
+</ul>
+</div>
+</li>
+<li>
+<p>DB polling function updates JobExecutionId returned from SimpleJobOperator and the job request that started the status.</p>
+</li>
+<li>
+<p>Job process progress and results are referred separately by using JobExecutionId.</p>
+</li>
+</ol>
+</div>
+</div>
+<div class="sect3">
+<h4 id="Ch02_TerasolunaBatchArch_LaunchMethod_Async_Web"><a class="anchor" href="#Ch02_TerasolunaBatchArch_LaunchMethod_Async_Web"></a>Asynchronous execution method (Web container)</h4>
+<div class="paragraph">
+<p><a href="Ch04_AsyncJobWithWebContainer.html#Ch04_AsyncJobWithWeb">Asynchronous execution (Web container)</a> is a method
+wherein a job is executed asynchronously using the request sent to web application on the web container as a trigger.*
+A Web application can return a response immediately after starting without waiting for the job to end.</p>
+</div>
+<div class="imageblock">
+<div class="content">
+<img src="./images/Ch02_TerasolunaBatchArchitecture_ASynchronized_WebContainer.png" alt="Web Container">
+</div>
+<div class="title">Web container schematic diagram</div>
+</div>
+<div class="olist arabic">
+<ol class="arabic">
+<li>
+<p>Send a request from a client to Web application.</p>
+</li>
+<li>
+<p>Web application asynchronously executes the job requested from a request.</p>
+<div class="ulist">
+<ul>
+<li>
+<p>Receive <code>`JobExecutionId</code> immediately after starting a job from SimpleJobOperator.</p>
+</li>
+<li>
+<p>Job execution results are registered in JobRepository by using Spring Batch system.</p>
+</li>
+</ul>
+</div>
+</li>
+<li>
+<p>Web application returns a response to the client without waiting for the job to end.</p>
+</li>
+<li>
+<p>Job process progress and results are browsed separately by using JobExecutionId.</p>
+</li>
+</ol>
+</div>
+<div class="paragraph">
+<p>Further, it can also be linked with Web application configured by <a href="http://terasolunaorg.github.io/guideline/5.3.0.RELEASE/ja/">TERASOLUNA Server Framework for Java (5.x)</a>.</p>
+</div>
+</div>
+</div>
+</div>
+</div>
+<div class="sect1">
+<h2 id="Ch02_TerasolunaBatchArch_DecisionPoints"><a class="anchor" href="#Ch02_TerasolunaBatchArch_DecisionPoints"></a>Points to consider while using</h2>
+<div class="sectionbody">
+<div class="paragraph">
+<p>Points to consider while using TERASOLUNA Batch Framework for Java (5.x) are shown.</p>
+</div>
+<div class="dlist">
+<dl>
+<dt class="hdlist1">Running a job method</dt>
+<dd>
+<div class="dlist">
+<dl>
+<dt class="hdlist1"><a href="#Ch02_TerasolunaBatchArch_LaunchMethod_Sync">Synchronous execution method</a></dt>
+<dd>
+<p>It is used when job is run as per schedule and batch processing is carried out by combining multiple jobs.</p>
+</dd>
+<dt class="hdlist1"><a href="#Ch02_TerasolunaBatchArch_LaunchMethod_Async_DB">Asynchronous execution method (DB polling)</a></dt>
+<dd>
+<p>It is used in delayed processing, continuous execution of jobs with a short processing time, aggregation of large quantity of jobs.</p>
+</dd>
+<dt class="hdlist1"><a href="#Ch02_TerasolunaBatchArch_LaunchMethod_Async_Web">Asynchronous execution method (Web container)</a></dt>
+<dd>
+<p>Similar to DB polling, however it is used when an immediate action is required for the startup.</p>
+</dd>
+</dl>
+</div>
+</dd>
+<dt class="hdlist1">Implementation method</dt>
+<dd>
+<div class="dlist">
+<dl>
+<dt class="hdlist1"><a href="#Ch02_TerasolunaBatchArch_StepImpl_ChunkOriented">Chunk model</a></dt>
+<dd>
+<p>It is used when a large quantity of data is to be processed efficiently.</p>
+</dd>
+<dt class="hdlist1"><a href="#Ch02_TerasolunaBatchArch_StepImpl_TaskletOriented">Tasket model</a></dt>
+<dd>
+<p>It is used for simple processing, processing that is difficult to standardize and for the processes wherein data is to be processed collectively.</p>
+</dd>
+</dl>
+</div>
+</dd>
+</dl>
+</div>
+</div>
+</div>
+</div>
+<div class="footer-navi">
+  <a href="index.html">index</a>
+</div>
+
+<div class="footer-copyright">
+ &copy; Copyright 2017-3-17, NTT DATA Corporation.
+</div>
+</body>
+</html>

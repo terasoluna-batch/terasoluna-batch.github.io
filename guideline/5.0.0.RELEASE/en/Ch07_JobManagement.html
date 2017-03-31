@@ -1,0 +1,1339 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<!--[if IE]><meta http-equiv="X-UA-Compatible" content="IE=edge"><![endif]-->
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<meta name="generator" content="Asciidoctor 1.5.4">
+<title>Job Management</title>
+<link rel="stylesheet" href="./theme/css/readthedocs.css">
+<link rel="stylesheet" href="./theme/css/font-awesome.min.css">
+<link rel="stylesheet" href="./theme/css/coderay-asciidoctor.css">
+<link rel="stylesheet" href="./theme/css/footer.css">
+<title>TERASOLUNA Batch Framework for Java (5.x) Development Guideline</title>
+</head>
+<body id="Ch07_JobManagement" class="book toc2 toc-left">
+<div id="header">
+<h1>Job Management</h1>
+<div id="toc" class="toc2">
+<div id="toctitle">Table of Contents</div>
+<ul class="sectlevel1">
+<li><a href="#Ch07_JobManagement_Overview">Overview</a>
+<ul class="sectlevel2">
+<li><a href="#what-is-job-execution-management">What is Job Execution Management?</a>
+<ul class="sectlevel3">
+<li><a href="#functions-offered-by-spring-batch">Functions Offered by Spring Batch</a></li>
+</ul>
+</li>
+</ul>
+</li>
+<li><a href="#Ch07_JobManagement_HowToUse">How to use</a>
+<ul class="sectlevel2">
+<li><a href="#Ch07_JobManagement_JobStatusManagement">Job Status Management</a>
+<ul class="sectlevel3">
+<li><a href="#Ch07_JobManagement_JobStatusManagement_Persistence">Status Persistence</a></li>
+<li><a href="#Ch07_JobManagement_JobStatusManagement_Retrieve">Confirmation of job status/execution result</a></li>
+<li><a href="#Ch07_JobManagement_JobStatusManagement_JobStop">Stopping a Job</a></li>
+</ul>
+</li>
+<li><a href="#Ch07_JobManagement_ExitCode">Customizing Exit Codes</a>
+<ul class="sectlevel3">
+<li><a href="#change-the-exit-code-of-the-job">Change the exit code of the job.</a></li>
+<li><a href="#define-mapping-of-exit-codes-additionally">Define mapping of exit codes additionally.</a></li>
+</ul>
+</li>
+<li><a href="#Ch07_JobManagement_DuplicateSafe">Double Activation Prevention</a></li>
+<li><a href="#Ch07_JobManagement_Logging">Logging</a>
+<ul class="sectlevel3">
+<li><a href="#clarification-of-log-output-source">Clarification of log output source</a></li>
+<li><a href="#log-monitoring">Log Monitoring</a></li>
+<li><a href="#log-output-destination">Log Output Destination</a></li>
+</ul>
+</li>
+<li><a href="#Ch07_JobManagement_MessageManagement">Message Management</a></li>
+</ul>
+</li>
+<li><a href="#Ch07_JobManagement_Appendix">Appendix. Spring Batch Admin</a></li>
+</ul>
+</div>
+</div>
+<div id="content">
+<div class="sect1">
+<h2 id="Ch07_JobManagement_Overview"><a class="anchor" href="#Ch07_JobManagement_Overview"></a>Overview</h2>
+<div class="sectionbody">
+<div class="paragraph">
+<p>Explain how to manage job execution.</p>
+</div>
+<div class="paragraph">
+<p>This function is the same usage for chunk model and tasklet model.</p>
+</div>
+<div class="sect2">
+<h3 id="what-is-job-execution-management"><a class="anchor" href="#what-is-job-execution-management"></a>What is Job Execution Management?</h3>
+<div class="paragraph">
+<p>It means to record the activation state and execution result of the job and maintain the batch system.
+In particular, it is important to secure necessary information in order to detect when an abnormality has occurred and determine what action should be taken next (such as rerun / restart after abnormal termination).
+Due to the characteristics of the batch application, it is rare that the result can be confirmed on the user interface immediately after startup.
+Therefore, it is necessary to have a mechanism to record execution status and results separately from job execution, such as job scheduler / RDBMS / application log.</p>
+</div>
+<div class="sect3">
+<h4 id="functions-offered-by-spring-batch"><a class="anchor" href="#functions-offered-by-spring-batch"></a>Functions Offered by Spring Batch</h4>
+<div class="paragraph">
+<p>Spring Batch provides the following interface for job execution management.</p>
+</div>
+<table class="tableblock frame-all grid-all spread">
+<caption class="title">List of job management functions</caption>
+<colgroup>
+<col style="width: 40%;">
+<col style="width: 60%;">
+</colgroup>
+<thead>
+<tr>
+<th class="tableblock halign-left valign-top">Function</th>
+<th class="tableblock halign-left valign-top">Corresponding interface</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td class="tableblock halign-left valign-top"><p class="tableblock">Record job execution status/result</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><code>org.springframework.batch.core.repository.JobRepository</code></p></td>
+</tr>
+<tr>
+<td class="tableblock halign-left valign-top"><p class="tableblock">Convert job exit code and process exit code</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><code>org.springframework.batch.core.launch.support.ExitCodeMapper</code></p></td>
+</tr>
+</tbody>
+</table>
+<div class="paragraph">
+<p>Spring Batch uses <code>JobRepository</code> for recording the job&#8217;s activation status and execution result.
+For TERASOLUNA Batch 5.x, if all of the following are true, persistence is optional:</p>
+</div>
+<div class="ulist">
+<ul>
+<li>
+<p>Using TERASOLUNA Batch 5.x only for synchronous job execution.</p>
+</li>
+<li>
+<p>Managing all job execution with the job scheduler including job stop/restart.</p>
+<div class="ulist">
+<ul>
+<li>
+<p>Especially not using restart assuming <code>JobRepository</code> of Spring Batch.</p>
+</li>
+</ul>
+</div>
+</li>
+</ul>
+</div>
+<div class="paragraph">
+<p>When these are applicable, use <code>H2</code> which is an in-memory/built-in database as an option of RDBMS used by <code>JobRepository</code>.<br>
+On the other hand, when using asynchronous execution or when using stop/restart of Spring Batch, an RDBMS that can persist the job execution status/result is required.</p>
+</div>
+<div class="admonitionblock important">
+<table>
+<tr>
+<td class="icon">
+<i class="fa icon-important" title="Important"></i>
+</td>
+<td class="content">
+<div class="title">Default transaction isolation level</div>
+<div class="paragraph">
+<p>In xsd provided by Spring Batch, the transaction isolation level of <code>JobRepository</code> has <code>SERIALIZABLE</code> as the default value.
+However, in this case, when multiple jobs are executed concurrently regardless of whether it is synchronous or asynchronous, an exception occurs in updating <code>JobRepository</code>.
+Therefore, TERASOLUNA Batch 5.x sets the transaction isolation level of <code>JobRepository</code> to <code>READ_COMMITTED</code> in advance.</p>
+</div>
+</td>
+</tr>
+</table>
+</div>
+<div class="admonitionblock note">
+<table>
+<tr>
+<td class="icon">
+<i class="fa icon-note" title="Note"></i>
+</td>
+<td class="content">
+<div class="title">In-memory JobRepository Options</div>
+<div class="paragraph">
+<p>Spring Batch has <code>org.springframework.batch.core.repository.support.MapJobRepositoryFactoryBean</code>
+which performs job execution management in-memory,
+but it is not used in this guideline.<br>
+As shown in the Javadoc of this class,
+It is explained that it is for testing as
+<code>This repository is only really intended for use in testing and rapid prototyping.</code>
+and  that it is inappropriate for parallel processing as
+<code>Not suited for use in multi-threaded jobs with splits</code></p>
+</div>
+</td>
+</tr>
+</table>
+</div>
+<div class="paragraph">
+<p>For the job execution management using job scheduler, refer to the manual of each product.<br>
+In this guideline,
+explain the following items related to managing the job status using <code>JobRepository</code> within TERASOLUNA Batch 5.x.</p>
+</div>
+<div class="ulist">
+<div class="title">Items related to state management within TERASOLUNA Batch</div>
+<ul>
+<li>
+<p><a href="#Ch07_JobManagement_JobStatusManagement">Job Status Management</a></p>
+<div class="ulist">
+<ul>
+<li>
+<p>How to persist state</p>
+</li>
+<li>
+<p>How to check the status</p>
+</li>
+<li>
+<p>How to stop the job manually</p>
+</li>
+</ul>
+</div>
+</li>
+<li>
+<p><a href="#Ch07_JobManagement_ExitCode">Customizing Exit Codes</a></p>
+</li>
+<li>
+<p><a href="#Ch07_JobManagement_DuplicateSafe">Double Activation Prevention</a></p>
+</li>
+<li>
+<p><a href="#Ch07_JobManagement_Logging">Logging</a></p>
+</li>
+<li>
+<p><a href="#Ch07_JobManagement_MessageManagement">Message Management</a></p>
+</li>
+</ul>
+</div>
+</div>
+</div>
+</div>
+</div>
+<div class="sect1">
+<h2 id="Ch07_JobManagement_HowToUse"><a class="anchor" href="#Ch07_JobManagement_HowToUse"></a>How to use</h2>
+<div class="sectionbody">
+<div class="paragraph">
+<p><code>JobRepository</code> provided by Spring Batch registers/updates the job status/execution result in RDBMS automatically.<br>
+When confirming them, select one of the following methods so that unintended change processing is not performed from inside or outside the batch application.</p>
+</div>
+<div class="ulist">
+<ul>
+<li>
+<p>Query the table relating to <a href="#Ch07_JobManagement_JobStatusManagement">Job Status Management</a></p>
+</li>
+<li>
+<p>Use <code>org.springframework.batch.core.explore.JobExplorer</code></p>
+</li>
+</ul>
+</div>
+<div class="sect2">
+<h3 id="Ch07_JobManagement_JobStatusManagement"><a class="anchor" href="#Ch07_JobManagement_JobStatusManagement"></a>Job Status Management</h3>
+<div class="paragraph">
+<p>Explain job status management method using <code>JobRepository</code>.<br>
+By Spring Batch, the following Entities are registered in the RDBMS table.</p>
+</div>
+<table class="tableblock frame-all grid-all spread">
+<caption class="title">Entity class and table name managed by JobRepository</caption>
+<colgroup>
+<col style="width: 10%;">
+<col style="width: 20%;">
+<col style="width: 20%;">
+<col style="width: 20%;">
+<col style="width: 30%;">
+</colgroup>
+<thead>
+<tr>
+<th class="tableblock halign-left valign-top">Sr. No.</th>
+<th class="tableblock halign-left valign-top">Entity class</th>
+<th class="tableblock halign-left valign-top">Table name</th>
+<th class="tableblock halign-left valign-top">Generation unit</th>
+<th class="tableblock halign-left valign-top">Desctiption</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td class="tableblock halign-left valign-top"><p class="tableblock">(1)</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><code>JobExecution</code></p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><code>BATCH_JOB_EXECUTION</code></p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">Execution of one job</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">Maintain job status/execution result.</p></td>
+</tr>
+<tr>
+<td class="tableblock halign-left valign-top"><p class="tableblock">(2)</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><code>JobExecutionContext</code></p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><code>BATCH_JOB_EXECUTION_CONTEXT</code></p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">Execution of one job</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">Maintain the context inside the job.</p></td>
+</tr>
+<tr>
+<td class="tableblock halign-left valign-top"><p class="tableblock">(3)</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><code>JobExecutionParams</code></p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><code>BATCH_JOB_EXECUTION_PARAMS</code></p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">Execution of one job</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">Hold job parameters given at startup.</p></td>
+</tr>
+<tr>
+<td class="tableblock halign-left valign-top"><p class="tableblock">(4)</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><code>StepExecution</code></p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><code>BATCH_STEP_EXECUTION</code></p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">Execution of one step</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">Maintain the state/execution result of the step, commit/rollback number.</p></td>
+</tr>
+<tr>
+<td class="tableblock halign-left valign-top"><p class="tableblock">(5)</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><code>StepExecutionContext</code></p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><code>BATCH_STEP_EXECUTION_CONTEXT</code></p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">Execution of one step</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">Maintain the context inside the step.</p></td>
+</tr>
+<tr>
+<td class="tableblock halign-left valign-top"><p class="tableblock">(6)</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><code>JobInstance</code></p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><code>BATCH_JOB_INSTANCE</code></p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">Combination of job name and job parameter</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">Hold job name and string serialized job parameter.</p></td>
+</tr>
+</tbody>
+</table>
+<div class="paragraph">
+<p>For example, when three steps are executed with one job execution, the following difference occurs.</p>
+</div>
+<div class="ulist">
+<ul>
+<li>
+<p><code>JobExecution</code>, <code>JobExecutionContext</code> and <code>JobExecutionParams</code> register 1 record.</p>
+</li>
+<li>
+<p><code>StepExecution</code> and <code>StepExecutionContext</code> register 3 record.</p>
+</li>
+</ul>
+</div>
+<div class="paragraph">
+<p>Also, <code>JobInstance</code> is used to suppress double execution by the same name job and same parameter started in the past,
+TERASOLUNA Batch 5.x does not check this. For details, refer to  <a href="#Ch07_JobManagement_DuplicateSafe">Double Activation Prevention</a>.</p>
+</div>
+<div class="admonitionblock tip">
+<table>
+<tr>
+<td class="icon">
+<i class="fa icon-tip" title="Tip"></i>
+</td>
+<td class="content">
+<div class="paragraph">
+<p>The structure of each table by <code>JobRepository</code> is described
+in <a href="Ch02_SpringBatchArchitecture.html">Architecture of Spring Batch</a>.</p>
+</div>
+</td>
+</tr>
+</table>
+</div>
+<div class="admonitionblock important">
+<table>
+<tr>
+<td class="icon">
+<i class="fa icon-important" title="Important"></i>
+</td>
+<td class="content">
+<div class="title">About the item count of StepExecution in the chunk method</div>
+<div class="paragraph">
+<p>As shown below, it seems that inconsistency is occurring, but there are cases where it is reasonable from the specification.</p>
+</div>
+<div class="ulist">
+<ul>
+<li>
+<p>The transaction issue count of <code>StepExecution(BATCH_STEP_EXECUTION table)</code> sometimes does not match the number of input data counts.</p>
+<div class="ulist">
+<ul>
+<li>
+<p>The number of transaction issues refers to the sum of <code>COMMIT_COUNT</code> and <code>ROLLBACK_COUNT</code> of <code>BATCH_STEP_EXECUTION</code>.<br>
+However, <code>COMMIT_COUNT</code> becomes +1 if the number of input data is divisible by the chunk size.<br>
+This is because null representing the end is also counted as input data and is processed empty, after reading the number of input data counts.</p>
+</li>
+</ul>
+</div>
+</li>
+<li>
+<p>The number of processing of <code>BATCH_STEP_EXECUTION</code> and <code>BATCH_STEP_EXECUTION_CONTEXT</code> may be different.</p>
+<div class="ulist">
+<ul>
+<li>
+<p>In <code>READ_COUNT</code> and <code>WRITE_COUNT</code> of <code>BATCH_STEP_EXECUTION</code>, the number of items read and written by <code>ItemReader</code> and <code>ItemWriter</code> are recorded.</p>
+</li>
+<li>
+<p>The <code>SHORT_CONTEXT</code> column in the <code>BATCH_STEP_EXECUTION_CONTEXT</code> table records the number of read operations by <code>ItemReader</code> in JSON format.
+However, it does not necessarily match the number of processing by <code>BATCH_STEP_EXECUTION</code>.<br></p>
+</li>
+<li>
+<p>This means that the <code>BATCH_STEP_EXECUTION</code> table based on the chunk method records the number of reads and writes irrespective of success or failure,
+whereas the <code>BATCH_STEP_EXECUTION_CONTEXT</code> table records the position to be resumed by a restart in case of a failure in the course of processing.</p>
+</li>
+</ul>
+</div>
+</li>
+</ul>
+</div>
+</td>
+</tr>
+</table>
+</div>
+<div class="sect3">
+<h4 id="Ch07_JobManagement_JobStatusManagement_Persistence"><a class="anchor" href="#Ch07_JobManagement_JobStatusManagement_Persistence"></a>Status Persistence</h4>
+<div class="paragraph">
+<p>By using external RDBMS, job execution management information by <code>JobRepository</code> can be made persistent.
+To enable this, change the following items in batch-application.properties to be data sources, schema settings for external RDBMS.</p>
+</div>
+<div class="listingblock">
+<div class="title">batch-application.properties</div>
+<div class="content">
+<pre class="CodeRay highlight"><code data-lang="properties"># (1)
+# Admin DataSource settings.
+admin.jdbc.driver=org.postgresql.Driver
+admin.jdbc.url=jdbc:postgresql://serverhost:5432/admin
+admin.jdbc.username=postgres
+admin.jdbc.password=postgres
+
+# (2)
+spring-batch.schema.script=classpath:org/springframework/batch/core/schema-postgresql.sql</code></pre>
+</div>
+</div>
+<table class="tableblock frame-all grid-all spread">
+<caption class="title">List of setting contents (PostgreSQL)</caption>
+<colgroup>
+<col style="width: 20%;">
+<col style="width: 80%;">
+</colgroup>
+<thead>
+<tr>
+<th class="tableblock halign-left valign-top">Sr. No.</th>
+<th class="tableblock halign-left valign-top">Description</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td class="tableblock halign-left valign-top"><p class="tableblock">(1)</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">Describe the setting of the external RDBMS to be connected as the value of the property to which the prefix <code>admin</code> is attached.</p></td>
+</tr>
+<tr>
+<td class="tableblock halign-left valign-top"><p class="tableblock">(2)</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">Specify a script file to automatically generate the schema as <code>JobRepository</code> at application startup.</p></td>
+</tr>
+</tbody>
+</table>
+<div class="admonitionblock important">
+<table>
+<tr>
+<td class="icon">
+<i class="fa icon-important" title="Important"></i>
+</td>
+<td class="content">
+<div class="title">Supplementary to administrative/business data sources</div>
+<div class="ulist">
+<ul>
+<li>
+<p>Connection settings to DB are separately defined as management and business data sources.<br>
+TERASOLUNA Batch 5.x separately defined,
+<code>JobRepository</code> has been set up to use an administrative data source prefixed with <code>admin</code> as its property prefix.</p>
+</li>
+<li>
+<p>When using asynchronous execution (DB polling), specify the same management data source and schema generation script in the job request table.<br>
+For details, refer to <a href="#Ch04_AsyncJobWithDB">Asynchronous Execution (DB polling)</a>.</p>
+</li>
+</ul>
+</div>
+</td>
+</tr>
+</table>
+</div>
+</div>
+<div class="sect3">
+<h4 id="Ch07_JobManagement_JobStatusManagement_Retrieve"><a class="anchor" href="#Ch07_JobManagement_JobStatusManagement_Retrieve"></a>Confirmation of job status/execution result</h4>
+<div class="paragraph">
+<p>Explain how to check the job execution status from <code>JobRepository</code><br>
+In either method, the job execution ID to be checked is known in advance.</p>
+</div>
+<div class="sect4">
+<h5 id="query-directly"><a class="anchor" href="#query-directly"></a>Query directly</h5>
+<div class="paragraph">
+<p>Using the RDBMS console, query directly on the table persisted by <code>JobRepository</code>.</p>
+</div>
+<div class="listingblock">
+<div class="title">SQL sample</div>
+<div class="content">
+<pre class="CodeRay highlight"><code data-lang="sql">admin=<span class="comment"># select JOB_EXECUTION_ID, START_TIME, END_TIME, STATUS, EXIT_CODE from BATCH_JOB_EXECUTION where JOB_EXECUTION_ID = 1;</span>
+ job_execution_id |       start_time        |        end_time         |  status   | exit_code
+<span class="comment">------------------+-------------------------+-------------------------+-----------+-----------</span>
+                <span class="integer">1</span> | <span class="integer">2017</span><span class="integer">-02</span><span class="integer">-14</span> <span class="integer">17</span>:<span class="integer">57</span>:<span class="float">38.486</span> | <span class="integer">2017</span><span class="integer">-02</span><span class="integer">-14</span> <span class="integer">18</span>:<span class="integer">19</span>:<span class="float">45.421</span> | COMPLETED | COMPLETED
+(<span class="integer">1</span> <span class="type">row</span>)
+admin=<span class="comment"># select JOB_EXECUTION_ID, STEP_EXECUTION_ID, START_TIME, END_TIME, STATUS, EXIT_CODE from BATCH_STEP_EXECUTION where JOB_EXECUTION_ID = 1;</span>
+ job_execution_id | step_execution_id |       start_time        |        end_time        |  status   | exit_code
+<span class="comment">------------------+-------------------+-------------------------+------------------------+-----------+-----------</span>
+                <span class="integer">1</span> |                 <span class="integer">1</span> | <span class="integer">2017</span><span class="integer">-02</span><span class="integer">-14</span> <span class="integer">17</span>:<span class="integer">57</span>:<span class="float">38.524</span> | <span class="integer">2017</span><span class="integer">-02</span><span class="integer">-14</span> <span class="integer">18</span>:<span class="integer">19</span>:<span class="float">45.41</span> | COMPLETED | COMPLETED
+(<span class="integer">1</span> <span class="type">row</span>)</code></pre>
+</div>
+</div>
+</div>
+<div class="sect4">
+<h5 id="use-code-jobexplorer-code"><a class="anchor" href="#use-code-jobexplorer-code"></a>Use <code>JobExplorer</code></h5>
+<div class="paragraph">
+<p>Under sharing the application context of the batch application, <code>JobExplorer</code> enables to confirm job execution status by injecting it.</p>
+</div>
+<div class="listingblock">
+<div class="title">API code sample</div>
+<div class="content">
+<pre class="CodeRay highlight"><code data-lang="java"><span class="comment">// omitted.</span>
+
+<span class="annotation">@Inject</span>
+<span class="directive">private</span> JobExplorer jobExplorer;
+
+<span class="directive">private</span> <span class="type">void</span> monitor(<span class="type">long</span> jobExecutionId) {
+
+  <span class="comment">// (1)</span>
+  JobExecution jobExecution = jobExplorer.getJobExecution(jobExecutionId);
+
+  <span class="comment">// (2)</span>
+  <span class="predefined-type">String</span> jobName = jobExecution.getJobInstance().getJobName();
+  <span class="predefined-type">Date</span> jobStartTime = jobExecution.getStartTime();
+  <span class="predefined-type">Date</span> jobEndTime = jobExecution.getEndTime();
+  BatchStatus jobBatchStatus = jobExecution.getStatus();
+  <span class="predefined-type">String</span> jobExitCode = jobExecution.getExitStatus().getExitCode();
+
+  <span class="comment">// omitted.</span>
+
+  <span class="comment">// (3)</span>
+  jobExecution.getStepExecutions().forEach( s -&gt; {
+      <span class="predefined-type">String</span> stepName = s.getStepName();
+      <span class="predefined-type">Date</span> stepStartTime = s.getStartTime();
+      <span class="predefined-type">Date</span> stepEndTime = s.getEndTime();
+      BatchStatus stepStatus = s.getStatus();
+      <span class="predefined-type">String</span> stepExitCode = s.getExitStatus().getExitCode();
+
+      <span class="comment">// omitted.</span>
+  });
+}</code></pre>
+</div>
+</div>
+<table class="tableblock frame-all grid-all spread">
+<caption class="title">List of setting contents (PostgreSQL)</caption>
+<colgroup>
+<col style="width: 20%;">
+<col style="width: 80%;">
+</colgroup>
+<thead>
+<tr>
+<th class="tableblock halign-left valign-top">Sr. No.</th>
+<th class="tableblock halign-left valign-top">Description</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td class="tableblock halign-left valign-top"><p class="tableblock">(1)</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">Specify the job execution ID from the injected <code>JobExplorer</code> and get <code>JobExecution</code>.</p></td>
+</tr>
+<tr>
+<td class="tableblock halign-left valign-top"><p class="tableblock">(2)</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">Get the job execution result by <code>JobExecution</code>.</p></td>
+</tr>
+<tr>
+<td class="tableblock halign-left valign-top"><p class="tableblock">(3)</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">Get a collection of steps executed within the job from <code>JobExecution</code> and get individual execution result.</p></td>
+</tr>
+</tbody>
+</table>
+</div>
+</div>
+<div class="sect3">
+<h4 id="Ch07_JobManagement_JobStatusManagement_JobStop"><a class="anchor" href="#Ch07_JobManagement_JobStatusManagement_JobStop"></a>Stopping a Job</h4>
+<div class="paragraph">
+<p>"Stopping a job" is a function that updates the running status of <code>JobRepository</code> to a stopping status
+and stops jobs at the boundary of steps or at chunk commit by chunk method.<br>
+Combined with restart, processing from the stopped position can be restarted.</p>
+</div>
+<div class="admonitionblock tip">
+<table>
+<tr>
+<td class="icon">
+<i class="fa icon-tip" title="Tip"></i>
+</td>
+<td class="content">
+<div class="paragraph">
+<p>For details of the restart, refer to <a href="Ch06_ReProcessing.html#Ch06_RerunRestart_HowToUse_Restart">Job Restart</a>.</p>
+</div>
+</td>
+</tr>
+</table>
+</div>
+<div class="admonitionblock caution">
+<table>
+<tr>
+<td class="icon">
+<i class="fa icon-caution" title="Caution"></i>
+</td>
+<td class="content">
+<div class="paragraph">
+<p>"Stopping a job" is not a function to immediately stop a job in progress but to update the running status of <code>JobRepository</code> to the stopping status.<br>
+It does not perform any kind of stop processing such as interrupting the in-process thread immediately for the job.</p>
+</div>
+<div class="paragraph">
+<p>Therefore, it can be said that stopping the job is "to reserve to stop when a processing that becomes a milestone is completed, such as a chunk break".
+For example, even if you stop the job under the following circumstances, it will not be the expected behavior.</p>
+</div>
+<div class="ulist">
+<ul>
+<li>
+<p>Job execution consisting of <code>Tasklet</code> in a single step.</p>
+</li>
+<li>
+<p>When number of data input &lt; <code>commit-interval</code> in chunk method.</p>
+</li>
+<li>
+<p>When an infinite loop has occurred within processing.</p>
+</li>
+</ul>
+</div>
+</td>
+</tr>
+</table>
+</div>
+<div class="paragraph">
+<p>Explain how to stop the job below.</p>
+</div>
+<div class="ulist">
+<ul>
+<li>
+<p>Stop from command line</p>
+<div class="ulist">
+<ul>
+<li>
+<p>Available for both synchronous and asynchronous jobs</p>
+</li>
+<li>
+<p>Use <code>-stop</code> option of <code>CommandLineJobRunner</code></p>
+</li>
+</ul>
+</div>
+</li>
+</ul>
+</div>
+<div class="listingblock">
+<div class="title">The method of specifying the job name at startup</div>
+<div class="content">
+<pre class="CodeRay highlight"><code data-lang="terminal">$ java org.springframework.batch.core.launch.support.CommandLineJobRunner \
+    classpath:/META-INF/jobs/job01/job01.xml job01 -stop</code></pre>
+</div>
+</div>
+<div class="ulist">
+<ul>
+<li>
+<p>Stopping a job by its name specification is suitable for synchronous batch execution when jobs with the same name rarely start in parallel.</p>
+</li>
+</ul>
+</div>
+<div class="listingblock">
+<div class="title">The method of specifying the job execution ID (JobExecutionId)</div>
+<div class="content">
+<pre class="CodeRay highlight"><code data-lang="terminal">$ java org.springframework.batch.core.launch.support.CommandLineJobRunner \
+    classpath:/META-INF/jobs/job01/job01.xml 3 -stop</code></pre>
+</div>
+</div>
+<div class="ulist">
+<ul>
+<li>
+<p>Stopping a job by JobExecutionId specification is suitable for asynchronous batch execution when jobs with tha same name often start in parallel.</p>
+</li>
+</ul>
+</div>
+<div class="admonitionblock tip">
+<table>
+<tr>
+<td class="icon">
+<i class="fa icon-tip" title="Tip"></i>
+</td>
+<td class="content">
+<div class="ulist">
+<ul>
+<li>
+<p>For the confirmation method of JobExecutionId, refer to <a href="#Ch07_JobManagement_JobStatusManagement_Retrieve">Confirmation of job status/execution result</a>.</p>
+</li>
+<li>
+<p><code>JobOpertion#stop()</code> can be used to stop the job based on the JobExecutionId.<br>
+For stopping jobs using <code>JobOperation#stop()</code>,
+refer to <a href="Ch04_AsyncJobWithWeb.html#Ch04_AsyncJobWithWeb_HowToExtend_Stop_And_Restart">Stop and Restart Async Job</a>.</p>
+</li>
+</ul>
+</div>
+</td>
+</tr>
+</table>
+</div>
+</div>
+</div>
+<div class="sect2">
+<h3 id="Ch07_JobManagement_ExitCode"><a class="anchor" href="#Ch07_JobManagement_ExitCode"></a>Customizing Exit Codes</h3>
+<div class="paragraph">
+<p>When the job is terminated by synchronous execution, the exit code of the java process can be customized according to the end status of the job.
+To customize the exit code, the following two operations are required.</p>
+</div>
+<div class="olist arabic">
+<ol class="arabic">
+<li>
+<p>Change the exit code of the job, which indicates the end status of the job.</p>
+</li>
+<li>
+<p>Map the exit code (character string) of the job/step and the process exit code (numerical value).</p>
+</li>
+</ol>
+</div>
+<div class="paragraph">
+<p>Explain the following in order.</p>
+</div>
+<div class="sect3">
+<h4 id="change-the-exit-code-of-the-job"><a class="anchor" href="#change-the-exit-code-of-the-job"></a>Change the exit code of the job.</h4>
+<div class="paragraph">
+<p>The exit code of the job returned as a string can be changed.</p>
+</div>
+<div class="ulist">
+<ul>
+<li>
+<p>Implement the <code>afterStep</code> method to return a specific exit status at the end of the step.</p>
+<div class="ulist">
+<ul>
+<li>
+<p>Implement <code>StepExecutionListener</code></p>
+</li>
+</ul>
+</div>
+</li>
+</ul>
+</div>
+<div class="listingblock">
+<div class="title">An implementation example of StepExecutionListener</div>
+<div class="content">
+<pre class="CodeRay highlight"><code data-lang="java"><span class="annotation">@Component</span>
+<span class="directive">public</span> <span class="type">class</span> <span class="class">ExitStatusChangeListener</span> <span class="directive">implements</span> StepExecutionListener {
+
+    <span class="annotation">@Override</span>
+    <span class="directive">public</span> ExitStatus afterStep(StepExecution stepExecution) {
+
+        ExitStatus exitStatus = stepExecution.getExitStatus();
+        <span class="keyword">if</span> (conditionalCheck(stepExecution)) {
+            <span class="comment">// (1)</span>
+            exitStatus = <span class="keyword">new</span> ExitStatus(<span class="string"><span class="delimiter">&quot;</span><span class="content">CUSTOM STEP FAILED</span><span class="delimiter">&quot;</span></span>);
+        }
+        <span class="keyword">return</span> exitStatus;
+    }
+
+    <span class="directive">private</span> <span class="type">boolean</span> conditionalCheck(StepExecution stepExecution) {
+        <span class="comment">// omitted.</span>
+    }
+}</code></pre>
+</div>
+</div>
+<div class="listingblock">
+<div class="title">Job definition</div>
+<div class="content">
+<pre class="CodeRay highlight"><code data-lang="xml"><span class="tag">&lt;batch:step</span> <span class="attribute-name">id</span>=<span class="string"><span class="delimiter">&quot;</span><span class="content">exitstatusjob.step</span><span class="delimiter">&quot;</span></span><span class="tag">&gt;</span>
+    <span class="tag">&lt;batch:tasklet</span> <span class="attribute-name">transaction-manager</span>=<span class="string"><span class="delimiter">&quot;</span><span class="content">transactionManager</span><span class="delimiter">&quot;</span></span><span class="tag">&gt;</span>
+        <span class="tag">&lt;batch:chunk</span> <span class="attribute-name">reader</span>=<span class="string"><span class="delimiter">&quot;</span><span class="content">reader</span><span class="delimiter">&quot;</span></span> <span class="attribute-name">writer</span>=<span class="string"><span class="delimiter">&quot;</span><span class="content">writer</span><span class="delimiter">&quot;</span></span> <span class="attribute-name">commit-interval</span>=<span class="string"><span class="delimiter">&quot;</span><span class="content">10</span><span class="delimiter">&quot;</span></span> <span class="tag">/&gt;</span>
+    <span class="tag">&lt;/batch:tasklet&gt;</span>
+    <span class="tag">&lt;batch:listeners&gt;</span>
+        <span class="tag">&lt;batch:listener</span> <span class="attribute-name">ref</span>=<span class="string"><span class="delimiter">&quot;</span><span class="content">exitStatusChangeListener</span><span class="delimiter">&quot;</span></span><span class="tag">/&gt;</span>
+    <span class="tag">&lt;/batch:listeners&gt;</span>
+<span class="tag">&lt;/batch:step&gt;</span></code></pre>
+</div>
+</div>
+<table class="tableblock frame-all grid-all spread">
+<caption class="title">List of implementation contents</caption>
+<colgroup>
+<col style="width: 20%;">
+<col style="width: 80%;">
+</colgroup>
+<thead>
+<tr>
+<th class="tableblock halign-left valign-top">Sr. No.</th>
+<th class="tableblock halign-left valign-top">Description</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td class="tableblock halign-left valign-top"><p class="tableblock">(1)</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">Set custom exit code according to the execution result of step.</p></td>
+</tr>
+</tbody>
+</table>
+<div class="ulist">
+<ul>
+<li>
+<p>Reflect the exit code returned by the step at the end of the job as the final job exit code.</p>
+<div class="ulist">
+<ul>
+<li>
+<p>Implement <code>afterJob</code> method in implementation class of <code>JobExecutionListener</code>.</p>
+</li>
+</ul>
+</div>
+</li>
+</ul>
+</div>
+<div class="listingblock">
+<div class="title">An Implementation example of JobExecutionListener</div>
+<div class="content">
+<pre class="CodeRay highlight"><code data-lang="java"><span class="annotation">@Component</span>
+<span class="directive">public</span> <span class="type">class</span> <span class="class">JobExitCodeChangeListener</span> <span class="directive">extends</span> JobExecutionListenerSupport {
+
+    <span class="annotation">@Override</span>
+    <span class="directive">public</span> <span class="type">void</span> afterJob(JobExecution jobExecution) {
+        <span class="comment">// (1)</span>
+        <span class="keyword">if</span> (jobExecution.getStepExecutions().stream()
+                .anyMatch(s -&gt; <span class="string"><span class="delimiter">&quot;</span><span class="content">CUSTOM STEP FAILED</span><span class="delimiter">&quot;</span></span>.equals(s.getExitStatus().getExitCode()))) {
+            jobExecution.setExitStatus(<span class="keyword">new</span> ExitStatus(<span class="string"><span class="delimiter">&quot;</span><span class="content">CUSTOM FAILED</span><span class="delimiter">&quot;</span></span>));
+        }
+    }
+}</code></pre>
+</div>
+</div>
+<div class="listingblock">
+<div class="title">Job definition</div>
+<div class="content">
+<pre class="CodeRay highlight"><code data-lang="xml"><span class="tag">&lt;batch:job</span> <span class="attribute-name">id</span>=<span class="string"><span class="delimiter">&quot;</span><span class="content">exitstatusjob</span><span class="delimiter">&quot;</span></span> <span class="attribute-name">job-repository</span>=<span class="string"><span class="delimiter">&quot;</span><span class="content">jobRepository</span><span class="delimiter">&quot;</span></span><span class="tag">&gt;</span>
+    <span class="tag">&lt;batch:step</span> <span class="attribute-name">id</span>=<span class="string"><span class="delimiter">&quot;</span><span class="content">exitstatusjob.step</span><span class="delimiter">&quot;</span></span><span class="tag">&gt;</span>
+        <span class="comment">&lt;!-- omitted --&gt;</span>
+    <span class="tag">&lt;/batch:step&gt;</span>
+    <span class="tag">&lt;batch:listeners&gt;</span>
+        <span class="tag">&lt;batch:listener</span> <span class="attribute-name">ref</span>=<span class="string"><span class="delimiter">&quot;</span><span class="content">jobExitCodeChangeListener</span><span class="delimiter">&quot;</span></span><span class="tag">/&gt;</span>
+    <span class="tag">&lt;/batch:listeners&gt;</span>
+<span class="tag">&lt;/batch:job&gt;</span></code></pre>
+</div>
+</div>
+<table class="tableblock frame-all grid-all spread">
+<caption class="title">List of implementation contents</caption>
+<colgroup>
+<col style="width: 20%;">
+<col style="width: 80%;">
+</colgroup>
+<thead>
+<tr>
+<th class="tableblock halign-left valign-top">Sr. No.</th>
+<th class="tableblock halign-left valign-top">Description</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td class="tableblock halign-left valign-top"><p class="tableblock">(1)</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">Set the final job exit code to <code>JobExecution</code> according to the execution result of the job.<br>
+In this case, if <code>CUSTOM STEP FAILED</code> is included in one of the exit codes returned from the step,
+It has an exit code <code>CUSTOM FAILED</code>.</p></td>
+</tr>
+</tbody>
+</table>
+</div>
+<div class="sect3">
+<h4 id="define-mapping-of-exit-codes-additionally"><a class="anchor" href="#define-mapping-of-exit-codes-additionally"></a>Define mapping of exit codes additionally.</h4>
+<div class="ulist">
+<ul>
+<li>
+<p>Define the mapping between the exit code of the job and the process exit code.</p>
+</li>
+</ul>
+</div>
+<div class="listingblock">
+<div class="title">launch-context.xml</div>
+<div class="content">
+<pre class="CodeRay highlight"><code data-lang="xml"><span class="comment">&lt;!-- exitCodeMapper --&gt;</span>
+<span class="tag">&lt;bean</span> <span class="attribute-name">id</span>=<span class="string"><span class="delimiter">&quot;</span><span class="content">exitCodeMapper</span><span class="delimiter">&quot;</span></span>
+      <span class="attribute-name">class</span>=<span class="string"><span class="delimiter">&quot;</span><span class="content">org.springframework.batch.core.launch.support.SimpleJvmExitCodeMapper</span><span class="delimiter">&quot;</span></span><span class="tag">&gt;</span>
+    <span class="tag">&lt;property</span> <span class="attribute-name">name</span>=<span class="string"><span class="delimiter">&quot;</span><span class="content">mapping</span><span class="delimiter">&quot;</span></span><span class="tag">&gt;</span>
+        <span class="tag">&lt;util:map</span> <span class="attribute-name">id</span>=<span class="string"><span class="delimiter">&quot;</span><span class="content">exitCodeMapper</span><span class="delimiter">&quot;</span></span> <span class="attribute-name">key-type</span>=<span class="string"><span class="delimiter">&quot;</span><span class="content">java.lang.String</span><span class="delimiter">&quot;</span></span>
+                  <span class="attribute-name">value-type</span>=<span class="string"><span class="delimiter">&quot;</span><span class="content">java.lang.Integer</span><span class="delimiter">&quot;</span></span><span class="tag">&gt;</span>
+            <span class="comment">&lt;!-- ExitStatus --&gt;</span>
+            <span class="tag">&lt;entry</span> <span class="attribute-name">key</span>=<span class="string"><span class="delimiter">&quot;</span><span class="content">NOOP</span><span class="delimiter">&quot;</span></span> <span class="attribute-name">value</span>=<span class="string"><span class="delimiter">&quot;</span><span class="content">0</span><span class="delimiter">&quot;</span></span> <span class="tag">/&gt;</span>
+            <span class="tag">&lt;entry</span> <span class="attribute-name">key</span>=<span class="string"><span class="delimiter">&quot;</span><span class="content">COMPLETED</span><span class="delimiter">&quot;</span></span> <span class="attribute-name">value</span>=<span class="string"><span class="delimiter">&quot;</span><span class="content">0</span><span class="delimiter">&quot;</span></span> <span class="tag">/&gt;</span>
+            <span class="tag">&lt;entry</span> <span class="attribute-name">key</span>=<span class="string"><span class="delimiter">&quot;</span><span class="content">STOPPED</span><span class="delimiter">&quot;</span></span> <span class="attribute-name">value</span>=<span class="string"><span class="delimiter">&quot;</span><span class="content">255</span><span class="delimiter">&quot;</span></span> <span class="tag">/&gt;</span>
+            <span class="tag">&lt;entry</span> <span class="attribute-name">key</span>=<span class="string"><span class="delimiter">&quot;</span><span class="content">FAILED</span><span class="delimiter">&quot;</span></span> <span class="attribute-name">value</span>=<span class="string"><span class="delimiter">&quot;</span><span class="content">255</span><span class="delimiter">&quot;</span></span> <span class="tag">/&gt;</span>
+            <span class="tag">&lt;entry</span> <span class="attribute-name">key</span>=<span class="string"><span class="delimiter">&quot;</span><span class="content">UNKNOWN</span><span class="delimiter">&quot;</span></span> <span class="attribute-name">value</span>=<span class="string"><span class="delimiter">&quot;</span><span class="content">255</span><span class="delimiter">&quot;</span></span> <span class="tag">/&gt;</span>
+            <span class="tag">&lt;entry</span> <span class="attribute-name">key</span>=<span class="string"><span class="delimiter">&quot;</span><span class="content">CUSTOM FAILED</span><span class="delimiter">&quot;</span></span> <span class="attribute-name">value</span>=<span class="string"><span class="delimiter">&quot;</span><span class="content">100</span><span class="delimiter">&quot;</span></span> <span class="tag">/&gt;</span> <span class="comment">&lt;!-- Custom Exit Status --&gt;</span>
+        <span class="tag">&lt;/util:map&gt;</span>
+    <span class="tag">&lt;/property&gt;</span>
+<span class="tag">&lt;/bean&gt;</span></code></pre>
+</div>
+</div>
+<div class="admonitionblock warning">
+<table>
+<tr>
+<td class="icon">
+<i class="fa icon-warning" title="Warning"></i>
+</td>
+<td class="content">
+<div class="title">Process exit code 1 is prohibited</div>
+<div class="paragraph">
+<p>Generally, when a Java process is forcibly terminated due to a VM crash or SIGKILL signal reception,
+the process may return 1 as the exit status.
+Since it should be clearly distinguished from the end state of a batch application regardless of whether it is normal or abnormal,
+do not define 1 as a process exit code within an application.</p>
+</div>
+</td>
+</tr>
+</table>
+</div>
+<div class="admonitionblock tip">
+<table>
+<tr>
+<td class="icon">
+<i class="fa icon-tip" title="Tip"></i>
+</td>
+<td class="content">
+<div class="title">About the difference between status and exit code</div>
+<div class="paragraph">
+<p>There are "status (<code>STATUS</code>)" and "exit code (<code>EXIT_CODE</code>)" as the states of jobs and steps managed by <code>JobRepository</code>, but they differ in the following points.</p>
+</div>
+<div class="ulist">
+<ul>
+<li>
+<p>The status can not be customized because it is used in internal control of Spring Batch and specific value by enum type <code>BatchStatus</code> is defined.</p>
+</li>
+<li>
+<p>The exit code can be used for job flow control and process exit code change, and can be customized.</p>
+</li>
+</ul>
+</div>
+</td>
+</tr>
+</table>
+</div>
+</div>
+</div>
+<div class="sect2">
+<h3 id="Ch07_JobManagement_DuplicateSafe"><a class="anchor" href="#Ch07_JobManagement_DuplicateSafe"></a>Double Activation Prevention</h3>
+<div class="paragraph">
+<p>In Spring Batch, when running a job,
+confirm whether the following combination exists from <code>JobRepositry</code> to <code>JobInstance(BATCH_JOB_INSTANCE table)</code>.</p>
+</div>
+<div class="ulist">
+<ul>
+<li>
+<p>Job name to be activated</p>
+</li>
+<li>
+<p>Job parameters</p>
+</li>
+</ul>
+</div>
+<div class="paragraph">
+<p>TERASOLUNA Batch 5.x makes it possible to activate multiple times even if the combinations of job and job parameters match.<br>
+That is, it allows double activation.
+For details, refer to <a href="Ch04_JobParameter.html">Job Activation Parameter</a></p>
+</div>
+<div class="paragraph">
+<p>In order to prevent double activation, it is necessary to execute in the job scheduler or application.<br>
+Detailed means are strongly dependent on job scheduler products and business requirements, so omitted here.<br>
+Consider whether it is necessary to suppress double start for each job.</p>
+</div>
+</div>
+<div class="sect2">
+<h3 id="Ch07_JobManagement_Logging"><a class="anchor" href="#Ch07_JobManagement_Logging"></a>Logging</h3>
+<div class="paragraph">
+<p>Explain log setting method.</p>
+</div>
+<div class="paragraph">
+<p>Log output, settings and considerations are in common with TERASOLUNA Server 5.x.
+At first, refer to <a href="http://terasolunaorg.github.io/guideline/5.3.0.RELEASE/ja/ArchitectureInDetail/GeneralFuncDetail/Logging.html">Logging</a>.</p>
+</div>
+<div class="paragraph">
+<p>Explain specific considerations of TERASOLUNA Batch 5.x here.</p>
+</div>
+<div class="sect3">
+<h4 id="clarification-of-log-output-source"><a class="anchor" href="#clarification-of-log-output-source"></a>Clarification of log output source</h4>
+<div class="paragraph">
+<p>It is necessary to be able to clearly specify the output source job and job execution at the time of batch execution.
+Therefore, it is good to output the thread name, the job name and the job execution ID.
+Especially at asynchronous execution, since jobs with the same name will operate in parallel with different threads,
+recording only the job name may make it difficult to specify the log output source.</p>
+</div>
+<div class="paragraph">
+<p>Each element can be realized in the following way.</p>
+</div>
+<div class="dlist">
+<dl>
+<dt class="hdlist1">Thread name</dt>
+<dd>
+<p>Specify <code>%thread</code> which is the output pattern of <code>logback.xml</code></p>
+</dd>
+<dt class="hdlist1">Job name / Job Execution ID</dt>
+<dd>
+<p>Create a component implementing <code>JobExecutionListener</code> and record it at the start and end of the job</p>
+</dd>
+</dl>
+</div>
+<div class="listingblock">
+<div class="title">An implementation example of JobExecutionListener</div>
+<div class="content">
+<pre class="CodeRay highlight"><code data-lang="java"><span class="comment">// package and import omitted.</span>
+
+<span class="annotation">@Component</span>
+<span class="directive">public</span> <span class="type">class</span> <span class="class">JobExecutionLoggingListener</span> <span class="directive">implements</span> JobExecutionListener {
+    <span class="directive">private</span> <span class="directive">static</span> <span class="directive">final</span> <span class="predefined-type">Logger</span> logger =
+            LoggerFactory.getLogger(JobExecutionLoggingListener.class);
+
+    <span class="annotation">@Override</span>
+    <span class="directive">public</span> <span class="type">void</span> beforeJob(JobExecution jobExecution) {
+        <span class="comment">// (1)</span>
+        logger.info(<span class="string"><span class="delimiter">&quot;</span><span class="content">job started. [JobName:{}][jobExecutionId:{}]</span><span class="delimiter">&quot;</span></span>,
+            jobExecution.getJobInstance().getJobName(), jobExecution.getId());
+    }
+
+    <span class="annotation">@Override</span>
+    <span class="directive">public</span> <span class="type">void</span> afterJob(JobExecution jobExecution) {
+        <span class="comment">// (2)</span>
+        logger.info(<span class="string"><span class="delimiter">&quot;</span><span class="content">job finished.[JobName:{}][jobExecutionId:{}][ExitStatus:{}]</span><span class="delimiter">&quot;</span></span>
+                , jobExecution.getJobInstance().getJobName(),
+                , jobExecution.getId(), jobExecution.getExitStatus().getExitCode());
+    }
+
+}</code></pre>
+</div>
+</div>
+<div class="listingblock">
+<div class="title">Job Bean definition file</div>
+<div class="content">
+<pre class="CodeRay highlight"><code data-lang="xml"><span class="comment">&lt;!-- omitted. --&gt;</span>
+<span class="tag">&lt;batch:job</span> <span class="attribute-name">id</span>=<span class="string"><span class="delimiter">&quot;</span><span class="content">loggingJob</span><span class="delimiter">&quot;</span></span> <span class="attribute-name">job-repository</span>=<span class="string"><span class="delimiter">&quot;</span><span class="content">jobRepository</span><span class="delimiter">&quot;</span></span><span class="tag">&gt;</span>
+    <span class="tag">&lt;batch:step</span> <span class="attribute-name">id</span>=<span class="string"><span class="delimiter">&quot;</span><span class="content">loggingJob.step01</span><span class="delimiter">&quot;</span></span><span class="tag">&gt;</span>
+        <span class="tag">&lt;batch:tasklet</span> <span class="attribute-name">transaction-manager</span>=<span class="string"><span class="delimiter">&quot;</span><span class="content">jobTransactionManager</span><span class="delimiter">&quot;</span></span><span class="tag">&gt;</span>
+            <span class="comment">&lt;!-- omitted. --&gt;</span>
+        <span class="tag">&lt;/batch:tasklet&gt;</span>
+    <span class="tag">&lt;/batch:step&gt;</span>
+    <span class="tag">&lt;batch:listeners&gt;</span>
+        <span class="comment">&lt;!-- (3) --&gt;</span>
+        <span class="tag">&lt;batch:listener</span> <span class="attribute-name">ref</span>=<span class="string"><span class="delimiter">&quot;</span><span class="content">jobExecutionLoggingListener</span><span class="delimiter">&quot;</span></span><span class="tag">/&gt;</span>
+    <span class="tag">&lt;/batch:listeners&gt;</span>
+<span class="tag">&lt;/batch:job&gt;</span>
+<span class="comment">&lt;!-- omitted. --&gt;</span></code></pre>
+</div>
+</div>
+<table class="tableblock frame-all grid-all spread">
+<caption class="title">An example of log output of job name and job execution ID</caption>
+<colgroup>
+<col style="width: 40%;">
+<col style="width: 60%;">
+</colgroup>
+<thead>
+<tr>
+<th class="tableblock halign-left valign-top">Sr. No.</th>
+<th class="tableblock halign-left valign-top">Description</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td class="tableblock halign-left valign-top"><p class="tableblock">(1)</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">Before starting the job, the job name and job execution ID are output to the INFO log.</p></td>
+</tr>
+<tr>
+<td class="tableblock halign-left valign-top"><p class="tableblock">(2)</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">When the job ends, an exit code is also output in addition to (1).</p></td>
+</tr>
+<tr>
+<td class="tableblock halign-left valign-top"><p class="tableblock">(3)</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">Associate <code>JobExecutionLoggingListener</code> registered as a component with the bean definition of a specific job.</p></td>
+</tr>
+</tbody>
+</table>
+</div>
+<div class="sect3">
+<h4 id="log-monitoring"><a class="anchor" href="#log-monitoring"></a>Log Monitoring</h4>
+<div class="paragraph">
+<p>In the batch application, the log is the main user interface of the operation.
+Unless the monitoring target and the actions at the time of occurrence are clearly designed,
+filtering becomes difficult and there is a danger that logs necessary for action are buried.
+For this reason, it is advisable to determine in advance a message or code system to be a keyword to be monitored for logs.
+For message management to be output to the log, refer to <a href="#Ch07_JobManagement_MessageManagement">Message Management</a> below.</p>
+</div>
+</div>
+<div class="sect3">
+<h4 id="log-output-destination"><a class="anchor" href="#log-output-destination"></a>Log Output Destination</h4>
+<div class="paragraph">
+<p>For log output destinations in batch applications, it is good to design in which units logs are distributed / aggregated.
+For example, even when logs are output to a flat file, multiple patterns are considered as follows.</p>
+</div>
+<div class="ulist">
+<ul>
+<li>
+<p>Output to 1 file per 1 job</p>
+</li>
+<li>
+<p>Output to 1 file in units of multiple jobs grouped together</p>
+</li>
+<li>
+<p>1 Output to 1 file per server</p>
+</li>
+<li>
+<p>Output multiple servers in 1 file</p>
+</li>
+</ul>
+</div>
+<div class="paragraph">
+<p>In each case, depending on the total number of jobs / the total amount of logs / I/O rate to be generated in the target system,
+it is decided which unit is best to be grouped.
+It also depends on how to check logs. It is assumed that options will change depending on the utilization method
+such as whether to refer frequently from the job scheduler or from the console frequently.</p>
+</div>
+<div class="paragraph">
+<p>The important thing is to carefully examine the log output in operational design and to verify the usefulness of the log in the test.</p>
+</div>
+</div>
+</div>
+<div class="sect2">
+<h3 id="Ch07_JobManagement_MessageManagement"><a class="anchor" href="#Ch07_JobManagement_MessageManagement"></a>Message Management</h3>
+<div class="paragraph">
+<p>Explain message management.</p>
+</div>
+<div class="paragraph">
+<p>In order to prevent variations in the code system and to facilitate designing extraction as a keyword to be monitored,
+it is desirable to give messages according to certain rules.</p>
+</div>
+<div class="paragraph">
+<p>As with logging, message management is basically the same as TERASOLUNA Server 5.x.</p>
+</div>
+<div class="admonitionblock important">
+<table>
+<tr>
+<td class="icon">
+<i class="fa icon-important" title="Important"></i>
+</td>
+<td class="content">
+<div class="title">About utilization of MessageSource</div>
+<div class="paragraph">
+<p><code>MessageSource</code> can be used to use messages from property files.</p>
+</div>
+<div class="ulist">
+<ul>
+<li>
+<p>For specific settings and implementation examples,
+refer to <a href="http://terasolunaorg.github.io/guideline/5.3.0.RELEASE/ja/ja/ArchitectureInDetail/GeneralFuncDetail/Logging.html#id8">Uniform management of log messages</a></p>
+<div class="ulist">
+<ul>
+<li>
+<p>As a sample of log output here, it is exemplified along the case of the Spring MVC controller,
+but please replace it to any component of Spring Batch.</p>
+</li>
+<li>
+<p>Instance of <code>MessageSource</code> is generated independently here, but it is not necessary for TERASOLUNA Batch 5.x.
+This is because each component is accessed only after <code>ApplicationContext</code> is created.
+In TERASOLUNA Batch 5.x, it is set as follows.</p>
+</li>
+</ul>
+</div>
+</li>
+</ul>
+</div>
+<div class="listingblock">
+<div class="title">launch-context.xml</div>
+<div class="content">
+<pre class="CodeRay highlight"><code data-lang="xml"><span class="tag">&lt;bean</span> <span class="attribute-name">id</span>=<span class="string"><span class="delimiter">&quot;</span><span class="content">messageSource</span><span class="delimiter">&quot;</span></span>
+      <span class="attribute-name">class</span>=<span class="string"><span class="delimiter">&quot;</span><span class="content">org.springframework.context.support.ResourceBundleMessageSource</span><span class="delimiter">&quot;</span></span>
+      <span class="attribute-name">p:basenames</span>=<span class="string"><span class="delimiter">&quot;</span><span class="content">classpath:META-INF/i18n/application-messages</span><span class="delimiter">&quot;</span></span> <span class="tag">/&gt;</span></code></pre>
+</div>
+</div>
+</td>
+</tr>
+</table>
+</div>
+</div>
+</div>
+</div>
+<div class="sect1">
+<h2 id="Ch07_JobManagement_Appendix"><a class="anchor" href="#Ch07_JobManagement_Appendix"></a>Appendix. Spring Batch Admin</h2>
+<div class="sectionbody">
+<div class="paragraph">
+<p>Spring Batch Admin is a subproject of Spring Batch, and it is possible to check the job execution status through the Web interface.
+Introduce it because it can refer easily regardless of test/commercial environment.</p>
+</div>
+<div class="paragraph">
+<p>Spring Batch Admin is distributed as a sample application.
+Use Apache Tomcat as the web container and deploy the war file here.</p>
+</div>
+<div class="admonitionblock caution">
+<table>
+<tr>
+<td class="icon">
+<i class="fa icon-caution" title="Caution"></i>
+</td>
+<td class="content">
+<div class="paragraph">
+<p>Spring Batch Admin can not only check the execution status and results of jobs but also start and stop jobs.
+In that case, It is needed to include the job in the same war file, which creates a strong restriction that it is essential to execute the job with the web container.
+Since there is no necessity as long as it is just confirming the execution state/result, it is introduced as a reference method here.</p>
+</div>
+</td>
+</tr>
+</table>
+</div>
+<div class="paragraph">
+<p>The installation procedure is as follows.</p>
+</div>
+<div class="ulist">
+<ul>
+<li>
+<p>Download 1.3.1.RELEASE zip file from <a href="https://github.com/spring-projects/spring-batch-admin/releases">Release Distribution Site</a>,
+and unzip it anywhere.</p>
+</li>
+<li>
+<p>Create an external RDBMS-defined property file <code>batch-RDBMSNAME.properties</code>.</p>
+<div class="ulist">
+<ul>
+<li>
+<p>Place it in <code>spring-batch-admin-1.3.1.RELEASE/spring-batch-admin-sample/src/main/resources</code>.</p>
+</li>
+</ul>
+</div>
+</li>
+</ul>
+</div>
+<div class="listingblock">
+<div class="title">batch-postgresql.properties (for PostgreSQL)</div>
+<div class="content">
+<pre class="CodeRay highlight"><code data-lang="properties"># Placeholders batch.*
+#    for PostgreSQL:
+# (1)
+batch.jdbc.driver=org.postgresql.Driver
+batch.jdbc.url=jdbc:postgresql://localhost:5432/admin
+batch.jdbc.user=postgres
+batch.jdbc.password=postgres
+batch.jdbc.testWhileIdle=true
+batch.jdbc.validationQuery=SELECT 1
+# (2)
+batch.schema.script=classpath:/org/springframework/batch/core/schema-postgresql.sql
+batch.drop.script=classpath*:/org/springframework/batch/core/schema-drop-postgresql.sql
+batch.business.schema.script=classpath:/business-schema-postgresql.sql
+batch.database.incrementer.class=org.springframework.jdbc.support.incrementer.PostgreSQLSequenceMaxValueIncrementer
+
+# Non-platform dependent settings that you might like to change
+# (3)
+batch.data.source.init=false</code></pre>
+</div>
+</div>
+<table class="tableblock frame-all grid-all spread">
+<caption class="title">List of setting contents (PostgreSQL)</caption>
+<colgroup>
+<col style="width: 20%;">
+<col style="width: 80%;">
+</colgroup>
+<thead>
+<tr>
+<th class="tableblock halign-left valign-top">Sr. No.</th>
+<th class="tableblock halign-left valign-top">Description</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td class="tableblock halign-left valign-top"><p class="tableblock">(1)</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">Describe the JDBC driver setting of the connection destination RDBMS.</p></td>
+</tr>
+<tr>
+<td class="tableblock halign-left valign-top"><p class="tableblock">(2)</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">Describe <code>JobRepository</code> and a script for initializing the business database.
+It is not used for the reason of (3), but if <code>batch.xxxx</code> runs short, it will cause an error at startup, so it may be a dummy, so describe it.</p></td>
+</tr>
+<tr>
+<td class="tableblock halign-left valign-top"><p class="tableblock">(3)</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">Be sure to specify <code>false</code> so that <code>JobRepository</code> and the business database schema are not initialized when Spring Batch Admin is started.<br>
+If this setting is not described, all the management/business data source on the RDBMS will be cleared.</p></td>
+</tr>
+</tbody>
+</table>
+<div class="ulist">
+<ul>
+<li>
+<p>Add the JDBC driver dependency library to pom.xml
+under <code>spring-batch-admin-1.3.1.RELEASE/spring-batch-admin-sample/</code></p>
+</li>
+</ul>
+</div>
+<div class="listingblock">
+<div class="title">Add the JDBC driver dependency library to pom.xml (PostgreSQL)</div>
+<div class="content">
+<pre class="CodeRay highlight"><code data-lang="xml"><span class="tag">&lt;project&gt;</span>
+  <span class="comment">&lt;!-- omitted. --&gt;</span>
+  <span class="tag">&lt;dependencies&gt;</span>
+    <span class="tag">&lt;dependency&gt;</span>
+        <span class="tag">&lt;groupId&gt;</span>org.postgresql<span class="tag">&lt;/groupId&gt;</span>
+        <span class="tag">&lt;artifactId&gt;</span>postgresql<span class="tag">&lt;/artifactId&gt;</span>
+        <span class="tag">&lt;version&gt;</span>9.4.1212.jre7<span class="tag">&lt;/version&gt;</span>
+        <span class="tag">&lt;scope&gt;</span>runtime<span class="tag">&lt;/scope&gt;</span>
+    <span class="tag">&lt;/dependency&gt;</span>
+  <span class="tag">&lt;/dependencies&gt;</span>
+  <span class="comment">&lt;!-- omitted. --&gt;</span>
+<span class="tag">&lt;/project&gt;</span></code></pre>
+</div>
+</div>
+<div class="ulist">
+<ul>
+<li>
+<p>Create a war file with <code>mvn clean package</code> command.</p>
+</li>
+<li>
+<p>Set the external RDBMS name <code>-DENVIRONMENT=postgresql</code> to the environment variable <code>JAVA_OPTS</code> and start Tomcat.</p>
+</li>
+</ul>
+</div>
+<div class="listingblock">
+<div class="title">Setting environment variables and starting Tomcat</div>
+<div class="content">
+<pre class="CodeRay highlight"><code data-lang="console">$ export JAVA_OPTS=&quot;$JAVA_OPTS -DENVIRONMENT=postgresql&quot;
+$ echo $JAVA_OPTS
+-DENVIRONMENT=postgresql
+$ TOMCAT_HOME/bin/catalina.sh run</code></pre>
+</div>
+</div>
+<div class="ulist">
+<ul>
+<li>
+<p>Deploy <code>target/spring-batch-admin-1.3.1.war</code> to Tomcat.</p>
+</li>
+<li>
+<p>In the browser, open <code><a href="http://tomcathost:port/spring-batch-admin-sample-1.3.1.RELEASE/" class="bare">http://tomcathost:port/spring-batch-admin-sample-1.3.1.RELEASE/</a></code> and select Jobs.</p>
+</li>
+</ul>
+</div>
+<div class="imageblock">
+<div class="content">
+<img src="./images/ch07/Ch07_JobManagement/Ch07_JobManagement_RootView.png" alt="Root view">
+</div>
+<div class="title">Spring Batch Admin root view</div>
+</div>
+<div class="ulist">
+<ul>
+<li>
+<p>Select the job name of the execution status/result acquisition target.</p>
+</li>
+</ul>
+</div>
+<div class="imageblock">
+<div class="content">
+<img src="./images/ch07/Ch07_JobManagement/Ch07_JobManagement_ChooseJob.png" alt="Choose job">
+</div>
+<div class="title">Spring Batch Admin job select view</div>
+</div>
+<div class="ulist">
+<ul>
+<li>
+<p>Display the execution status and result of the target job.</p>
+</li>
+</ul>
+</div>
+<div class="imageblock">
+<div class="content">
+<img src="./images/ch07/Ch07_JobManagement/Ch07_JobManagement_JobResult.png" alt="Job result">
+</div>
+<div class="title">Spring Batch Admin job status/result view</div>
+</div>
+</div>
+</div>
+</div>
+<div class="footer-navi">
+  <a href="index.html">index</a>
+</div>
+
+<div class="footer-copyright">
+ &copy; Copyright 2017-3-17, NTT DATA Corporation.
+</div>
+</body>
+</html>
