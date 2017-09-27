@@ -1,0 +1,208 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<!--[if IE]><meta http-equiv="X-UA-Compatible" content="IE=edge"><![endif]-->
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<meta name="generator" content="Asciidoctor 1.5.6.1">
+<title>更新履歴</title>
+<link rel="stylesheet" href="./theme/css/readthedocs.css">
+<link rel="stylesheet" href="./theme/css/font-awesome.min.css">
+<link rel="stylesheet" href="./theme/css/coderay-asciidoctor.css">
+<link rel="stylesheet" href="./theme/css/header-footer.css">
+<title>TERASOLUNA Batch Framework for Java (5.x) Development Guideline</title>
+
+<div class="common-bg">
+  <div class="information">
+    TERASOLUNA Batch Framework for Java (5.x) Development Guideline - version 5.0.1.RELEASE, 2017-9-27
+  </div>
+  <div class="index">
+    <a href="index.html">&gt; INDEX</a>
+  </div>
+</div>
+
+<script>
+  (function(i,s,o,g,r,a,m){i['GoogleAnalyticsObject']=r;i[r]=i[r]||function(){
+  (i[r].q=i[r].q||[]).push(arguments)},i[r].l=1*new Date();a=s.createElement(o),
+  m=s.getElementsByTagName(o)[0];a.async=1;a.src=g;m.parentNode.insertBefore(a,m)
+  })(window,document,'script','https://www.google-analytics.com/analytics.js','ga');
+  ga('create', 'UA-46550814-2', 'auto');
+  ga('send', 'pageview');
+</script>
+</head>
+<body id="Ch01_ChangeLog" class="book">
+<div id="header">
+<h1>更新履歴</h1>
+</div>
+<div id="content">
+<div id="preamble">
+<div class="sectionbody">
+<table class="tableblock frame-all grid-all spread">
+<colgroup>
+<col style="width: 15%;">
+<col style="width: 25%;">
+<col style="width: 60%;">
+</colgroup>
+<thead>
+<tr>
+<th class="tableblock halign-left valign-top">更新日付</th>
+<th class="tableblock halign-left valign-top">更新箇所</th>
+<th class="tableblock halign-left valign-top">変更内容</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td class="tableblock halign-left valign-top"><p class="tableblock">2017-09-27</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">-</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">5.0.1 RELEASE 版公開</p></td>
+</tr>
+<tr>
+<td class="tableblock halign-left valign-top"></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">全般</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">記載内容の修正<br>
+・ガイドラインの誤記(タイプミスや単純な記述ミスなど)の修正<br>
+・ヘッダとフッタの目次へのリンクのデザインを修正 (管理ID#196)<br>
+・JDK8未習得者が利用することも考慮してJDK8依存のコードをJDK7以前のコードへ変更 (管理ID#231)</p>
+<p class="tableblock">記載内容の追加<br>
+・ヘッダとフッタにバージョン情報を追加 (管理ID#196)</p></td>
+</tr>
+<tr>
+<td class="tableblock halign-left valign-top"></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><a href="Ch02_SpringBatchArchitecture.html#Ch02_SpringBatchArch">Spring Batchのアーキテクチャ</a></p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">記載内容の追加<br>
+・メタデータテーブルへ格納する文字列についての説明を追加 (管理ID#233)<br></p>
+<p class="tableblock">記載内容の削除<br>
+・ジョブパラメータの制約についての説明を削除 (管理ID#233)</p></td>
+</tr>
+<tr>
+<td class="tableblock halign-left valign-top"></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><a href="Ch03_CreateProject.html#Ch03_CreateProject">プロジェクトの作成</a></p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">記載内容の修正<br>
+・ブランクプロジェクトのジョブBean定義ファイルの格納ディレクトリを変更 (管理ID#161)<br>
+・コマンドの実行例や出力例についてはコマンドプロンプトとBashそれぞれの例を示すように修正 (管理ID#161)<br>
+・プロジェクトを作成する際に指定するarchetypeVersionを5.0.1.RELEASEに修正 (管理ID#315)</p></td>
+</tr>
+<tr>
+<td class="tableblock halign-left valign-top"></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><a href="Ch03_CreateChunkJob.html#Ch03_CreateChunkJob">チャンクモデルジョブの作成</a></p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">記載内容の修正<br>
+・Bean定義ファイルのid属性の説明を平易な表現に修正 (管理ID#250)</p></td>
+</tr>
+<tr>
+<td class="tableblock halign-left valign-top"></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><a href="Ch03_CreateTaskletJob.html#Ch03_CreateTaskletJob">タスクレットモデルジョブの作成</a></p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">記載内容の修正<br>
+・Bean定義ファイルのid属性の説明を平易な表現に修正 (管理ID#250)</p>
+<p class="tableblock">記載内容の追加<br>
+・Tasklet実装する際に考慮する処理単位の説明を追加 (管理ID#202)</p></td>
+</tr>
+<tr>
+<td class="tableblock halign-left valign-top"></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><a href="Ch04_AsyncJobWithDB.html#Ch04_AsyncJobWithDB_Overview">非同期実行(DBポーリング)</a></p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">記載内容の修正<br>
+・クラス名の接尾辞をRepositoryに修正 (管理ID#241)<br>
+・ジョブ要求シーケンスに関する説明を特定のRDBMS製品に依存しない内容に修正 (管理ID#233)</p>
+<p class="tableblock">記載内容の追加<br>
+・ジョブ要求テーブルへ格納する文字列についての説明を追加 (管理ID#233)<br>
+・ジョブ要求取得SQLの説明を追加 (管理ID#233)</p></td>
+</tr>
+<tr>
+<td class="tableblock halign-left valign-top"></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><a href="Ch04_JobParameter.html#Ch04_JobParameter">ジョブの起動パラメータ</a></p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">記載内容の修正<br>
+・文字列リテラルはシングルクォートで囲むようにパラメータを参照する例を修正 (管理ID#246)</p></td>
+</tr>
+<tr>
+<td class="tableblock halign-left valign-top"></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><a href="Ch04_Listener.html#Ch04_Listener">リスナー</a></p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">記載内容の修正<br>
+・JobExecutionListenerの実装例をより平易なコード例を提示するように修正 (管理ID#271)</p>
+<p class="tableblock">記載内容の追加<br>
+・ChunkListenerの説明に例外ハンドリングへのリンクを追加 (管理ID#194)<br>
+・リスナーを設定する位置の説明にタスクレットモデルの場合の注意点を追加 (管理ID#194)</p></td>
+</tr>
+<tr>
+<td class="tableblock halign-left valign-top"></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><a href="Ch05_Transaction.html#Ch05_Transaction">トランザクション制御</a></p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">記載内容の修正<br>
+・タスクレットモデルにおける中間コミット方式のコード例をjobResourcelessTransactionManagerを使用する例に修正 (管理ID#262)</p>
+<p class="tableblock">記載内容の追加<br>
+・タスクレットモデルにおける中間コミット方式にjobResourcelessTransactionManagerの説明を追加 (管理ID#262)</p></td>
+</tr>
+<tr>
+<td class="tableblock halign-left valign-top"></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><a href="Ch05_DBAccess.html#Ch05_DBAccess">データベースアクセス</a></p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">記載内容の追加<br>
+・CompositeItemWriterによる複数テーブルの更新例を追加 (管理ID#226)<br>
+・Linux環境でのOracle JDBC利用時の留意事項を追加 (管理ID#237)</p></td>
+</tr>
+<tr>
+<td class="tableblock halign-left valign-top"></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><a href="Ch05_FileAccess.html#Ch05_FileAccess">ファイルアクセス</a></p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">記載内容の修正<br>
+・FlatFileItemWriter、StaxEventItemWriterのプロパティの説明を修正 (管理ID#198)</p>
+<p class="tableblock">記載内容の追加<br>
+・FlatFileItemWriter、StaxEventItemWriterのプロパティ設定の組み合わせによって意図しないファイル削除が行われる説明を追加 (管理ID#198)</p></td>
+</tr>
+<tr>
+<td class="tableblock halign-left valign-top"></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><a href="Ch05_ExclusiveControl.html#Ch05_ExclusiveControl">排他制御</a></p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">記載内容の修正<br>
+・チャンクモデルでの悲観ロックのコード例を修正 (管理ID#204)<br>
+・ファイルの排他制御のコード例を排他対象ファイルをオープンする前にファイルロックを取得するように修正 (管理ID#225)</p></td>
+</tr>
+<tr>
+<td class="tableblock halign-left valign-top"></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><a href="Ch07_JobManagement.html#Ch07_JobManagement">ジョブの管理</a></p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">記載内容の削除<br>
+・Spring Batch Adminプロジェクトの終了に伴いSpring Batch Adminに関する記述を削除 (管理ID#209)</p></td>
+</tr>
+<tr>
+<td class="tableblock halign-left valign-top"></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><a href="Ch07_JobManagement.html#Ch07_JobManagement_ExitCode">終了コードのカスタマイズ</a></p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">記載内容の追加<br>
+・終了コードのカスタマイズに終了コードの意味合いについての説明を追加 (管理ID#294)<br>
+・終了コードのカスタマイズにタスクレットモデルにおけるステップの終了コード変更のコード例を追加 (管理ID#294)</p></td>
+</tr>
+<tr>
+<td class="tableblock halign-left valign-top"></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><a href="Ch07_JobManagement.html#Ch07_JobManagement_MessageManagement">メッセージ管理</a></p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">記載内容の修正<br>
+・ResourceBundleMessageSourceのBean定義を修正 (管理ID#266)</p></td>
+</tr>
+<tr>
+<td class="tableblock halign-left valign-top"></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><a href="Ch09_index.html#Ch09">チュートリアル</a></p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">章の新規追加<br>
+・チュートリアルを追加 (管理ID#200)</p></td>
+</tr>
+<tr>
+<td class="tableblock halign-left valign-top"><p class="tableblock">2017-03-17</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">-</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">5.0.0 RELEASE 版公開</p></td>
+</tr>
+</tbody>
+</table>
+</div>
+</div>
+</div>
+<div class="container">
+
+  <div class="common-bg">
+    <div class="information">
+      TERASOLUNA Batch Framework for Java (5.x) Development Guideline - version 5.0.1.RELEASE, 2017-9-27
+    </div>
+    <div class="index">
+      <a href="index.html">&gt; INDEX</a>
+    </div>
+  </div>
+
+  <div class="footer-bg">
+    <div class="copyright">
+      &copy; Copyright 2017 NTT DATA Corporation.
+    </div>
+  </div>
+
+</div>
+</body>
+</html>
