@@ -188,6 +188,45 @@
 </tr>
 </table>
 </div>
+<div class="admonitionblock warning">
+<table>
+<tr>
+<td class="icon">
+<i class="fa icon-warning" title="Warning"></i>
+</td>
+<td class="content">
+<div class="title">プロジェクト作成後の注意事項について</div>
+<div class="paragraph">
+<p>生成された<code>pom.xml</code>で定義されているTERASOLUNA Batch 5.xのバージョンを<strong>5.0.1-SNAPSHOT</strong>から<strong>5.0.1.RELEASE</strong>に変更する必要がある。</p>
+</div>
+<div class="listingblock">
+<div class="title">修正前</div>
+<div class="content">
+<pre class="CodeRay highlight"><code data-lang="xml"><span class="tag">&lt;properties&gt;</span>
+    <span class="comment">&lt;!-- omiited --&gt;</span>
+
+    <span class="tag">&lt;terasoluna-batch.version&gt;</span>5.0.1-SNAPSHOT<span class="tag">&lt;/terasoluna-batch.version&gt;</span>
+
+    <span class="comment">&lt;!-- omiited --&gt;</span>
+<span class="tag">&lt;/properties&gt;</span></code></pre>
+</div>
+</div>
+<div class="listingblock">
+<div class="title">修正後</div>
+<div class="content">
+<pre class="CodeRay highlight"><code data-lang="xml"><span class="tag">&lt;properties&gt;</span>
+    <span class="comment">&lt;!-- omiited --&gt;</span>
+
+    <span class="tag">&lt;terasoluna-batch.version&gt;</span>5.0.1.RELEASE<span class="tag">&lt;/terasoluna-batch.version&gt;</span>
+
+    <span class="comment">&lt;!-- omiited --&gt;</span>
+<span class="tag">&lt;/properties&gt;</span></code></pre>
+</div>
+</div>
+</td>
+</tr>
+</table>
+</div>
 <div class="paragraph">
 <p>プロジェクトを作成するディレクトリにて、以下のコマンドを実行する。</p>
 </div>
