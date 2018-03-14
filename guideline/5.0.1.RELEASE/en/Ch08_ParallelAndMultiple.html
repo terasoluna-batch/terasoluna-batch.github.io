@@ -1,0 +1,1092 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<!--[if IE]><meta http-equiv="X-UA-Compatible" content="IE=edge"><![endif]-->
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<meta name="generator" content="Asciidoctor 1.5.6.1">
+<title>Parallel processing and multiple processing</title>
+<link rel="stylesheet" href="./theme/css/readthedocs.css">
+<link rel="stylesheet" href="./theme/css/font-awesome.min.css">
+<link rel="stylesheet" href="./theme/css/coderay-asciidoctor.css">
+<link rel="stylesheet" href="./theme/css/header-footer.css">
+<title>TERASOLUNA Batch Framework for Java (5.x) Development Guideline</title>
+
+<div class="common-bg">
+  <div class="information">
+    TERASOLUNA Batch Framework for Java (5.x) Development Guideline - version 5.0.1.RELEASE, 2017-9-27
+  </div>
+  <div class="index">
+    <a href="index.html">&gt; INDEX</a>
+  </div>
+</div>
+</head>
+<body id="Ch08_ParallelAndMultiple" class="book toc2 toc-left">
+<div id="header">
+<h1>Parallel processing and multiple processing</h1>
+<div id="toc" class="toc2">
+<div id="toctitle">Table of Contents</div>
+<ul class="sectlevel1">
+<li><a href="#Ch08_ParallelAndMultiple_Overview">Overview</a>
+<ul class="sectlevel2">
+<li><a href="#Ch08_ParallelAndMultiple_Overview_Scheduler">Parallel processing and multiple processing by job scheduler</a>
+<ul class="sectlevel3">
+<li><a href="#Ch08_ParallelAndMultiple_Overview_SchedulerParallelJob">Parallel processing of jobs using job scheduler</a></li>
+<li><a href="#Ch08_ParallelAndMultiple_Overview_SchedulerMultiplelJob">Multiple processing of jobs using job scheduler</a></li>
+</ul>
+</li>
+</ul>
+</li>
+<li><a href="#Ch08_ParallelAndMultiple_HowToUse">How to use</a>
+<ul class="sectlevel2">
+<li><a href="#Ch08_ParallelAndMultiple_ParallelStep">Parallel Step  (Parallel processing)</a></li>
+<li><a href="#Ch08_ParallelAndMultiple_Partitioning">Partitioning Step (Multiple processing)</a>
+<ul class="sectlevel3">
+<li><a href="#Ch08_ParallelAndMultiple_VariablePartitonNumber">When number of partitionings are variable</a></li>
+<li><a href="#Ch08_ParallelAndMultiple_FixingPartitonNumber">When number of partitionings are fixed</a></li>
+</ul>
+</li>
+</ul>
+</li>
+</ul>
+</div>
+</div>
+<div id="content">
+<div class="sect1">
+<h2 id="Ch08_ParallelAndMultiple_Overview"><a class="anchor" href="#Ch08_ParallelAndMultiple_Overview"></a>Overview</h2>
+<div class="sectionbody">
+<div class="paragraph">
+<p>Generally, the batch system where the batch window is severe (time available for batch processing) is designed
+to reduce overall processing time as much as possible by operating multiple jobs in parallel (hereafter referred to as parallel processing).<br>
+However, it may happen that processing time does not fit in the batch window due to large size of 1 processing job.<br>
+In this case, a method to reduce processing time by dividing the processing data of a job and performing multiple processing (hereafter referred to as multiple processing) can be used.<br>
+Although parallel processing and multiple processing can be handled with the same significance, the definitions are given here as below.</p>
+</div>
+<div class="dlist">
+<dl>
+<dt class="hdlist1">Parallel processing</dt>
+<dd>
+<p>Execute multiple different jobs at the same time.</p>
+</dd>
+</dl>
+</div>
+<div class="imageblock">
+<div class="content">
+<img src="./images/Ch08_ParallelAndMultiple_Overview_Parallel.png" alt="Parallel Step">
+</div>
+<div class="title">Schematic diagram of parallel processing</div>
+</div>
+<div class="dlist">
+<dl>
+<dt class="hdlist1">Multiple processing</dt>
+<dd>
+<p>Divide the processing target of 1 job and execute simultaneously.</p>
+</dd>
+</dl>
+</div>
+<div class="imageblock">
+<div class="content">
+<img src="./images/Ch08_ParallelAndMultiple_Overview_Multiple.png" alt="Partition Step">
+</div>
+<div class="title">Schematic diagram of multiple processing</div>
+</div>
+<div class="paragraph">
+<p>A method to use job scheduler and a method to use TERASOLUNA Batch 5.x are used for both parallel processing and multiple processing.<br>
+Note that, parallel processing and multiple processing in TERASOLUNA Batch 5.x is established
+on <a href="Ch08_FlowControll.html#Ch08_FlowControll">Flow control</a>.</p>
+</div>
+<table class="tableblock frame-all grid-all spread">
+<caption class="title">How to implement parallel processing and multiple processing</caption>
+<colgroup>
+<col style="width: 20%;">
+<col style="width: 40%;">
+<col style="width: 40%;">
+</colgroup>
+<thead>
+<tr>
+<th class="tableblock halign-left valign-top">Implementation method</th>
+<th class="tableblock halign-left valign-top">Parallel processing</th>
+<th class="tableblock halign-left valign-top">Multiple processing</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td class="tableblock halign-left valign-top"><p class="tableblock">Job scheduler</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">It is defined to enable execution of multiple different jobs without dependencies to run at the same time.</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">It is defined to execute multiple identical jobs in different data scopes. Pass information to narrow down data to be processed by each job argument, to each job.<br>
+For example, divide data of 1 year for each month, divide by units such as area, branch etc.</p></td>
+</tr>
+<tr>
+<td class="tableblock halign-left valign-top"><p class="tableblock">TERASOLUNA Batch 5.x</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><a href="#Ch08_ParallelAndMultiple_ParallelStep">Parallel Step  (Parallel processing)</a><br>
+Perform parallel processing in steps.<br>
+Each step need not have identical processing and parallel processing can be performed for resources of different types such as DB and file.</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><a href="#Ch08_ParallelAndMultiple_Partitioning">Partitioning Step (Multiple processing)</a><br>
+In the master step, a key to distribute target data is fetched and in the slave step,
+the distributed data is processed based on this key.<br>
+Unlike parallel step, the processing of the slave step is identical.</p></td>
+</tr>
+</tbody>
+</table>
+<div class="dlist">
+<dl>
+<dt class="hdlist1">When job scheduler is used</dt>
+<dd>
+<p>Since 1 process is allocated to 1 job, it is activated by multiple processes. Hence, designing and implementing one job is not very difficult.<br>
+However, since multiple processes are started, the load on machine resources increase when number of synchronous executions increase.<br>
+Hence, when the number of synchronous executions is 3 or 4, a job scheduler may be used.<br>
+Of course, this number is not absolute. It would like you to used as a guide as it depends on execution environment or job implementation.</p>
+</dd>
+<dt class="hdlist1">When TERASOLUNA Batch 5.x is used</dt>
+<dd>
+<p>Since each step is assigned to a thread, it is operated as 1 process with multiple threads. Hence, the difficulty level for design and implementation of 1 job is higher than while using a job scheduler.<br>
+However, since the process is implemented by multiple threads, the load on machine resources will not be as high as the time when job scheduler is used even when the number of synchronous executions show an increase.
+Hence, when number of synchronous executions is large (5 or more than 5), TERASOLUNA Batch 5.x may be used.<br>
+Of course, this number is not absolute. It would like you to used as a guide as it depends on execution environment and system characteristics.</p>
+</dd>
+</dl>
+</div>
+<div class="admonitionblock caution">
+<table>
+<tr>
+<td class="icon">
+<i class="fa icon-caution" title="Caution"></i>
+</td>
+<td class="content">
+<div class="paragraph">
+<p>One of the parallel processing methods that can be executed in Spring Batch is <code>Multi Thread Step</code>, however, its use in TERASOLUNA Batch 5.x is deprecated due to following reasons.</p>
+</div>
+<div class="dlist">
+<dl>
+<dt class="hdlist1">A Multi Thread Step method</dt>
+<dd>
+<p>performs parallel processing by multiple threads in chunk units.</p>
+</dd>
+<dt class="hdlist1">Reason for deprecation</dt>
+<dd>
+<p>A majority of Readers and Writers offered by Spring Batch are not designed for multi-thread processing.
+Hence, issues like loss of data or duplicate processing are likely to occur resulting in low process reliability. Further, since the process is performed in multiple threads, a definite processing order is not established.<br>
+Even when ItemReader/ItemProcessor/ItemWriter is created on its own, various points must be taken into consideration in order to use <code>Multi Thread Step</code> like thread safe wherein difficulty of implementation and operation is high.
+<code>Multi Thread Step</code> is deprecated for these reasons.<br>
+It is recommended to use <a href="#Ch08_ParallelAndMultiple_Partitioning">Partitioning Step (Multiple processing)</a> as an alternative.</p>
+</dd>
+</dl>
+</div>
+<div class="admonitionblock warning">
+<table>
+<tr>
+<td class="icon">
+<i class="fa icon-warning" title="Warning"></i>
+</td>
+<td class="content">
+<div class="paragraph">
+<p>Existing ItemReader can be made thread safe by using <code>org.springframework.batch.item.support.SynchronizedItemStreamReader</code>.
+Even then issue of processing sequence is still to be considered, <code>Multi Thread Step</code> is not used in TERASOLUNA Batch 5.x.</p>
+</div>
+</td>
+</tr>
+</table>
+</div>
+</td>
+</tr>
+</table>
+</div>
+<div class="admonitionblock warning">
+<table>
+<tr>
+<td class="icon">
+<i class="fa icon-warning" title="Warning"></i>
+</td>
+<td class="content">
+<div class="paragraph">
+<p>When data is to be updated to 1 database by parallel processing and multiple processing, resource conflict and deadlock are likely to occur.
+Potential conflicts should be eliminated from the job design stage.</p>
+</div>
+<div class="paragraph">
+<p>Distributed processing for multiple processes and multiple housings is included in Spring Batch as a function. However, since the failure design becomes difficult for TERASOLUNA Batch 5.x, it should not be used.</p>
+</div>
+</td>
+</tr>
+</table>
+</div>
+<div class="paragraph">
+<p>The usage method of this function is same in the chunk model as well as tasklet model.</p>
+</div>
+<div class="sect2">
+<h3 id="Ch08_ParallelAndMultiple_Overview_Scheduler"><a class="anchor" href="#Ch08_ParallelAndMultiple_Overview_Scheduler"></a>Parallel processing and multiple processing by job scheduler</h3>
+<div class="paragraph">
+<p>Parallel processing and multiple processing using a job scheduler is explained here.</p>
+</div>
+<div class="paragraph">
+<p>For job registration and schedule setting, refer the manual of the job scheduler to be used.</p>
+</div>
+<div class="sect3">
+<h4 id="Ch08_ParallelAndMultiple_Overview_SchedulerParallelJob"><a class="anchor" href="#Ch08_ParallelAndMultiple_Overview_SchedulerParallelJob"></a>Parallel processing of jobs using job scheduler</h4>
+<div class="paragraph">
+<p>The processes to be executed in parallel are registered as jobs and schedules are set so that each job starts on the time.
+Each job can be registered as a different process.</p>
+</div>
+</div>
+<div class="sect3">
+<h4 id="Ch08_ParallelAndMultiple_Overview_SchedulerMultiplelJob"><a class="anchor" href="#Ch08_ParallelAndMultiple_Overview_SchedulerMultiplelJob"></a>Multiple processing of jobs using job scheduler</h4>
+<div class="paragraph">
+<p>Processes to be subjected to multiple processing are registered multiple times and extraction scope of target data is specified by parameters.
+Further, the schedule is set to enable the respective jobs at the same time.
+Although each job is in the same process, data range to be processed must be independent.</p>
+</div>
+</div>
+</div>
+</div>
+</div>
+<div class="sect1">
+<h2 id="Ch08_ParallelAndMultiple_HowToUse"><a class="anchor" href="#Ch08_ParallelAndMultiple_HowToUse"></a>How to use</h2>
+<div class="sectionbody">
+<div class="paragraph">
+<p>A method to perform parallel processing and multiple processing in TERASOLUNA Batch 5.x is explained.</p>
+</div>
+<div class="sect2">
+<h3 id="Ch08_ParallelAndMultiple_ParallelStep"><a class="anchor" href="#Ch08_ParallelAndMultiple_ParallelStep"></a>Parallel Step  (Parallel processing)</h3>
+<div class="paragraph">
+<p>A method of Parallel Step  (parallel processing) is explained.</p>
+</div>
+<div class="imageblock">
+<div class="content">
+<img src="./images/Ch08_ParallelAndMultiple_Parallel_Step.png" alt="Parallel Step">
+</div>
+<div class="title">Schematic diagram for Parallel Step</div>
+</div>
+<div class="paragraph">
+<div class="title">Description of schematic diagram</div>
+<p>Separate processes can be defined for each step and can be executed in parallel.
+A thread is allocated for each step.</p>
+</div>
+<div class="paragraph">
+<p>How to define Parallel Step is shown below using schematic diagram of Parallel Step.</p>
+</div>
+<div class="listingblock">
+<div class="title">Job definition of Parallel Step</div>
+<div class="content">
+<pre class="CodeRay highlight"><code data-lang="xml"><span class="comment">&lt;!-- Task Executor --&gt;</span>
+<span class="comment">&lt;!-- (1) --&gt;</span>
+<span class="tag">&lt;task:executor</span> <span class="attribute-name">id</span>=<span class="string"><span class="delimiter">&quot;</span><span class="content">parallelTaskExecutor</span><span class="delimiter">&quot;</span></span> <span class="attribute-name">pool-size</span>=<span class="string"><span class="delimiter">&quot;</span><span class="content">10</span><span class="delimiter">&quot;</span></span> <span class="attribute-name">queue-capacity</span>=<span class="string"><span class="delimiter">&quot;</span><span class="content">200</span><span class="delimiter">&quot;</span></span><span class="tag">/&gt;</span>
+
+<span class="comment">&lt;!-- Job Definition --&gt;</span>
+<span class="comment">&lt;!-- (2) --&gt;</span>
+<span class="tag">&lt;batch:job</span> <span class="attribute-name">id</span>=<span class="string"><span class="delimiter">&quot;</span><span class="content">parallelStepJob</span><span class="delimiter">&quot;</span></span> <span class="attribute-name">job-repository</span>=<span class="string"><span class="delimiter">&quot;</span><span class="content">jobRepository</span><span class="delimiter">&quot;</span></span><span class="tag">&gt;</span>
+  <span class="tag">&lt;batch:split</span> <span class="attribute-name">id</span>=<span class="string"><span class="delimiter">&quot;</span><span class="content">parallelStepJob.split</span><span class="delimiter">&quot;</span></span> <span class="attribute-name">task-executor</span>=<span class="string"><span class="delimiter">&quot;</span><span class="content">parallelTaskExecutor</span><span class="delimiter">&quot;</span></span><span class="tag">&gt;</span>
+      <span class="tag">&lt;batch:flow&gt;</span>  <span class="comment">&lt;!-- (3)  --&gt;</span>
+          <span class="tag">&lt;batch:step</span> <span class="attribute-name">id</span>=<span class="string"><span class="delimiter">&quot;</span><span class="content">parallelStepJob.step.chunk.db</span><span class="delimiter">&quot;</span></span><span class="tag">&gt;</span>
+               <span class="comment">&lt;!-- (4) --&gt;</span>
+              <span class="tag">&lt;batch:tasklet</span> <span class="attribute-name">transaction-manager</span>=<span class="string"><span class="delimiter">&quot;</span><span class="content">jobTransactionManager</span><span class="delimiter">&quot;</span></span><span class="tag">&gt;</span>
+                  <span class="tag">&lt;batch:chunk</span> <span class="attribute-name">reader</span>=<span class="string"><span class="delimiter">&quot;</span><span class="content">fileReader</span><span class="delimiter">&quot;</span></span> <span class="attribute-name">writer</span>=<span class="string"><span class="delimiter">&quot;</span><span class="content">databaseWriter</span><span class="delimiter">&quot;</span></span>
+                          <span class="attribute-name">commit-interval</span>=<span class="string"><span class="delimiter">&quot;</span><span class="content">100</span><span class="delimiter">&quot;</span></span><span class="tag">/&gt;</span>
+              <span class="tag">&lt;/batch:tasklet&gt;</span>
+          <span class="tag">&lt;/batch:step&gt;</span>
+      <span class="tag">&lt;/batch:flow&gt;</span>
+
+      <span class="tag">&lt;batch:flow&gt;</span>  <span class="comment">&lt;!-- (3)  --&gt;</span>
+          <span class="tag">&lt;batch:step</span> <span class="attribute-name">id</span>=<span class="string"><span class="delimiter">&quot;</span><span class="content">parallelStepJob.step.tasklet.chunk</span><span class="delimiter">&quot;</span></span><span class="tag">&gt;</span>
+               <span class="comment">&lt;!-- (5) --&gt;</span>
+              <span class="tag">&lt;batch:tasklet</span> <span class="attribute-name">transaction-manager</span>=<span class="string"><span class="delimiter">&quot;</span><span class="content">jobTransactionManager</span><span class="delimiter">&quot;</span></span>
+                             <span class="attribute-name">ref</span>=<span class="string"><span class="delimiter">&quot;</span><span class="content">chunkTransactionTasklet</span><span class="delimiter">&quot;</span></span><span class="tag">/&gt;</span>
+          <span class="tag">&lt;/batch:step&gt;</span>
+      <span class="tag">&lt;/batch:flow&gt;</span>
+
+      <span class="tag">&lt;batch:flow&gt;</span>  <span class="comment">&lt;!-- (3)  --&gt;</span>
+          <span class="tag">&lt;batch:step</span> <span class="attribute-name">id</span>=<span class="string"><span class="delimiter">&quot;</span><span class="content">parallelStepJob.step.tasklet.single</span><span class="delimiter">&quot;</span></span><span class="tag">&gt;</span>
+               <span class="comment">&lt;!-- (6) --&gt;</span>
+              <span class="tag">&lt;batch:tasklet</span> <span class="attribute-name">transaction-manager</span>=<span class="string"><span class="delimiter">&quot;</span><span class="content">jobTransactionManager</span><span class="delimiter">&quot;</span></span>
+                             <span class="attribute-name">ref</span>=<span class="string"><span class="delimiter">&quot;</span><span class="content">singleTransactionTasklet</span><span class="delimiter">&quot;</span></span><span class="tag">/&gt;</span>
+          <span class="tag">&lt;/batch:step&gt;</span>
+      <span class="tag">&lt;/batch:flow&gt;</span>
+
+      <span class="tag">&lt;batch:flow&gt;</span>  <span class="comment">&lt;!-- (3)  --&gt;</span>
+          <span class="tag">&lt;batch:step</span> <span class="attribute-name">id</span>=<span class="string"><span class="delimiter">&quot;</span><span class="content">parallelStepJob.step.chunk.file</span><span class="delimiter">&quot;</span></span><span class="tag">&gt;</span>
+              <span class="tag">&lt;batch:tasklet</span> <span class="attribute-name">transaction-manager</span>=<span class="string"><span class="delimiter">&quot;</span><span class="content">jobTransactionManager</span><span class="delimiter">&quot;</span></span><span class="tag">&gt;</span>
+                   <span class="comment">&lt;!-- (7) --&gt;</span>
+                  <span class="tag">&lt;batch:chunk</span> <span class="attribute-name">reader</span>=<span class="string"><span class="delimiter">&quot;</span><span class="content">databaseReader</span><span class="delimiter">&quot;</span></span> <span class="attribute-name">writer</span>=<span class="string"><span class="delimiter">&quot;</span><span class="content">fileWriter</span><span class="delimiter">&quot;</span></span>
+                          <span class="attribute-name">commit-interval</span>=<span class="string"><span class="delimiter">&quot;</span><span class="content">200</span><span class="delimiter">&quot;</span></span><span class="tag">/&gt;</span>
+              <span class="tag">&lt;/batch:tasklet&gt;</span>
+          <span class="tag">&lt;/batch:step&gt;</span>
+      <span class="tag">&lt;/batch:flow&gt;</span>
+
+  <span class="tag">&lt;/batch:split&gt;</span>
+<span class="tag">&lt;/batch:job&gt;</span></code></pre>
+</div>
+</div>
+<table class="tableblock frame-all grid-all spread">
+<caption class="title">Description</caption>
+<colgroup>
+<col style="width: 10%;">
+<col style="width: 90%;">
+</colgroup>
+<thead>
+<tr>
+<th class="tableblock halign-left valign-top">Description</th>
+<th class="tableblock halign-left valign-top">Sr. No.</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td class="tableblock halign-left valign-top"><p class="tableblock">(1)</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">Define a thread pool to assign to each thread for parallel processing.</p></td>
+</tr>
+<tr>
+<td class="tableblock halign-left valign-top"><p class="tableblock">(2)</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">Define steps to be executed in parallel in <code>&lt;batch:split&gt;</code> tag in a format which uses <code>&lt;batch:flow&gt;</code> tag.<br>
+Set the Bean of thread pool defined in (1), in <code>task-executor</code> attribute.</p></td>
+</tr>
+<tr>
+<td class="tableblock halign-left valign-top"><p class="tableblock">(3)</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">Define <code>&lt;batch:step&gt;</code> wherein parallel processing is to be performed for each <code>&lt;batch:flow&gt;</code>.</p></td>
+</tr>
+<tr>
+<td class="tableblock halign-left valign-top"><p class="tableblock">(4)</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">Step 1 of schematic diagram ：Define intermediate commit method processing of chunk model.</p></td>
+</tr>
+<tr>
+<td class="tableblock halign-left valign-top"><p class="tableblock">(5)</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">Step 2 of schematic diagram ：Define intermediate commit method processing of tasket model.</p></td>
+</tr>
+<tr>
+<td class="tableblock halign-left valign-top"><p class="tableblock">(6)</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">Step 3 of schematic diagram ：Define batch commit method processing of tasket model.</p></td>
+</tr>
+<tr>
+<td class="tableblock halign-left valign-top"><p class="tableblock">(7)</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">Step 4 of schematic diagram ：Define intermediate commit method processing for non-transactional resources of chunk model.</p></td>
+</tr>
+</tbody>
+</table>
+<div class="admonitionblock important">
+<table>
+<tr>
+<td class="icon">
+<i class="fa icon-important" title="Important"></i>
+</td>
+<td class="content">
+<div class="title">Cases wherein processing performance deteriorates due to parallel processing</div>
+<div class="paragraph">
+<p>In the parallel processing, same process can be run in parallel by changing the data range, similar to multiple processing. In this case, data range is assigned by the parameters.<br>
+At this time, when the amount of data to be processed is not very significant for each process,
+footprints like resource amount and processing time which are occupied at the time of execution proves to be a disadvantage in parallel processing,
+and on the contrary, processing performance may get deteriorated.</p>
+</div>
+<div class="ulist">
+<div class="title">Examples of footprints</div>
+<ul>
+<li>
+<p>Processing from opening for input resources to fetching initial data range</p>
+<div class="ulist">
+<ul>
+<li>
+<p>Resource open requires more processing time than fetching data</p>
+</li>
+<li>
+<p>Similarly, a process which initializes memory area of data range requires time</p>
+</li>
+</ul>
+</div>
+</li>
+</ul>
+</div>
+</td>
+</tr>
+</table>
+</div>
+<div class="paragraph">
+<p>Further, steps of common processing can be defined as well before and after Parallel Step process.</p>
+</div>
+<div class="listingblock">
+<div class="title">Example of Parallel Step which includes common processing steps</div>
+<div class="content">
+<pre class="CodeRay highlight"><code data-lang="xml"><span class="tag">&lt;batch:job</span> <span class="attribute-name">id</span>=<span class="string"><span class="delimiter">&quot;</span><span class="content">parallelRegisterJob</span><span class="delimiter">&quot;</span></span> <span class="attribute-name">job-repository</span>=<span class="string"><span class="delimiter">&quot;</span><span class="content">jobRepository</span><span class="delimiter">&quot;</span></span><span class="tag">&gt;</span>
+    <span class="comment">&lt;!-- (1) --&gt;</span>
+    <span class="tag">&lt;batch:step</span> <span class="attribute-name">id</span>=<span class="string"><span class="delimiter">&quot;</span><span class="content">parallelRegisterJob.step.preprocess</span><span class="delimiter">&quot;</span></span>
+                <span class="attribute-name">next</span>=<span class="string"><span class="delimiter">&quot;</span><span class="content">parallelRegisterJob.split</span><span class="delimiter">&quot;</span></span><span class="tag">&gt;</span>
+        <span class="tag">&lt;batch:tasklet</span> <span class="attribute-name">transaction-manager</span>=<span class="string"><span class="delimiter">&quot;</span><span class="content">jobTransactionManager</span><span class="delimiter">&quot;</span></span>
+                       <span class="attribute-name">ref</span>=<span class="string"><span class="delimiter">&quot;</span><span class="content">deleteDetailTasklet</span><span class="delimiter">&quot;</span></span> <span class="tag">/&gt;</span>
+    <span class="tag">&lt;/batch:step&gt;</span>
+
+    <span class="comment">&lt;!--(2) --&gt;</span>
+    <span class="tag">&lt;batch:split</span> <span class="attribute-name">id</span>=<span class="string"><span class="delimiter">&quot;</span><span class="content">parallelRegisterJob.split</span><span class="delimiter">&quot;</span></span> <span class="attribute-name">task-executor</span>=<span class="string"><span class="delimiter">&quot;</span><span class="content">parallelTaskExecutor</span><span class="delimiter">&quot;</span></span><span class="tag">&gt;</span>
+        <span class="tag">&lt;batch:flow&gt;</span>
+            <span class="tag">&lt;batch:step</span> <span class="attribute-name">id</span>=<span class="string"><span class="delimiter">&quot;</span><span class="content">parallelRegisterJob.step.plan</span><span class="delimiter">&quot;</span></span><span class="tag">&gt;</span>
+                <span class="tag">&lt;batch:tasklet</span> <span class="attribute-name">transaction-manager</span>=<span class="string"><span class="delimiter">&quot;</span><span class="content">jobTransactionManager</span><span class="delimiter">&quot;</span></span><span class="tag">&gt;</span>
+                    <span class="tag">&lt;batch:chunk</span> <span class="attribute-name">reader</span>=<span class="string"><span class="delimiter">&quot;</span><span class="content">planReader</span><span class="delimiter">&quot;</span></span> <span class="attribute-name">writer</span>=<span class="string"><span class="delimiter">&quot;</span><span class="content">planWriter</span><span class="delimiter">&quot;</span></span>
+                            <span class="attribute-name">commit-interval</span>=<span class="string"><span class="delimiter">&quot;</span><span class="content">1000</span><span class="delimiter">&quot;</span></span> <span class="tag">/&gt;</span>
+                <span class="tag">&lt;/batch:tasklet&gt;</span>
+            <span class="tag">&lt;/batch:step&gt;</span>
+        <span class="tag">&lt;/batch:flow&gt;</span>
+        <span class="tag">&lt;batch:flow&gt;</span>
+            <span class="tag">&lt;batch:step</span> <span class="attribute-name">id</span>=<span class="string"><span class="delimiter">&quot;</span><span class="content">parallelRegisterJob.step.performance</span><span class="delimiter">&quot;</span></span><span class="tag">&gt;</span>
+                <span class="tag">&lt;batch:tasklet</span> <span class="attribute-name">transaction-manager</span>=<span class="string"><span class="delimiter">&quot;</span><span class="content">jobTransactionManager</span><span class="delimiter">&quot;</span></span><span class="tag">&gt;</span>
+                    <span class="tag">&lt;batch:chunk</span> <span class="attribute-name">reader</span>=<span class="string"><span class="delimiter">&quot;</span><span class="content">performanceReader</span><span class="delimiter">&quot;</span></span> <span class="attribute-name">writer</span>=<span class="string"><span class="delimiter">&quot;</span><span class="content">performanceWriter</span><span class="delimiter">&quot;</span></span>
+                            <span class="attribute-name">commit-interval</span>=<span class="string"><span class="delimiter">&quot;</span><span class="content">1000</span><span class="delimiter">&quot;</span></span> <span class="tag">/&gt;</span>
+                <span class="tag">&lt;/batch:tasklet&gt;</span>
+            <span class="tag">&lt;/batch:step&gt;</span>
+        <span class="tag">&lt;/batch:flow&gt;</span>
+    <span class="tag">&lt;/batch:split&gt;</span>
+<span class="tag">&lt;/batch:job&gt;</span></code></pre>
+</div>
+</div>
+<table class="tableblock frame-all grid-all spread">
+<caption class="title">Description</caption>
+<colgroup>
+<col style="width: 10%;">
+<col style="width: 90%;">
+</colgroup>
+<thead>
+<tr>
+<th class="tableblock halign-left valign-top">Sr. No.</th>
+<th class="tableblock halign-left valign-top">Description</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td class="tableblock halign-left valign-top"><p class="tableblock">(1)</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">Define steps to be processed as preprocessing. Specify id set in <code>&lt;batch:split&gt;</code>, in <code>next</code> attribute.<br>
+For details of subsequent step specification using <code>next</code> attribute, refer <a href="Ch08_FlowControll.html#Ch08_FCh08_FlowControll_HowToUse_SequencialFlow">"Sequential flow"</a>.</p></td>
+</tr>
+<tr>
+<td class="tableblock halign-left valign-top"><p class="tableblock">(2)</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">Define Parallel Step.<br>
+Define <code>&lt;batch:step&gt;</code> wherein parallel processing is to be performed for each <code>&lt;batch:flow&gt;</code>.</p></td>
+</tr>
+</tbody>
+</table>
+</div>
+<div class="sect2">
+<h3 id="Ch08_ParallelAndMultiple_Partitioning"><a class="anchor" href="#Ch08_ParallelAndMultiple_Partitioning"></a>Partitioning Step (Multiple processing)</h3>
+<div class="paragraph">
+<p>A method of Partitioning Step (multiple processing) is explained.</p>
+</div>
+<div class="imageblock">
+<div class="content">
+<img src="./images/Ch08_ParallelAndMultiple_Partitioing_Step.png" alt="Partitioning Step">
+</div>
+<div class="title">Schematic diagram of Partitioning Step</div>
+</div>
+<div class="paragraph">
+<div class="title">Description of schematic diagram</div>
+<p>Partitioning Step is divided into processing phases of Master step and Slave step.</p>
+</div>
+<div class="olist arabic">
+<ol class="arabic">
+<li>
+<p>In Master step, <code>Partitioner</code> generates a <code>Parition Key</code> to specify data range wherein each Slave step is processed.
+<code>Parition Key</code> is stored in the step context.</p>
+</li>
+<li>
+<p>In Slave step, <code>Parition Key</code> assigned on its own from step context is fetched and data for processing is specified using the same.
+Step defined for specified data for processing are executed.</p>
+</li>
+</ol>
+</div>
+<div class="paragraph">
+<p>In the Partitioning Step, although it is necessary to divide the processing data, either of the variable number and fixed number are handled for the number of partitionings.</p>
+</div>
+<div class="dlist">
+<div class="title">Number of partitionings</div>
+<dl>
+<dt class="hdlist1">In case of a variable number</dt>
+<dd>
+<p>Divide by department or process for each file existing in specific directory</p>
+</dd>
+<dt class="hdlist1">In case of a fixed number</dt>
+<dd>
+<p>Process data by dividing overall data in fixed numbers</p>
+</dd>
+</dl>
+</div>
+<div class="paragraph">
+<p>In Spring Batch, fixed number is called <code>grid-size</code> and data partitioning range is determined so that <code>grid-size</code> becomes <code>Partitioner</code>.</p>
+</div>
+<div class="paragraph">
+<p>In Partitioning Step, number of partitionings can be significantly higher than the thread size.
+In this case, multiple executions are performed using number of threads and a step is generated wherein the process is not executed until the thread becomes empty.</p>
+</div>
+<div class="paragraph">
+<p>Use case of Partitioning Step is shown below.</p>
+</div>
+<table class="tableblock frame-all grid-all spread">
+<caption class="title">Partitioning Step use case</caption>
+<colgroup>
+<col style="width: 30%;">
+<col style="width: 30%;">
+<col style="width: 30%;">
+<col style="width: 10%;">
+</colgroup>
+<thead>
+<tr>
+<th class="tableblock halign-left valign-top">Use case</th>
+<th class="tableblock halign-left valign-top">Master(Patitioner)</th>
+<th class="tableblock halign-left valign-top">Slave</th>
+<th class="tableblock halign-left valign-top">Number of partitionings</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td class="tableblock halign-left valign-top"><p class="tableblock">A case wherein transaction information is divided or multiple processing is performed from master information<br>
+Aggregate processing for each department and for each month</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">DB (Master information)</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">DB (Transaction information)</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">Variable</p></td>
+</tr>
+<tr>
+<td class="tableblock halign-left valign-top"><p class="tableblock">A case wherein multiple processing is performed for 1 file from a list of files<br>
+Branch-wise multiple processing of transfer data from each branch (Aggregate processing for each branch)</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">Multiple files</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">Single file</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">Variable</p></td>
+</tr>
+<tr>
+<td class="tableblock halign-left valign-top"><p class="tableblock">A case wherein a large amount of data is divided by a fixed number or multiple processing is performed</p>
+<p class="tableblock">A case wherein since recovery design other than re-run becomes difficult in case of a failure occurrence, it is not used the actual operation.<br>
+In case of a re-run, since all the records are processed again, merits of partitioning are eliminated.</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">Specify data range from <code>grid-size</code> and transaction information count</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">DB (Transaction information)</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">Fixed</p></td>
+</tr>
+</tbody>
+</table>
+<div class="sect3">
+<h4 id="Ch08_ParallelAndMultiple_VariablePartitonNumber"><a class="anchor" href="#Ch08_ParallelAndMultiple_VariablePartitonNumber"></a>When number of partitionings are variable</h4>
+<div class="paragraph">
+<p>A method wherein number of partitionings are made variable by Partitioning Step is explained.<br>
+Processing image is shown below.</p>
+</div>
+<div class="imageblock">
+<div class="content">
+<img src="./images/Ch08_ParallelAndMultiple_Partitioing_variable.png" alt="Variable Partiton Number">
+</div>
+<div class="title">Processing image diagram</div>
+</div>
+<div class="paragraph">
+<p>How to implement is shown below using the processing image as an example.</p>
+</div>
+<div class="listingblock">
+<div class="title">Defining Repository(SQLMapper) (PostgreSQL)</div>
+<div class="content">
+<pre class="CodeRay highlight"><code data-lang="xml"><span class="comment">&lt;!-- (1) --&gt;</span>
+<span class="tag">&lt;select</span> <span class="attribute-name">id</span>=<span class="string"><span class="delimiter">&quot;</span><span class="content">findAll</span><span class="delimiter">&quot;</span></span> <span class="attribute-name">resultType</span>=<span class="string"><span class="delimiter">&quot;</span><span class="content">org.terasoluna.batch.functionaltest.app.model.mst.Branch</span><span class="delimiter">&quot;</span></span><span class="tag">&gt;</span>
+    <span class="inline-delimiter">&lt;![CDATA[</span>
+    SELECT
+        branch_id AS branchId,
+        branch_name AS branchName,
+        branch_address AS branchAddrss,
+        branch_tel AS branchTel,
+        create_date AS createDate,
+        update_date AS updateDate
+    FROM
+        branch_mst
+    <span class="inline-delimiter">]]&gt;</span>
+<span class="tag">&lt;/select&gt;</span>
+
+<span class="comment">&lt;!-- (2) --&gt;</span>
+<span class="tag">&lt;select</span> <span class="attribute-name">id</span>=<span class="string"><span class="delimiter">&quot;</span><span class="content">summarizeInvoice</span><span class="delimiter">&quot;</span></span>
+        <span class="attribute-name">resultType</span>=<span class="string"><span class="delimiter">&quot;</span><span class="content">org.terasoluna.batch.functionaltest.app.model.performance.SalesPerformanceDetail</span><span class="delimiter">&quot;</span></span><span class="tag">&gt;</span>
+    <span class="inline-delimiter">&lt;![CDATA[</span>
+    SELECT
+        branchId, year, month, customerId, SUM(amount) AS amount
+    FROM (
+        SELECT
+            t2.charge_branch_id AS branchId,
+            date_part('year', t1.invoice_date) AS year,
+            date_part('month', t1.invoice_date) AS month,
+            t1.customer_id AS customerId,
+            t1.invoice_amount AS amount
+        FROM invoice t1
+        INNER JOIN customer_mst t2 ON t1.customer_id = t2.customer_id
+        WHERE
+            t2.charge_branch_id = #{branchId}
+        ) t3
+    GROUP BY branchId, year, month, customerId
+    ORDER BY branchId ASC, year ASC, month ASC, customerId ASC
+    <span class="inline-delimiter">]]&gt;</span>
+<span class="tag">&lt;/select&gt;</span>
+
+<span class="comment">&lt;!-- omitted --&gt;</span></code></pre>
+</div>
+</div>
+<div class="listingblock">
+<div class="title">Implementation example of Partitioner</div>
+<div class="content">
+<pre class="CodeRay highlight"><code data-lang="java"><span class="annotation">@Component</span>
+<span class="directive">public</span> <span class="type">class</span> <span class="class">BranchPartitioner</span> <span class="directive">implements</span> Partitioner {
+
+    <span class="annotation">@Inject</span>
+    BranchRepository branchRepository; <span class="comment">// (3)</span>
+
+    <span class="annotation">@Override</span>
+    <span class="directive">public</span> <span class="predefined-type">Map</span>&lt;<span class="predefined-type">String</span>, ExecutionContext&gt; partition(<span class="type">int</span> gridSize) {
+
+        <span class="predefined-type">Map</span>&lt;<span class="predefined-type">String</span>, ExecutionContext&gt; map = <span class="keyword">new</span> <span class="predefined-type">HashMap</span>&lt;&gt;();
+        <span class="predefined-type">List</span>&lt;Branch&gt; branches = branchRepository.findAll();
+
+        <span class="type">int</span> index = <span class="integer">0</span>;
+        <span class="keyword">for</span> (Branch branch : branches) {
+            ExecutionContext context = <span class="keyword">new</span> ExecutionContext();
+            context.putString(<span class="string"><span class="delimiter">&quot;</span><span class="content">branchId</span><span class="delimiter">&quot;</span></span>, branch.getBranchId()); <span class="comment">// (4)</span>
+            map.put(<span class="string"><span class="delimiter">&quot;</span><span class="content">partition</span><span class="delimiter">&quot;</span></span> + index, context);  <span class="comment">// (5)</span>
+            index++;
+        }
+
+        <span class="keyword">return</span> map;
+    }
+}</code></pre>
+</div>
+</div>
+<div class="listingblock">
+<div class="title">Bean definition</div>
+<div class="content">
+<pre class="CodeRay highlight"><code data-lang="xml"><span class="comment">&lt;!-- (6) --&gt;</span>
+<span class="tag">&lt;task:executor</span> <span class="attribute-name">id</span>=<span class="string"><span class="delimiter">&quot;</span><span class="content">parallelTaskExecutor</span><span class="delimiter">&quot;</span></span>
+               <span class="attribute-name">pool-size</span>=<span class="string"><span class="delimiter">&quot;</span><span class="content">${thread.size}</span><span class="delimiter">&quot;</span></span> <span class="attribute-name">queue-capacity</span>=<span class="string"><span class="delimiter">&quot;</span><span class="content">10</span><span class="delimiter">&quot;</span></span><span class="tag">/&gt;</span>
+
+<span class="comment">&lt;!-- (7) --&gt;</span>
+<span class="tag">&lt;bean</span> <span class="attribute-name">id</span>=<span class="string"><span class="delimiter">&quot;</span><span class="content">reader</span><span class="delimiter">&quot;</span></span> <span class="attribute-name">class</span>=<span class="string"><span class="delimiter">&quot;</span><span class="content">org.mybatis.spring.batch.MyBatisCursorItemReader</span><span class="delimiter">&quot;</span></span> <span class="attribute-name">scope</span>=<span class="string"><span class="delimiter">&quot;</span><span class="content">step</span><span class="delimiter">&quot;</span></span>
+      <span class="attribute-name">p:queryId</span>=<span class="string"><span class="delimiter">&quot;</span><span class="content">org.terasoluna.batch.functionaltest.app.repository.performance.InvoiceRepository.summarizeInvoice</span><span class="delimiter">&quot;</span></span>
+      <span class="attribute-name">p:sqlSessionFactory-ref</span>=<span class="string"><span class="delimiter">&quot;</span><span class="content">jobSqlSessionFactory</span><span class="delimiter">&quot;</span></span><span class="tag">&gt;</span>
+    <span class="tag">&lt;property</span> <span class="attribute-name">name</span>=<span class="string"><span class="delimiter">&quot;</span><span class="content">parameterValues</span><span class="delimiter">&quot;</span></span><span class="tag">&gt;</span>
+        <span class="tag">&lt;map&gt;</span>
+            <span class="comment">&lt;!-- (8) --&gt;</span>
+            <span class="tag">&lt;entry</span> <span class="attribute-name">key</span>=<span class="string"><span class="delimiter">&quot;</span><span class="content">branchId</span><span class="delimiter">&quot;</span></span> <span class="attribute-name">value</span>=<span class="string"><span class="delimiter">&quot;</span><span class="content">#{stepExecutionContext['branchId']}</span><span class="delimiter">&quot;</span></span> <span class="tag">/&gt;</span>
+        <span class="tag">&lt;/map&gt;</span>
+    <span class="tag">&lt;/property&gt;</span>
+<span class="tag">&lt;/bean&gt;</span>
+
+<span class="comment">&lt;!-- omitted --&gt;</span>
+
+<span class="tag">&lt;batch:job</span> <span class="attribute-name">id</span>=<span class="string"><span class="delimiter">&quot;</span><span class="content">multipleInvoiceSummarizeJob</span><span class="delimiter">&quot;</span></span> <span class="attribute-name">job-repository</span>=<span class="string"><span class="delimiter">&quot;</span><span class="content">jobRepository</span><span class="delimiter">&quot;</span></span><span class="tag">&gt;</span>
+    <span class="comment">&lt;!-- (9) --&gt;</span>
+    <span class="tag">&lt;batch:step</span> <span class="attribute-name">id</span>=<span class="string"><span class="delimiter">&quot;</span><span class="content">multipleInvoiceSummarizeJob.master</span><span class="delimiter">&quot;</span></span><span class="tag">&gt;</span>
+        <span class="comment">&lt;!-- (10) --&gt;</span>
+        <span class="tag">&lt;batch:partition</span> <span class="attribute-name">partitioner</span>=<span class="string"><span class="delimiter">&quot;</span><span class="content">branchPartitioner</span><span class="delimiter">&quot;</span></span>
+                         <span class="attribute-name">step</span>=<span class="string"><span class="delimiter">&quot;</span><span class="content">multipleInvoiceSummarizeJob.slave</span><span class="delimiter">&quot;</span></span><span class="tag">&gt;</span>
+            <span class="comment">&lt;!-- (11) --&gt;</span>
+            <span class="tag">&lt;batch:handler</span> <span class="attribute-name">grid-size</span>=<span class="string"><span class="delimiter">&quot;</span><span class="content">0</span><span class="delimiter">&quot;</span></span> <span class="attribute-name">task-executor</span>=<span class="string"><span class="delimiter">&quot;</span><span class="content">parallelTaskExecutor</span><span class="delimiter">&quot;</span></span> <span class="tag">/&gt;</span>
+        <span class="tag">&lt;/batch:partition&gt;</span>
+    <span class="tag">&lt;/batch:step&gt;</span>
+<span class="tag">&lt;/batch:job&gt;</span>
+
+<span class="comment">&lt;!-- (12) --&gt;</span>
+<span class="tag">&lt;batch:step</span> <span class="attribute-name">id</span>=<span class="string"><span class="delimiter">&quot;</span><span class="content">multipleInvoiceSummarizeJob.slave</span><span class="delimiter">&quot;</span></span><span class="tag">&gt;</span>
+    <span class="tag">&lt;batch:tasklet</span> <span class="attribute-name">transaction-manager</span>=<span class="string"><span class="delimiter">&quot;</span><span class="content">jobTransactionManager</span><span class="delimiter">&quot;</span></span><span class="tag">&gt;</span>
+        <span class="tag">&lt;batch:chunk</span> <span class="attribute-name">reader</span>=<span class="string"><span class="delimiter">&quot;</span><span class="content">reader</span><span class="delimiter">&quot;</span></span> <span class="attribute-name">writer</span>=<span class="string"><span class="delimiter">&quot;</span><span class="content">writer</span><span class="delimiter">&quot;</span></span> <span class="attribute-name">commit-interval</span>=<span class="string"><span class="delimiter">&quot;</span><span class="content">10</span><span class="delimiter">&quot;</span></span><span class="tag">/&gt;</span>
+    <span class="tag">&lt;/batch:tasklet&gt;</span>
+<span class="tag">&lt;/batch:step&gt;</span></code></pre>
+</div>
+</div>
+<table class="tableblock frame-all grid-all spread">
+<caption class="title">Description</caption>
+<colgroup>
+<col style="width: 10%;">
+<col style="width: 90%;">
+</colgroup>
+<thead>
+<tr>
+<th class="tableblock halign-left valign-top">Sr. No.</th>
+<th class="tableblock halign-left valign-top">Description</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td class="tableblock halign-left valign-top"><p class="tableblock">(1)</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">Define a SQL wherein processing target is fetched from master data.</p></td>
+</tr>
+<tr>
+<td class="tableblock halign-left valign-top"><p class="tableblock">(2)</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">Define a SQL wherein fetched values from master data are considered as search conditions.</p></td>
+</tr>
+<tr>
+<td class="tableblock halign-left valign-top"><p class="tableblock">(3)</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">Inject defined Repository(SQLMapper).</p></td>
+</tr>
+<tr>
+<td class="tableblock halign-left valign-top"><p class="tableblock">(4)</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">Store master value processed by 1 Slave step in the step context.</p></td>
+</tr>
+<tr>
+<td class="tableblock halign-left valign-top"><p class="tableblock">(5)</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">Store each Slave in Map so that it can fetch corresponding context.</p></td>
+</tr>
+<tr>
+<td class="tableblock halign-left valign-top"><p class="tableblock">(6)</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">Define a thread pool to assign to each thread of Slave step in multiple processing.<br>
+Master step is processed by the main thread.</p></td>
+</tr>
+<tr>
+<td class="tableblock halign-left valign-top"><p class="tableblock">(7)</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">Define ItemReader for fetching data using master value.</p></td>
+</tr>
+<tr>
+<td class="tableblock halign-left valign-top"><p class="tableblock">(8)</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">Fetch master value set in (4) from  step context and add to search conditions.</p></td>
+</tr>
+<tr>
+<td class="tableblock halign-left valign-top"><p class="tableblock">(9)</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">Define Master step.</p></td>
+</tr>
+<tr>
+<td class="tableblock halign-left valign-top"><p class="tableblock">(10)</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">Define processing to generate partitioning conditions of data.<br>
+Set <code>Partitioner</code> interface implementation, in <code>partitioner</code> attribute.<br>
+Set Bean ID of Slave Step defined in (12), in <code>step</code> attribute.</p></td>
+</tr>
+<tr>
+<td class="tableblock halign-left valign-top"><p class="tableblock">(11)</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">Since <code>grid-size</code> is not used in <code>partitioner</code>, set any arbitrary value in <code>grid-size</code> attribute.
+Set Bean ID of thread pool defined in (6), in <code>task-executor</code> attribute.</p></td>
+</tr>
+<tr>
+<td class="tableblock halign-left valign-top"><p class="tableblock">(12)</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">Define Slave step.<br>
+Set ItemReader defined in (7), in <code>reader</code> attribute.</p></td>
+</tr>
+</tbody>
+</table>
+<div class="paragraph">
+<p>When multiple processing is performed for each file from the list of files, <code>Partitioner</code> given below offered by Spring Batch can be used.</p>
+</div>
+<div class="ulist">
+<ul>
+<li>
+<p><code>org.springframework.batch.core.partition.support.MultiResourcePartitioner</code></p>
+</li>
+</ul>
+</div>
+<div class="paragraph">
+<p>How to use <code>MultiResourcePartitioner</code> is shown below.</p>
+</div>
+<div class="listingblock">
+<div class="title">An example wherein multiple processing is performed for files</div>
+<div class="content">
+<pre class="CodeRay highlight"><code data-lang="xml"><span class="comment">&lt;!-- (1) --&gt;</span>
+<span class="tag">&lt;task:executor</span> <span class="attribute-name">id</span>=<span class="string"><span class="delimiter">&quot;</span><span class="content">parallelTaskExecutor</span><span class="delimiter">&quot;</span></span> <span class="attribute-name">pool-size</span>=<span class="string"><span class="delimiter">&quot;</span><span class="content">10</span><span class="delimiter">&quot;</span></span> <span class="attribute-name">queue-capacity</span>=<span class="string"><span class="delimiter">&quot;</span><span class="content">200</span><span class="delimiter">&quot;</span></span><span class="tag">/&gt;</span>
+
+<span class="comment">&lt;!-- (2) --&gt;</span>
+<span class="tag">&lt;bean</span> <span class="attribute-name">id</span>=<span class="string"><span class="delimiter">&quot;</span><span class="content">reader</span><span class="delimiter">&quot;</span></span>
+      <span class="attribute-name">class</span>=<span class="string"><span class="delimiter">&quot;</span><span class="content">org.springframework.batch.item.file.FlatFileItemReader</span><span class="delimiter">&quot;</span></span> <span class="attribute-name">scope</span>=<span class="string"><span class="delimiter">&quot;</span><span class="content">step</span><span class="delimiter">&quot;</span></span>
+      <span class="attribute-name">p:resource</span>=<span class="string"><span class="delimiter">&quot;</span><span class="content">#{stepExecutionContext['fileName']}</span><span class="delimiter">&quot;</span></span><span class="tag">&gt;</span> <span class="comment">&lt;!-- (3) --&gt;</span>
+    <span class="tag">&lt;property</span> <span class="attribute-name">name</span>=<span class="string"><span class="delimiter">&quot;</span><span class="content">lineMapper</span><span class="delimiter">&quot;</span></span><span class="tag">&gt;</span>
+        <span class="tag">&lt;bean</span> <span class="attribute-name">class</span>=<span class="string"><span class="delimiter">&quot;</span><span class="content">org.springframework.batch.item.file.mapping.DefaultLineMapper</span><span class="delimiter">&quot;</span></span>
+            <span class="attribute-name">p:fieldSetMapper-ref</span>=<span class="string"><span class="delimiter">&quot;</span><span class="content">invoiceFieldSetMapper</span><span class="delimiter">&quot;</span></span><span class="tag">&gt;</span>
+            <span class="tag">&lt;property</span> <span class="attribute-name">name</span>=<span class="string"><span class="delimiter">&quot;</span><span class="content">lineTokenizer</span><span class="delimiter">&quot;</span></span><span class="tag">&gt;</span>
+                <span class="tag">&lt;bean</span> <span class="attribute-name">class</span>=<span class="string"><span class="delimiter">&quot;</span><span class="content">org.springframework.batch.item.file.transform.DelimitedLineTokenizer</span><span class="delimiter">&quot;</span></span>
+                      <span class="attribute-name">p:names</span>=<span class="string"><span class="delimiter">&quot;</span><span class="content">invoiceNo,salesDate,productId,customerId,quant,price</span><span class="delimiter">&quot;</span></span><span class="tag">/&gt;</span>
+            <span class="tag">&lt;/property&gt;</span>
+        <span class="tag">&lt;/bean&gt;</span>
+    <span class="tag">&lt;/property&gt;</span>
+<span class="tag">&lt;/bean&gt;</span>
+
+<span class="comment">&lt;!-- (4) --&gt;</span>
+<span class="tag">&lt;bean</span> <span class="attribute-name">id</span>=<span class="string"><span class="delimiter">&quot;</span><span class="content">patitioner</span><span class="delimiter">&quot;</span></span>
+      <span class="attribute-name">class</span>=<span class="string"><span class="delimiter">&quot;</span><span class="content">org.springframework.batch.core.partition.support.MultiResourcePartitioner</span><span class="delimiter">&quot;</span></span>
+      <span class="attribute-name">scope</span>=<span class="string"><span class="delimiter">&quot;</span><span class="content">step</span><span class="delimiter">&quot;</span></span>
+      <span class="attribute-name">p:resources</span>=<span class="string"><span class="delimiter">&quot;</span><span class="content">file:#{jobParameters['basedir']}/input/invoice-*.csv</span><span class="delimiter">&quot;</span></span><span class="tag">/&gt;</span> <span class="comment">&lt;!-- (5) --&gt;</span>
+
+<span class="comment">&lt;!--(6) --&gt;</span>
+<span class="tag">&lt;batch:job</span> <span class="attribute-name">id</span>=<span class="string"><span class="delimiter">&quot;</span><span class="content">inspectPartitioninglStepFileJob</span><span class="delimiter">&quot;</span></span> <span class="attribute-name">job-repository</span>=<span class="string"><span class="delimiter">&quot;</span><span class="content">jobRepository</span><span class="delimiter">&quot;</span></span><span class="tag">&gt;</span>
+    <span class="tag">&lt;batch:step</span> <span class="attribute-name">id</span>=<span class="string"><span class="delimiter">&quot;</span><span class="content">inspectPartitioninglStepFileJob.step.master</span><span class="delimiter">&quot;</span></span><span class="tag">&gt;</span>
+        <span class="tag">&lt;batch:partition</span> <span class="attribute-name">partitioner</span>=<span class="string"><span class="delimiter">&quot;</span><span class="content">patitioner</span><span class="delimiter">&quot;</span></span>
+                         <span class="attribute-name">step</span>=<span class="string"><span class="delimiter">&quot;</span><span class="content">inspectPartitioninglStepFileJob.step.slave</span><span class="delimiter">&quot;</span></span><span class="tag">&gt;</span>
+            <span class="tag">&lt;batch:handler</span> <span class="attribute-name">grid-size</span>=<span class="string"><span class="delimiter">&quot;</span><span class="content">0</span><span class="delimiter">&quot;</span></span> <span class="attribute-name">task-executor</span>=<span class="string"><span class="delimiter">&quot;</span><span class="content">parallelTaskExecutor</span><span class="delimiter">&quot;</span></span><span class="tag">/&gt;</span>
+        <span class="tag">&lt;/batch:partition&gt;</span>
+    <span class="tag">&lt;/batch:step&gt;</span>
+<span class="tag">&lt;/batch:job&gt;</span>
+
+<span class="comment">&lt;!-- (7) --&gt;</span>
+<span class="tag">&lt;batch:step</span> <span class="attribute-name">id</span>=<span class="string"><span class="delimiter">&quot;</span><span class="content">inspectPartitioninglStepFileJob.step.slave</span><span class="delimiter">&quot;</span></span><span class="tag">&gt;</span>
+    <span class="tag">&lt;batch:tasklet&gt;</span>
+        <span class="tag">&lt;batch:chunk</span> <span class="attribute-name">reader</span>=<span class="string"><span class="delimiter">&quot;</span><span class="content">reader</span><span class="delimiter">&quot;</span></span> <span class="attribute-name">writer</span>=<span class="string"><span class="delimiter">&quot;</span><span class="content">writer</span><span class="delimiter">&quot;</span></span> <span class="attribute-name">commit-interval</span>=<span class="string"><span class="delimiter">&quot;</span><span class="content">20</span><span class="delimiter">&quot;</span></span><span class="tag">/&gt;</span>
+    <span class="tag">&lt;/batch:tasklet&gt;</span>
+<span class="tag">&lt;/batch:step&gt;</span></code></pre>
+</div>
+</div>
+<table class="tableblock frame-all grid-all spread">
+<caption class="title">Description</caption>
+<colgroup>
+<col style="width: 10%;">
+<col style="width: 90%;">
+</colgroup>
+<thead>
+<tr>
+<th class="tableblock halign-left valign-top">Sr. No.</th>
+<th class="tableblock halign-left valign-top">Description</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td class="tableblock halign-left valign-top"><p class="tableblock">(1)</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">Define a thread pool to be assigned to each thread of Slave step in multiple processing.<br>
+Master step is processed in the main thread.</p></td>
+</tr>
+<tr>
+<td class="tableblock halign-left valign-top"><p class="tableblock">(2)</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">Define ItemReader to read a single file.</p></td>
+</tr>
+<tr>
+<td class="tableblock halign-left valign-top"><p class="tableblock">(3)</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">In <code>resouce</code> property, specify the file split by <code>MultiResourcePartitioner</code> in input file.<br>
+<code>MultiResourcePartitioner</code> stores the file path in the step context using a key called "fileName".</p></td>
+</tr>
+<tr>
+<td class="tableblock halign-left valign-top"><p class="tableblock">(4)</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">Define <code>MultiResourcePartitioner</code> as <code>Partitioner</code>.</p></td>
+</tr>
+<tr>
+<td class="tableblock halign-left valign-top"><p class="tableblock">(5)</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">Multiple files can be handled by using a pattern wherein * is used.</p></td>
+</tr>
+<tr>
+<td class="tableblock halign-left valign-top"><p class="tableblock">(6)</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">Define Master step.<br>
+Definition contents are the same as contents of Partitioning Step described above.</p></td>
+</tr>
+<tr>
+<td class="tableblock halign-left valign-top"><p class="tableblock">(7)</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">Define Slave step.<br>
+Set ItemReader defined in (2), in <code>reader</code> attribute.</p></td>
+</tr>
+</tbody>
+</table>
+</div>
+<div class="sect3">
+<h4 id="Ch08_ParallelAndMultiple_FixingPartitonNumber"><a class="anchor" href="#Ch08_ParallelAndMultiple_FixingPartitonNumber"></a>When number of partitionings are fixed</h4>
+<div class="paragraph">
+<p>How to fix number of partitionings in Partitioning Step is explained.<br>
+Processing image diagram is shown below.</p>
+</div>
+<div class="imageblock">
+<div class="content">
+<img src="./images/Ch08_ParallelAndMultiple_Partitioing_fixed.png" alt="Fixing Partiton Number">
+</div>
+<div class="title">Processing image diagram</div>
+</div>
+<div class="paragraph">
+<p>How to implement is shown below using the processing image as an example.</p>
+</div>
+<div class="listingblock">
+<div class="title">Definition of Repository(SQLMapper) (PostgreSQL)</div>
+<div class="content">
+<pre class="CodeRay highlight"><code data-lang="xml"><span class="comment">&lt;!-- (1) --&gt;</span>
+<span class="tag">&lt;select</span> <span class="attribute-name">id</span>=<span class="string"><span class="delimiter">&quot;</span><span class="content">findByYearAndMonth</span><span class="delimiter">&quot;</span></span>
+    <span class="attribute-name">resultType</span>=<span class="string"><span class="delimiter">&quot;</span><span class="content">org.terasoluna.batch.functionaltest.app.model.performance.SalesPerformanceSummary</span><span class="delimiter">&quot;</span></span><span class="tag">&gt;</span>
+    <span class="inline-delimiter">&lt;![CDATA[</span>
+    SELECT
+        branch_id AS branchId, year, month, amount
+    FROM
+        sales_performance_summary
+    WHERE
+        year = #{year} AND month = #{month}
+    ORDER BY
+        branch_id ASC
+    LIMIT
+        #{dataSize}
+    OFFSET
+        #{offset}
+    <span class="inline-delimiter">]]&gt;</span>
+<span class="tag">&lt;/select&gt;</span>
+
+<span class="comment">&lt;!-- (2) --&gt;</span>
+<span class="tag">&lt;select</span> <span class="attribute-name">id</span>=<span class="string"><span class="delimiter">&quot;</span><span class="content">countByYearAndMonth</span><span class="delimiter">&quot;</span></span> <span class="attribute-name">resultType</span>=<span class="string"><span class="delimiter">&quot;</span><span class="content">_int</span><span class="delimiter">&quot;</span></span><span class="tag">&gt;</span>
+    <span class="inline-delimiter">&lt;![CDATA[</span>
+    SELECT
+        count(*)
+    FROM
+        sales_performance_summary
+    WHERE
+        year = #{year} AND month = #{month}
+    <span class="inline-delimiter">]]&gt;</span>
+<span class="tag">&lt;/select&gt;</span>
+
+<span class="comment">&lt;!-- omitted --&gt;</span></code></pre>
+</div>
+</div>
+<div class="listingblock">
+<div class="title">Implementation example of Partitioner</div>
+<div class="content">
+<pre class="CodeRay highlight"><code data-lang="java"><span class="annotation">@Component</span>
+<span class="directive">public</span> <span class="type">class</span> <span class="class">SalesDataPartitioner</span> <span class="directive">implements</span> Partitioner {
+
+    <span class="annotation">@Inject</span>
+    SalesSummaryRepository repository;  <span class="comment">// (3)</span>
+
+    <span class="comment">// omitted.</span>
+
+    <span class="annotation">@Override</span>
+    <span class="directive">public</span> <span class="predefined-type">Map</span>&lt;<span class="predefined-type">String</span>, ExecutionContext&gt; partition(<span class="type">int</span> gridSize) {
+
+        <span class="predefined-type">Map</span>&lt;<span class="predefined-type">String</span>, ExecutionContext&gt; map = <span class="keyword">new</span> <span class="predefined-type">HashMap</span>&lt;&gt;();
+        <span class="type">int</span> count = repository.countByYearAndMonth(year, month);
+        <span class="type">int</span> dataSize = (count / gridSize) + <span class="integer">1</span>;        <span class="comment">// (4)</span>
+        <span class="type">int</span> offset = <span class="integer">0</span>;
+
+        <span class="keyword">for</span> (<span class="type">int</span> i = <span class="integer">0</span>; i &lt; gridSize; i++) {
+            ExecutionContext context = <span class="keyword">new</span> ExecutionContext();
+            context.putInt(<span class="string"><span class="delimiter">&quot;</span><span class="content">dataSize</span><span class="delimiter">&quot;</span></span>, dataSize);     <span class="comment">// (5)</span>
+            context.putInt(<span class="string"><span class="delimiter">&quot;</span><span class="content">offset</span><span class="delimiter">&quot;</span></span>, offset);         <span class="comment">// (6)</span>
+            offset += dataSize;
+            map.put(<span class="string"><span class="delimiter">&quot;</span><span class="content">partition:</span><span class="delimiter">&quot;</span></span> + i, context);       <span class="comment">// (7)</span>
+        }
+
+        <span class="keyword">return</span> map;
+    }
+}</code></pre>
+</div>
+</div>
+<div class="listingblock">
+<div class="title">Bean definition</div>
+<div class="content">
+<pre class="CodeRay highlight"><code data-lang="xml"><span class="comment">&lt;!-- (8) --&gt;</span>
+<span class="tag">&lt;task:executor</span> <span class="attribute-name">id</span>=<span class="string"><span class="delimiter">&quot;</span><span class="content">parallelTaskExecutor</span><span class="delimiter">&quot;</span></span>
+               <span class="attribute-name">pool-size</span>=<span class="string"><span class="delimiter">&quot;</span><span class="content">${thread.size}</span><span class="delimiter">&quot;</span></span> <span class="attribute-name">queue-capacity</span>=<span class="string"><span class="delimiter">&quot;</span><span class="content">10</span><span class="delimiter">&quot;</span></span><span class="tag">/&gt;</span>
+
+<span class="comment">&lt;!-- (9) --&gt;</span>
+<span class="tag">&lt;bean</span> <span class="attribute-name">id</span>=<span class="string"><span class="delimiter">&quot;</span><span class="content">reader</span><span class="delimiter">&quot;</span></span>
+      <span class="attribute-name">class</span>=<span class="string"><span class="delimiter">&quot;</span><span class="content">org.mybatis.spring.batch.MyBatisCursorItemReader</span><span class="delimiter">&quot;</span></span> <span class="attribute-name">scope</span>=<span class="string"><span class="delimiter">&quot;</span><span class="content">step</span><span class="delimiter">&quot;</span></span>
+      <span class="attribute-name">p:queryId</span>=<span class="string"><span class="delimiter">&quot;</span><span class="content">org.terasoluna.batch.functionaltest.ch08.parallelandmultiple.repository.SalesSummaryRepository.findByYearAndMonth</span><span class="delimiter">&quot;</span></span>
+      <span class="attribute-name">p:sqlSessionFactory-ref</span>=<span class="string"><span class="delimiter">&quot;</span><span class="content">jobSqlSessionFactory</span><span class="delimiter">&quot;</span></span><span class="tag">&gt;</span>
+    <span class="tag">&lt;property</span> <span class="attribute-name">name</span>=<span class="string"><span class="delimiter">&quot;</span><span class="content">parameterValues</span><span class="delimiter">&quot;</span></span><span class="tag">&gt;</span>
+        <span class="tag">&lt;map&gt;</span>
+            <span class="tag">&lt;entry</span> <span class="attribute-name">key</span>=<span class="string"><span class="delimiter">&quot;</span><span class="content">year</span><span class="delimiter">&quot;</span></span> <span class="attribute-name">value</span>=<span class="string"><span class="delimiter">&quot;</span><span class="content">#{new Integer(jobParameters['year'])}</span><span class="delimiter">&quot;</span></span> <span class="tag">/&gt;</span>
+            <span class="tag">&lt;entry</span> <span class="attribute-name">key</span>=<span class="string"><span class="delimiter">&quot;</span><span class="content">month</span><span class="delimiter">&quot;</span></span> <span class="attribute-name">value</span>=<span class="string"><span class="delimiter">&quot;</span><span class="content">#{new Integer(jobParameters['month'])}</span><span class="delimiter">&quot;</span></span> <span class="tag">/&gt;</span>
+            <span class="comment">&lt;!-- (10) --&gt;</span>
+            <span class="tag">&lt;entry</span> <span class="attribute-name">key</span>=<span class="string"><span class="delimiter">&quot;</span><span class="content">dataSize</span><span class="delimiter">&quot;</span></span> <span class="attribute-name">value</span>=<span class="string"><span class="delimiter">&quot;</span><span class="content">#{stepExecutionContext['dataSize']}</span><span class="delimiter">&quot;</span></span> <span class="tag">/&gt;</span>
+            <span class="comment">&lt;!-- (11) --&gt;</span>
+            <span class="tag">&lt;entry</span> <span class="attribute-name">key</span>=<span class="string"><span class="delimiter">&quot;</span><span class="content">offset</span><span class="delimiter">&quot;</span></span> <span class="attribute-name">value</span>=<span class="string"><span class="delimiter">&quot;</span><span class="content">#{stepExecutionContext['offset']}</span><span class="delimiter">&quot;</span></span> <span class="tag">/&gt;</span>
+        <span class="tag">&lt;/map&gt;</span>
+    <span class="tag">&lt;/property&gt;</span>
+<span class="tag">&lt;/bean&gt;</span>
+
+<span class="comment">&lt;!-- omitted --&gt;</span>
+
+<span class="tag">&lt;batch:job</span> <span class="attribute-name">id</span>=<span class="string"><span class="delimiter">&quot;</span><span class="content">multipleCreateSalesPlanSummaryJob</span><span class="delimiter">&quot;</span></span> <span class="attribute-name">job-repository</span>=<span class="string"><span class="delimiter">&quot;</span><span class="content">jobRepository</span><span class="delimiter">&quot;</span></span><span class="tag">&gt;</span>
+    <span class="comment">&lt;!-- (12) --&gt;</span>
+    <span class="tag">&lt;batch:step</span> <span class="attribute-name">id</span>=<span class="string"><span class="delimiter">&quot;</span><span class="content">multipleCreateSalesPlanSummaryJob.master</span><span class="delimiter">&quot;</span></span><span class="tag">&gt;</span>
+        <span class="comment">&lt;!-- (13) --&gt;</span>
+        <span class="tag">&lt;batch:partition</span> <span class="attribute-name">partitioner</span>=<span class="string"><span class="delimiter">&quot;</span><span class="content">salesDataPartitioner</span><span class="delimiter">&quot;</span></span>
+              <span class="attribute-name">step</span>=<span class="string"><span class="delimiter">&quot;</span><span class="content">multipleCreateSalesPlanSummaryJob.slave</span><span class="delimiter">&quot;</span></span><span class="tag">&gt;</span>
+            <span class="comment">&lt;!-- (14) --&gt;</span>
+            <span class="tag">&lt;batch:handler</span> <span class="attribute-name">grid-size</span>=<span class="string"><span class="delimiter">&quot;</span><span class="content">4</span><span class="delimiter">&quot;</span></span> <span class="attribute-name">task-executor</span>=<span class="string"><span class="delimiter">&quot;</span><span class="content">parallelTaskExecutor</span><span class="delimiter">&quot;</span></span> <span class="tag">/&gt;</span>
+        <span class="tag">&lt;/batch:partition&gt;</span>
+    <span class="tag">&lt;/batch:step&gt;</span>
+<span class="tag">&lt;/batch:job&gt;</span>
+
+<span class="comment">&lt;!-- (15) --&gt;</span>
+<span class="tag">&lt;batch:step</span> <span class="attribute-name">id</span>=<span class="string"><span class="delimiter">&quot;</span><span class="content">multipleCreateSalesPlanSummaryJob.slave</span><span class="delimiter">&quot;</span></span><span class="tag">&gt;</span>
+    <span class="tag">&lt;batch:tasklet</span> <span class="attribute-name">transaction-manager</span>=<span class="string"><span class="delimiter">&quot;</span><span class="content">jobTransactionManager</span><span class="delimiter">&quot;</span></span><span class="tag">&gt;</span>
+        <span class="tag">&lt;batch:chunk</span> <span class="attribute-name">reader</span>=<span class="string"><span class="delimiter">&quot;</span><span class="content">reader</span><span class="delimiter">&quot;</span></span> <span class="attribute-name">processor</span>=<span class="string"><span class="delimiter">&quot;</span><span class="content">addProfitsItemProcessor</span><span class="delimiter">&quot;</span></span>
+              <span class="attribute-name">writer</span>=<span class="string"><span class="delimiter">&quot;</span><span class="content">writer</span><span class="delimiter">&quot;</span></span> <span class="attribute-name">commit-interval</span>=<span class="string"><span class="delimiter">&quot;</span><span class="content">10</span><span class="delimiter">&quot;</span></span><span class="tag">/&gt;</span>
+    <span class="tag">&lt;/batch:tasklet&gt;</span>
+<span class="tag">&lt;/batch:step&gt;</span></code></pre>
+</div>
+</div>
+<table class="tableblock frame-all grid-all spread">
+<caption class="title">Description</caption>
+<colgroup>
+<col style="width: 10%;">
+<col style="width: 90%;">
+</colgroup>
+<thead>
+<tr>
+<th class="tableblock halign-left valign-top">Sr. No.</th>
+<th class="tableblock halign-left valign-top">Description</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td class="tableblock halign-left valign-top"><p class="tableblock">(1)</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">Define a pagination search (SQL narrowing down method) to fetch a specific data range.<br>
+For details of pagination search (SQL narrowing down method),refer
+<a href="http://terasolunaorg.github.io/guideline/5.3.0.RELEASE/en/ArchitectureInDetail/DataAccessDetail/DataAccessMyBatis3.html#entity-sql">Pagination search of Entity (SQL narrow down method)</a> of TERASOLUNA Server 5.x Development Guideline.</p></td>
+</tr>
+<tr>
+<td class="tableblock halign-left valign-top"><p class="tableblock">(2)</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">Define SQL to fetch total number of records for processing.</p></td>
+</tr>
+<tr>
+<td class="tableblock halign-left valign-top"><p class="tableblock">(3)</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">Inject defined Repository(SQLMapper).</p></td>
+</tr>
+<tr>
+<td class="tableblock halign-left valign-top"><p class="tableblock">(4)</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">Calculate data records processed by one Slave step.</p></td>
+</tr>
+<tr>
+<td class="tableblock halign-left valign-top"><p class="tableblock">(5)</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">Store data records of (4) in step context.</p></td>
+</tr>
+<tr>
+<td class="tableblock halign-left valign-top"><p class="tableblock">(6)</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">Store search start position of each Slave step in step context.</p></td>
+</tr>
+<tr>
+<td class="tableblock halign-left valign-top"><p class="tableblock">(7)</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">Each Slave is stored in the Map to enable fetching of corresponding context.</p></td>
+</tr>
+<tr>
+<td class="tableblock halign-left valign-top"><p class="tableblock">(8)</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">Define a thread poolto be assigned to each thread of Slave step in multiple processing.<br>
+Master step is processed by main thread.</p></td>
+</tr>
+<tr>
+<td class="tableblock halign-left valign-top"><p class="tableblock">(9)</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">Define ItemReader for fetching data by using pagination search (SQL narrow down method).</p></td>
+</tr>
+<tr>
+<td class="tableblock halign-left valign-top"><p class="tableblock">(10)</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">Fetch data records set in (5) from step context and add to search conditions.</p></td>
+</tr>
+<tr>
+<td class="tableblock halign-left valign-top"><p class="tableblock">(11)</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">Fetch search start position set in (6) from step context and add to search conditions.</p></td>
+</tr>
+<tr>
+<td class="tableblock halign-left valign-top"><p class="tableblock">(12)</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">Define Master step.</p></td>
+</tr>
+<tr>
+<td class="tableblock halign-left valign-top"><p class="tableblock">(13)</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">Define a process which generates partitioning conditions for data.<br>
+Set <code>Partitioner</code> interface implementation in <code>partitioner</code> attribute.<br>
+Set Bean ID of Slave step defined in (15), in <code>step</code> attribute.</p></td>
+</tr>
+<tr>
+<td class="tableblock halign-left valign-top"><p class="tableblock">(14)</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">Set number of partitionings (fixed number) in <code>grid-size</code> attribute.<br>
+Set Bean ID of thread pool defined in (8), in <code>task-executor</code> attribute.</p></td>
+</tr>
+<tr>
+<td class="tableblock halign-left valign-top"><p class="tableblock">(15)</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">Define Slave step.<br>
+Set ItemReader defined in (9), in <code>reader</code> attribute.</p></td>
+</tr>
+</tbody>
+</table>
+</div>
+</div>
+</div>
+</div>
+</div>
+<div class="container">
+
+  <div class="common-bg">
+    <div class="information">
+      TERASOLUNA Batch Framework for Java (5.x) Development Guideline - version 5.0.1.RELEASE, 2017-9-27
+    </div>
+    <div class="index">
+      <a href="index.html">&gt; INDEX</a>
+    </div>
+  </div>
+
+  <div class="footer-bg">
+    <div class="copyright">
+      &copy; Copyright 2017 NTT DATA Corporation.
+    </div>
+  </div>
+
+</div>
+</body>
+</html>

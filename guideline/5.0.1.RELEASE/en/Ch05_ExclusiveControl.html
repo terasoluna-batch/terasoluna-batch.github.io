@@ -1,0 +1,856 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<!--[if IE]><meta http-equiv="X-UA-Compatible" content="IE=edge"><![endif]-->
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<meta name="generator" content="Asciidoctor 1.5.6.1">
+<title>Exclusive Control</title>
+<link rel="stylesheet" href="./theme/css/readthedocs.css">
+<link rel="stylesheet" href="./theme/css/font-awesome.min.css">
+<link rel="stylesheet" href="./theme/css/coderay-asciidoctor.css">
+<link rel="stylesheet" href="./theme/css/header-footer.css">
+<title>TERASOLUNA Batch Framework for Java (5.x) Development Guideline</title>
+
+<div class="common-bg">
+  <div class="information">
+    TERASOLUNA Batch Framework for Java (5.x) Development Guideline - version 5.0.1.RELEASE, 2017-9-27
+  </div>
+  <div class="index">
+    <a href="index.html">&gt; INDEX</a>
+  </div>
+</div>
+</head>
+<body id="Ch05_ExclusiveControl" class="book toc2 toc-left">
+<div id="header">
+<h1>Exclusive Control</h1>
+<div id="toc" class="toc2">
+<div id="toctitle">Table of Contents</div>
+<ul class="sectlevel1">
+<li><a href="#Ch05_ExclusiveControl_Overview">Overview</a>
+<ul class="sectlevel2">
+<li><a href="#Ch05_ExclusiveControl_Overview_Necessity">Necessity of Exclusive Control</a></li>
+<li><a href="#Ch05_ExclusiveControl_Overview_File">Exclusive Control for File</a></li>
+<li><a href="#Ch05_ExclusiveControl_Overview_DB">Exclusive Control of Database</a></li>
+<li><a href="#Ch05_ExclusiveControl_Overview_Usecase">Choose Exclusive Control Scheme</a></li>
+<li><a href="#Ch05_ExclusiveControl_Overview_Component">Relationship between Exclusive Control and Components</a></li>
+</ul>
+</li>
+<li><a href="#Ch05_ExclusiveControl_HowToUse">How to use</a>
+<ul class="sectlevel2">
+<li><a href="#Ch05_ExclusiveControl_HowToUse_File">Exclusive control of file</a></li>
+<li><a href="#Ch05_ExclusiveControl_HowToUse_DB">Exclusive Control of Database</a>
+<ul class="sectlevel3">
+<li><a href="#Ch05_ExclusiveControl_HowToUse_DB_OptimisticLock">Optimistic Lock</a></li>
+<li><a href="#Ch05_ExclusiveControl_HowToUse_DB_PessimisticLock">Pessimistic Lock</a></li>
+</ul>
+</li>
+</ul>
+</li>
+</ul>
+</div>
+</div>
+<div id="content">
+<div class="sect1">
+<h2 id="Ch05_ExclusiveControl_Overview"><a class="anchor" href="#Ch05_ExclusiveControl_Overview"></a>Overview</h2>
+<div class="sectionbody">
+<div class="paragraph">
+<p>Exclusive control is a process performed to maintain consistency of data when update processing is performed simultaneously for the same resource from multiple transactions.
+In the case where there is a possibility that updating processing is performed simultaneously for the same resource from multiple transactions, it is basically necessary to perform exclusive control.</p>
+</div>
+<div class="paragraph">
+<p>Multiple transaction means following in this chapter.</p>
+</div>
+<div class="ulist">
+<ul>
+<li>
+<p>Transaction at the time of simultaneous execution of multiple jobs</p>
+</li>
+<li>
+<p>Transaction at the time of simultaneous execution with online processing</p>
+</li>
+</ul>
+</div>
+<div class="admonitionblock important">
+<table>
+<tr>
+<td class="icon">
+<i class="fa icon-important" title="Important"></i>
+</td>
+<td class="content">
+<div class="title">Exclusive control of multiple jobs</div>
+<div class="paragraph">
+<p>When multiple jobs are executed at the same time, it is fundamental to design jobs so that exclusive control is not required.
+This means that it is basic to divide the resources to be accessed and the processing target for each job.</p>
+</div>
+</td>
+</tr>
+</table>
+</div>
+<div class="paragraph">
+<p>Since the concept of exclusive control is the same as online processing,
+please refer to <a href="http://terasolunaorg.github.io/guideline/5.3.0.RELEASE/en/ArchitectureInDetail/DataAccessDetail/ExclusionControl.html">Exclusive Control</a> in TERASOLUNA Server 5.x Development Guideline</p>
+</div>
+<div class="paragraph">
+<p>Here, focus on the part not described in TERASOLUNA Server 5.x.</p>
+</div>
+<div class="paragraph">
+<p>The usage method of this function is same in the chunk model as well as tasklet model.</p>
+</div>
+<div class="sect2">
+<h3 id="Ch05_ExclusiveControl_Overview_Necessity"><a class="anchor" href="#Ch05_ExclusiveControl_Overview_Necessity"></a>Necessity of Exclusive Control</h3>
+<div class="paragraph">
+<p>For the necessity of exclusive control,
+please refer to <a href="http://terasolunaorg.github.io/guideline/5.3.0.RELEASE/en/ArchitectureInDetail/DataAccessDetail/ExclusionControl.html#exclusioncontrol-necessity">Necessity of Exclusive Control</a> in TERASOLUNA Server 5.x Development Guideline.</p>
+</div>
+</div>
+<div class="sect2">
+<h3 id="Ch05_ExclusiveControl_Overview_File"><a class="anchor" href="#Ch05_ExclusiveControl_Overview_File"></a>Exclusive Control for File</h3>
+<div class="paragraph">
+<p>Exclusive control for file is generally implemented by file locking.</p>
+</div>
+<div class="dlist">
+<dl>
+<dt class="hdlist1">File Locking</dt>
+<dd>
+<p>File locking is a mechanism for restricting reading and writing from other programs while using files with a certain program.
+The outline of file lock processing is as follows.</p>
+</dd>
+</dl>
+</div>
+<div class="ulist">
+<div class="title">Scenario</div>
+<ul>
+<li>
+<p>The batch process A acquires the lock of the file and starts the file updating process.</p>
+</li>
+<li>
+<p>Batch process B attempts to update the same file and attempts to acquire the file lock fails.</p>
+</li>
+<li>
+<p>The batch process A ends the processing and unlocks the file</p>
+</li>
+</ul>
+</div>
+<div class="imageblock">
+<div class="content">
+<img src="./images/Ch05_ExclusiveControl_File_Senario.png" alt="ExclusiveControl_File_Senario">
+</div>
+<div class="title">Overview of File Lock Processing</div>
+</div>
+<div class="olist arabic">
+<ol class="arabic">
+<li>
+<p>The Batch Process A tries to acquire the lock of the Target File.</p>
+</li>
+<li>
+<p>The Batch Process A succeeds in acquiring the lock of the Target File.</p>
+</li>
+<li>
+<p>The Batch Process B tries to acquire the lock of the Target File.</p>
+</li>
+<li>
+<p>The Batch Process A writes the Target File.</p>
+</li>
+<li>
+<p>Since the Batch Process A is locked the Target File, the Batch Process B fails to acquire the lock of the Target File.</p>
+</li>
+<li>
+<p>The Batch Process B performs processing of file update failure.</p>
+</li>
+<li>
+<p>The Batch Process A releases the lock of the Target File.</p>
+</li>
+</ol>
+</div>
+<div class="admonitionblock important">
+<table>
+<tr>
+<td class="icon">
+<i class="fa icon-important" title="Important"></i>
+</td>
+<td class="content">
+<div class="title">Prevention of Deadlock</div>
+<div class="paragraph">
+<p>Even in a file,in the same as a database, when acquiring a lock on multiple files, deadlock may occur in some cases.
+Therefore, it is important to make a rule the update order of files.<br>
+The prevention of deadlock is similar to prevention of deadlock between tables in the database.
+For details, refer to
+<a href="http://terasolunaorg.github.io/guideline/5.3.0.RELEASE/en/ArchitectureInDetail/DataAccessDetail/ExclusionControl.html#id9">Prevention of deadlock</a> in TERASOLUNA Server 5.x Development Guideline.</p>
+</div>
+</td>
+</tr>
+</table>
+</div>
+</div>
+<div class="sect2">
+<h3 id="Ch05_ExclusiveControl_Overview_DB"><a class="anchor" href="#Ch05_ExclusiveControl_Overview_DB"></a>Exclusive Control of Database</h3>
+<div class="paragraph">
+<p>For details About Exclusive Control of Database, refer to
+<a href="http://terasolunaorg.github.io/guideline/5.3.0.RELEASE/en/ArchitectureInDetail/DataAccessDetail/ExclusionControl.html#id5">Exclusive control using database locking</a> in TERASOLUNA Server 5.x Development Guideline.</p>
+</div>
+</div>
+<div class="sect2">
+<h3 id="Ch05_ExclusiveControl_Overview_Usecase"><a class="anchor" href="#Ch05_ExclusiveControl_Overview_Usecase"></a>Choose Exclusive Control Scheme</h3>
+<div class="paragraph">
+<p>Explain the locking scheme and suitable situation for TERASOLUNA Batch 5.x.</p>
+</div>
+<table class="tableblock frame-all grid-all spread">
+<caption class="title">Choose exclusive control scheme</caption>
+<colgroup>
+<col style="width: 20%;">
+<col style="width: 80%;">
+</colgroup>
+<thead>
+<tr>
+<th class="tableblock halign-left valign-top">Lock scheme</th>
+<th class="tableblock halign-left valign-top">Suitable situation</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><a href="http://terasolunaorg.github.io/guideline/5.3.0.RELEASE/en/ArchitectureInDetail/DataAccessDetail/ExclusionControl.html#id7">Optimistic locking</a></p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">The case where process can be continued with the update result of another transaction being out of processing targets in a transaction at the time of concurrent execution.</p></td>
+</tr>
+<tr>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><a href="http://terasolunaorg.github.io/guideline/5.3.0.RELEASE/en/ArchitectureInDetail/DataAccessDetail/ExclusionControl.html#id8">Pessimistic locking</a></p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">Process in which the processing time is long and it is difficult to redo because the situation of the target data has changed during processing<br>
+Process requiring exclusive control for files</p></td>
+</tr>
+</tbody>
+</table>
+</div>
+<div class="sect2">
+<h3 id="Ch05_ExclusiveControl_Overview_Component"><a class="anchor" href="#Ch05_ExclusiveControl_Overview_Component"></a>Relationship between Exclusive Control and Components</h3>
+<div class="paragraph">
+<p>The relationship between each component provided by TERASOLUNA Batch 5.x and exclusive control is as follows.</p>
+</div>
+<div class="dlist">
+<dl>
+<dt class="hdlist1">Optimistic lock</dt>
+</dl>
+</div>
+<table class="tableblock frame-all grid-all spread">
+<caption class="title">Relationship between exclusive control and components</caption>
+<colgroup>
+<col style="width: 15%;">
+<col style="width: 15%;">
+<col style="width: 35%;">
+<col style="width: 35%;">
+</colgroup>
+<thead>
+<tr>
+<th class="tableblock halign-left valign-top">Processing model</th>
+<th class="tableblock halign-left valign-top">Component</th>
+<th class="tableblock halign-left valign-top">File</th>
+<th class="tableblock halign-left valign-top">Database</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td class="tableblock halign-left valign-top" rowspan="3"><p class="tableblock">Chunk</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">ItemReader</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">-</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">Acquires data including a column that can confirm that the same data is obtained at the time of acquiring and updating such as Version column.</p></td>
+</tr>
+<tr>
+<td class="tableblock halign-left valign-top"><p class="tableblock">ItemProcessor</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">-</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">Exclusive control is unnecessary.</p></td>
+</tr>
+<tr>
+<td class="tableblock halign-left valign-top"><p class="tableblock">ItemWriter</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">-</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">Check the difference between acquisition and update, confirm that it is not updated by other processing, then update.</p></td>
+</tr>
+<tr>
+<td class="tableblock halign-left valign-top"><p class="tableblock">Tasklet</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">Tasklet</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">-</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">When acquiring data, execute the processing described in the ItemReader section, and when updating the data, the processing described in ItemWriter section.<br>
+The concept is the same when using the Mapper interface directly.</p></td>
+</tr>
+</tbody>
+</table>
+<div class="admonitionblock caution">
+<table>
+<tr>
+<td class="icon">
+<i class="fa icon-caution" title="Caution"></i>
+</td>
+<td class="content">
+<div class="title">Optimistic lock on files</div>
+<div class="paragraph">
+<p>Because of the characteristic of the file, do not apply optimistic lock on files.</p>
+</div>
+</td>
+</tr>
+</table>
+</div>
+<div class="dlist">
+<dl>
+<dt class="hdlist1">Pessimistic lock</dt>
+</dl>
+</div>
+<table class="tableblock frame-all grid-all spread">
+<caption class="title">Relationship between exclusive control and components</caption>
+<colgroup>
+<col style="width: 15%;">
+<col style="width: 15%;">
+<col style="width: 35%;">
+<col style="width: 35%;">
+</colgroup>
+<thead>
+<tr>
+<th class="tableblock halign-left valign-top">Processing model</th>
+<th class="tableblock halign-left valign-top">Component</th>
+<th class="tableblock halign-left valign-top">File</th>
+<th class="tableblock halign-left valign-top">Database</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td class="tableblock halign-left valign-top" rowspan="3"><p class="tableblock">Chunk</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">ItemReader</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">-</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">Use FOR UPDATE of SQL statement.</p></td>
+</tr>
+<tr>
+<td class="tableblock halign-left valign-top"><p class="tableblock">ItemProcessor</p></td>
+<td class="tableblock halign-left valign-top"></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">Since it is fundamental to handle locked data, in principle, exclusive control is not performed here.</p></td>
+</tr>
+<tr>
+<td class="tableblock halign-left valign-top"><p class="tableblock">ItemWriter</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">-</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">Update data without conscious of exclusion.</p></td>
+</tr>
+<tr>
+<td class="tableblock halign-left valign-top"><p class="tableblock">Tasklet</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">Tasklet</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">Get a file lock right after opening a file with ItemStreamReader.<br>
+Release the file lock just before closing ItemStreamWriter.</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">When acquiring data, execute the processing described in the ItemReader section, and when updating the data, the processing described in ItemWriter section.<br>
+The concept is the same when using the Mapper interface directly.</p></td>
+</tr>
+</tbody>
+</table>
+<div class="admonitionblock important">
+<table>
+<tr>
+<td class="icon">
+<i class="fa icon-important" title="Important"></i>
+</td>
+<td class="content">
+<div class="title">Pessimistic lock on file</div>
+<div class="paragraph">
+<p>Pessimistic lock on files should be implemented in the tasklet model.
+In the chunk model, due to its structure, there is a period that can not be excluded in the gap of chunk processing.
+Also, it is assumed that file access is done by Injecting ItemStreamReader / ItemStreamWriter.</p>
+</div>
+</td>
+</tr>
+</table>
+</div>
+<div class="admonitionblock important">
+<table>
+<tr>
+<td class="icon">
+<i class="fa icon-important" title="Important"></i>
+</td>
+<td class="content">
+<div class="title">Waiting time due to Pessimistic lock in database</div>
+<div class="paragraph">
+<p>When pessimistic locking is performed, the wait time for processing due to contention may be prolonged.
+In that case, it is reasonable to use the pessimistic lock by specifying the NO WAIT option and the timeout time.</p>
+</div>
+</td>
+</tr>
+</table>
+</div>
+</div>
+</div>
+</div>
+<div class="sect1">
+<h2 id="Ch05_ExclusiveControl_HowToUse"><a class="anchor" href="#Ch05_ExclusiveControl_HowToUse"></a>How to use</h2>
+<div class="sectionbody">
+<div class="paragraph">
+<p>Explain how to use exclusive control by resource.</p>
+</div>
+<div class="ulist">
+<ul>
+<li>
+<p><a href="#Ch05_ExclusiveControl_HowToUse_File">Exclusive control of file</a></p>
+</li>
+<li>
+<p><a href="#Ch05_ExclusiveControl_HowToUse_DB">Exclusive Control of Database</a></p>
+</li>
+</ul>
+</div>
+<div class="sect2">
+<h3 id="Ch05_ExclusiveControl_HowToUse_File"><a class="anchor" href="#Ch05_ExclusiveControl_HowToUse_File"></a>Exclusive control of file</h3>
+<div class="paragraph">
+<p>Exclusive control of file with TERASOLUNA Batch 5.x is realized by implementing Tasklet.
+As a means of achieving exclusion, exclusive control is performed by file lock acquisition using the <code>java.nio.channels.FileChannel</code> class.</p>
+</div>
+<div class="admonitionblock note">
+<table>
+<tr>
+<td class="icon">
+<i class="fa icon-note" title="Note"></i>
+</td>
+<td class="content">
+<div class="title">Details of the FileChannel class</div>
+<div class="paragraph">
+<p>For details and how to use <code>FileChannel</code> class,
+refer to <a href="https://docs.oracle.com/javase/8/docs/api/java/nio/channels/FileChannel.html">Javadoc</a>.</p>
+</div>
+</td>
+</tr>
+</table>
+</div>
+<div class="paragraph">
+<p>Show an example of using <code>FileChannel</code> class to get a file lock.</p>
+</div>
+<div class="listingblock">
+<div class="title">Tasklet implementation</div>
+<div class="content">
+<pre class="CodeRay highlight"><code data-lang="java"><span class="annotation">@Component</span>
+<span class="annotation">@Scope</span>(<span class="string"><span class="delimiter">&quot;</span><span class="content">step</span><span class="delimiter">&quot;</span></span>)
+<span class="directive">public</span> <span class="type">class</span> <span class="class">FileExclusiveTasklet</span> <span class="directive">implements</span> Tasklet {
+
+    <span class="directive">private</span> <span class="predefined-type">String</span> targetPath = <span class="predefined-constant">null</span>; <span class="comment">// (1)</span>
+
+    <span class="annotation">@Inject</span>
+    ItemStreamReader&lt;SalesPlanDetail&gt; reader;
+
+    <span class="annotation">@Inject</span>
+    ItemStreamWriter&lt;SalesPlanDetailWithProcessName&gt; writer;
+
+    <span class="annotation">@Override</span>
+    <span class="directive">public</span> RepeatStatus execute(StepContribution contribution,
+            ChunkContext chunkContext) <span class="directive">throws</span> <span class="exception">Exception</span> {
+
+        <span class="comment">// omitted.</span>
+
+        <span class="predefined-type">FileChannel</span> fc = <span class="predefined-constant">null</span>;
+        <span class="predefined-type">FileLock</span> fileLock = <span class="predefined-constant">null</span>;
+
+        <span class="keyword">try</span> {
+            <span class="keyword">try</span> {
+                <span class="predefined-type">File</span> file = <span class="keyword">new</span> <span class="predefined-type">File</span>(targetPath);
+                fc = <span class="predefined-type">FileChannel</span>.open(file.toPath(), StandardOpenOption.WRITE,
+                        StandardOpenOption.CREATE,
+                        StandardOpenOption.APPEND); <span class="comment">// (2)</span>
+                fileLock = fc.tryLock();  <span class="comment">// (3)</span>
+            } <span class="keyword">catch</span> (<span class="exception">IOException</span> e) {
+                logger.error(<span class="string"><span class="delimiter">&quot;</span><span class="content">Failure other than lock acquisition</span><span class="delimiter">&quot;</span></span>, e);
+                <span class="keyword">throw</span> <span class="keyword">new</span> FailedOtherAcquireLockException(
+                        <span class="string"><span class="delimiter">&quot;</span><span class="content">Failure other than lock acquisition</span><span class="delimiter">&quot;</span></span>, e);
+            }
+            <span class="keyword">if</span> (fileLock == <span class="predefined-constant">null</span>) {
+                logger.error(<span class="string"><span class="delimiter">&quot;</span><span class="content">Failed to acquire lock. [processName={}]</span><span class="delimiter">&quot;</span></span>, processName);
+                <span class="keyword">throw</span> <span class="keyword">new</span> FailedAcquireLockException(<span class="string"><span class="delimiter">&quot;</span><span class="content">Failed to acquire lock</span><span class="delimiter">&quot;</span></span>);
+            }
+
+            reader.open(executionConetxt);
+            writer.open(executionConetxt);  <span class="comment">// (4)</span>
+
+            <span class="comment">// (5)</span>
+            SalesPlanDetail item;
+            <span class="predefined-type">List</span>&lt;SalesPlanDetailWithProcessName&gt; items = <span class="keyword">new</span> <span class="predefined-type">ArrayList</span>&lt;&gt;();
+            <span class="keyword">while</span> ((item = reader.read()) != <span class="predefined-constant">null</span>) {
+
+                <span class="comment">// omitted.</span>
+
+                items.add(item);
+                <span class="keyword">if</span> (items.size() &gt;= <span class="integer">10</span>) {
+                    writer.write(items);
+                    items.clear();
+                }
+            }
+            <span class="keyword">if</span> (items.size() &gt; <span class="integer">0</span>) {
+                writer.write(items);
+            }
+
+        } <span class="keyword">finally</span> {
+            <span class="keyword">if</span> (fileLock != <span class="predefined-constant">null</span>) {
+                <span class="keyword">try</span> {
+                    fileLock.release();  <span class="comment">// (6)</span>
+                } <span class="keyword">catch</span> (<span class="exception">IOException</span> e) {
+                    logger.warn(<span class="string"><span class="delimiter">&quot;</span><span class="content">Lock release failed.</span><span class="delimiter">&quot;</span></span>, e);
+                }
+            }
+            <span class="keyword">if</span> (fc != <span class="predefined-constant">null</span>) {
+                <span class="keyword">try</span> {
+                    fc.close();
+                } <span class="keyword">catch</span> (<span class="exception">IOException</span> e) {
+                    <span class="comment">// do nothing.</span>
+                }
+            }
+            <span class="keyword">try</span> {
+                writer.close(); <span class="comment">// (7)</span>
+            } <span class="keyword">catch</span> (ItemStreamException e) {
+                <span class="comment">// ignore</span>
+            }
+            <span class="keyword">try</span> {
+                reader.close();
+            } <span class="keyword">catch</span> (ItemStreamException e) {
+                <span class="comment">// ignore</span>
+            }
+        }
+        <span class="keyword">return</span> RepeatStatus.FINISHED;
+    }
+
+    <span class="comment">// (8)</span>
+    <span class="annotation">@Value</span>(<span class="string"><span class="delimiter">&quot;</span><span class="content">#{jobParameters['outputFile']}</span><span class="delimiter">&quot;</span></span>)
+    <span class="directive">public</span> <span class="type">void</span> setTargetPath(<span class="predefined-type">String</span> targetPath) {
+        <span class="local-variable">this</span>.targetPath = targetPath;
+    }
+}</code></pre>
+</div>
+</div>
+<table class="tableblock frame-all grid-all spread">
+<caption class="title">Description</caption>
+<colgroup>
+<col style="width: 10%;">
+<col style="width: 90%;">
+</colgroup>
+<thead>
+<tr>
+<th class="tableblock halign-left valign-top">Sr. No.</th>
+<th class="tableblock halign-left valign-top">Description</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td class="tableblock halign-left valign-top"><p class="tableblock">(1)</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">File path to be exclusively controlled.</p></td>
+</tr>
+<tr>
+<td class="tableblock halign-left valign-top"><p class="tableblock">(2)</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">Get file channel.<br>
+In this example, channels for new creation, addition and writing of files are obtained.</p></td>
+</tr>
+<tr>
+<td class="tableblock halign-left valign-top"><p class="tableblock">(3)</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">Get file lock.</p></td>
+</tr>
+<tr>
+<td class="tableblock halign-left valign-top"><p class="tableblock">(4)</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">Open file to be locked if the file lock is fetched successfully.</p></td>
+</tr>
+<tr>
+<td class="tableblock halign-left valign-top"><p class="tableblock">(5)</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">Execute business logic with file output.</p></td>
+</tr>
+<tr>
+<td class="tableblock halign-left valign-top"><p class="tableblock">(6)</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">Release file lock.</p></td>
+</tr>
+<tr>
+<td class="tableblock halign-left valign-top"><p class="tableblock">(7)</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">Close file to be exclusively controlled.</p></td>
+</tr>
+<tr>
+<td class="tableblock halign-left valign-top"><p class="tableblock">(8)</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">Set file path.<br>
+In this example, it receives from the job parameter.</p></td>
+</tr>
+</tbody>
+</table>
+<div class="admonitionblock note">
+<table>
+<tr>
+<td class="icon">
+<i class="fa icon-note" title="Note"></i>
+</td>
+<td class="content">
+<div class="title">About the method of FileChannel used for lock acquisition</div>
+<div class="paragraph">
+<p>It is recommended to use the <code>tryLock()</code> method which is not waiting because the <code>lock()</code> method waits until the lock is released if the target file is locked.
+Note that trylock() can select shared lock and exclusive lock, but in batch processing, exclusive lock is normally used.</p>
+</div>
+</td>
+</tr>
+</table>
+</div>
+<div class="admonitionblock warning">
+<table>
+<tr>
+<td class="icon">
+<i class="fa icon-warning" title="Warning"></i>
+</td>
+<td class="content">
+<div class="title">Exclusive control between threads in the same VM</div>
+<div class="paragraph">
+<p>Attention must be paid to exclusive control between threads in the same VM.
+When processing files between threads in the same VM, the lock function using the <code>FileChannel</code> class can not determine whether a file is locked by another thread&#8217;s processing.<br>
+Therefore, exclusive control between threads does not function. In order to avoid this, exclusive control between threads can be performed by performing synchronization processing in the part where writing to the file is performed.<br>
+However, synchronizing reduces the merit of parallel processing, and it is not different from processing with a single thread.
+As a result, since it is not suitable to perform exclusive control with different threads on the same file and process it, do not design and implement such processing.</p>
+</div>
+</td>
+</tr>
+</table>
+</div>
+<div class="admonitionblock tip">
+<table>
+<tr>
+<td class="icon">
+<i class="fa icon-tip" title="Tip"></i>
+</td>
+<td class="content">
+<div class="title">About appendAllowed property of FlatFileItemWriter</div>
+<div class="paragraph">
+<p>When creating (overwriting) a file, exclusive control can be realized by setting the <code>appendAllowed</code> property to <code>false</code> (default).
+This is because <code>FileChannel</code> is controlled inside <code>FlatFileItemWriter</code>.
+However, if the file is appended (<code>appendAllowed</code> property is <code>true</code>), developers need to implement exclusive control with <code>FileChannel</code>.</p>
+</div>
+</td>
+</tr>
+</table>
+</div>
+</div>
+<div class="sect2">
+<h3 id="Ch05_ExclusiveControl_HowToUse_DB"><a class="anchor" href="#Ch05_ExclusiveControl_HowToUse_DB"></a>Exclusive Control of Database</h3>
+<div class="paragraph">
+<p>Explain exclusive control of database in TERASOLUNA Batch 5.x.</p>
+</div>
+<div class="paragraph">
+<p>The exclusive control implementation of the database is basically
+<a href="http://terasolunaorg.github.io/guideline/5.3.0.RELEASE/en/ArchitectureInDetail/DataAccessDetail/ExclusionControl.html#mybatis3">How to implement while using MyBatis3</a> in TERASOLUNA Server 5.x Development Guideline.
+In this guideline,
+Explain it on the premise that <a href="http://terasolunaorg.github.io/guideline/5.3.0.RELEASE/en/ArchitectureInDetail/DataAccessDetail/ExclusionControl.html#mybatis3">How to implement while using MyBatis3</a> is done.</p>
+</div>
+<div class="paragraph">
+<p>As shown in <a href="#Ch05_ExclusiveControl_Overview_Component">Relationship between Exclusive Control and Components</a>, there are variations due to combination of processing model and component.</p>
+</div>
+<table class="tableblock frame-all grid-all spread">
+<caption class="title">Variation of exclusive control of database</caption>
+<colgroup>
+<col style="width: 20%;">
+<col style="width: 30%;">
+<col style="width: 50%;">
+</colgroup>
+<tbody>
+<tr>
+<td class="tableblock halign-left valign-top"><p class="tableblock">Exclusive control scheme</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">Processing model</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">Component</p></td>
+</tr>
+<tr>
+<td class="tableblock halign-left valign-top" rowspan="3"><p class="tableblock">Optimistic lock</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">Chunk model</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">ItemReader/ItemWriter</p></td>
+</tr>
+<tr>
+<td class="tableblock halign-left valign-top" rowspan="2"><p class="tableblock">Tasklet model</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">ItemReader/ItemWriter</p></td>
+</tr>
+<tr>
+<td class="tableblock halign-left valign-top"><p class="tableblock">Mapper interface</p></td>
+</tr>
+<tr>
+<td class="tableblock halign-left valign-top" rowspan="3"><p class="tableblock">Pessimistic lock</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">Chunk model</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">ItemReader/ItemWriter</p></td>
+</tr>
+<tr>
+<td class="tableblock halign-left valign-top" rowspan="2"><p class="tableblock">Tasklet model</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">ItemReader/ItemWriter</p></td>
+</tr>
+<tr>
+<td class="tableblock halign-left valign-top"><p class="tableblock">Mapper interface</p></td>
+</tr>
+</tbody>
+</table>
+<div class="paragraph">
+<p>When using the Mapper interface in tasklet model, the explanation is omitted.
+Refer to <a href="http://terasolunaorg.github.io/guideline/5.3.0.RELEASE/en/ArchitectureInDetail/DataAccessDetail/ExclusionControl.html#mybatis3">How to implement while using MyBatis3</a>.</p>
+</div>
+<div class="paragraph">
+<p>When using ItemReader/ItemWriter in tasklet model, the calling part in the Mapper interface is replaced by ItemReader/ItemWriter, so the explanation is also omitted.</p>
+</div>
+<div class="paragraph">
+<p>Therefore, exclusive control of chunk model will be explained here.</p>
+</div>
+<div class="sect3">
+<h4 id="Ch05_ExclusiveControl_HowToUse_DB_OptimisticLock"><a class="anchor" href="#Ch05_ExclusiveControl_HowToUse_DB_OptimisticLock"></a>Optimistic Lock</h4>
+<div class="paragraph">
+<p>Explain Optimistic lock in chunk model.</p>
+</div>
+<div class="paragraph">
+<p>Since the behavior of the job changes according to the setting of the <code>assertUpdates</code> property of MyBatisBatchItemWriter, it is necessary to set it appropriately according to the business requirements.</p>
+</div>
+<div class="paragraph">
+<p>Show the job definition for optimistic lock.</p>
+</div>
+<div class="listingblock">
+<div class="title">job definition</div>
+<div class="content">
+<pre class="CodeRay highlight"><code data-lang="xml"><span class="comment">&lt;!-- (1) --&gt;</span>
+<span class="tag">&lt;bean</span> <span class="attribute-name">id</span>=<span class="string"><span class="delimiter">&quot;</span><span class="content">reader</span><span class="delimiter">&quot;</span></span>
+      <span class="attribute-name">class</span>=<span class="string"><span class="delimiter">&quot;</span><span class="content">org.mybatis.spring.batch.MyBatisCursorItemReader</span><span class="delimiter">&quot;</span></span> <span class="attribute-name">scope</span>=<span class="string"><span class="delimiter">&quot;</span><span class="content">step</span><span class="delimiter">&quot;</span></span>
+      <span class="attribute-name">p:queryId</span>=<span class="string"><span class="delimiter">&quot;</span><span class="content">org.terasoluna.batch.functionaltest.ch05.exclusivecontrol.repository.ExclusiveControlRepository.branchFindOne</span><span class="delimiter">&quot;</span></span>
+      <span class="attribute-name">p:sqlSessionFactory-ref</span>=<span class="string"><span class="delimiter">&quot;</span><span class="content">jobSqlSessionFactory</span><span class="delimiter">&quot;</span></span><span class="tag">/&gt;</span>
+    <span class="tag">&lt;property</span> <span class="attribute-name">name</span>=<span class="string"><span class="delimiter">&quot;</span><span class="content">parameterValues</span><span class="delimiter">&quot;</span></span><span class="tag">&gt;</span>
+        <span class="tag">&lt;map&gt;</span>
+            <span class="tag">&lt;entry</span> <span class="attribute-name">key</span>=<span class="string"><span class="delimiter">&quot;</span><span class="content">branchId</span><span class="delimiter">&quot;</span></span> <span class="attribute-name">value</span>=<span class="string"><span class="delimiter">&quot;</span><span class="content">#{jobParameters['branchId']}</span><span class="delimiter">&quot;</span></span><span class="tag">/&gt;</span>
+        <span class="tag">&lt;/map&gt;</span>
+    <span class="tag">&lt;/property&gt;</span>
+<span class="tag">&lt;/bean&gt;</span>
+
+<span class="comment">&lt;!-- (2) ---&gt;</span>
+<span class="tag">&lt;bean</span> <span class="attribute-name">id</span>=<span class="string"><span class="delimiter">&quot;</span><span class="content">writer</span><span class="delimiter">&quot;</span></span>
+      <span class="attribute-name">class</span>=<span class="string"><span class="delimiter">&quot;</span><span class="content">org.mybatis.spring.batch.MyBatisBatchItemWriter</span><span class="delimiter">&quot;</span></span> <span class="attribute-name">scope</span>=<span class="string"><span class="delimiter">&quot;</span><span class="content">step</span><span class="delimiter">&quot;</span></span>
+      <span class="attribute-name">p:statementId</span>=<span class="string"><span class="delimiter">&quot;</span><span class="content">org.terasoluna.batch.functionaltest.ch05.exclusivecontrol.repository.ExclusiveControlRepository.branchExclusiveUpdate</span><span class="delimiter">&quot;</span></span>
+      <span class="attribute-name">p:sqlSessionTemplate-ref</span>=<span class="string"><span class="delimiter">&quot;</span><span class="content">batchModeSqlSessionTemplate</span><span class="delimiter">&quot;</span></span>
+      <span class="attribute-name">p:assertUpdates</span>=<span class="string"><span class="delimiter">&quot;</span><span class="content">true</span><span class="delimiter">&quot;</span></span> <span class="tag">/&gt;</span>  <span class="comment">&lt;!-- (3) --&gt;</span>
+
+<span class="tag">&lt;batch:job</span> <span class="attribute-name">id</span>=<span class="string"><span class="delimiter">&quot;</span><span class="content">chunkOptimisticLockCheckJob</span><span class="delimiter">&quot;</span></span> <span class="attribute-name">job-repository</span>=<span class="string"><span class="delimiter">&quot;</span><span class="content">jobRepository</span><span class="delimiter">&quot;</span></span><span class="tag">&gt;</span>
+    <span class="tag">&lt;batch:step</span> <span class="attribute-name">id</span>=<span class="string"><span class="delimiter">&quot;</span><span class="content">chunkOptimisticLockCheckJob.step01</span><span class="delimiter">&quot;</span></span><span class="tag">&gt;</span>
+        <span class="tag">&lt;batch:tasklet</span> <span class="attribute-name">transaction-manager</span>=<span class="string"><span class="delimiter">&quot;</span><span class="content">jobTransactionManager</span><span class="delimiter">&quot;</span></span><span class="tag">&gt;</span>
+            <span class="tag">&lt;batch:chunk</span> <span class="attribute-name">reader</span>=<span class="string"><span class="delimiter">&quot;</span><span class="content">reader</span><span class="delimiter">&quot;</span></span> <span class="attribute-name">processor</span>=<span class="string"><span class="delimiter">&quot;</span><span class="content">branchEditItemProcessor</span><span class="delimiter">&quot;</span></span>
+                         <span class="attribute-name">writer</span>=<span class="string"><span class="delimiter">&quot;</span><span class="content">writer</span><span class="delimiter">&quot;</span></span> <span class="attribute-name">commit-interval</span>=<span class="string"><span class="delimiter">&quot;</span><span class="content">10</span><span class="delimiter">&quot;</span></span> <span class="tag">/&gt;</span>
+        <span class="tag">&lt;/batch:tasklet&gt;</span>
+    <span class="tag">&lt;/batch:step&gt;</span>
+<span class="tag">&lt;/batch:job&gt;</span></code></pre>
+</div>
+</div>
+<table class="tableblock frame-all grid-all spread">
+<caption class="title">Description</caption>
+<colgroup>
+<col style="width: 10%;">
+<col style="width: 90%;">
+</colgroup>
+<thead>
+<tr>
+<th class="tableblock halign-left valign-top">Sr. No.</th>
+<th class="tableblock halign-left valign-top">Description</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td class="tableblock halign-left valign-top"><p class="tableblock">(1)</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">Set SQLID of data acquisition by optimistic lock.</p></td>
+</tr>
+<tr>
+<td class="tableblock halign-left valign-top"><p class="tableblock">(2)</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">Set SQLID of data update by optimistic lock.</p></td>
+</tr>
+<tr>
+<td class="tableblock halign-left valign-top"><p class="tableblock">(3)</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">Set whether to check the number of batch updates.<br>
+If set to <code>true</code> (default), throw an exception if the number of updates is 0.<br>
+if set to <code>false</code>, perform normal processing even if the number of updates is 0.</p></td>
+</tr>
+</tbody>
+</table>
+</div>
+<div class="sect3">
+<h4 id="Ch05_ExclusiveControl_HowToUse_DB_PessimisticLock"><a class="anchor" href="#Ch05_ExclusiveControl_HowToUse_DB_PessimisticLock"></a>Pessimistic Lock</h4>
+<div class="paragraph">
+<p>Explain pessimistic lock in chunk model.</p>
+</div>
+<div class="paragraph">
+<p>Show the job definition for pessimistic lock.</p>
+</div>
+<div class="listingblock">
+<div class="title">job definition</div>
+<div class="content">
+<pre class="CodeRay highlight"><code data-lang="xml"><span class="comment">&lt;!-- (1) --&gt;</span>
+<span class="tag">&lt;bean</span> <span class="attribute-name">id</span>=<span class="string"><span class="delimiter">&quot;</span><span class="content">reader</span><span class="delimiter">&quot;</span></span>
+      <span class="attribute-name">class</span>=<span class="string"><span class="delimiter">&quot;</span><span class="content">org.mybatis.spring.batch.MyBatisCursorItemReader</span><span class="delimiter">&quot;</span></span> <span class="attribute-name">scope</span>=<span class="string"><span class="delimiter">&quot;</span><span class="content">step</span><span class="delimiter">&quot;</span></span>
+      <span class="attribute-name">p:queryId</span>=<span class="string"><span class="delimiter">&quot;</span><span class="content">org.terasoluna.batch.functionaltest.ch05.exclusivecontrol.repository.ExclusiveControlRepository.branchFindOneWithNoWaitLock</span><span class="delimiter">&quot;</span></span>
+      <span class="attribute-name">p:sqlSessionFactory-ref</span>=<span class="string"><span class="delimiter">&quot;</span><span class="content">jobSqlSessionFactory</span><span class="delimiter">&quot;</span></span><span class="tag">&gt;</span>
+    <span class="tag">&lt;property</span> <span class="attribute-name">name</span>=<span class="string"><span class="delimiter">&quot;</span><span class="content">parameterValues</span><span class="delimiter">&quot;</span></span><span class="tag">&gt;</span>
+        <span class="tag">&lt;map&gt;</span>
+            <span class="tag">&lt;entry</span> <span class="attribute-name">key</span>=<span class="string"><span class="delimiter">&quot;</span><span class="content">branchId</span><span class="delimiter">&quot;</span></span> <span class="attribute-name">value</span>=<span class="string"><span class="delimiter">&quot;</span><span class="content">#{jobParameters['branchId']}</span><span class="delimiter">&quot;</span></span><span class="tag">/&gt;</span>
+        <span class="tag">&lt;/map&gt;</span>
+    <span class="tag">&lt;/property&gt;</span>
+<span class="tag">&lt;/bean&gt;</span>
+
+<span class="comment">&lt;!-- (2) --&gt;</span>
+<span class="tag">&lt;bean</span> <span class="attribute-name">id</span>=<span class="string"><span class="delimiter">&quot;</span><span class="content">writer</span><span class="delimiter">&quot;</span></span>
+      <span class="attribute-name">class</span>=<span class="string"><span class="delimiter">&quot;</span><span class="content">org.mybatis.spring.batch.MyBatisBatchItemWriter</span><span class="delimiter">&quot;</span></span> <span class="attribute-name">scope</span>=<span class="string"><span class="delimiter">&quot;</span><span class="content">step</span><span class="delimiter">&quot;</span></span>
+      <span class="attribute-name">p:statementId</span>=<span class="string"><span class="delimiter">&quot;</span><span class="content">org.terasoluna.batch.functionaltest.ch05.exclusivecontrol.repository.ExclusiveControlRepository.branchUpdate</span><span class="delimiter">&quot;</span></span>
+      <span class="attribute-name">p:sqlSessionTemplate-ref</span>=<span class="string"><span class="delimiter">&quot;</span><span class="content">batchModeSqlSessionTemplate</span><span class="delimiter">&quot;</span></span>
+      <span class="attribute-name">p:assertUpdates</span>=<span class="string"><span class="delimiter">&quot;</span><span class="content">#{new Boolean(jobParameters['assertUpdates'])}</span><span class="delimiter">&quot;</span></span> <span class="tag">/&gt;</span>
+
+<span class="tag">&lt;batch:job</span> <span class="attribute-name">id</span>=<span class="string"><span class="delimiter">&quot;</span><span class="content">chunkPessimisticLockCheckJob</span><span class="delimiter">&quot;</span></span> <span class="attribute-name">job-repository</span>=<span class="string"><span class="delimiter">&quot;</span><span class="content">jobRepository</span><span class="delimiter">&quot;</span></span><span class="tag">&gt;</span>
+    <span class="tag">&lt;batch:step</span> <span class="attribute-name">id</span>=<span class="string"><span class="delimiter">&quot;</span><span class="content">chunkPessimisticLockCheckJob.step01</span><span class="delimiter">&quot;</span></span><span class="tag">&gt;</span>
+        <span class="tag">&lt;batch:tasklet</span> <span class="attribute-name">transaction-manager</span>=<span class="string"><span class="delimiter">&quot;</span><span class="content">jobTransactionManager</span><span class="delimiter">&quot;</span></span><span class="tag">&gt;</span>
+            <span class="tag">&lt;batch:chunk</span> <span class="attribute-name">reader</span>=<span class="string"><span class="delimiter">&quot;</span><span class="content">reader</span><span class="delimiter">&quot;</span></span> <span class="attribute-name">processor</span>=<span class="string"><span class="delimiter">&quot;</span><span class="content">branchEditItemProcessor</span><span class="delimiter">&quot;</span></span>
+                         <span class="attribute-name">writer</span>=<span class="string"><span class="delimiter">&quot;</span><span class="content">writer</span><span class="delimiter">&quot;</span></span> <span class="attribute-name">commit-interval</span>=<span class="string"><span class="delimiter">&quot;</span><span class="content">10</span><span class="delimiter">&quot;</span></span> <span class="tag">/&gt;</span>
+        <span class="tag">&lt;/batch:tasklet&gt;</span>
+    <span class="tag">&lt;/batch:step&gt;</span>
+    <span class="tag">&lt;batch:listeners&gt;</span>
+        <span class="tag">&lt;batch:listener</span> <span class="attribute-name">ref</span>=<span class="string"><span class="delimiter">&quot;</span><span class="content">jobExecutionLoggingListener</span><span class="delimiter">&quot;</span></span><span class="tag">/&gt;</span>
+    <span class="tag">&lt;/batch:listeners&gt;</span>
+<span class="tag">&lt;/batch:job&gt;</span></code></pre>
+</div>
+</div>
+<table class="tableblock frame-all grid-all spread">
+<caption class="title">Description</caption>
+<colgroup>
+<col style="width: 10%;">
+<col style="width: 90%;">
+</colgroup>
+<thead>
+<tr>
+<th class="tableblock halign-left valign-top">Sr. No.</th>
+<th class="tableblock halign-left valign-top">Description</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td class="tableblock halign-left valign-top"><p class="tableblock">(1)</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">Set SQLID of data acquisition by pessimistic lock.</p></td>
+</tr>
+<tr>
+<td class="tableblock halign-left valign-top"><p class="tableblock">(2)</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">Set the same SQLID as SQL of data update without exclusive control.</p></td>
+</tr>
+</tbody>
+</table>
+<div class="admonitionblock note">
+<table>
+<tr>
+<td class="icon">
+<i class="fa icon-note" title="Note"></i>
+</td>
+<td class="content">
+<div class="title">Behavior during exclusive control</div>
+<div class="paragraph">
+<p>If performing pessimistic lock by setting NO WAIT or timeout, when excluded by another transaction, an exception is thrown in the <code>doOpen()</code> method of MyBatisCursorItemReader.</p>
+</div>
+</td>
+</tr>
+</table>
+</div>
+</div>
+</div>
+</div>
+</div>
+</div>
+<div class="container">
+
+  <div class="common-bg">
+    <div class="information">
+      TERASOLUNA Batch Framework for Java (5.x) Development Guideline - version 5.0.1.RELEASE, 2017-9-27
+    </div>
+    <div class="index">
+      <a href="index.html">&gt; INDEX</a>
+    </div>
+  </div>
+
+  <div class="footer-bg">
+    <div class="copyright">
+      &copy; Copyright 2017 NTT DATA Corporation.
+    </div>
+  </div>
+
+</div>
+</body>
+</html>

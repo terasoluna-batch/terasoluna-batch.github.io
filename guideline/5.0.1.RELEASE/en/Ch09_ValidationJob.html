@@ -1,0 +1,1240 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<!--[if IE]><meta http-equiv="X-UA-Compatible" content="IE=edge"><![endif]-->
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<meta name="generator" content="Asciidoctor 1.5.6.1">
+<title>A job that validates input data</title>
+<link rel="stylesheet" href="./theme/css/readthedocs.css">
+<link rel="stylesheet" href="./theme/css/font-awesome.min.css">
+<link rel="stylesheet" href="./theme/css/coderay-asciidoctor.css">
+<link rel="stylesheet" href="./theme/css/header-footer.css">
+<title>TERASOLUNA Batch Framework for Java (5.x) Development Guideline</title>
+
+<div class="common-bg">
+  <div class="information">
+    TERASOLUNA Batch Framework for Java (5.x) Development Guideline - version 5.0.1.RELEASE, 2017-9-27
+  </div>
+  <div class="index">
+    <a href="index.html">&gt; INDEX</a>
+  </div>
+</div>
+</head>
+<body id="Ch09_ValidationJob" class="book toc2 toc-left">
+<div id="header">
+<h1>A job that validates input data</h1>
+<div id="toc" class="toc2">
+<div id="toctitle">Table of Contents</div>
+<ul class="sectlevel1">
+<li><a href="#Ch09_ValidationJob_Overview">Overview</a>
+<ul class="sectlevel2">
+<li><a href="#Ch09_ValidationJob_Overview_Background">Background</a></li>
+<li><a href="#Ch09_ValidationJob_Overview_ProcessOverview">Process overview</a></li>
+<li><a href="#Ch09_ValidationJob_Overview_BusinessSpecification">Business specifications</a></li>
+<li><a href="#Ch09_ValidationJob_Overview_TableSpecification">Table specifications</a></li>
+<li><a href="#Ch09_ValidationJob_Overview_JobOverview">Job overview</a></li>
+</ul>
+</li>
+<li><a href="#Ch09_ValidationJob_Chunk">Implementation in Chunk model</a>
+<ul class="sectlevel2">
+<li><a href="#Ch09_ValidationJob_Chunk_ValidationRulesDefinition">Defining input check rules</a></li>
+<li><a href="#Ch09_ValidationJob_Chunk_Coding">Implementation of input check process</a></li>
+<li><a href="#Ch09_ValidationJob_Chunk_Execution">Job execution and result verification</a>
+<ul class="sectlevel3">
+<li><a href="#Ch09_ValidationJob_Chunk_Execution_Run">Execute the job from execution configuration</a></li>
+<li><a href="#Ch09_ValidationJob_Chunk_Execution_Console">Verify console log</a></li>
+<li><a href="#Ch09_ValidationJob_Chunk_Execution_Exitcode">Verify exit code</a></li>
+<li><a href="#Ch09_ValidationJob_Chunk_Execution_Output">Verify output resource</a></li>
+</ul>
+</li>
+</ul>
+</li>
+<li><a href="#Ch09_ValidationJob_Tasklet">Implementation in Tasklet model</a>
+<ul class="sectlevel2">
+<li><a href="#Ch09_ValidationJob_Tasklet_ValidationRulesDefinition">Defining input check rules</a></li>
+<li><a href="#Ch09_ValidationJob_Tasklet_Coding">Implementation of input check process</a></li>
+<li><a href="#Ch09_ValidationJob_Tasklet_Execution">Job execution and result verification</a>
+<ul class="sectlevel3">
+<li><a href="#Ch09_ValidationJob_Tasklet_Execution_Run">Execute job from execution configuration</a></li>
+<li><a href="#Ch09_ValidationJob_Tasklet_Execution_Console">Verifying console log</a></li>
+<li><a href="#Ch09_ValidationJob_Tasklet_Execution_Exitcode">Verifying exit codes</a></li>
+<li><a href="#Ch09_ValidationJob_Tasklet_Execution_Output">Verifying output resource</a></li>
+</ul>
+</li>
+</ul>
+</li>
+</ul>
+</div>
+</div>
+<div id="content">
+<div id="preamble">
+<div class="sectionbody">
+<div id="Ch09_ValidationJob_Prerequisite" class="admonitionblock note">
+<table>
+<tr>
+<td class="icon">
+<i class="fa icon-note" title="Note"></i>
+</td>
+<td class="content">
+<div class="title">Premise</div>
+<div class="paragraph">
+<p>As explained in <a href="Ch09_Introduction.html#Ch09_Introduction_HowToProceed">How to proceed with the tutorial</a>,
+it will include implementation of the jobs for <a href="Ch09_DBAccessJob.html#Ch09_DBAccessJob">A job that inputs/outputs data by accessing a database</a>
+and &lt;&lt;Ch09_FileAccessJob.adoc#Ch09_FileAccessJob, A job that inputs/outputs data by accessing a file.<br>
+However, it must be noted that the description is for the case where the implementation is added to the job which accesses the database.</p>
+</div>
+</td>
+</tr>
+</table>
+</div>
+</div>
+</div>
+<div class="sect1">
+<h2 id="Ch09_ValidationJob_Overview"><a class="anchor" href="#Ch09_ValidationJob_Overview"></a>Overview</h2>
+<div class="sectionbody">
+<div class="paragraph">
+<p>Create a job that validates input data (hereafter, referred as input check).</p>
+</div>
+<div class="paragraph">
+<p>Note that, since this section is based on TERASOLUNA Batch 5.x Development guideline,
+refer <a href="Ch06_InputValidation.html#Ch06_InputValidation">Input check</a>,for details.</p>
+</div>
+<div class="paragraph">
+<p>Background, process overview and business specifications of <a href="Ch09_TutorialApplication.html#Ch09_TutorialApplication">Description of the application to be created</a>
+are given below.</p>
+</div>
+<div class="sect2">
+<h3 id="Ch09_ValidationJob_Overview_Background"><a class="anchor" href="#Ch09_ValidationJob_Overview_Background"></a>Background</h3>
+<div class="paragraph">
+<p>Some mass retail stores issue point cards for members.<br>
+Membership types include "Gold member", "normal member" and the services are provided based on the membership types.<br>
+As a part of the service, 100 points are added for "gold members" and 10 points are added for "normal members" at the end of the month,
+for the members who have purchased a product during that month.</p>
+</div>
+</div>
+<div class="sect2">
+<h3 id="Ch09_ValidationJob_Overview_ProcessOverview"><a class="anchor" href="#Ch09_ValidationJob_Overview_ProcessOverview"></a>Process overview</h3>
+<div class="paragraph">
+<p>TERASOLUNA Batch 5.x will be using in an application as a monthly batch process
+which adds points based on the membership type.<br>
+Implement a process which verifies validity of whether the data exceeding upper limit value of points exists in input data.</p>
+</div>
+</div>
+<div class="sect2">
+<h3 id="Ch09_ValidationJob_Overview_BusinessSpecification"><a class="anchor" href="#Ch09_ValidationJob_Overview_BusinessSpecification"></a>Business specifications</h3>
+<div class="paragraph">
+<p>Business specifications are as given below.</p>
+</div>
+<div class="ulist">
+<ul>
+<li>
+<p>Check that points of input data do not exceed 1,000,000 points</p>
+<div class="ulist">
+<ul>
+<li>
+<p>When an error occurs during the check, the process terminates abnormally (No exception handling)</p>
+</li>
+</ul>
+</div>
+</li>
+<li>
+<p>When the product purchasing flag is "1"(process target), points are added based on membership type</p>
+<div class="ulist">
+<ul>
+<li>
+<p>Add 100 points when membership type is "G"(gold member) and add 10 points when membership type is "N"(Normal member)</p>
+</li>
+</ul>
+</div>
+</li>
+<li>
+<p>Product purchasing flag is updated to "0" (initial status) after adding points</p>
+</li>
+<li>
+<p>Upper limit of points is 1,000,000 points</p>
+</li>
+<li>
+<p>If the points exceed 1,000,000 after adding the points, they are adjusted to 1,000,000 points</p>
+</li>
+</ul>
+</div>
+</div>
+<div class="sect2">
+<h3 id="Ch09_ValidationJob_Overview_TableSpecification"><a class="anchor" href="#Ch09_ValidationJob_Overview_TableSpecification"></a>Table specifications</h3>
+<div class="paragraph">
+<p>Specifications of member information table which serve as an input and output resource are as shown below.<br>
+Since it acts as an explanation for a job which accesses the database as per <a href="#Ch09_ValidationJob_Prerequisite">Premise</a>,
+refer <a href="Ch09_FileAccessJob.html#Ch09_FileAccessJob_Overview_FileSpecification">File specifications</a> for resource specifications of input and output for a job accessing a file.</p>
+</div>
+<table class="tableblock frame-all grid-all spread">
+<caption class="title">Member information table (member_info)</caption>
+<colgroup>
+<col style="width: 3.0927%;">
+<col style="width: 15.4639%;">
+<col style="width: 10.3092%;">
+<col style="width: 4.1237%;">
+<col style="width: 12.3711%;">
+<col style="width: 8.2474%;">
+<col style="width: 46.392%;">
+</colgroup>
+<thead>
+<tr>
+<th class="tableblock halign-left valign-top">No</th>
+<th class="tableblock halign-left valign-top">Attribute name</th>
+<th class="tableblock halign-left valign-top">Column name</th>
+<th class="tableblock halign-left valign-top">PK</th>
+<th class="tableblock halign-left valign-top">Data type</th>
+<th class="tableblock halign-left valign-top">Number of digits</th>
+<th class="tableblock halign-left valign-top">Explanation</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td class="tableblock halign-left valign-top"><p class="tableblock">1</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">Member id</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">id</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><span class="icon"><i class="fa fa-check"></i></span></p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">CHAR</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">8</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">Represents a fixed 8 digit number which uniquely identifies a member.</p></td>
+</tr>
+<tr>
+<td class="tableblock halign-left valign-top"><p class="tableblock">2</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">Membership type</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">type</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">-</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">CHAR</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">1</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">Membership types are shown below.<br>
+"G"(Gold member), "N"(Normal member)</p></td>
+</tr>
+<tr>
+<td class="tableblock halign-left valign-top"><p class="tableblock">3</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">Product purchasing flag</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">status</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">-</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">CHAR</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">1</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">It shows whether you have purchased a product in the month.<br>
+It is updated to "1" (process target) when the product is purchased and to "0" (initial status) during monthly batch process.</p></td>
+</tr>
+<tr>
+<td class="tableblock halign-left valign-top"><p class="tableblock">4</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">Point</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">point</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">-</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">INT</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">7</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">It shows the points retained by the members.<br>
+Initial value is 0.</p></td>
+</tr>
+</tbody>
+</table>
+</div>
+<div class="sect2">
+<h3 id="Ch09_ValidationJob_Overview_JobOverview"><a class="anchor" href="#Ch09_ValidationJob_Overview_JobOverview"></a>Job overview</h3>
+<div class="paragraph">
+<p>The process flow and process sequence are shown below
+to understand the overview of the job which performs input check created here.</p>
+</div>
+<div class="paragraph">
+<p>Since it acts as an explanation for the job which accesses a database as per <a href="#Ch09_ValidationJob_Prerequisite">Premise</a>,
+it must be noted that it is likely to be different from the process flow and process sequence for the job which access the file.</p>
+</div>
+<div class="paragraph">
+<p>Input check is classified into unit item check and correlated item check etc., however only unit item checks are handled here.<br>
+Use Bean Validation for unit item check.
+For details, refer <a href="Ch06_InputValidation.html#Ch06_InputValidation_Overview_Category">Input check classification</a>.</p>
+</div>
+<div class="paragraph">
+<p>Process flow overview:
+Overview of process flow is shown below.</p>
+</div>
+<div class="imageblock">
+<div class="content">
+<img src="./images/ch09/Validation/Ch09_ValidationJob_ProcessFlow.png" alt="ProcessFlow of Validation Job">
+</div>
+<div class="title">Process flow of job  which verifies validity of input data</div>
+</div>
+<div class="dlist">
+<dl>
+<dt class="hdlist1">Process sequence in case of a chunk model</dt>
+<dd>
+<p>Process sequence in case of a chunk model is explained.<br>
+Since this job is explained by assuming the usage of abnormal data,
+the sequence diagram shows occurrence of error (abnormal termination) during input check.<br>
+When the input check is successful, process sequence after input check is same as sequence diagram of database access
+(Refer <a href="Ch09_DBAccessJob.html#Ch09_DBAccessJob_Overview_JobOverview">Job overview</a>.</p>
+</dd>
+</dl>
+</div>
+<div class="paragraph">
+<p>In case of chunk model, input check is performed within the timing when data is passed to <code>ItemProcessor</code>.</p>
+</div>
+<div class="paragraph">
+<p>Orange colour object represents a class to be implemented at this time.</p>
+</div>
+<div class="imageblock">
+<div class="content">
+<img src="./images/Ch09_ValidationJob_ProcessSequence_ChunkModel.png" alt="ProcessSequence of Validation Job by ChunkModel">
+</div>
+<div class="title">Sequence diagram of chunk model</div>
+</div>
+<div class="olist arabic">
+<div class="title">Explanation of sequence diagram</div>
+<ol class="arabic">
+<li>
+<p>A step is executed from the job.</p>
+</li>
+<li>
+<p>Step opens the resource</p>
+</li>
+<li>
+<p><code>MyBatisCursorItemReader</code> fetches all the member information from member_info table (issue select statement).</p>
+<div class="ulist">
+<ul>
+<li>
+<p>Repeat subsequent process until input data is exhausted.</p>
+</li>
+<li>
+<p>Start a framework transaction with the chunk units.</p>
+</li>
+<li>
+<p>Repeat steps from 4 to 12 until the chunk size is achieved.</p>
+</li>
+</ul>
+</div>
+</li>
+<li>
+<p>Step fetches one record of input data from <code>MyBatisCursorItemReader</code>.</p>
+</li>
+<li>
+<p><code>MyBatisCursorItemReader</code> fetches one record of input data from member_info table.</p>
+</li>
+<li>
+<p>member_info table returns input data to <code>MyBatisCursorItemReader</code>.</p>
+</li>
+<li>
+<p><code>MyBatisCursorItemReader</code> returns the input data to step.</p>
+</li>
+<li>
+<p>Step processes input data by <code>PointAddItemProcessor</code>.</p>
+</li>
+<li>
+<p><code>PointAddItemProcessor</code> requests <code>SpringValidator</code> for input check.</p>
+</li>
+<li>
+<p><code>SpringValidator</code> performs input check based on input check rules and throws an exception (ValidationException) in case an error occurs during the check.</p>
+</li>
+<li>
+<p><code>PointAddItemProcessor</code> reads input data and adds points.</p>
+</li>
+<li>
+<p><code>PointAddItemProcessor</code> returns process results to the step.</p>
+</li>
+<li>
+<p>Step outputs chunk size data by <code>MyBatisBatchItemWriter</code>.</p>
+</li>
+<li>
+<p><code>MyBatisBatchItemWriter</code> updates member information for member_info table ((issue update statement).</p>
+<div class="ulist">
+<ul>
+<li>
+<p>When <strong>an exception occurs</strong> in the processes from 4 to 14, perform following process.</p>
+</li>
+</ul>
+</div>
+</li>
+</ol>
+</div>
+<div class="olist arabic">
+<ol class="arabic" start="15">
+<li>
+<p>Step rolls back framework transaction.</p>
+</li>
+<li>
+<p>Step returns an exit code (here, abnormal end: 255) to the job.</p>
+</li>
+</ol>
+</div>
+<div class="dlist">
+<dl>
+<dt class="hdlist1">Process sequence for a tasklet model</dt>
+<dd>
+<p>Process sequence for the tasklet model is explained.<br>
+Since this job is described assuming the usage of abnormal system data,
+the sequence diagram shows a case when an error has occurred in input check (Abnormal end).<br>
+When the input check is successful, process sequence after the input check is same as sequence diagram of database access
+(Refer <a href="Ch09_DBAccessJob.html#Ch09_DBAccessJob_Overview_JobOverview">Job overview</a>).</p>
+</dd>
+</dl>
+</div>
+<div class="paragraph">
+<p>In case of a tasklet model, input check is performed within any timing in <code>Tasklet#execute()</code>.<br>
+Here, it is done immediately after fetching the data.</p>
+</div>
+<div class="paragraph">
+<p>Orange object shows a class to be implemented at this time.</p>
+</div>
+<div class="imageblock">
+<div class="content">
+<img src="./images/Ch09_ValidationJob_ProcessSequence_TaskletModel.png" alt="ProcessSequence of Validation Job by TaskletModel">
+</div>
+<div class="title">Sequence diagram of tasklet model</div>
+</div>
+<div class="olist arabic">
+<div class="title">Explanation of sequence diagram</div>
+<ol class="arabic">
+<li>
+<p>A step is executed from the job.</p>
+<div class="ulist">
+<ul>
+<li>
+<p>Step starts a framework transaction.</p>
+</li>
+</ul>
+</div>
+</li>
+<li>
+<p>Step executes <code>PointAddTasklet</code>.</p>
+</li>
+<li>
+<p><code>PointAddTasklet</code> opens a resource.</p>
+</li>
+<li>
+<p><code>MyBatisCursorItemReader</code> fetches all the member information (issue select statement) from member_info table.</p>
+<div class="ulist">
+<ul>
+<li>
+<p>Repeat steps from 5 to 13 until the input data is exhausted.</p>
+</li>
+<li>
+<p>Repeat processes from 5 to 11 until a fixed number of records is achieved.</p>
+</li>
+</ul>
+</div>
+</li>
+<li>
+<p><code>PointAddTasklet</code> fetches one record of input data from <code>MyBatisCursorItemReader</code>.</p>
+</li>
+<li>
+<p><code>MyBatisCursorItemReader</code> fetches 1 record of input data from member_info table.</p>
+</li>
+<li>
+<p>member_info table returns input data to <code>MyBatisCursorItemReader</code>.</p>
+</li>
+<li>
+<p><code>MyBatisCursorItemReader</code> returns input data to tasklet.</p>
+</li>
+<li>
+<p><code>PointAddTasklet</code> requests <code>SpringValidator</code> for input check.</p>
+</li>
+<li>
+<p><code>SpringValidator</code> performs input check based on input check rules and throws an exception (ValidationException) when an error occurs during a check.</p>
+</li>
+<li>
+<p><code>PointAddTasklet</code> reads input data and adds points.</p>
+</li>
+<li>
+<p><code>PointAddTasklet` outputs data of fixed records by </code>MyBatisBatchItemWriter``.</p>
+</li>
+<li>
+<p><code>MyBatisBatchItemWriter</code> updates member information for member_info table (issue update statement).</p>
+<div class="ulist">
+<ul>
+<li>
+<p>When <strong>an exception occurs</strong> in the processes from 2 to 13, perform following process.</p>
+</li>
+</ul>
+</div>
+</li>
+</ol>
+</div>
+<div class="olist arabic">
+<ol class="arabic" start="14">
+<li>
+<p><code>PointAddTasklet</code> throws an exception (Here, ValidationException) in the step.</p>
+</li>
+<li>
+<p>Step rolls back the framework transaction.</p>
+</li>
+<li>
+<p>Step returns an exit code (Here, abnormal end: 255) to the job.</p>
+</li>
+</ol>
+</div>
+<div class="admonitionblock note">
+<table>
+<tr>
+<td class="icon">
+<i class="fa icon-note" title="Note"></i>
+</td>
+<td class="content">
+<div class="title">Setting for implementing input check process</div>
+<div class="paragraph">
+<p>Use Hibernate Validator in input check. Although it is configured  already in TERASOLUNA Batch 5.x,
+Hibernate Validator and Bean must be defined in the dependency relation of the library.</p>
+</div>
+<div class="listingblock">
+<div class="title">Configuration example of dependent library (pom.xml)</div>
+<div class="content">
+<pre class="CodeRay highlight"><code data-lang="xml"><span class="tag">&lt;dependency&gt;</span>
+    <span class="tag">&lt;groupId&gt;</span>org.hibernate<span class="tag">&lt;/groupId&gt;</span>
+    <span class="tag">&lt;artifactId&gt;</span>hibernate-validator<span class="tag">&lt;/artifactId&gt;</span>
+<span class="tag">&lt;/dependency&gt;</span></code></pre>
+</div>
+</div>
+<div class="listingblock">
+<div class="title">src/main/resources/META-INF/spring/launch-context.xml</div>
+<div class="content">
+<pre class="CodeRay highlight"><code data-lang="xml"><span class="tag">&lt;bean</span> <span class="attribute-name">id</span>=<span class="string"><span class="delimiter">&quot;</span><span class="content">validator</span><span class="delimiter">&quot;</span></span> <span class="attribute-name">class</span>=<span class="string"><span class="delimiter">&quot;</span><span class="content">org.springframework.batch.item.validator.SpringValidator</span><span class="delimiter">&quot;</span></span>
+      <span class="attribute-name">p:validator-ref</span>=<span class="string"><span class="delimiter">&quot;</span><span class="content">beanValidator</span><span class="delimiter">&quot;</span></span><span class="tag">/&gt;</span>
+
+<span class="tag">&lt;bean</span> <span class="attribute-name">id</span>=<span class="string"><span class="delimiter">&quot;</span><span class="content">beanValidator</span><span class="delimiter">&quot;</span></span>
+      <span class="attribute-name">class</span>=<span class="string"><span class="delimiter">&quot;</span><span class="content">org.springframework.validation.beanvalidation.LocalValidatorFactoryBean</span><span class="delimiter">&quot;</span></span> <span class="tag">/&gt;</span></code></pre>
+</div>
+</div>
+</td>
+</tr>
+</table>
+</div>
+<div class="paragraph">
+<p>How to implement a chunk model and a tasklet model are explained subsequently.</p>
+</div>
+<div class="ulist">
+<ul>
+<li>
+<p><a href="#Ch09_ValidationJob_Chunk">Implementation in Chunk model</a></p>
+</li>
+<li>
+<p><a href="#Ch09_ValidationJob_Tasklet">Implementation in Tasklet model</a></p>
+</li>
+</ul>
+</div>
+</div>
+</div>
+</div>
+<div class="sect1">
+<h2 id="Ch09_ValidationJob_Chunk"><a class="anchor" href="#Ch09_ValidationJob_Chunk"></a>Implementation in Chunk model</h2>
+<div class="sectionbody">
+<div class="paragraph">
+<p>Execute the job which performs input check in the chunk model, from its creation to execution using following procedure.</p>
+</div>
+<div class="olist arabic">
+<ol class="arabic">
+<li>
+<p><a href="#Ch09_ValidationJob_Chunk_ValidationRulesDefinition">Defining input check rules</a></p>
+</li>
+<li>
+<p><a href="#Ch09_ValidationJob_Chunk_Coding">Implementation of input check process</a></p>
+</li>
+<li>
+<p><a href="#Ch09_ValidationJob_Chunk_Execution">Job execution and result verification</a></p>
+</li>
+</ol>
+</div>
+<div class="sect2">
+<h3 id="Ch09_ValidationJob_Chunk_ValidationRulesDefinition"><a class="anchor" href="#Ch09_ValidationJob_Chunk_ValidationRulesDefinition"></a>Defining input check rules</h3>
+<div class="paragraph">
+<p>Assign Bean Validation annotation to the field for checking DTO class in order to perform input check.<br>
+For annotation for input checks, refer <a href="http://terasolunaorg.github.io/guideline/5.3.0.RELEASE/en/ArchitectureInDetail/WebApplicationDetail/Validation.html#validation-jsr303-doc">Bean Validation check rules</a> and
+<a href="http://terasolunaorg.github.io/guideline/5.3.0.RELEASE/en/ArchitectureInDetail/WebApplicationDetail/Validation.html#validation-validator-list">Hibernate Validator check rules</a> of TERASOLUNA Server 5.x Development Guideline.</p>
+</div>
+<div class="paragraph">
+<p>Since it is used in common for Chunk model / Tasklet model, it can be skipped if it has already been implemented.</p>
+</div>
+<div class="paragraph">
+<p>Here, define a check rule to check whether points exceed 1,000,000 (upper limit value).</p>
+</div>
+<div class="listingblock">
+<div class="title">org.terasoluna.batch.tutorial.common.dto.MemberInfoDTO</div>
+<div class="content">
+<pre class="CodeRay highlight"><code data-lang="java"><span class="keyword">package</span> <span class="namespace">org.terasoluna.batch.tutorial.common.dto</span>;
+
+<span class="keyword">import</span> <span class="include">javax.validation.constraints.Max</span>;
+
+<span class="directive">public</span> <span class="type">class</span> <span class="class">MemberInfoDto</span> {
+    <span class="directive">private</span> <span class="predefined-type">String</span> id;
+
+    <span class="directive">private</span> <span class="predefined-type">String</span> type;
+
+    <span class="directive">private</span> <span class="predefined-type">String</span> status;
+
+    <span class="annotation">@Max</span>(<span class="integer">1000000</span>) <span class="comment">// (1)</span>
+    <span class="directive">private</span> <span class="type">int</span> point;
+
+    <span class="comment">// Getter and setter are omitted.</span>
+}</code></pre>
+</div>
+</div>
+<table class="tableblock frame-all grid-all spread">
+<caption class="title">Explanation</caption>
+<colgroup>
+<col style="width: 10%;">
+<col style="width: 90%;">
+</colgroup>
+<thead>
+<tr>
+<th class="tableblock halign-left valign-top">Sr. No.</th>
+<th class="tableblock halign-left valign-top">Explanation</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td class="tableblock halign-left valign-top"><p class="tableblock">(1)</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">Assign @Max annotation which indicates that the target field is less than or equal to specified value.</p></td>
+</tr>
+</tbody>
+</table>
+</div>
+<div class="sect2">
+<h3 id="Ch09_ValidationJob_Chunk_Coding"><a class="anchor" href="#Ch09_ValidationJob_Chunk_Coding"></a>Implementation of input check process</h3>
+<div class="paragraph">
+<p>Implement input check process in business logic class which adds the points.</p>
+</div>
+<div class="paragraph">
+<p>Add implementation of input check process to already implemented <code>PointAddItemProcessor</code> class.<br>
+Since it acts as an explanation for a job which accesses the database as per <a href="#Ch09_ValidationJob_Prerequisite">Premise</a>, add only (1)~(3) from below
+to the implementation for the job accessing the file.</p>
+</div>
+<div class="listingblock">
+<div class="title">org.terasoluna.batch.tutorial.dbaccess.chunk.PointAddItemProcessor</div>
+<div class="content">
+<pre class="CodeRay highlight"><code data-lang="java"><span class="comment">// Package and the other import are omitted.</span>
+
+<span class="keyword">import</span> <span class="include">javax.inject.Inject</span>;
+
+<span class="annotation">@Component</span>
+<span class="directive">public</span> <span class="type">class</span> <span class="class">PointAddItemProcessor</span> <span class="directive">implements</span> ItemProcessor&lt;MemberInfoDto, MemberInfoDto&gt; {
+    <span class="comment">// Definition of constants are omitted.</span>
+
+    <span class="annotation">@Inject</span> <span class="comment">// (1)</span>
+    <span class="predefined-type">Validator</span>&lt;MemberInfoDto&gt; validator; <span class="comment">// (2)</span>
+
+    <span class="annotation">@Override</span>
+    <span class="directive">public</span> MemberInfoDto process(MemberInfoDto item) <span class="directive">throws</span> <span class="exception">Exception</span> {
+        validator.validate(item); <span class="comment">// (3)</span>
+
+        <span class="comment">// The other codes of business logic are omitted.</span>
+    }
+}</code></pre>
+</div>
+</div>
+<table class="tableblock frame-all grid-all spread">
+<caption class="title">Explanation</caption>
+<colgroup>
+<col style="width: 10%;">
+<col style="width: 90%;">
+</colgroup>
+<thead>
+<tr>
+<th class="tableblock halign-left valign-top">Sr. No.</th>
+<th class="tableblock halign-left valign-top">Explanation</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td class="tableblock halign-left valign-top"><p class="tableblock">(1)</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">Inject an instance of <code>SpringValidator</code>.</p></td>
+</tr>
+<tr>
+<td class="tableblock halign-left valign-top"><p class="tableblock">(2)</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">Set DTO to be fetched through <code>ItemReader</code>in the type argument of
+<code>`org.springframework.batch.item.validator.Validator</code>.</p></td>
+</tr>
+<tr>
+<td class="tableblock halign-left valign-top"><p class="tableblock">(3)</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">Execute <code>Validator#validate()</code> by using DTO fetched through <code>ItemReader</code> as an argument.<br>
+Originally, try-catch was implemented to handle input check error and catch the exception while executing <code>validate()</code>,
+however, since exception handling using try-catch is explained in <a href="Ch09_ExceptionHandlingJob.html#Ch09_ExceptionHandlingJob">Exception handling by try-catch</a>,
+exception handling is not implemented here.</p></td>
+</tr>
+</tbody>
+</table>
+</div>
+<div class="sect2">
+<h3 id="Ch09_ValidationJob_Chunk_Execution"><a class="anchor" href="#Ch09_ValidationJob_Chunk_Execution"></a>Job execution and result verification</h3>
+<div class="paragraph">
+<p>Execute the created job on STS and verify the results.</p>
+</div>
+<div class="sect3">
+<h4 id="Ch09_ValidationJob_Chunk_Execution_Run"><a class="anchor" href="#Ch09_ValidationJob_Chunk_Execution_Run"></a>Execute the job from execution configuration</h4>
+<div class="paragraph">
+<p>Execute the job from execution configuration which is created in advance.</p>
+</div>
+<div class="paragraph">
+<p>Here, the job is executed by using abnormal data.<br>
+Since how to change input data varies according to resource (database or file) which handles a job performing input check,
+execute as below.</p>
+</div>
+<div class="dlist">
+<dl>
+<dt class="hdlist1">When input check is implemented for the job which inputs or outputs data by accessing database </dt>
+<dd>
+<p>Execute job by using execution configuration created in <a href="Ch09_DBAccessJob.html#Ch09_DBAccessJob_Chunk_Execution_Run">Execute job from execution configuration</a>
+of the job which inputs or outputs data by accessing database.</p>
+</dd>
+</dl>
+</div>
+<div class="paragraph">
+<p>In order to use abnormal system data, comment out script of normal system data and remove comment out of abnormal system data
+by Database Initialize of <code>batch-application.properties</code>.</p>
+</div>
+<div class="listingblock">
+<div class="title">src/main/resources/batch-application.properties</div>
+<div class="content">
+<pre class="CodeRay highlight"><code data-lang="xml"># Database Initialize
+tutorial.create-table.script=file:sqls/create-member-info-table.sql
+#tutorial.insert-data.script=file:sqls/insert-member-info-data.sql
+tutorial.insert-data.script=file:sqls/insert-member-info-error-data.sql</code></pre>
+</div>
+</div>
+<div class="dlist">
+<dl>
+<dt class="hdlist1">When input check is implemented for the job which inputs or outputs data by accessing a file</dt>
+<dd>
+<p>Execute job by using execution configuration created in <a href="Ch09_FileAccessJob.html#Ch09_FileAccessJob_Chunk_Execution_Run">Execute job from execution configuration</a>
+of the job which inputs or outputs data by accessing a file.</p>
+</dd>
+</dl>
+</div>
+<div class="paragraph">
+<p>In order to use abnormal system data, change path of input file (inputFile) from normal system data (insert-member-info-data.csv) to abnormal system data (insert-member-info-error-data.csv),
+from the arguments set in execution configuration.</p>
+</div>
+</div>
+<div class="sect3">
+<h4 id="Ch09_ValidationJob_Chunk_Execution_Console"><a class="anchor" href="#Ch09_ValidationJob_Chunk_Execution_Console"></a>Verify console log</h4>
+<div class="paragraph">
+<p>Open Console View and verify that logs of following details is output.<br>
+Here, verify that the process ends abnormally (FAILED) and
+<code>org.springframework.batch.item.validator.ValidationException</code> has occurred.</p>
+</div>
+<div class="listingblock">
+<div class="title">Example of console log output</div>
+<div class="content">
+<pre class="CodeRay highlight"><code data-lang="console">[2017/08/28 10:53:21] [main] [o.s.b.c.s.AbstractStep] [ERROR] Encountered an error executing step jobPointAddChunk.step01 in job jobPointAddChunk
+org.springframework.batch.item.validator.ValidationException: Validation failed for org.terasoluna.batch.tutorial.common.dto.MemberInfoDto@1fde4f40:
+Field error in object 'item' on field 'point': rejected value [1000001]; codes [Max.item.point,Max.point,Max.int,Max]; arguments [org.springframework.context.support.DefaultMessageSourceResolvable: codes [item.point,point]; arguments []; default message [point],1000000]; default message [must be less than or equal to 1000000]
+        at org.springframework.batch.item.validator.SpringValidator.validate(SpringValidator.java:54)
+
+(.. omitted)
+
+Caused by: org.springframework.validation.BindException: org.springframework.validation.BeanPropertyBindingResult: 1 errors
+Field error in object 'item' on field 'point': rejected value [1000001]; codes [Max.item.point,Max.point,Max.int,Max]; arguments [org.springframework.context.support.DefaultMessageSourceResolvable: codes [item.point,point]; arguments []; default message [point],1000000]; default message [must be less than or equal to 1000000]
+        ... 29 common frames omitted
+[2017/08/28 10:53:21] [main] [o.s.b.c.l.s.SimpleJobLauncher] [INFO ] Job: [FlowJob: [name=jobPointAddChunk]] completed with the following parameters: [{jsr_batch_run_id=408}] and the following status: [FAILED]
+[2017/08/28 10:53:21] [main] [o.s.c.s.ClassPathXmlApplicationContext] [INFO ] Closing org.springframework.context.support.ClassPathXmlApplicationContext@2145433b: startup date [Mon Aug 28 10:53:18 JST 2017]; root of context hierarchy</code></pre>
+</div>
+</div>
+</div>
+<div class="sect3">
+<h4 id="Ch09_ValidationJob_Chunk_Execution_Exitcode"><a class="anchor" href="#Ch09_ValidationJob_Chunk_Execution_Exitcode"></a>Verify exit code</h4>
+<div class="paragraph">
+<p>Verify that the process has terminated abnormally, by exit code.<br>
+For verification process, refer <a href="Ch09_EnvironmentConstruction.html#Ch09_EnvironmentConstruction_OperationCheck_ExecJob_Run">Job execution and verification of result</a>.
+Verify that exit code (exit value) is 255 (abnormal termination).</p>
+</div>
+<div class="imageblock">
+<div class="content">
+<img src="./images/ch09/Validation/Ch09_ValidationJob_Confirm_ExitCode_ChunkModel.png" alt="Confiｒm the Exit Code of ValidationJob for ChunkModel">
+</div>
+<div class="title">Verify exit code</div>
+</div>
+</div>
+<div class="sect3">
+<h4 id="Ch09_ValidationJob_Chunk_Execution_Output"><a class="anchor" href="#Ch09_ValidationJob_Chunk_Execution_Output"></a>Verify output resource</h4>
+<div class="paragraph">
+<p>Verify output resource (database or file) using the job which implements input check.</p>
+</div>
+<div class="paragraph">
+<p>In case of a chunk model, since an intermediate commit method is adopted, verify that update is determined upto chunk just prior to the error location part.</p>
+</div>
+<div class="sect4">
+<h5 id="Ch09_ValidationJob_Chunk_Execution_Output_Table"><a class="anchor" href="#Ch09_ValidationJob_Chunk_Execution_Output_Table"></a>Verify member information table</h5>
+<div class="paragraph">
+<p>Use Data Source Explorer and verify member information table.<br>
+Compare the contents of member information table before and after the update, and verify that the contents are in accordance with verification details.<br>
+For verification procedure, refer <a href="Ch09_EnvironmentConstruction.html#Ch09_EnvironmentConstruction_OperationCheck_RefDB">Refer database by using Data Source Explorer</a>.</p>
+</div>
+<div class="dlist">
+<dl>
+<dt class="hdlist1">Verification details</dt>
+<dd>
+<div class="ulist">
+<ul>
+<li>
+<p>Regarding records from 1 to 10 (Records with member id from "00000001" to "00000010")</p>
+<div class="ulist">
+<ul>
+<li>
+<p>status column</p>
+<div class="ulist">
+<ul>
+<li>
+<p>Records with "0"(initial status) record should not exist</p>
+</li>
+</ul>
+</div>
+</li>
+<li>
+<p>point column</p>
+<div class="ulist">
+<ul>
+<li>
+<p>Points should be added according to membership type as explained below</p>
+<div class="ulist">
+<ul>
+<li>
+<p>100 points when type column is "G" (gold member)</p>
+</li>
+<li>
+<p>10 points when type column is "N"(normal member)</p>
+</li>
+</ul>
+</div>
+</li>
+</ul>
+</div>
+</li>
+</ul>
+</div>
+</li>
+<li>
+<p>Regarding records from 11 to 15 (Records with member id from "00000011" to "00000015")</p>
+<div class="ulist">
+<ul>
+<li>
+<p>Should not be updated</p>
+</li>
+</ul>
+</div>
+</li>
+</ul>
+</div>
+</dd>
+</dl>
+</div>
+<div class="paragraph">
+<p>Contents of the member information table before and after update are shown below.</p>
+</div>
+<div class="imageblock">
+<div class="content">
+<img src="./images/ch09/Validation/Ch09_ValidationJob_Result_MemberInfoTable.png" alt="Table of member_info">
+</div>
+<div class="title">Contents of the member information table before and after update</div>
+</div>
+</div>
+<div class="sect4">
+<h5 id="Ch09_ValidationJob_Chunk_Execution_Output_File"><a class="anchor" href="#Ch09_ValidationJob_Chunk_Execution_Output_File"></a>Verify member information file</h5>
+<div class="paragraph">
+<p>Compare input and output contents of member information file and verify that the contents are in accordance with the verification details.</p>
+</div>
+<div class="dlist">
+<dl>
+<dt class="hdlist1">Verification details</dt>
+<dd>
+<div class="ulist">
+<ul>
+<li>
+<p>Member information file is output in output directory</p>
+<div class="ulist">
+<ul>
+<li>
+<p>Output file: files/output/output-member-info-data.csv</p>
+</li>
+</ul>
+</div>
+</li>
+<li>
+<p>Output records should contain only the records from 1 to 10 (records with member id from "00000001" to "00000010")</p>
+</li>
+<li>
+<p>Regarding output records</p>
+<div class="ulist">
+<ul>
+<li>
+<p>status column</p>
+<div class="ulist">
+<ul>
+<li>
+<p>Records with "0"(initial status) should not exist</p>
+</li>
+</ul>
+</div>
+</li>
+<li>
+<p>point column</p>
+<div class="ulist">
+<ul>
+<li>
+<p>Points should be added according to membership type, for adding points</p>
+<div class="ulist">
+<ul>
+<li>
+<p>100 points when type column is "G"(gold member)</p>
+</li>
+<li>
+<p>10 points when type column is "N"(normal member)</p>
+</li>
+</ul>
+</div>
+</li>
+</ul>
+</div>
+</li>
+</ul>
+</div>
+</li>
+</ul>
+</div>
+</dd>
+</dl>
+</div>
+<div class="paragraph">
+<p>Input and output details of member information file are shown below.<br>
+File fields are output in the sequence of id(member ID), type(membership type), status(product purchasing flag) and point(Points).</p>
+</div>
+<div class="imageblock">
+<div class="content">
+<img src="./images/ch09/Validation/Ch09_ValidationJob_Result_MemberInfoFile.png" alt="File of member_info">
+</div>
+<div class="title">Input/Output details of member information file</div>
+</div>
+</div>
+</div>
+</div>
+</div>
+</div>
+<div class="sect1">
+<h2 id="Ch09_ValidationJob_Tasklet"><a class="anchor" href="#Ch09_ValidationJob_Tasklet"></a>Implementation in Tasklet model</h2>
+<div class="sectionbody">
+<div class="paragraph">
+<p>Operations from creation to execution of a job which performs input check in tasklet model are implemented by following procedure.</p>
+</div>
+<div class="olist arabic">
+<ol class="arabic">
+<li>
+<p><a href="#Ch09_ValidationJob_Tasklet_ValidationRulesDefinition">Defining input check rules</a></p>
+</li>
+<li>
+<p><a href="#Ch09_ValidationJob_Tasklet_Coding">Implementation of input check process</a></p>
+</li>
+<li>
+<p><a href="#Ch09_ValidationJob_Tasklet_Execution">Job execution and result verification</a></p>
+</li>
+</ol>
+</div>
+<div class="sect2">
+<h3 id="Ch09_ValidationJob_Tasklet_ValidationRulesDefinition"><a class="anchor" href="#Ch09_ValidationJob_Tasklet_ValidationRulesDefinition"></a>Defining input check rules</h3>
+<div class="paragraph">
+<p>In order to perform input check, assign a Bean Validation annotation in the field for checking DTO class.<br>
+For annotation for input check, refer <a href="http://terasolunaorg.github.io/guideline/5.3.0.RELEASE/en/ArchitectureInDetail/WebApplicationDetail/Validation.html#validation-jsr303-doc">Bean Validation check rules</a>
+and <a href="http://terasolunaorg.github.io/guideline/5.3.0.RELEASE/en/ArchitectureInDetail/WebApplicationDetail/Validation.html#validation-validator-list">Hibernate Validator check rules</a> of TERASOLUNA Server 5.x Development Guideline.</p>
+</div>
+<div class="paragraph">
+<p>Since it is used in common for chunk model / tasklet model, it can be skipped if it has already been implemented.</p>
+</div>
+<div class="paragraph">
+<p>Here, define check rules to check whether points have exceeded 1,000,000 (upper limit).</p>
+</div>
+<div class="listingblock">
+<div class="title">org.terasoluna.batch.tutorial.common.dto.MemberInfoDTO</div>
+<div class="content">
+<pre class="CodeRay highlight"><code data-lang="java"><span class="keyword">package</span> <span class="namespace">org.terasoluna.batch.tutorial.common.dto</span>;
+
+<span class="keyword">import</span> <span class="include">javax.validation.constraints.Max</span>;
+
+<span class="directive">public</span> <span class="type">class</span> <span class="class">MemberInfoDto</span> {
+    <span class="directive">private</span> <span class="predefined-type">String</span> id;
+
+    <span class="directive">private</span> <span class="predefined-type">String</span> type;
+
+    <span class="directive">private</span> <span class="predefined-type">String</span> status;
+
+    <span class="annotation">@Max</span>(<span class="integer">1000000</span>) <span class="comment">// (1)</span>
+    <span class="directive">private</span> <span class="type">int</span> point;
+
+    <span class="comment">// Getter and setter are omitted.</span>
+}</code></pre>
+</div>
+</div>
+<table class="tableblock frame-all grid-all spread">
+<caption class="title">Explanation</caption>
+<colgroup>
+<col style="width: 10%;">
+<col style="width: 90%;">
+</colgroup>
+<thead>
+<tr>
+<th class="tableblock halign-left valign-top">Sr. No.</th>
+<th class="tableblock halign-left valign-top">Explanation</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td class="tableblock halign-left valign-top"><p class="tableblock">(1)</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">Assign @Max annotation which indicates that target field is less than or equal to the specified numeric value.</p></td>
+</tr>
+</tbody>
+</table>
+</div>
+<div class="sect2">
+<h3 id="Ch09_ValidationJob_Tasklet_Coding"><a class="anchor" href="#Ch09_ValidationJob_Tasklet_Coding"></a>Implementation of input check process</h3>
+<div class="paragraph">
+<p>Implement input check processing in business logic class which performs point addition.</p>
+</div>
+<div class="paragraph">
+<p>Add implementation of input check process in already implemented <code>PointAddTasklet</code> class.<br>
+Since it acts as an explanation of job which accesses the database as per <a href="#Ch09_ValidationJob_Prerequisite">Premise</a>,
+only (1)~(3) below are added for the implementation in case of job accessing the file.</p>
+</div>
+<div class="listingblock">
+<div class="title">org.terasoluna.batch.tutorial.dbaccess.tasklet.PointAddTasklet</div>
+<div class="content">
+<pre class="CodeRay highlight"><code data-lang="java"><span class="comment">// Package and the other import are omitted.</span>
+
+<span class="keyword">import</span> <span class="include">javax.inject.Inject</span>;
+
+<span class="annotation">@Component</span>
+<span class="directive">public</span> <span class="type">class</span> <span class="class">PointAddTasklet</span> <span class="directive">implements</span> Tasklet {
+    <span class="comment">// Definition of constant, ItemStreamReader and ItemWriter are omitted.</span>
+
+    <span class="annotation">@Inject</span> <span class="comment">// (1)</span>
+    <span class="predefined-type">Validator</span>&lt;MemberInfoDto&gt; validator; <span class="comment">// (2)</span>
+
+    <span class="annotation">@Override</span>
+    <span class="directive">public</span> RepeatStatus execute(StepContribution contribution, ChunkContext chunkContext) <span class="directive">throws</span> <span class="exception">Exception</span> {
+        MemberInfoDto item = <span class="predefined-constant">null</span>;
+
+        <span class="predefined-type">List</span>&lt;MemberInfoDto&gt; items = <span class="keyword">new</span> <span class="predefined-type">ArrayList</span>&lt;&gt;(CHUNK_SIZE);
+
+        <span class="keyword">try</span> {
+            reader.open(chunkContext.getStepContext().getStepExecution().getExecutionContext());
+
+            <span class="keyword">while</span> ((item = reader.read()) != <span class="predefined-constant">null</span>) {
+                validator.validate(item); <span class="comment">// (3)</span>
+
+                <span class="comment">// The other codes of bussiness logic are omitted.</span>
+            }
+
+            writer.write(items);
+        } <span class="keyword">finally</span> {
+            reader.close();
+        }
+
+        <span class="keyword">return</span> RepeatStatus.FINISHED;
+    }
+}</code></pre>
+</div>
+</div>
+<table class="tableblock frame-all grid-all spread">
+<caption class="title">Explanation</caption>
+<colgroup>
+<col style="width: 10%;">
+<col style="width: 90%;">
+</colgroup>
+<thead>
+<tr>
+<th class="tableblock halign-left valign-top">Sr. No.</th>
+<th class="tableblock halign-left valign-top">Explanation</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td class="tableblock halign-left valign-top"><p class="tableblock">(1)</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">Inject an instance of <code>SpringValidator</code>.</p></td>
+</tr>
+<tr>
+<td class="tableblock halign-left valign-top"><p class="tableblock">(2)</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">Set a DTO to be fetched through <code>ItemReader</code> in type argument of <code>org.springframework.batch.item.validator.Validator</code>.</p></td>
+</tr>
+<tr>
+<td class="tableblock halign-left valign-top"><p class="tableblock">(3)</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">Execute <code>Validator#validate()</code> using DTO fetched through <code>ItemReader</code> as an argument.<br>
+Originally, try-catch was implemented to handle input check error and catch the exception while executing <code>validate()</code>, however
+since exception handling using try-catch is explained in <a href="Ch09_ExceptionHandlingJob.html#Ch09_ExceptionHandlingJob">Exception handling by using try-catch</a>,
+exception handling is not implemented here.</p></td>
+</tr>
+</tbody>
+</table>
+</div>
+<div class="sect2">
+<h3 id="Ch09_ValidationJob_Tasklet_Execution"><a class="anchor" href="#Ch09_ValidationJob_Tasklet_Execution"></a>Job execution and result verification</h3>
+<div class="paragraph">
+<p>Execute created job on STS and verify results.</p>
+</div>
+<div class="sect3">
+<h4 id="Ch09_ValidationJob_Tasklet_Execution_Run"><a class="anchor" href="#Ch09_ValidationJob_Tasklet_Execution_Run"></a>Execute job from execution configuration</h4>
+<div class="paragraph">
+<p>Execute the job from already created execution configuration.</p>
+</div>
+<div class="paragraph">
+<p>Here, execute the job by using abnormal system data.<br>
+Since how to change input data varies based on the resource (database or file) which handles a job implementing input check,
+implement as below.</p>
+</div>
+<div class="dlist">
+<dl>
+<dt class="hdlist1">When input check is implemented for the job which inputs or outputs data by accessing a database</dt>
+<dd>
+<p>Execute job by using execution configuration created in <a href="Ch09_DBAccessJob.html#Ch09_DBAccessJob_Chunk_Execution_Run">Execute job from execution configuration</a>
+of job which inputs or outputs data by accessing database.</p>
+</dd>
+</dl>
+</div>
+<div class="paragraph">
+<p>In order to use abnormal system data, comment out script of normal system data and remove comment out of script of abnormal system data
+by Database Initialize of <code>batch-application.properties</code>.</p>
+</div>
+<div class="listingblock">
+<div class="title">src/main/resources/batch-application.properties</div>
+<div class="content">
+<pre class="CodeRay highlight"><code data-lang="xml"># Database Initialize
+tutorial.create-table.script=file:sqls/create-member-info-table.sql
+#tutorial.insert-data.script=file:sqls/insert-member-info-data.sql
+tutorial.insert-data.script=file:sqls/insert-member-info-error-data.sql</code></pre>
+</div>
+</div>
+<div class="dlist">
+<dl>
+<dt class="hdlist1">When input check is implemented for the job which inputs or outputs data by accessing a file</dt>
+<dd>
+<p>Execute job by using execution configuration created in <a href="Ch09_FileAccessJob.html#Ch09_FileAccessJob_Chunk_Execution_Run">Execute job from execution configuration</a>
+of the job which inputs or outputs data by accessing a file.</p>
+</dd>
+</dl>
+</div>
+<div class="paragraph">
+<p>In order to use abnormal data, change the path of input file (inputFile) from normal system data (insert-member-info-data.csv) to abnormal system data (insert-member-info-error-data.csv),
+from the arguments set in execution configuration.</p>
+</div>
+</div>
+<div class="sect3">
+<h4 id="Ch09_ValidationJob_Tasklet_Execution_Console"><a class="anchor" href="#Ch09_ValidationJob_Tasklet_Execution_Console"></a>Verifying console log</h4>
+<div class="paragraph">
+<p>Open Console View and verify whether the log for following details is output.<br>
+Here, verify that process ends abnormally (FAILED) and
+<code>org.springframework.batch.item.validator.ValidationException</code> has occurred.</p>
+</div>
+<div class="listingblock">
+<div class="title">Example of console log output</div>
+<div class="content">
+<pre class="CodeRay highlight"><code data-lang="console">[2017/09/12 10:18:49] [main] [o.s.b.c.s.AbstractStep] [ERROR] Encountered an error executing step jobPointAddTasklet.step01 in job jobPointAddTasklet
+org.springframework.batch.item.validator.ValidationException: Validation failed for org.terasoluna.batch.tutorial.common.dto.MemberInfoDto@2c383e33:
+Field error in object 'item' on field 'point': rejected value [1000001]; codes [Max.item.point,Max.point,Max.int,Max]; arguments [org.springframework.context.support.DefaultMessageSourceResolvable: codes [item.point,point]; arguments []; default message [point],1000000]; default message [must be less than or equal to 1000000]
+        at org.springframework.batch.item.validator.SpringValidator.validate(SpringValidator.java:54)
+
+(.. omitted)
+
+Caused by: org.springframework.validation.BindException: org.springframework.validation.BeanPropertyBindingResult: 1 errors
+Field error in object 'item' on field 'point': rejected value [1000001]; codes [Max.item.point,Max.point,Max.int,Max]; arguments [org.springframework.context.support.DefaultMessageSourceResolvable: codes [item.point,point]; arguments []; default message [point],1000000]; default message [must be less than or equal to 1000000]
+        ... 24 common frames omitted
+[2017/09/12 10:18:49] [main] [o.s.b.c.l.s.SimpleJobLauncher] [INFO ] Job: [FlowJob: [name=jobPointAddTasklet]] completed with the following parameters: [{jsr_batch_run_id=476}] and the following status: [FAILED]
+[2017/09/12 10:18:49] [main] [o.s.c.s.ClassPathXmlApplicationContext] [INFO ] Closing org.springframework.context.support.ClassPathXmlApplicationContext@735f7ae5: startup date [Tue Sep 12 10:18:47 JST 2017]; root of context hierarchy</code></pre>
+</div>
+</div>
+</div>
+<div class="sect3">
+<h4 id="Ch09_ValidationJob_Tasklet_Execution_Exitcode"><a class="anchor" href="#Ch09_ValidationJob_Tasklet_Execution_Exitcode"></a>Verifying exit codes</h4>
+<div class="paragraph">
+<p>Verify that the process has terminated abnormally by using exit code.<br>
+For verification procedure, refer <a href="Ch09_EnvironmentConstruction.html#Ch09_EnvironmentConstruction_OperationCheck_ExecJob_Run">Job execution and result verification</a>.
+Verify that exit code (exit value) is 255(abnormal exit).</p>
+</div>
+<div class="imageblock">
+<div class="content">
+<img src="./images/ch09/Validation/Ch09_ValidationJob_Confirm_ExitCode_TaskletModel.png" alt="Confiｒm the Exit Code of ValidationJob for TaskletModel">
+</div>
+<div class="title">Verifying exit code</div>
+</div>
+</div>
+<div class="sect3">
+<h4 id="Ch09_ValidationJob_Tasklet_Execution_Output"><a class="anchor" href="#Ch09_ValidationJob_Tasklet_Execution_Output"></a>Verifying output resource</h4>
+<div class="paragraph">
+<p>Verify output resource (database or file) by job which implements input check.</p>
+</div>
+<div class="paragraph">
+<p>Since batch commit method is used in case of a tasklet model, it must be confirmed that it has not been updated at all in case an error occurs.</p>
+</div>
+<div class="sect4">
+<h5 id="Ch09_ValidationJob_Tasklet_Execution_Output_Table"><a class="anchor" href="#Ch09_ValidationJob_Tasklet_Execution_Output_Table"></a>Verifying member information table</h5>
+<div class="paragraph">
+<p>Use Data Source Explorer and verify member information table.<br>
+Compare contents of member information table before and after update, and verify whether the contents are in accordance with the verification details.<br>
+For verification procedure, refer <a href="Ch09_EnvironmentConstruction.html#Ch09_EnvironmentConstruction_OperationCheck_RefDB">Refer database by using Data Source Explorer</a>.</p>
+</div>
+<div class="dlist">
+<dl>
+<dt class="hdlist1">Verification details</dt>
+<dd>
+<div class="ulist">
+<ul>
+<li>
+<p>Data should not be updated for all the records</p>
+</li>
+</ul>
+</div>
+</dd>
+</dl>
+</div>
+<div class="imageblock">
+<div class="content">
+<img src="./images/ch09/Validation/Ch09_ValidationJob_Initial_MemberInfoTable.png" alt="member_info table in the initial state">
+</div>
+<div class="title">Contents of the member information table of initial state</div>
+</div>
+</div>
+<div class="sect4">
+<h5 id="Ch09_ValidationJob_Tasklet_Execution_Output_File"><a class="anchor" href="#Ch09_ValidationJob_Tasklet_Execution_Output_File"></a>Verifying member information file</h5>
+<div class="paragraph">
+<p>Compare input and output details of member information file and verify that the contents are in accordance with the verification details.</p>
+</div>
+<div class="dlist">
+<dl>
+<dt class="hdlist1">Verification details</dt>
+<dd>
+<div class="ulist">
+<ul>
+<li>
+<p>Member information file is output as <strong>empty file</strong> in the output directory</p>
+<div class="ulist">
+<ul>
+<li>
+<p>Output file: files/output/output-member-info-data.csv</p>
+</li>
+</ul>
+</div>
+</li>
+</ul>
+</div>
+</dd>
+</dl>
+</div>
+</div>
+</div>
+</div>
+</div>
+</div>
+</div>
+<div class="container">
+
+  <div class="common-bg">
+    <div class="information">
+      TERASOLUNA Batch Framework for Java (5.x) Development Guideline - version 5.0.1.RELEASE, 2017-9-27
+    </div>
+    <div class="index">
+      <a href="index.html">&gt; INDEX</a>
+    </div>
+  </div>
+
+  <div class="footer-bg">
+    <div class="copyright">
+      &copy; Copyright 2017 NTT DATA Corporation.
+    </div>
+  </div>
+
+</div>
+</body>
+</html>

@@ -1,0 +1,1215 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<!--[if IE]><meta http-equiv="X-UA-Compatible" content="IE=edge"><![endif]-->
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<meta name="generator" content="Asciidoctor 1.5.6.1">
+<title>Job parameters</title>
+<link rel="stylesheet" href="./theme/css/readthedocs.css">
+<link rel="stylesheet" href="./theme/css/font-awesome.min.css">
+<link rel="stylesheet" href="./theme/css/coderay-asciidoctor.css">
+<link rel="stylesheet" href="./theme/css/header-footer.css">
+<title>TERASOLUNA Batch Framework for Java (5.x) Development Guideline</title>
+
+<div class="common-bg">
+  <div class="information">
+    TERASOLUNA Batch Framework for Java (5.x) Development Guideline - version 5.0.1.RELEASE, 2017-9-27
+  </div>
+  <div class="index">
+    <a href="index.html">&gt; INDEX</a>
+  </div>
+</div>
+</head>
+<body id="Ch04_JobParameter" class="book toc2 toc-left">
+<div id="header">
+<h1>Job parameters</h1>
+<div id="toc" class="toc2">
+<div id="toctitle">Table of Contents</div>
+<ul class="sectlevel1">
+<li><a href="#Ch04_JobParameter_Overview">Overview</a></li>
+<li><a href="#Ch04_JobParameter_HowToUse">How to use</a>
+<ul class="sectlevel2">
+<li><a href="#Ch04_JobParameter_HowToUse_Converter">Regarding parameter conversion class</a></li>
+<li><a href="#Ch04_JobParameter_HowToUse_CLIArgs">Assign from command-line arguments</a></li>
+<li><a href="#Ch04_JobParameter_HowToUse_FromFile">Redirect from file to standard input</a></li>
+<li><a href="#Ch04_JobParameter_HowToUse_DefaultValue">Set the default value of parameter</a></li>
+<li><a href="#Ch04_JobParameter_HowToUse_ParamsValidation">Validation of parameters</a>
+<ul class="sectlevel3">
+<li><a href="#Ch04_JobParameter_HowToUse_ParamsValidation_Default">Simple validation</a></li>
+<li><a href="#Ch04_JobParameter_HowToUse_ParamsValidation_Origin">Complex validation</a></li>
+</ul>
+</li>
+</ul>
+</li>
+<li><a href="#Ch04_JobParameter_HowToExtends">How to extend</a>
+<ul class="sectlevel2">
+<li><a href="#Ch04_JobParameter_HowToExtends_PropertyConbination">Using parameters and properties together</a></li>
+</ul>
+</li>
+</ul>
+</div>
+</div>
+<div id="content">
+<div class="sect1">
+<h2 id="Ch04_JobParameter_Overview"><a class="anchor" href="#Ch04_JobParameter_Overview"></a>Overview</h2>
+<div class="sectionbody">
+<div class="paragraph">
+<p>This section explains about using the job parameter (hereafter referred to as 'parameter').</p>
+</div>
+<div class="paragraph">
+<p>The usage method of this function is same in the chunk model as well as tasklet model.</p>
+</div>
+<div class="paragraph">
+<p>A parameter is used to flexibly switch the operation of the job according to the execution environment and execution timing as shown below.</p>
+</div>
+<div class="ulist">
+<ul>
+<li>
+<p>File path of process target</p>
+</li>
+<li>
+<p>System operation date and time</p>
+</li>
+</ul>
+</div>
+<div class="paragraph">
+<p>The following explanation is about assigning parameters.</p>
+</div>
+<div class="olist arabic">
+<ol class="arabic">
+<li>
+<p><a href="#Ch04_JobParameter_HowToUse_CLIArgs">Assign from command-line arguments</a></p>
+</li>
+<li>
+<p><a href="#Ch04_JobParameter_HowToUse_FromFile">Redirect from file to standard input</a></p>
+</li>
+</ol>
+</div>
+<div class="paragraph">
+<p>The specified parameters can be referred in Bean definition or in Java under Spring management.</p>
+</div>
+</div>
+</div>
+<div class="sect1">
+<h2 id="Ch04_JobParameter_HowToUse"><a class="anchor" href="#Ch04_JobParameter_HowToUse"></a>How to use</h2>
+<div class="sectionbody">
+<div class="sect2">
+<h3 id="Ch04_JobParameter_HowToUse_Converter"><a class="anchor" href="#Ch04_JobParameter_HowToUse_Converter"></a>Regarding parameter conversion class</h3>
+<div class="paragraph">
+<p>In Spring Batch, the received parameters are processed in the following sequence.</p>
+</div>
+<div class="olist arabic">
+<ol class="arabic">
+<li>
+<p>The implementation class of <code>JobParametersConverter</code> convert to <code>JobParameters</code>.</p>
+</li>
+<li>
+<p>Refer to the parameters from <code>JobParameters</code> in Bean definition and Java under Spring management.</p>
+</li>
+</ol>
+</div>
+<div class="paragraph">
+<div class="title">Regarding implementation class of parameter conversion class</div>
+<p>Multiple implementation classes of the above mentioned <code>JobParametersConverter</code> are provided.
+The features of each class are shown below.</p>
+</div>
+<div class="ulist">
+<ul>
+<li>
+<p>DefaultJobParametersConverter</p>
+<div class="ulist">
+<ul>
+<li>
+<p>It can specify the data type of parameters(4 types; String, Long, Date, Double).</p>
+</li>
+</ul>
+</div>
+</li>
+<li>
+<p>JsrJobParametersConverter</p>
+<div class="ulist">
+<ul>
+<li>
+<p>It cannot specify the data type of parameters (Only String).</p>
+</li>
+<li>
+<p>It assigns ID (RUN_ID) that identifies job execution to parameter with the name <code>jsr_batch_run_id</code> automatically.</p>
+<div class="ulist">
+<ul>
+<li>
+<p>It increments the RUN_ID each time the job is executed. Since it uses SEQUENCE (name is <code> JOB_SEQ</code>) of the database for incrementing, the name does not overlap.</p>
+</li>
+<li>
+<p>In Spring Batch, runnaing the job by the same parameters is identified as the same job and the same job can be executed only once.
+Whereas, adding a unique value to the parameter name <code>jsr_batch_run_id</code> will recognize it as a separate job.
+Refer to <a href="Ch02_SpringBatchArchitecture.html#Ch02_SpringBatchArch">Spring Batch architecture</a> for details.</p>
+</li>
+</ul>
+</div>
+</li>
+</ul>
+</div>
+</li>
+</ul>
+</div>
+<div class="paragraph">
+<p>In Spring Batch, when the implementation class of <code>JobParametersConverter</code> to be used in Bean definition, is not specified, <code>DefaultJobParametersConverter</code> is used.<br>
+However, in TERASOLUNA Batch 5.x, <code>DefaultJobParametersConverter</code> is not used due to the following reasons.</p>
+</div>
+<div class="ulist">
+<ul>
+<li>
+<p>It is common to run one job by the same parameter at different timing.</p>
+</li>
+<li>
+<p>It is possible to specify the time stamp of the start time and manage them as different jobs, but it is complicated to specify job parameters only for that purpose.</p>
+</li>
+<li>
+<p><code>DefaultJobParametersConverter</code> can specify data types for parameters, but handling becomes complicated when type conversion fails.</p>
+</li>
+</ul>
+</div>
+<div class="paragraph">
+<p>In TERASOLUNA Batch 5.x, by using <code>JsrJobParametersConverter</code>, RUN_ID is automatically assigned without the user knowledge.
+By this, the same job is handled as a different job in Spring Batch as seen by the user.</p>
+</div>
+<div class="paragraph">
+<div class="title">About setting of parameter conversion class</div>
+<p>In TERASOLUNA Batch 5.x, it is set in advance so as to use <code>JsrJobParametersConverter</code> in <code>launch-context.xml</code>.<br>
+Therefore, when TERASOLUNA Batch 5.x is used with the recommended setting, there is no need to set <code> JobParametersConverter</code>.</p>
+</div>
+<div class="listingblock">
+<div class="title">META-INF\spring\launch-context.xml</div>
+<div class="content">
+<pre class="CodeRay highlight"><code data-lang="xml"><span class="tag">&lt;bean</span> <span class="attribute-name">id</span>=<span class="string"><span class="delimiter">&quot;</span><span class="content">jobParametersConverter</span><span class="delimiter">&quot;</span></span>
+      <span class="attribute-name">class</span>=<span class="string"><span class="delimiter">&quot;</span><span class="content">org.springframework.batch.core.jsr.JsrJobParametersConverter</span><span class="delimiter">&quot;</span></span>
+      <span class="attribute-name">c:dataSource-ref</span>=<span class="string"><span class="delimiter">&quot;</span><span class="content">adminDataSource</span><span class="delimiter">&quot;</span></span> <span class="tag">/&gt;</span>
+
+<span class="tag">&lt;bean</span> <span class="attribute-name">id</span>=<span class="string"><span class="delimiter">&quot;</span><span class="content">jobOperator</span><span class="delimiter">&quot;</span></span>
+      <span class="attribute-name">class</span>=<span class="string"><span class="delimiter">&quot;</span><span class="content">org.springframework.batch.core.launch.support.SimpleJobOperator</span><span class="delimiter">&quot;</span></span>
+      <span class="attribute-name">p:jobRepository-ref</span>=<span class="string"><span class="delimiter">&quot;</span><span class="content">jobRepository</span><span class="delimiter">&quot;</span></span>
+      <span class="attribute-name">p:jobRegistry-ref</span>=<span class="string"><span class="delimiter">&quot;</span><span class="content">jobRegistry</span><span class="delimiter">&quot;</span></span>
+      <span class="attribute-name">p:jobExplorer-ref</span>=<span class="string"><span class="delimiter">&quot;</span><span class="content">jobExplorer</span><span class="delimiter">&quot;</span></span>
+      <span class="attribute-name">p:jobParametersConverter-ref</span>=<span class="string"><span class="delimiter">&quot;</span><span class="content">jobParametersConverter</span><span class="delimiter">&quot;</span></span>
+      <span class="attribute-name">p:jobLauncher-ref</span>=<span class="string"><span class="delimiter">&quot;</span><span class="content">jobLauncher</span><span class="delimiter">&quot;</span></span> <span class="tag">/&gt;</span></code></pre>
+</div>
+</div>
+<div class="paragraph">
+<p>The following description assumes that JsrJobParametersConverter is used.</p>
+</div>
+</div>
+<div class="sect2">
+<h3 id="Ch04_JobParameter_HowToUse_CLIArgs"><a class="anchor" href="#Ch04_JobParameter_HowToUse_CLIArgs"></a>Assign from command-line arguments</h3>
+<div class="paragraph">
+<p>Firstly, how to assign from the most basic command-line arguments, is explained.</p>
+</div>
+<div class="paragraph">
+<div class="title">Assignment of parameters</div>
+<p>Command-line arguments are enumerated in the <code>&lt;Parameter name&gt;=&lt;Value&gt;</code> format after 3rd argument of <code>CommandLineJobRunner</code>.</p>
+</div>
+<div class="paragraph">
+<p>The number and length of parameters are not restricted in Spring Batch and {batch 5 _ shortname}.
+However, there are restrictions in the length of command arguments in the OS.<br>
+Therefore, when a large number of arguments is required, the method of <a href="#Ch04_JobParameter_HowToUse_FromFile">Redirect from file to standard input</a> and
+<a href="#Ch04_JobParameter_HowToExtends_PropertyConbination">Using parameters and properties together</a> should be used.</p>
+</div>
+<div class="listingblock">
+<div class="title">Example of setting parameters as command-line arguments</div>
+<div class="content">
+<pre class="CodeRay highlight"><code data-lang="console"># Execute job
+$ java org.springframework.batch.core.launch.support.CommandLineJobRunner \
+    JobDefined.xml JOBID param1=abc outputFileName=/tmp/result.csv</code></pre>
+</div>
+</div>
+<div class="paragraph">
+<div class="title">Refer to parameters</div>
+<p>Parameters can be referred in Bean definition or in Java as shown below.</p>
+</div>
+<div class="ulist">
+<ul>
+<li>
+<p>Refer in Bean definition</p>
+<div class="ulist">
+<ul>
+<li>
+<p>It can be referred by <code>#{jobParameters['xxx']}</code></p>
+</li>
+</ul>
+</div>
+</li>
+<li>
+<p>Refer in Java</p>
+<div class="ulist">
+<ul>
+<li>
+<p>It can be referred by <code>@Value("#{jobParameters['xxx']}")</code></p>
+</li>
+</ul>
+</div>
+</li>
+</ul>
+</div>
+<div class="admonitionblock important">
+<table>
+<tr>
+<td class="icon">
+<i class="fa icon-important" title="Important"></i>
+</td>
+<td class="content">
+<div class="title">The scope of the Bean that refers to JobParameters should be Step scope</div>
+<div class="paragraph">
+<p>When referring to <code> JobParameters</code>, the scope of the Bean to be referred should be set to <code> Step</code> scope.
+This is for using the mechanism of <strong>late binding</strong> of Spring Batch when <code> JobParameters</code> is to be referred.</p>
+</div>
+<div class="paragraph">
+<p>As its name implies, <strong>late binding</strong> is setting of the delayed value.
+<code> ApplicationContext</code> of Spring Framework generates an instance of <code> ApplicationContext</code> after resolving the properties of various Beans by default.
+Spring Batch does not resolve the property at the time of generating an instance of <code> ApplicationContext</code>. It has a function
+to resolve the property when various Beans are required. This is what the word <strong>Delay</strong> means.
+With this function, after generating and executing <code> ApplicationContext</code> required for executing the Spring Batch itself,
+it is possible to alter the behavior of various Beans according to parameters.</p>
+</div>
+<div class="paragraph">
+<p><code>Step</code> scope is a unique scope of Spring Batch and a new instance is generated for each Step execution.
+The value with <strong>late binding</strong> can be resolved by using SpEL expression in Bean definition.</p>
+</div>
+</td>
+</tr>
+</table>
+</div>
+<div class="admonitionblock important">
+<table>
+<tr>
+<td class="icon">
+<i class="fa icon-important" title="Important"></i>
+</td>
+<td class="content">
+<div class="title">@StepScope annotation cannot be used for specifying Step scope</div>
+<div class="paragraph">
+<p>In Spring Batch, <code>@StepScope</code> is provided as the annotation that specifies <code>Step</code> scope. However,
+this is an annotation that can only be used in JavaConfig.</p>
+</div>
+<div class="paragraph">
+<p>Therefore, specify the  <code> Step</code> scope in TERASOLUNA Batch 5.x by any one of the following methods.</p>
+</div>
+<div class="olist arabic">
+<ol class="arabic">
+<li>
+<p>In Bean definition, assign <code>scope="step"</code> to Bean.</p>
+</li>
+<li>
+<p>In Java, assign <code>@Scope("step")</code> to class.</p>
+</li>
+</ol>
+</div>
+</td>
+</tr>
+</table>
+</div>
+<div class="listingblock">
+<div class="title">Example of referring to the parameter assigned by the command-line arguments in Bean definition</div>
+<div class="content">
+<pre class="CodeRay highlight"><code data-lang="xml"><span class="comment">&lt;!-- (1) --&gt;</span>
+<span class="tag">&lt;bean</span> <span class="attribute-name">id</span>=<span class="string"><span class="delimiter">&quot;</span><span class="content">reader</span><span class="delimiter">&quot;</span></span>
+      <span class="attribute-name">class</span>=<span class="string"><span class="delimiter">&quot;</span><span class="content">org.springframework.batch.item.file.FlatFileItemReader</span><span class="delimiter">&quot;</span></span> <span class="attribute-name">scope</span>=<span class="string"><span class="delimiter">&quot;</span><span class="content">step</span><span class="delimiter">&quot;</span></span>
+      <span class="attribute-name">p:resource</span>=<span class="string"><span class="delimiter">&quot;</span><span class="content">file:#{jobParameters['inputFile']}</span><span class="delimiter">&quot;</span></span><span class="tag">&gt;</span>  <span class="comment">&lt;!-- (2) --&gt;</span>
+    <span class="tag">&lt;property</span> <span class="attribute-name">name</span>=<span class="string"><span class="delimiter">&quot;</span><span class="content">lineMapper</span><span class="delimiter">&quot;</span></span><span class="tag">&gt;</span>
+        <span class="comment">&lt;!-- omitted settings --&gt;</span>
+    <span class="tag">&lt;/property&gt;</span>
+<span class="tag">&lt;/bean&gt;</span></code></pre>
+</div>
+</div>
+<table class="tableblock frame-all grid-all spread">
+<caption class="title">Items list of setting contents</caption>
+<colgroup>
+<col style="width: 10%;">
+<col style="width: 90%;">
+</colgroup>
+<thead>
+<tr>
+<th class="tableblock halign-left valign-top">Sr. No.</th>
+<th class="tableblock halign-left valign-top">Explanation</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td class="tableblock halign-left valign-top"><p class="tableblock">(1)</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">Specify scope as scope attribute in bean tag.</p></td>
+</tr>
+<tr>
+<td class="tableblock halign-left valign-top"><p class="tableblock">(2)</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">Specify the parameter to be referred.</p></td>
+</tr>
+</tbody>
+</table>
+<div class="listingblock">
+<div class="title">Example of referring to the parameter assigned by the command-line arguments in Java</div>
+<div class="content">
+<pre class="CodeRay highlight"><code data-lang="java"><span class="annotation">@Component</span>
+<span class="annotation">@Scope</span>(<span class="string"><span class="delimiter">&quot;</span><span class="content">step</span><span class="delimiter">&quot;</span></span>)  <span class="comment">// (1)</span>
+<span class="directive">public</span> <span class="type">class</span> <span class="class">ParamRefInJavaTasklet</span> <span class="directive">implements</span> Tasklet {
+
+    <span class="comment">/**
+     * Holds a String type value
+     */</span>
+    <span class="annotation">@Value</span>(<span class="string"><span class="delimiter">&quot;</span><span class="content">#{jobParameters['str']}</span><span class="delimiter">&quot;</span></span>)  <span class="comment">// (2)</span>
+    <span class="directive">private</span> <span class="predefined-type">String</span> str;
+
+    <span class="comment">// omitted execute()</span>
+}</code></pre>
+</div>
+</div>
+<table class="tableblock frame-all grid-all spread">
+<caption class="title">Items list of setting contents</caption>
+<colgroup>
+<col style="width: 10%;">
+<col style="width: 90%;">
+</colgroup>
+<thead>
+<tr>
+<th class="tableblock halign-left valign-top">Sr. No.</th>
+<th class="tableblock halign-left valign-top">Explanation</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td class="tableblock halign-left valign-top"><p class="tableblock">(1)</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">Specify scope by assigning <code>@Scope</code> annotation in class.</p></td>
+</tr>
+<tr>
+<td class="tableblock halign-left valign-top"><p class="tableblock">(2)</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">Specify the parameter to be referred by using <code>@Value</code> annotation.</p></td>
+</tr>
+</tbody>
+</table>
+</div>
+<div class="sect2">
+<h3 id="Ch04_JobParameter_HowToUse_FromFile"><a class="anchor" href="#Ch04_JobParameter_HowToUse_FromFile"></a>Redirect from file to standard input</h3>
+<div class="paragraph">
+<p>How to redirect from file to standard input is explained.</p>
+</div>
+<div class="paragraph">
+<div class="title">Creation of file for defining parameters</div>
+<p>Define the parameters in the files as follows.</p>
+</div>
+<div class="listingblock">
+<div class="title">params.txt</div>
+<div class="content">
+<pre class="CodeRay highlight"><code data-lang="txt">param1=abc
+outputFile=/tmp/result.csv</code></pre>
+</div>
+</div>
+<div class="paragraph">
+<div class="title">Redirect the files wherein parameters are defined to standard input</div>
+<p>Redirect the files wherein parameters are defined as command-line arguments.</p>
+</div>
+<div class="listingblock">
+<div class="title">Execution method</div>
+<div class="content">
+<pre class="CodeRay highlight"><code data-lang="console"># Execute job
+$ java org.springframework.batch.core.launch.support.CommandLineJobRunner \
+    JobDefined.xml JOBID &lt; params.txt</code></pre>
+</div>
+</div>
+<div class="paragraph">
+<div class="title">Refer to parameters</div>
+<p>How to refer to the parameters is same as the <a href="#Ch04_JobParameter_HowToUse_CLIArgs">Assign from command-line arguments</a> method.</p>
+</div>
+</div>
+<div class="sect2">
+<h3 id="Ch04_JobParameter_HowToUse_DefaultValue"><a class="anchor" href="#Ch04_JobParameter_HowToUse_DefaultValue"></a>Set the default value of parameter</h3>
+<div class="paragraph">
+<p>When parameters are optional, default values can be set in the following format.</p>
+</div>
+<div class="ulist">
+<ul>
+<li>
+<p><code>#{jobParameters['Parameter name'] ?: Default value}</code></p>
+</li>
+</ul>
+</div>
+<div class="paragraph">
+<p>However, in the item where the value is set using parameters, the default values can also differ with the environment and execution timing  same as the parameters.</p>
+</div>
+<div class="paragraph">
+<p>Firstly, how to hardcode the default values in source code is explained.
+However, there are many cases where it is better to use <a href="#Ch04_JobParameter_HowToExtends_PropertyConbination">Using parameters and properties together</a>, so refer them also.</p>
+</div>
+<div class="paragraph">
+<div class="title">Refer to the parameter wherein default value is set</div>
+<p>When the relevant parameter is not set, the value set as the default value is referred.</p>
+</div>
+<div class="listingblock">
+<div class="title">Example of referring to the parameter assigned by the command-line arguments in Bean definition</div>
+<div class="content">
+<pre class="CodeRay highlight"><code data-lang="xml"><span class="comment">&lt;!-- (1) --&gt;</span>
+<span class="tag">&lt;bean</span> <span class="attribute-name">id</span>=<span class="string"><span class="delimiter">&quot;</span><span class="content">reader</span><span class="delimiter">&quot;</span></span>
+      <span class="attribute-name">class</span>=<span class="string"><span class="delimiter">&quot;</span><span class="content">org.springframework.batch.item.file.FlatFileItemReader</span><span class="delimiter">&quot;</span></span> <span class="attribute-name">scope</span>=<span class="string"><span class="delimiter">&quot;</span><span class="content">step</span><span class="delimiter">&quot;</span></span>
+      <span class="attribute-name">p:resource</span>=<span class="string"><span class="delimiter">&quot;</span><span class="content">file:#{jobParamaters[inputFile] ?: /input/sample.csv}</span><span class="delimiter">&quot;</span></span><span class="tag">&gt;</span>  <span class="comment">&lt;!-- (2) --&gt;</span>
+    <span class="tag">&lt;property</span> <span class="attribute-name">name</span>=<span class="string"><span class="delimiter">&quot;</span><span class="content">lineMapper</span><span class="delimiter">&quot;</span></span><span class="tag">&gt;</span>
+        // omitted settings
+    <span class="tag">&lt;/property&gt;</span>
+<span class="tag">&lt;/bean&gt;</span></code></pre>
+</div>
+</div>
+<table class="tableblock frame-all grid-all spread">
+<caption class="title">Items list of setting contents</caption>
+<colgroup>
+<col style="width: 10%;">
+<col style="width: 90%;">
+</colgroup>
+<thead>
+<tr>
+<th class="tableblock halign-left valign-top">Sr. No.</th>
+<th class="tableblock halign-left valign-top">Explanation</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td class="tableblock halign-left valign-top"><p class="tableblock">(1)</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">Specify the scope as scope attribute in the bean tag.</p></td>
+</tr>
+<tr>
+<td class="tableblock halign-left valign-top"><p class="tableblock">(2)</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">Specify the parameter to be referred.<br>
+<code>/input/sample.csv</code> is set as the default value.</p></td>
+</tr>
+</tbody>
+</table>
+<div class="listingblock">
+<div class="title">Example of referring to the parameter assigned by the command-line arguments in Java</div>
+<div class="content">
+<pre class="CodeRay highlight"><code data-lang="java"><span class="annotation">@Component</span>
+<span class="annotation">@Scope</span>(<span class="string"><span class="delimiter">&quot;</span><span class="content">step</span><span class="delimiter">&quot;</span></span>)  <span class="comment">// (1)</span>
+<span class="directive">public</span> <span class="type">class</span> <span class="class">ParamRefInJavaTasklet</span> <span class="directive">implements</span> Tasklet {
+
+    <span class="comment">/**
+     * Holds a String type value
+     */</span>
+    <span class="annotation">@Value</span>(<span class="string"><span class="delimiter">&quot;</span><span class="content">#{jobParameters['str'] ?: 'xyz'}</span><span class="delimiter">&quot;</span></span>)  <span class="comment">// (2)</span>
+    <span class="directive">private</span> <span class="predefined-type">String</span> str;
+
+    <span class="comment">// omitted execute()</span>
+}</code></pre>
+</div>
+</div>
+<table class="tableblock frame-all grid-all spread">
+<caption class="title">Items list of setting contents</caption>
+<colgroup>
+<col style="width: 10%;">
+<col style="width: 90%;">
+</colgroup>
+<thead>
+<tr>
+<th class="tableblock halign-left valign-top">Sr. No.</th>
+<th class="tableblock halign-left valign-top">Explanation</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td class="tableblock halign-left valign-top"><p class="tableblock">(1)</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">Specify the scope by assigning <code>@Scope</code> annotation in class.</p></td>
+</tr>
+<tr>
+<td class="tableblock halign-left valign-top"><p class="tableblock">(2)</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">Specify the parameter to be referred by using <code>@Value</code> annotation.<br>
+<code>xyz</code> is set as the default value.</p></td>
+</tr>
+</tbody>
+</table>
+</div>
+<div class="sect2">
+<h3 id="Ch04_JobParameter_HowToUse_ParamsValidation"><a class="anchor" href="#Ch04_JobParameter_HowToUse_ParamsValidation"></a>Validation of parameters</h3>
+<div class="paragraph">
+<p>Validation of the parameters is required at job launch in order to prevent operation errors or unintended behavior.<br>
+Validation of parameters can be implemented by using the <code>JobParametersValidator</code> provided by Spring Batch.</p>
+</div>
+<div class="paragraph">
+<p>Since parameters are referred at various places such as ItemReader/ItemProcessor/ItemWriter,
+validation is performed immediately after the job is launched.</p>
+</div>
+<div class="paragraph">
+<p>There are two ways to verify the validity of a parameter, and it differs with the degree of complexity of the verification.</p>
+</div>
+<div class="ulist">
+<ul>
+<li>
+<p><a href="#Ch04_JobParameter_HowToUse_ParamsValidation_Default">Simple validation</a></p>
+<div class="ulist">
+<ul>
+<li>
+<p>Application example</p>
+<div class="ulist">
+<ul>
+<li>
+<p>Verify that the required parameters are set</p>
+</li>
+<li>
+<p>Verify that the unspecified parameters are not set</p>
+</li>
+</ul>
+</div>
+</li>
+<li>
+<p>Validator to be used</p>
+<div class="ulist">
+<ul>
+<li>
+<p><code>DefaultJobParametersValidator</code> provided by Spring Batch</p>
+</li>
+</ul>
+</div>
+</li>
+</ul>
+</div>
+</li>
+<li>
+<p><a href="#Ch04_JobParameter_HowToUse_ParamsValidation_Origin">Complex validation</a></p>
+<div class="ulist">
+<ul>
+<li>
+<p>Application example</p>
+<div class="ulist">
+<ul>
+<li>
+<p>Numerical value range verification and complex verification such as correlation check between parameters</p>
+</li>
+<li>
+<p>Verification that cannot be done by <code>DefaultJobParametersValidator</code> provided by Spring Batch</p>
+</li>
+</ul>
+</div>
+</li>
+<li>
+<p>Validator to be used</p>
+<div class="ulist">
+<ul>
+<li>
+<p>Class wherein <code>JobParametersValidator</code> is implemented independently</p>
+</li>
+</ul>
+</div>
+</li>
+</ul>
+</div>
+</li>
+</ul>
+</div>
+<div class="paragraph">
+<p>How to verify the validity of <a href="#Ch04_JobParameter_HowToUse_ParamsValidation_Default">Simple validation</a> and <a href="#Ch04_JobParameter_HowToUse_ParamsValidation_Origin">Complex validation</a> is explained respectively.</p>
+</div>
+<div class="sect3">
+<h4 id="Ch04_JobParameter_HowToUse_ParamsValidation_Default"><a class="anchor" href="#Ch04_JobParameter_HowToUse_ParamsValidation_Default"></a>Simple validation</h4>
+<div class="paragraph">
+<p>Spring Batch provides <code>DefaultJobParametersValidator</code> as the default implementation of <code>JobParametersValidator</code>.<br>
+This validator can verify the following as per the settings.</p>
+</div>
+<div class="ulist">
+<ul>
+<li>
+<p>Required parameters should be set</p>
+</li>
+<li>
+<p>Parameters other than required or optional should not be specified</p>
+</li>
+</ul>
+</div>
+<div class="paragraph">
+<p>Definition example is shown as follows.</p>
+</div>
+<div class="listingblock">
+<div class="title">Definition of validation that uses DefaultJobParametersValidator</div>
+<div class="content">
+<pre class="CodeRay highlight"><code data-lang="xml"><span class="comment">&lt;!-- (1) --&gt;</span>
+<span class="tag">&lt;bean</span> <span class="attribute-name">id</span>=<span class="string"><span class="delimiter">&quot;</span><span class="content">jobParametersValidator</span><span class="delimiter">&quot;</span></span>
+      <span class="attribute-name">class</span>=<span class="string"><span class="delimiter">&quot;</span><span class="content">org.springframework.batch.core.job.DefaultJobParametersValidator</span><span class="delimiter">&quot;</span></span><span class="tag">&gt;</span>
+  <span class="tag">&lt;property</span> <span class="attribute-name">name</span>=<span class="string"><span class="delimiter">&quot;</span><span class="content">requiredKeys</span><span class="delimiter">&quot;</span></span><span class="tag">&gt;</span>  <span class="comment">&lt;!-- (2) --&gt;</span>
+    <span class="tag">&lt;list&gt;</span>
+        <span class="tag">&lt;value&gt;</span>jsr_batch_run_id<span class="tag">&lt;/value&gt;</span>  <span class="comment">&lt;!-- (3) --&gt;</span>
+        <span class="tag">&lt;value&gt;</span>inputFileName<span class="tag">&lt;/value&gt;</span>
+        <span class="tag">&lt;value&gt;</span>outputFileName<span class="tag">&lt;/value&gt;</span>
+    <span class="tag">&lt;/list&gt;</span>
+  <span class="tag">&lt;/property&gt;</span>
+  <span class="tag">&lt;property</span> <span class="attribute-name">name</span>=<span class="string"><span class="delimiter">&quot;</span><span class="content">optionalKeys</span><span class="delimiter">&quot;</span></span><span class="tag">&gt;</span>  <span class="comment">&lt;!-- (4) --&gt;</span>
+    <span class="tag">&lt;list&gt;</span>
+        <span class="tag">&lt;value&gt;</span>param1<span class="tag">&lt;/value&gt;</span>
+        <span class="tag">&lt;value&gt;</span>param2<span class="tag">&lt;/value&gt;</span>
+    <span class="tag">&lt;/list&gt;</span>
+  <span class="tag">&lt;/property&gt;</span>
+<span class="tag">&lt;/bean&gt;</span>
+
+<span class="tag">&lt;batch:job</span> <span class="attribute-name">id</span>=<span class="string"><span class="delimiter">&quot;</span><span class="content">jobUseDefaultJobParametersValidator</span><span class="delimiter">&quot;</span></span> <span class="attribute-name">job-repository</span>=<span class="string"><span class="delimiter">&quot;</span><span class="content">jobRepository</span><span class="delimiter">&quot;</span></span><span class="tag">&gt;</span>
+  <span class="tag">&lt;batch:step</span> <span class="attribute-name">id</span>=<span class="string"><span class="delimiter">&quot;</span><span class="content">jobUseDefaultJobParametersValidator.step01</span><span class="delimiter">&quot;</span></span><span class="tag">&gt;</span>
+    <span class="tag">&lt;batch:tasklet</span> <span class="attribute-name">ref</span>=<span class="string"><span class="delimiter">&quot;</span><span class="content">sampleTasklet</span><span class="delimiter">&quot;</span></span> <span class="attribute-name">transaction-manager</span>=<span class="string"><span class="delimiter">&quot;</span><span class="content">jobTransactionManager</span><span class="delimiter">&quot;</span></span><span class="tag">/&gt;</span>
+  <span class="tag">&lt;/batch:step&gt;</span>
+  <span class="tag">&lt;batch:validator</span> <span class="attribute-name">ref</span>=<span class="string"><span class="delimiter">&quot;</span><span class="content">jobParametersValidator</span><span class="delimiter">&quot;</span></span><span class="tag">/&gt;</span>  <span class="comment">&lt;!-- (5) --&gt;</span>
+<span class="tag">&lt;/batch:job&gt;</span></code></pre>
+</div>
+</div>
+<table class="tableblock frame-all grid-all spread">
+<caption class="title">Items list of setting contents</caption>
+<colgroup>
+<col style="width: 10%;">
+<col style="width: 90%;">
+</colgroup>
+<thead>
+<tr>
+<th class="tableblock halign-left valign-top">Sr. No.</th>
+<th class="tableblock halign-left valign-top">Explanation</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td class="tableblock halign-left valign-top"><p class="tableblock">(1)</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">Define Bean for <code>DefaultJobParametersValidator</code>.</p></td>
+</tr>
+<tr>
+<td class="tableblock halign-left valign-top"><p class="tableblock">(2)</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">Set the required parameters to property <code>requiredKeys</code>.<br>
+Multiple parameter names of the required parameters can be specified using list tag.</p></td>
+</tr>
+<tr>
+<td class="tableblock halign-left valign-top"><p class="tableblock">(3)</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">Set <code>jsr_batch_run_id</code> to the required parameters.<br>
+In TERASOLUNA Batch 5.x, this setting is mandatory when using <code>DefaultJobParametersValidator</code>.<br>
+The reason for making the setting mandatory is explained later.</p></td>
+</tr>
+<tr>
+<td class="tableblock halign-left valign-top"><p class="tableblock">(4)</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">Set optional parameters to property <code>optionalKeys</code>.<br>
+Multiple parameter names of the optional parameters can be specified using list tag.</p></td>
+</tr>
+<tr>
+<td class="tableblock halign-left valign-top"><p class="tableblock">(5)</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">Apply the validator to the job using validator tag in the job tag.</p></td>
+</tr>
+</tbody>
+</table>
+<div class="admonitionblock important">
+<table>
+<tr>
+<td class="icon">
+<i class="fa icon-important" title="Important"></i>
+</td>
+<td class="content">
+<div class="title">Required parameters that cannot be omitted in TERASOLUNA Batch 5.x</div>
+<div class="paragraph">
+<p><code> JsrJobParametersConverter</code> is used for parameter conversion in {batch 5 _ shortname}, so the following parameters are always set.</p>
+</div>
+<div class="ulist">
+<ul>
+<li>
+<p><code>jsr_batch_run_id</code></p>
+</li>
+</ul>
+</div>
+<div class="paragraph">
+<p>Therefore, <code>jsr_batch_run_id</code> should be included in the <code>requiredKeys</code>.<br>
+Refer to <a href="#Ch04_JobParameter_HowToUse_Converter">Regarding parameter conversion class</a> for detailed explanation.</p>
+</div>
+<div class="listingblock">
+<div class="title">Example of parameter definition</div>
+<div class="content">
+<pre class="CodeRay highlight"><code data-lang="xml"><span class="tag">&lt;bean</span> <span class="attribute-name">id</span>=<span class="string"><span class="delimiter">&quot;</span><span class="content">jobParametersValidator</span><span class="delimiter">&quot;</span></span>
+      <span class="attribute-name">class</span>=<span class="string"><span class="delimiter">&quot;</span><span class="content">org.springframework.batch.core.job.DefaultJobParametersValidator</span><span class="delimiter">&quot;</span></span><span class="tag">&gt;</span>
+  <span class="tag">&lt;property</span> <span class="attribute-name">name</span>=<span class="string"><span class="delimiter">&quot;</span><span class="content">requiredKeys</span><span class="delimiter">&quot;</span></span><span class="tag">&gt;</span>
+    <span class="tag">&lt;list&gt;</span>
+        <span class="tag">&lt;value&gt;</span>jsr_batch_run_id<span class="tag">&lt;/value&gt;</span>  <span class="comment">&lt;!-- mandatory --&gt;</span>
+        <span class="tag">&lt;value&gt;</span>inputFileName<span class="tag">&lt;/value&gt;</span>
+        <span class="tag">&lt;value&gt;</span>outputFileName<span class="tag">&lt;/value&gt;</span>
+    <span class="tag">&lt;/list&gt;</span>
+  <span class="tag">&lt;/property&gt;</span>
+  <span class="tag">&lt;property</span> <span class="attribute-name">name</span>=<span class="string"><span class="delimiter">&quot;</span><span class="content">optionalKeys</span><span class="delimiter">&quot;</span></span><span class="tag">&gt;</span>
+    <span class="tag">&lt;list&gt;</span>
+        <span class="tag">&lt;value&gt;</span>param1<span class="tag">&lt;/value&gt;</span>
+        <span class="tag">&lt;value&gt;</span>param2<span class="tag">&lt;/value&gt;</span>
+    <span class="tag">&lt;/list&gt;</span>
+  <span class="tag">&lt;/property&gt;</span>
+<span class="tag">&lt;/bean&gt;</span></code></pre>
+</div>
+</div>
+</td>
+</tr>
+</table>
+</div>
+<div class="paragraph">
+<div class="title">OK case and NG case when DefaultJobParametersValidator is used</div>
+<p>An example when the verification result is OK and NG are shown to understand the verification possible conditions in <code>DefaultJobParametersValidator</code>.</p>
+</div>
+<div class="listingblock">
+<div class="title">DefaultJobParametersValidator definition example</div>
+<div class="content">
+<pre class="CodeRay highlight"><code data-lang="xml"><span class="tag">&lt;bean</span> <span class="attribute-name">id</span>=<span class="string"><span class="delimiter">&quot;</span><span class="content">jobParametersValidator</span><span class="delimiter">&quot;</span></span>
+    <span class="attribute-name">class</span>=<span class="string"><span class="delimiter">&quot;</span><span class="content">org.springframework.batch.core.job.DefaultJobParametersValidator</span><span class="delimiter">&quot;</span></span>
+    <span class="attribute-name">p:requiredKeys</span>=<span class="string"><span class="delimiter">&quot;</span><span class="content">outputFileName</span><span class="delimiter">&quot;</span></span>
+    <span class="attribute-name">p:optionalKeys</span>=<span class="string"><span class="delimiter">&quot;</span><span class="content">param1</span><span class="delimiter">&quot;</span></span><span class="tag">/&gt;</span></code></pre>
+</div>
+</div>
+<div class="listingblock">
+<div class="title">NG case1</div>
+<div class="content">
+<pre class="CodeRay highlight"><code data-lang="console"># Execute job
+$ java org.springframework.batch.core.launch.support.CommandLineJobRunner \
+    JobDefined.xml JOBID param1=aaa</code></pre>
+</div>
+</div>
+<div class="paragraph">
+<p>NG as the required parameter <code>outputFile</code> is not set.</p>
+</div>
+<div class="listingblock">
+<div class="title">NG case 2</div>
+<div class="content">
+<pre class="CodeRay highlight"><code data-lang="console"># Execute job
+$ java org.springframework.batch.core.launch.support.CommandLineJobRunner \
+    JobDefined.xml JOBID outputFileName=/tmp/result.csv param2=aaa</code></pre>
+</div>
+</div>
+<div class="paragraph">
+<p>NG as the parameter <code> param2</code> which is not specified for either the required parameter or the optional parameter is set.</p>
+</div>
+<div class="listingblock">
+<div class="title">OK case 1</div>
+<div class="content">
+<pre class="CodeRay highlight"><code data-lang="console"># Execute job
+$ java org.springframework.batch.core.launch.support.CommandLineJobRunner \
+    JobDefined.xml JOBID param1=aaa outputFileName=/tmp/result.csv</code></pre>
+</div>
+</div>
+<div class="paragraph">
+<p>OK as the parameters specified as required and optional are set.</p>
+</div>
+<div class="listingblock">
+<div class="title">OK case 2</div>
+<div class="content">
+<pre class="CodeRay highlight"><code data-lang="console"># Execute job
+$ java org.springframework.batch.core.launch.support.CommandLineJobRunner \
+    JobDefined.xml JOBID fileoutputFilename=/tmp/result.csv</code></pre>
+</div>
+</div>
+<div class="paragraph">
+<p>OK as the required parameters are set and there is no need to set optional parameters.</p>
+</div>
+</div>
+<div class="sect3">
+<h4 id="Ch04_JobParameter_HowToUse_ParamsValidation_Origin"><a class="anchor" href="#Ch04_JobParameter_HowToUse_ParamsValidation_Origin"></a>Complex validation</h4>
+<div class="paragraph">
+<p>Implementing <code>JobParametersValidator</code> interface independently
+helps in verifying the parameters as per requirements.</p>
+</div>
+<div class="paragraph">
+<p>Implement <code>JobParametersValidator</code> class as follows.</p>
+</div>
+<div class="ulist">
+<ul>
+<li>
+<p>Implement <code>JobParametersValidator</code> class and override validate method</p>
+</li>
+<li>
+<p>Implement validate method as follows</p>
+<div class="ulist">
+<ul>
+<li>
+<p>Fetch each parameter from <code>JobParameters</code> and verify</p>
+<div class="ulist">
+<ul>
+<li>
+<p>If the verification result is OK, there is no need to perform any operation</p>
+</li>
+<li>
+<p>If verification result is NG, throw <code>JobParametersInvalidException</code></p>
+</li>
+</ul>
+</div>
+</li>
+</ul>
+</div>
+</li>
+</ul>
+</div>
+<div class="paragraph">
+<p>Implementation example of <code>JobParametersValidator</code> class is shown.
+In this case, it is verified that the length of the string specified by <code> str</code> is less than or equal to the number specified by <code> num</code>.</p>
+</div>
+<div class="listingblock">
+<div class="title">Implementation example of JobParametersValidator interface</div>
+<div class="content">
+<pre class="CodeRay highlight"><code data-lang="java"><span class="directive">public</span> <span class="type">class</span> <span class="class">ComplexJobParametersValidator</span> <span class="directive">implements</span> JobParametersValidator {  <span class="comment">// (1)</span>
+    <span class="annotation">@Override</span>
+    <span class="directive">public</span> <span class="type">void</span> validate(JobParameters parameters) <span class="directive">throws</span> JobParametersInvalidException {
+        <span class="predefined-type">Map</span>&lt;<span class="predefined-type">String</span>, JobParameter&gt; params = parameters.getParameters();  <span class="comment">// (2)</span>
+
+        <span class="predefined-type">String</span> str = params.get(<span class="string"><span class="delimiter">&quot;</span><span class="content">str</span><span class="delimiter">&quot;</span></span>).getValue().toString();  <span class="comment">// (3)</span>
+        <span class="type">int</span> num = <span class="predefined-type">Integer</span>.parseInt(params.get(<span class="string"><span class="delimiter">&quot;</span><span class="content">num</span><span class="delimiter">&quot;</span></span>).getValue().toString()); <span class="comment">// (4)</span>
+
+        <span class="keyword">if</span>(str.length() &gt; num){
+            <span class="keyword">throw</span> <span class="keyword">new</span> JobParametersInvalidException(
+            <span class="string"><span class="delimiter">&quot;</span><span class="content">The str must be less than or equal to num. [str:</span><span class="delimiter">&quot;</span></span>
+                    + str + <span class="string"><span class="delimiter">&quot;</span><span class="content">][num:</span><span class="delimiter">&quot;</span></span> + num + <span class="string"><span class="delimiter">&quot;</span><span class="content">]</span><span class="delimiter">&quot;</span></span>);  <span class="comment">// (5)</span>
+        }
+    }
+}</code></pre>
+</div>
+</div>
+<table class="tableblock frame-all grid-all spread">
+<caption class="title">Items list of setting contents</caption>
+<colgroup>
+<col style="width: 10%;">
+<col style="width: 90%;">
+</colgroup>
+<thead>
+<tr>
+<th class="tableblock halign-left valign-top">Sr. No.</th>
+<th class="tableblock halign-left valign-top">Explanation</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td class="tableblock halign-left valign-top"><p class="tableblock">(1)</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">Implement <code>JobParametersValidator</code> class and override validate method.</p></td>
+</tr>
+<tr>
+<td class="tableblock halign-left valign-top"><p class="tableblock">(2)</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">Receive the parameters as arguments in <code>JobParameters</code> type.<br>
+By setting <code>parameters.getParameters()</code>, it is easier to refer the parameters by fetching them in Map format.</p></td>
+</tr>
+<tr>
+<td class="tableblock halign-left valign-top"><p class="tableblock">(3)</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">Get parameters by specifying key.</p></td>
+</tr>
+<tr>
+<td class="tableblock halign-left valign-top"><p class="tableblock">(4)</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">Convert parameters to int type. When handling parameters of other than String type, they should be appropriately converted.</p></td>
+</tr>
+<tr>
+<td class="tableblock halign-left valign-top"><p class="tableblock">(5)</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">Validation result is NG when the string length of the parameter <code>str</code> exceeds the value of parameter <code>num</code>.</p></td>
+</tr>
+</tbody>
+</table>
+<div class="listingblock">
+<div class="title">Job definition example</div>
+<div class="content">
+<pre class="CodeRay highlight"><code data-lang="xml"><span class="tag">&lt;batch:job</span> <span class="attribute-name">id</span>=<span class="string"><span class="delimiter">&quot;</span><span class="content">jobUseComplexJobParametersValidator</span><span class="delimiter">&quot;</span></span> <span class="attribute-name">job-repository</span>=<span class="string"><span class="delimiter">&quot;</span><span class="content">jobRepository</span><span class="delimiter">&quot;</span></span><span class="tag">&gt;</span>
+    <span class="tag">&lt;batch:step</span> <span class="attribute-name">id</span>=<span class="string"><span class="delimiter">&quot;</span><span class="content">jobUseComplexJobParametersValidator.step01</span><span class="delimiter">&quot;</span></span><span class="tag">&gt;</span>
+        <span class="tag">&lt;batch:tasklet</span> <span class="attribute-name">ref</span>=<span class="string"><span class="delimiter">&quot;</span><span class="content">sampleTasklet</span><span class="delimiter">&quot;</span></span> <span class="attribute-name">transaction-manager</span>=<span class="string"><span class="delimiter">&quot;</span><span class="content">jobTransactionManager</span><span class="delimiter">&quot;</span></span><span class="tag">/&gt;</span>
+    <span class="tag">&lt;/batch:step&gt;</span>
+    <span class="tag">&lt;batch:validator&gt;</span>  <span class="comment">&lt;!-- (1) --&gt;</span>
+        <span class="tag">&lt;bean</span> <span class="attribute-name">class</span>=<span class="string"><span class="delimiter">&quot;</span><span class="content">org.terasoluna.batch.functionaltest.ch04.jobparameter.ComplexJobParametersValidator</span><span class="delimiter">&quot;</span></span><span class="tag">/&gt;</span>
+    <span class="tag">&lt;/batch:validator&gt;</span>
+<span class="tag">&lt;/batch:job&gt;</span></code></pre>
+</div>
+</div>
+<table class="tableblock frame-all grid-all spread">
+<caption class="title">Items list of setting contents</caption>
+<colgroup>
+<col style="width: 10%;">
+<col style="width: 90%;">
+</colgroup>
+<thead>
+<tr>
+<th class="tableblock halign-left valign-top">Sr. No.</th>
+<th class="tableblock halign-left valign-top">Explanation</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td class="tableblock halign-left valign-top"><p class="tableblock">(1)</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">Apply validator in the job by using validator tag in the job tag.</p></td>
+</tr>
+</tbody>
+</table>
+<div class="admonitionblock warning">
+<table>
+<tr>
+<td class="icon">
+<i class="fa icon-warning" title="Warning"></i>
+</td>
+<td class="content">
+<div class="title">Regarding validation of parameters at asynchronous start</div>
+<div class="paragraph">
+<p>By the asynchronous start method (DB polling and Web container), it is possible to verify the parameters at the job launch in the same way,
+however, it is desirable to verify them before launching the job at the following timing.</p>
+</div>
+<div class="ulist">
+<ul>
+<li>
+<p>DB polling</p>
+<div class="ulist">
+<ul>
+<li>
+<p>Before INSERTing to job request table</p>
+</li>
+</ul>
+</div>
+</li>
+<li>
+<p>Web container</p>
+<div class="ulist">
+<ul>
+<li>
+<p>At the time of calling Controller (assign @Validated)</p>
+</li>
+</ul>
+</div>
+</li>
+</ul>
+</div>
+<div class="paragraph">
+<p>In case of asynchronous start, since it is necessary to confirm the result separately, errors such as parameter settings
+should be responded quickly and job requests should be rejected.</p>
+</div>
+<div class="paragraph">
+<p>For validation in this case, there is no need to use <code>JobParametersValidator</code>.
+The function to INSERT to the job request table and the controller in the Web container
+mostly should not depend on Spring Batch and
+it is better to avoid depending on Spring Batch since only <code>JobParametersValidator</code> is used.</p>
+</div>
+</td>
+</tr>
+</table>
+</div>
+</div>
+</div>
+</div>
+</div>
+<div class="sect1">
+<h2 id="Ch04_JobParameter_HowToExtends"><a class="anchor" href="#Ch04_JobParameter_HowToExtends"></a>How to extend</h2>
+<div class="sectionbody">
+<div class="sect2">
+<h3 id="Ch04_JobParameter_HowToExtends_PropertyConbination"><a class="anchor" href="#Ch04_JobParameter_HowToExtends_PropertyConbination"></a>Using parameters and properties together</h3>
+<div class="paragraph">
+<p>Spring Framework based on Spring Batch is equipped with the property management function to enable it
+to handle the values set in the environment variables and property files.
+For details, refer to
+<a href="http://terasolunaorg.github.io/guideline/5.3.0.RELEASE/en/ArchitectureInDetail/GeneralFuncDetail/PropertyManagement.html">Property management</a> of TERASOLUNA Server 5.x Development Guideline.</p>
+</div>
+<div class="paragraph">
+<p>By combining properties and parameters, it is possible to overwrite some parameters after making common settings for most jobs in the property file.</p>
+</div>
+<div class="admonitionblock tip">
+<table>
+<tr>
+<td class="icon">
+<i class="fa icon-tip" title="Tip"></i>
+</td>
+<td class="content">
+<div class="title">About when parameters and propertis are resolved</div>
+<div class="paragraph">
+<p>As mentioned above, parameters and properties are different components that provide the function.<br>
+Spring Batch has a function of parameter management and Spring Framework has a function of property management.<br>
+This difference appears in the description method.</p>
+</div>
+<div class="ulist">
+<ul>
+<li>
+<p>In case of function possessed by Spring Batch</p>
+<div class="ulist">
+<ul>
+<li>
+<p><code>#{jobParamaters[xxx]}</code></p>
+</li>
+</ul>
+</div>
+</li>
+<li>
+<p>In case of function possessed by Spring Framework</p>
+<div class="ulist">
+<ul>
+<li>
+<p><code>@Value("${xxx}")</code></p>
+</li>
+</ul>
+</div>
+</li>
+</ul>
+</div>
+<div class="paragraph">
+<p>The timing of resolving each value is different.</p>
+</div>
+<div class="ulist">
+<ul>
+<li>
+<p>In case of function possessed by Spring Batch</p>
+<div class="ulist">
+<ul>
+<li>
+<p>It is set when the job is executed after generating Application Context.</p>
+</li>
+</ul>
+</div>
+</li>
+<li>
+<p>In case of function possessed by Spring Framework</p>
+<div class="ulist">
+<ul>
+<li>
+<p>It is set at the time of generating Application Context.</p>
+</li>
+</ul>
+</div>
+</li>
+</ul>
+</div>
+<div class="paragraph">
+<p>Therefore, the parameter value is given priority by Spring Batch.<br>
+Note that since the application is effective when they are combined together, both of them should be treated individually</p>
+</div>
+</td>
+</tr>
+</table>
+</div>
+<div class="paragraph">
+<p>How to set by combining properties and parameters, is explained.</p>
+</div>
+<div class="paragraph">
+<div class="title">In addition to the setting by environment variables, when additional settings is done by command-line arguments</div>
+<p>In addition to the setting by environment variables, how to set the parameters using command-line arguments, is explained.<br>
+It is possible to refer to it in the same manner as Bean definition.</p>
+</div>
+<div class="listingblock">
+<div class="title">Example of setting parameters by command-line arguments in addition to environment variables</div>
+<div class="content">
+<pre class="CodeRay highlight"><code data-lang="console"># Set environment variables
+$ export env1=aaa
+$ export env2=bbb
+
+# Execute job
+$ java org.springframework.batch.core.launch.support.CommandLineJobRunner \
+    JobDefined.xml JOBID param3=ccc outputFile=/tmp/result.csv</code></pre>
+</div>
+</div>
+<div class="listingblock">
+<div class="title">Example of referring environment variables and parameters in Java</div>
+<div class="content">
+<pre class="CodeRay highlight"><code data-lang="java"><span class="annotation">@Value</span>(<span class="string"><span class="delimiter">&quot;</span><span class="content">${env1}</span><span class="delimiter">&quot;</span></span>)  <span class="comment">// (1)</span>
+<span class="directive">private</span> <span class="predefined-type">String</span> param1;
+
+<span class="annotation">@Value</span>(<span class="string"><span class="delimiter">&quot;</span><span class="content">${env2}</span><span class="delimiter">&quot;</span></span>)  <span class="comment">// (1)</span>
+<span class="directive">private</span> <span class="predefined-type">String</span> param2;
+
+<span class="directive">private</span> <span class="predefined-type">String</span> param3;
+
+<span class="annotation">@Value</span>(<span class="string"><span class="delimiter">&quot;</span><span class="content">#{jobParameters['param3']</span><span class="delimiter">&quot;</span></span>)  <span class="comment">// (2)</span>
+<span class="directive">public</span> <span class="type">void</span> setParam3(<span class="predefined-type">String</span> param3) {
+    <span class="local-variable">this</span>.param3 = param3;
+}</code></pre>
+</div>
+</div>
+<table class="tableblock frame-all grid-all spread">
+<caption class="title">Items list of setting contents</caption>
+<colgroup>
+<col style="width: 10%;">
+<col style="width: 90%;">
+</colgroup>
+<thead>
+<tr>
+<th class="tableblock halign-left valign-top">Sr. No.</th>
+<th class="tableblock halign-left valign-top">Explanation</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td class="tableblock halign-left valign-top"><p class="tableblock">(1)</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">Specify the environment variables to be referred by using <code>@Value</code> annotation.<br>
+The format for reference is <code>${Environment variable name}</code>.</p></td>
+</tr>
+<tr>
+<td class="tableblock halign-left valign-top"><p class="tableblock">(2)</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">Specify the parameters to be referred by using <code>@Value</code> annotation.<br>
+The format for reference is <code>#{jobParameters['Parameter name']</code>.</p></td>
+</tr>
+</tbody>
+</table>
+<div class="listingblock">
+<div class="title">Example when environment variables are default</div>
+<div class="content">
+<pre class="CodeRay highlight"><code data-lang="console"># Set environment variables
+$ export env1=aaa
+
+# Execute job
+$ java org.springframework.batch.core.launch.support.CommandLineJobRunner \
+    JobDefined.xml JOBID param1=bbb outputFile=/tmp/result.csv</code></pre>
+</div>
+</div>
+<div class="listingblock">
+<div class="title">Example of referring parameters by setting default values for environment variables in Java</div>
+<div class="content">
+<pre class="CodeRay highlight"><code data-lang="java"><span class="annotation">@Value</span>(<span class="string"><span class="delimiter">&quot;</span><span class="content">#{jobParameters['param1'] ?: '${env1}'}</span><span class="delimiter">&quot;</span></span>)  <span class="comment">// (1)</span>
+<span class="directive">public</span> <span class="type">void</span> setParam1(<span class="predefined-type">String</span> param1) {
+    <span class="local-variable">this</span>.param1 = param1;
+}</code></pre>
+</div>
+</div>
+<table class="tableblock frame-all grid-all spread">
+<caption class="title">Items list of setting contents</caption>
+<colgroup>
+<col style="width: 10%;">
+<col style="width: 90%;">
+</colgroup>
+<thead>
+<tr>
+<th class="tableblock halign-left valign-top">Sr. No.</th>
+<th class="tableblock halign-left valign-top">Explanation</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td class="tableblock halign-left valign-top"><p class="tableblock">(1)</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">Specify the parameters to be referred by using <code>@Value</code> annotation by setting default values in environment variables.<br>
+When parameters are not set, the value of environment variables are set.</p></td>
+</tr>
+</tbody>
+</table>
+<div class="admonitionblock warning">
+<table>
+<tr>
+<td class="icon">
+<i class="fa icon-warning" title="Warning"></i>
+</td>
+<td class="content">
+<div class="title">How to set incorrect default values</div>
+<div class="paragraph">
+<p>When the following is defined and param1 is not set by command-line arguments,
+note that null is set in param1 irrespective of the fact that you want to set env1 value.</p>
+</div>
+<div class="listingblock">
+<div class="title">Setting method example of incorrect default value</div>
+<div class="content">
+<pre class="CodeRay highlight"><code data-lang="java"><span class="annotation">@Value</span>(<span class="string"><span class="delimiter">&quot;</span><span class="content">${env1}</span><span class="delimiter">&quot;</span></span>)
+<span class="directive">private</span> <span class="predefined-type">String</span> param1;
+
+<span class="annotation">@Value</span>(<span class="string"><span class="delimiter">&quot;</span><span class="content">#{jobParameters['param1']}</span><span class="delimiter">&quot;</span></span>)
+<span class="directive">public</span> <span class="type">void</span> setParam1(<span class="predefined-type">String</span> param1) {
+  <span class="local-variable">this</span>.param1 = param1;
+}</code></pre>
+</div>
+</div>
+</td>
+</tr>
+</table>
+</div>
+</div>
+</div>
+</div>
+</div>
+<div class="container">
+
+  <div class="common-bg">
+    <div class="information">
+      TERASOLUNA Batch Framework for Java (5.x) Development Guideline - version 5.0.1.RELEASE, 2017-9-27
+    </div>
+    <div class="index">
+      <a href="index.html">&gt; INDEX</a>
+    </div>
+  </div>
+
+  <div class="footer-bg">
+    <div class="copyright">
+      &copy; Copyright 2017 NTT DATA Corporation.
+    </div>
+  </div>
+
+</div>
+</body>
+</html>

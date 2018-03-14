@@ -1,0 +1,249 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<!--[if IE]><meta http-equiv="X-UA-Compatible" content="IE=edge"><![endif]-->
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<meta name="generator" content="Asciidoctor 1.5.6.1">
+<title>Introduction</title>
+<link rel="stylesheet" href="./theme/css/readthedocs.css">
+<link rel="stylesheet" href="./theme/css/font-awesome.min.css">
+<link rel="stylesheet" href="./theme/css/coderay-asciidoctor.css">
+<link rel="stylesheet" href="./theme/css/header-footer.css">
+<title>TERASOLUNA Batch Framework for Java (5.x) Development Guideline</title>
+
+<div class="common-bg">
+  <div class="information">
+    TERASOLUNA Batch Framework for Java (5.x) Development Guideline - version 5.0.1.RELEASE, 2017-9-27
+  </div>
+  <div class="index">
+    <a href="index.html">&gt; INDEX</a>
+  </div>
+</div>
+</head>
+<body id="Ch09_Introduction" class="book toc2 toc-left">
+<div id="header">
+<h1>Introduction</h1>
+<div id="toc" class="toc2">
+<div id="toctitle">Table of Contents</div>
+<ul class="sectlevel1">
+<li><a href="#Ch09_Introduction_Purpose">Objective of the tutorial</a></li>
+<li><a href="#Ch09_Introduction_Target">Target readers</a></li>
+<li><a href="#Ch09_Introduction_Environment">Verification environment</a></li>
+<li><a href="#Ch09_Introduction_AboutFrameWork">Overview of framework</a></li>
+<li><a href="#Ch09_Introduction_HowToProceed">How to proceed with the tutorial</a></li>
+</ul>
+</div>
+</div>
+<div id="content">
+<div class="sect1">
+<h2 id="Ch09_Introduction_Purpose"><a class="anchor" href="#Ch09_Introduction_Purpose"></a>Objective of the tutorial</h2>
+<div class="sectionbody">
+<div class="paragraph">
+<p>This tutorial aims to achieve the basic knowledge of TERASOLUNA Batch 5.x by actually experiencing the development
+of the application based on the contents described in TERASOLUNA Batch 5.x Development guideline.</p>
+</div>
+</div>
+</div>
+<div class="sect1">
+<h2 id="Ch09_Introduction_Target"><a class="anchor" href="#Ch09_Introduction_Target"></a>Target readers</h2>
+<div class="sectionbody">
+<div class="paragraph">
+<p>This tutorial is written for architects and programmers who are experienced in software development
+and it is assumed that readers possess the following knowledge.</p>
+</div>
+<div class="ulist">
+<ul>
+<li>
+<p>Basic knowledge of DI or AOP of Spring Framework</p>
+</li>
+<li>
+<p>Basic knowledge of SQL</p>
+</li>
+<li>
+<p>Experience of developing a Java-based application</p>
+</li>
+</ul>
+</div>
+</div>
+</div>
+<div class="sect1">
+<h2 id="Ch09_Introduction_Environment"><a class="anchor" href="#Ch09_Introduction_Environment"></a>Verification environment</h2>
+<div class="sectionbody">
+<div class="paragraph">
+<p>Verification of environment conditions for this tutorials are shown as below.</p>
+</div>
+<table class="tableblock frame-all grid-all spread">
+<caption class="title">Environment conditions</caption>
+<colgroup>
+<col style="width: 20%;">
+<col style="width: 80%;">
+</colgroup>
+<thead>
+<tr>
+<th class="tableblock halign-left valign-top">Software classification</th>
+<th class="tableblock halign-left valign-top">Product name</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td class="tableblock halign-left valign-top"><p class="tableblock">OS</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">Windows 7 Professional SP1 (64bit)</p></td>
+</tr>
+<tr>
+<td class="tableblock halign-left valign-top"><p class="tableblock">JDK</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">openjdk-1.8.0.131.x86_64</p></td>
+</tr>
+<tr>
+<td class="tableblock halign-left valign-top"><p class="tableblock">IDE</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">Spring Tool Suite 3.8.2 released</p></td>
+</tr>
+<tr>
+<td class="tableblock halign-left valign-top"><p class="tableblock">Build Tool</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">Apache Maven 3.3.9</p></td>
+</tr>
+<tr>
+<td class="tableblock halign-left valign-top"><p class="tableblock">RDBMS</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">H2 Database 1.4.193</p></td>
+</tr>
+</tbody>
+</table>
+</div>
+</div>
+<div class="sect1">
+<h2 id="Ch09_Introduction_AboutFrameWork"><a class="anchor" href="#Ch09_Introduction_AboutFrameWork"></a>Overview of framework</h2>
+<div class="sectionbody">
+<div class="paragraph">
+<p>Overview of processing model and architecture differences are explained here as the overview of framework.<br>
+For Spring Batch, refer <a href="Ch02_SpringBatchArchitecture.html#Ch02_SpringBatchArch">Architecture of Spring Batch</a> of TERASOLUNA Batch 5.x Development guideline for details.</p>
+</div>
+<div class="paragraph">
+<p>Processing models offered by TERASOLUNA Batch 5.x include a chunk model and a tasklet model.<br>
+Respective features are explained below.</p>
+</div>
+<div class="dlist">
+<dl>
+<dt class="hdlist1">Chunk model</dt>
+<dd>
+<p>A method which inputs/processes/outputs a certain number of data records together. This collection of data is called as a chunk.
+A job can be implemented by standardizing flow of processes like data input/processing/output and then implementing only a part of the process.
+It is used while processing a large amount of data effectively.<br>
+For details, refer <a href="Ch02_SpringBatchArchitecture.html#Ch02_SpringBatchArch_Detail_BusinessLogic_Chunk">Chunk model</a>.</p>
+</dd>
+<dt class="hdlist1">Tasklet model</dt>
+<dd>
+<p>A method which describes a process freely. It is used in simple cases like issuing SQL only once, issuing only command or in complex cases
+where it is difficult to standardize like accessing from multiple databases or files while processing.<br>
+For details, refer <a href="Ch02_SpringBatchArchitecture.html#Ch02_SpringBatchArch_Detail_BusinessLogic_Tasklet">Tasklet model</a>.</p>
+</dd>
+</dl>
+</div>
+<div class="paragraph">
+<p>For the processing model, the components and functional differences are shown in the table below.</p>
+</div>
+<table class="tableblock frame-all grid-all spread">
+<caption class="title">Functional differences of processing model</caption>
+<colgroup>
+<col style="width: 24%;">
+<col style="width: 38%;">
+<col style="width: 38%;">
+</colgroup>
+<thead>
+<tr>
+<th class="tableblock halign-left valign-top">Function</th>
+<th class="tableblock halign-left valign-top">Chunk model</th>
+<th class="tableblock halign-left valign-top">Tasklet model</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td class="tableblock halign-left valign-top"><p class="tableblock">Components</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">It consists of ItemReader, ItemProcessor, ItemWriter and ChunkOrientedTasklet</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">It consists of Tasklet only.</p></td>
+</tr>
+<tr>
+<td class="tableblock halign-left valign-top"><p class="tableblock">Transaction</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">A transaction occurs for every chunk unit. Transaction control is only for the intermediate commit.</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">Process is done by 1 transaction. Either a batch commit method or intermediate commit method can be used for transaction control.
+Former method uses a transaction control system of Spring Batch whereas the transaction is done directly by the user in the later method.</p></td>
+</tr>
+<tr>
+<td class="tableblock halign-left valign-top"><p class="tableblock">Recommended reprocessing methods</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">Rerun and restart can be used.</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">Generally, only rerun is used.</p></td>
+</tr>
+<tr>
+<td class="tableblock halign-left valign-top"><p class="tableblock">Exception handling</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">Exception handling can be easily performed by using a listener. It can also be implemented individually by using try-catch.</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">Individual implementation by using try-catch is required.</p></td>
+</tr>
+</tbody>
+</table>
+<div class="paragraph">
+<p>In this tutorial, how to implement a chunk model and a tasklet model is explained for the applications which use the basic functions.
+Since the implementation method varies according to architecture of chunk model and tasklet model,
+it is recommended to proceed further after completely understanding respective features of the model.</p>
+</div>
+</div>
+</div>
+<div class="sect1">
+<h2 id="Ch09_Introduction_HowToProceed"><a class="anchor" href="#Ch09_Introduction_HowToProceed"></a>How to proceed with the tutorial</h2>
+<div class="sectionbody">
+<div class="paragraph">
+<p>Since the applications (jobs) created in this tutorial consists of jobs created
+by adding implementations to created jobs, the sequence in which they are created must be considered.</p>
+</div>
+<div class="paragraph">
+<p>How to read and proceed with this tutorial is shown in the figure below along with sequence relation of jobs to be created.</p>
+</div>
+<div class="imageblock">
+<div class="content">
+<img src="./images/ch09/Introduction/Ch09_Introduction_HowToProceed.png" alt="How to Proceed with the Tutorial">
+</div>
+<div class="title">How to proceed with the tutorial</div>
+</div>
+<div class="paragraph">
+<div class="title">Execution timing for the asynchronous execution type job</div>
+<p>The asynchronous execution method job is assumed to be the last job in the order of the progress of this tutorial.
+However, if at least one job is created in the chunk model or tasklet model, the asynchronous execution method job may be executed.</p>
+</div>
+<div class="admonitionblock warning">
+<table>
+<tr>
+<td class="icon">
+<i class="fa icon-warning" title="Warning"></i>
+</td>
+<td class="content">
+<div class="title">Additional implementation of jobs which inputs/outputs data by accessing a file</div>
+<div class="paragraph">
+<p>Implementation is added based on <a href="Ch09_DBAccessJob.html#Ch09_DBAccessJob">Job which inputs/outputs data by accessing database</a>,
+besides explanation of <a href="Ch09_FileAccessJob.html#Ch09_FileAccessJob">Job which inputs/outputs data by accessing the file</a> and the execution example is displayed.
+When you want to add an implementation based on a job which inputs/outputs data by accessing a file, it must be remembered that it is necessary to read the same.</p>
+</div>
+</td>
+</tr>
+</table>
+</div>
+</div>
+</div>
+</div>
+<div class="container">
+
+  <div class="common-bg">
+    <div class="information">
+      TERASOLUNA Batch Framework for Java (5.x) Development Guideline - version 5.0.1.RELEASE, 2017-9-27
+    </div>
+    <div class="index">
+      <a href="index.html">&gt; INDEX</a>
+    </div>
+  </div>
+
+  <div class="footer-bg">
+    <div class="copyright">
+      &copy; Copyright 2017 NTT DATA Corporation.
+    </div>
+  </div>
+
+</div>
+</body>
+</html>

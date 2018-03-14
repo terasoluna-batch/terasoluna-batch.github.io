@@ -1,0 +1,748 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<!--[if IE]><meta http-equiv="X-UA-Compatible" content="IE=edge"><![endif]-->
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<meta name="generator" content="Asciidoctor 1.5.6.1">
+<title>Creation of tasklet model job</title>
+<link rel="stylesheet" href="./theme/css/readthedocs.css">
+<link rel="stylesheet" href="./theme/css/font-awesome.min.css">
+<link rel="stylesheet" href="./theme/css/coderay-asciidoctor.css">
+<link rel="stylesheet" href="./theme/css/header-footer.css">
+<title>TERASOLUNA Batch Framework for Java (5.x) Development Guideline</title>
+
+<div class="common-bg">
+  <div class="information">
+    TERASOLUNA Batch Framework for Java (5.x) Development Guideline - version 5.0.1.RELEASE, 2017-9-27
+  </div>
+  <div class="index">
+    <a href="index.html">&gt; INDEX</a>
+  </div>
+</div>
+</head>
+<body id="Ch03_CreateTaskletJob" class="book toc2 toc-left">
+<div id="header">
+<h1>Creation of tasklet model job</h1>
+<div id="toc" class="toc2">
+<div id="toctitle">Table of Contents</div>
+<ul class="sectlevel1">
+<li><a href="#Ch03_CreateTaskletJob_Overview">Overview</a>
+<ul class="sectlevel2">
+<li><a href="#Ch03_CreateTaskletJob_Overview_Components">Components</a></li>
+</ul>
+</li>
+<li><a href="#Ch03_CreateTaskletJob_HowToUse">HowToUse</a>
+<ul class="sectlevel2">
+<li><a href="#Ch03_CreateTaskletJob_HowToUse_JobConfig">Job configuration</a></li>
+<li><a href="#Ch03_CreateTaskletJob_HowToUse_Implements">Implementation of tasklet</a></li>
+<li><a href="#Ch03_CreateTaskletJob_HowToUse_Implements_Simple">Implementation of simple tasklet</a></li>
+<li><a href="#Ch03_CreateTaskletJob_HowToUse_Implements_InOut">Implementation of tasklet using the components of chunk model</a></li>
+</ul>
+</li>
+</ul>
+</div>
+</div>
+<div id="content">
+<div class="sect1">
+<h2 id="Ch03_CreateTaskletJob_Overview"><a class="anchor" href="#Ch03_CreateTaskletJob_Overview"></a>Overview</h2>
+<div class="sectionbody">
+<div class="paragraph">
+<p>How to create tasklet model job is explained.
+Refer to <a href="Ch02_SpringBatchArchitecture.html">Spring Batch architecture</a> for the architecture of tasklet model.</p>
+</div>
+<div class="sect2">
+<h3 id="Ch03_CreateTaskletJob_Overview_Components"><a class="anchor" href="#Ch03_CreateTaskletJob_Overview_Components"></a>Components</h3>
+<div class="paragraph">
+<p>Tasklet model job does not register multiple components.
+It only implements <code>org.springframework.batch.core.step.tasklet.Tasklet</code> and sets it in Bean definition.
+<code> ItemReader</code> and <code> ItemWriter</code> which are components of the chunk model can also be used as components as the advanced implementation means.</p>
+</div>
+</div>
+</div>
+</div>
+<div class="sect1">
+<h2 id="Ch03_CreateTaskletJob_HowToUse"><a class="anchor" href="#Ch03_CreateTaskletJob_HowToUse"></a>HowToUse</h2>
+<div class="sectionbody">
+<div class="paragraph">
+<p>How to implement tasklet model job is explained in the following order here.</p>
+</div>
+<div class="ulist">
+<ul>
+<li>
+<p><a href="#Ch03_CreateTaskletJob_HowToUse_JobConfig">Job configuration</a></p>
+</li>
+<li>
+<p><a href="#Ch03_CreateTaskletJob_HowToUse_Implements">Implementation of tasklet</a></p>
+</li>
+</ul>
+</div>
+<div class="sect2">
+<h3 id="Ch03_CreateTaskletJob_HowToUse_JobConfig"><a class="anchor" href="#Ch03_CreateTaskletJob_HowToUse_JobConfig"></a>Job configuration</h3>
+<div class="paragraph">
+<p>Define tasklet model job in Bean definition file.
+An example is shown below.</p>
+</div>
+<div class="listingblock">
+<div class="title">Example of Bean definition file (Tasklet model)</div>
+<div class="content">
+<pre class="CodeRay highlight"><code data-lang="xml"><span class="preprocessor">&lt;?xml version=&quot;1.0&quot; encoding=&quot;UTF-8&quot;?&gt;</span>
+<span class="tag">&lt;beans</span> <span class="attribute-name">xmlns</span>=<span class="string"><span class="delimiter">&quot;</span><span class="content">http://www.springframework.org/schema/beans</span><span class="delimiter">&quot;</span></span>
+       <span class="attribute-name">xmlns:xsi</span>=<span class="string"><span class="delimiter">&quot;</span><span class="content">http://www.w3.org/2001/XMLSchema-instance</span><span class="delimiter">&quot;</span></span>
+       <span class="attribute-name">xmlns:context</span>=<span class="string"><span class="delimiter">&quot;</span><span class="content">http://www.springframework.org/schema/context</span><span class="delimiter">&quot;</span></span>
+       <span class="attribute-name">xmlns:batch</span>=<span class="string"><span class="delimiter">&quot;</span><span class="content">http://www.springframework.org/schema/batch</span><span class="delimiter">&quot;</span></span>
+       <span class="attribute-name">xsi:schemaLocation</span>=<span class="string"><span class="delimiter">&quot;</span><span class="content">http://www.springframework.org/schema/beans http://www.springframework.org/schema/beans/spring-beans.xsd</span>
+             <span class="content">http://www.springframework.org/schema/context http://www.springframework.org/schema/context/spring-context.xsd</span>
+             <span class="content">http://www.springframework.org/schema/batch http://www.springframework.org/schema/batch/spring-batch.xsd</span><span class="delimiter">&quot;</span></span><span class="tag">&gt;</span>
+
+    <span class="comment">&lt;!-- (1) --&gt;</span>
+    <span class="tag">&lt;import</span> <span class="attribute-name">resource</span>=<span class="string"><span class="delimiter">&quot;</span><span class="content">classpath:META-INF/spring/job-base-context.xml</span><span class="delimiter">&quot;</span></span><span class="tag">/&gt;</span>
+
+    <span class="comment">&lt;!-- (2) --&gt;</span>
+    <span class="tag">&lt;context:annotation-config</span><span class="tag">/&gt;</span>
+
+    <span class="comment">&lt;!-- (3) --&gt;</span>
+    <span class="tag">&lt;context:component-scan</span>
+          <span class="attribute-name">base-package</span>=<span class="string"><span class="delimiter">&quot;</span><span class="content">org.terasoluna.batch.functionaltest.app.common</span><span class="delimiter">&quot;</span></span><span class="tag">/&gt;</span>
+
+    <span class="comment">&lt;!-- (4) --&gt;</span>
+    <span class="tag">&lt;batch:job</span> <span class="attribute-name">id</span>=<span class="string"><span class="delimiter">&quot;</span><span class="content">simpleJob</span><span class="delimiter">&quot;</span></span> <span class="attribute-name">job-repository</span>=<span class="string"><span class="delimiter">&quot;</span><span class="content">jobRepository</span><span class="delimiter">&quot;</span></span><span class="tag">&gt;</span> <span class="comment">&lt;!-- (5) --&gt;</span>
+        <span class="tag">&lt;batch:step</span> <span class="attribute-name">id</span>=<span class="string"><span class="delimiter">&quot;</span><span class="content">simpleJob.step01</span><span class="delimiter">&quot;</span></span><span class="tag">&gt;</span> <span class="comment">&lt;!-- (6) --&gt;</span>
+            <span class="tag">&lt;batch:tasklet</span> <span class="attribute-name">transaction-manager</span>=<span class="string"><span class="delimiter">&quot;</span><span class="content">jobTransactionManager</span><span class="delimiter">&quot;</span></span>
+                           <span class="attribute-name">ref</span>=<span class="string"><span class="delimiter">&quot;</span><span class="content">simpleJobTasklet</span><span class="delimiter">&quot;</span></span><span class="tag">/&gt;</span> <span class="comment">&lt;!-- (7) --&gt;</span>
+        <span class="tag">&lt;/batch:step&gt;</span>
+    <span class="tag">&lt;/batch:job&gt;</span>
+
+<span class="tag">&lt;/beans&gt;</span></code></pre>
+</div>
+</div>
+<div class="listingblock">
+<div class="title">Example of tasklet implementation class</div>
+<div class="content">
+<pre class="CodeRay highlight"><code data-lang="java"><span class="keyword">package</span> <span class="namespace">org.terasoluna.batch.functionaltest.app.common</span>;
+
+<span class="annotation">@Component</span> <span class="comment">// (3)</span>
+<span class="directive">public</span> <span class="type">class</span> <span class="class">SimpleJobTasklet</span> <span class="directive">implements</span> Tasklet {
+  <span class="comment">// omitted.</span>
+}</code></pre>
+</div>
+</div>
+<table class="tableblock frame-all grid-all spread">
+<colgroup>
+<col style="width: 10%;">
+<col style="width: 90%;">
+</colgroup>
+<thead>
+<tr>
+<th class="tableblock halign-left valign-top">S. No.</th>
+<th class="tableblock halign-left valign-top">Explanation</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td class="tableblock halign-left valign-top"><p class="tableblock">(1)</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">Import the settings to always read the required Bean definition when using TERASOLUNA Batch 5.x.</p></td>
+</tr>
+<tr>
+<td class="tableblock halign-left valign-top"><p class="tableblock">(2)</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">Enable Bean definition using annotation. Use it with (3).</p></td>
+</tr>
+<tr>
+<td class="tableblock halign-left valign-top"><p class="tableblock">(3)</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">Set base package of component-scan target. Use it with (2).<br>
+In the tasklet model, Bean is defined by annotation however, Bean definition of tasklet implementation class is not required in XML.</p></td>
+</tr>
+<tr>
+<td class="tableblock halign-left valign-top"><p class="tableblock">(4)</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">Job configuration.<br>
+<code>id</code> attribute must be unique for all the jobs included in 1 batch application.</p></td>
+</tr>
+<tr>
+<td class="tableblock halign-left valign-top"><p class="tableblock">(5)</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><code>JobRepository</code> configuration.<br>
+The value set in the <code> job-repository</code> attribute should be fixed to <code> jobRepository</code> unless there is a special reason.<br>
+This will allow all the jobs to be managed in one <code>JobRepository</code>.
+Resolve Bean definition of <code>jobRepository</code> by (1).</p></td>
+</tr>
+<tr>
+<td class="tableblock halign-left valign-top"><p class="tableblock">(6)</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">Step configuration.<br>
+Although it is not necessary to use a unique <code>id</code> attribute for all the jobs in 1 batch application, a unique id is used for enabling easy tracking at the time of failure occurrence.<br>
+A format of [step+serial number] is used for id attribute specified in (4) unless for a specific reason to use a different format.</p></td>
+</tr>
+<tr>
+<td class="tableblock halign-left valign-top"><p class="tableblock">(7)</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">Tasklet configuration.<br>
+The value set in the <code>transaction-manager</code> attribute should be fixed to <code>jobTransactionManager</code> unless there is a special reason.<br>
+This will manage the processes of the entire tasklet in one transaction.
+For details, refer to <a href="Ch05_Transaction.html">Transaction control</a>.<br>
+Resolve Bean definition of <code>jobTransactionManager</code> by (1).<br></p>
+<p class="tableblock">Also, <code>ref</code> attribute specifies a Bean ID of Tasklet implementation class to be resolved by (3).<br>
+<code>SimpleJobTasklet</code>, the tasklet implementation class name should be <code>simpleJobTasklet</code> with the first letter in lower case.</p></td>
+</tr>
+</tbody>
+</table>
+<div class="admonitionblock tip">
+<table>
+<tr>
+<td class="icon">
+<i class="fa icon-tip" title="Tip"></i>
+</td>
+<td class="content">
+<div class="title">Bean name when using annotation</div>
+<div class="paragraph">
+<p>Bean name when using <code>@Component</code> annotation is generated through
+<code>org.springframework.context.annotation.AnnotationBeanNameGenerator</code>.
+Refer to Javadoc of this class when you want to confirm the naming rules.</p>
+</div>
+</td>
+</tr>
+</table>
+</div>
+</div>
+<div class="sect2">
+<h3 id="Ch03_CreateTaskletJob_HowToUse_Implements"><a class="anchor" href="#Ch03_CreateTaskletJob_HowToUse_Implements"></a>Implementation of tasklet</h3>
+<div class="paragraph">
+<p>First, understand the overview with simple implementation, then proceed to implementation using the components of the chunk model.</p>
+</div>
+<div class="paragraph">
+<p>It is explained in the following order.</p>
+</div>
+<div class="ulist">
+<ul>
+<li>
+<p><a href="#Ch03_CreateTaskletJob_HowToUse_Implements_Simple">Implementation of simple tasklet</a></p>
+</li>
+<li>
+<p><a href="#Ch03_CreateTaskletJob_HowToUse_Implements_InOut">Implementation of tasklet using the components of chunk model</a></p>
+</li>
+</ul>
+</div>
+</div>
+<div class="sect2">
+<h3 id="Ch03_CreateTaskletJob_HowToUse_Implements_Simple"><a class="anchor" href="#Ch03_CreateTaskletJob_HowToUse_Implements_Simple"></a>Implementation of simple tasklet</h3>
+<div class="paragraph">
+<p>Basic points are explained through tasklet implementation only for log output.</p>
+</div>
+<div class="listingblock">
+<div class="title">Example of simple tasklet implementation class</div>
+<div class="content">
+<pre class="CodeRay highlight"><code data-lang="java"><span class="keyword">package</span> <span class="namespace">org.terasoluna.batch.functionaltest.app.common</span>;
+
+<span class="comment">// omitted.</span>
+
+<span class="annotation">@Component</span>
+<span class="directive">public</span> <span class="type">class</span> <span class="class">SimpleJobTasklet</span> <span class="directive">implements</span> Tasklet { <span class="comment">// (1)</span>
+
+    <span class="directive">private</span> <span class="directive">static</span> <span class="directive">final</span> <span class="predefined-type">Logger</span> logger =
+            LoggerFactory.getLogger(SimpleJobTasklet.class);
+
+    <span class="annotation">@Override</span>
+    <span class="directive">public</span> RepeatStatus execute(StepContribution contribution,
+            ChunkContext chunkContext) <span class="directive">throws</span> <span class="exception">Exception</span> {  <span class="comment">// (2)</span>
+        logger.info(<span class="string"><span class="delimiter">&quot;</span><span class="content">called tasklet.</span><span class="delimiter">&quot;</span></span>); <span class="comment">// (3)</span>
+        <span class="keyword">return</span> RepeatStatus.FINISHED; <span class="comment">// (4)</span>
+    }
+}</code></pre>
+</div>
+</div>
+<table class="tableblock frame-all grid-all spread">
+<colgroup>
+<col style="width: 10%;">
+<col style="width: 90%;">
+</colgroup>
+<thead>
+<tr>
+<th class="tableblock halign-left valign-top">Sr. No.</th>
+<th class="tableblock halign-left valign-top">Explanation</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td class="tableblock halign-left valign-top"><p class="tableblock">(1)</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">Implement <code>org.springframework.batch.core.step.tasklet.Tasklet</code> interface using <code>implements</code>.</p></td>
+</tr>
+<tr>
+<td class="tableblock halign-left valign-top"><p class="tableblock">(2)</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">Implement <code>execute</code> method to be defined by <code>Tasklet</code> interface.
+Arguments <code>StepContribution</code>, <code>ChunkContext</code> are used however, they are not explained here.</p></td>
+</tr>
+<tr>
+<td class="tableblock halign-left valign-top"><p class="tableblock">(3)</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">Implement any process. INFO log is output here.</p></td>
+</tr>
+<tr>
+<td class="tableblock halign-left valign-top"><p class="tableblock">(4)</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">Return whether or not the tasklet process is completed.<br>
+Always specify as <code>return RepeatStatus.FINISHED;</code>.</p></td>
+</tr>
+</tbody>
+</table>
+</div>
+<div class="sect2">
+<h3 id="Ch03_CreateTaskletJob_HowToUse_Implements_InOut"><a class="anchor" href="#Ch03_CreateTaskletJob_HowToUse_Implements_InOut"></a>Implementation of tasklet using the components of chunk model</h3>
+<div class="paragraph">
+<p>Spring Batch does not mention using various components of chunk model during tasklet implementation.
+In TERASOLUNA Batch 5.x, you may select this depending on the following situations.</p>
+</div>
+<div class="ulist">
+<ul>
+<li>
+<p>When multiple resources are combined and processed, it is difficult to be as per the chunk model format</p>
+</li>
+<li>
+<p>When processes are implemented at various places in the chunk model, tasklet model is better to understand the overall image easily</p>
+</li>
+<li>
+<p>When recovery is made simple and you want to use batch commit of tasklet model instead of intermediate commit of chunk model</p>
+</li>
+</ul>
+</div>
+<div class="paragraph">
+<p>Note that, processing units should also be considered to implement Tasklet by using components of chunk model.
+Following 3 patterns can be considered as units of output records.</p>
+</div>
+<table class="tableblock frame-all grid-all spread">
+<caption class="title">Units and features of output records</caption>
+<colgroup>
+<col style="width: 15%;">
+<col style="width: 85%;">
+</colgroup>
+<thead>
+<tr>
+<th class="tableblock halign-left valign-top">Output records</th>
+<th class="tableblock halign-left valign-top">Features</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td class="tableblock halign-left valign-top"><p class="tableblock">1 record</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">Since data is input, processed and output one by one for each record, processing images is easy.<br>
+It must be noted that performance deterioration is likely to occur due to frequent I/O in case of large amount of data.</p></td>
+</tr>
+<tr>
+<td class="tableblock halign-left valign-top"><p class="tableblock">All records</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">Data is input and processed one by one for each record and stored in the memory, all records are output together in the end.<br>
+Data consistency can be ensured and performance can be improved in case of small amount of data.
+However, it must be noted that high load is likely to be applied on resources (CPU, memory) in case of large amount of data.</p></td>
+</tr>
+<tr>
+<td class="tableblock halign-left valign-top"><p class="tableblock">Fixed records</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">Data is input and processed one by one for each record and stored in the memory, data is output when a certain number of records are reached.<br>
+Performance improvement is anticipated by efficiently processing large amount of data with certain resources (CPU, memory).<br>
+Also, since the data is processed for a fixed number of records, intermediate commit can also be employed by implementing transaction control.
+However, it must be noted that, processed and unprocessed data are likely to exist together in the recovery if the job has terminated abnormally, in case of intermediate commit method.</p></td>
+</tr>
+</tbody>
+</table>
+<div class="paragraph">
+<p>The tasklet implementation that uses <code> ItemReader</code> and <code> ItemWriter</code> which are the components of the chunk model is explained below.</p>
+</div>
+<div class="paragraph">
+<p>The implementation example shows processing data one by one for each record.</p>
+</div>
+<div class="listingblock">
+<div class="title">Tasklet implementation example that uses the components of chunk model</div>
+<div class="content">
+<pre class="CodeRay highlight"><code data-lang="java"><span class="annotation">@Component</span>()
+<span class="annotation">@Scope</span>(<span class="string"><span class="delimiter">&quot;</span><span class="content">step</span><span class="delimiter">&quot;</span></span>) <span class="comment">// (1)</span>
+<span class="directive">public</span> <span class="type">class</span> <span class="class">SalesPlanChunkTranTask</span> <span class="directive">implements</span> Tasklet {
+
+    <span class="annotation">@Inject</span>
+    <span class="annotation">@Named</span>(<span class="string"><span class="delimiter">&quot;</span><span class="content">detailCSVReader</span><span class="delimiter">&quot;</span></span>) <span class="comment">// (2)</span>
+    ItemStreamReader&lt;SalesPlanDetail&gt; itemReader; <span class="comment">// (3)</span>
+
+    <span class="annotation">@Inject</span>
+    SalesPlanDetailRepository repository; <span class="comment">// (4)</span>
+
+    <span class="annotation">@Override</span>
+    <span class="directive">public</span> RepeatStatus execute(StepContribution contribution,
+            ChunkContext chunkContext) <span class="directive">throws</span> <span class="exception">Exception</span> {
+
+        SalesPlanDetail item;
+
+        <span class="keyword">try</span> {
+            itemReader.open(chunkContext.getStepContext().getStepExecution()
+                    .getExecutionContext()); <span class="comment">// (5)</span>
+
+            <span class="keyword">while</span> ((item = itemReader.read()) != <span class="predefined-constant">null</span>) { <span class="comment">// (6)</span>
+
+                <span class="comment">// do some processes.</span>
+
+                repository.create(item); <span class="comment">// (7)</span>
+            }
+        } <span class="keyword">finally</span> {
+            itemReader.close(); <span class="comment">// (8)</span>
+        }
+        <span class="keyword">return</span> RepeatStatus.FINISHED;
+    }
+}</code></pre>
+</div>
+</div>
+<div class="listingblock">
+<div class="title">Bean definition example 1</div>
+<div class="content">
+<pre class="CodeRay highlight"><code data-lang="xml"><span class="comment">&lt;!-- omitted --&gt;</span>
+<span class="tag">&lt;import</span> <span class="attribute-name">resource</span>=<span class="string"><span class="delimiter">&quot;</span><span class="content">classpath:META-INF/spring/job-base-context.xml</span><span class="delimiter">&quot;</span></span><span class="tag">/&gt;</span>
+
+<span class="tag">&lt;context:annotation-config</span><span class="tag">/&gt;</span>
+
+<span class="tag">&lt;context:component-scan</span>
+    <span class="attribute-name">base-package</span>=<span class="string"><span class="delimiter">&quot;</span><span class="content">org.terasoluna.batch.functionaltest.app.plan</span><span class="delimiter">&quot;</span></span> <span class="tag">/&gt;</span>
+<span class="tag">&lt;context:component-scan</span>
+    <span class="attribute-name">base-package</span>=<span class="string"><span class="delimiter">&quot;</span><span class="content">org.terasoluna.batch.functionaltest.ch05.transaction.component</span><span class="delimiter">&quot;</span></span> <span class="tag">/&gt;</span>
+
+<span class="comment">&lt;!-- (9) --&gt;</span>
+<span class="tag">&lt;mybatis:scan</span>
+    <span class="attribute-name">base-package</span>=<span class="string"><span class="delimiter">&quot;</span><span class="content">org.terasoluna.batch.functionaltest.app.repository.plan</span><span class="delimiter">&quot;</span></span>
+    <span class="attribute-name">factory-ref</span>=<span class="string"><span class="delimiter">&quot;</span><span class="content">jobSqlSessionFactory</span><span class="delimiter">&quot;</span></span><span class="tag">/&gt;</span>
+
+<span class="comment">&lt;!-- (10) --&gt;</span>
+<span class="tag">&lt;bean</span> <span class="attribute-name">id</span>=<span class="string"><span class="delimiter">&quot;</span><span class="content">detailCSVReader</span><span class="delimiter">&quot;</span></span>
+      <span class="attribute-name">class</span>=<span class="string"><span class="delimiter">&quot;</span><span class="content">org.springframework.batch.item.file.FlatFileItemReader</span><span class="delimiter">&quot;</span></span> <span class="attribute-name">scope</span>=<span class="string"><span class="delimiter">&quot;</span><span class="content">step</span><span class="delimiter">&quot;</span></span>
+      <span class="attribute-name">p:resource</span>=<span class="string"><span class="delimiter">&quot;</span><span class="content">file:#{jobParameters['inputFile']}</span><span class="delimiter">&quot;</span></span><span class="tag">&gt;</span>
+    <span class="tag">&lt;property</span> <span class="attribute-name">name</span>=<span class="string"><span class="delimiter">&quot;</span><span class="content">lineMapper</span><span class="delimiter">&quot;</span></span><span class="tag">&gt;</span>
+        <span class="tag">&lt;bean</span> <span class="attribute-name">class</span>=<span class="string"><span class="delimiter">&quot;</span><span class="content">org.springframework.batch.item.file.mapping.DefaultLineMapper</span><span class="delimiter">&quot;</span></span><span class="tag">&gt;</span>
+            <span class="tag">&lt;property</span> <span class="attribute-name">name</span>=<span class="string"><span class="delimiter">&quot;</span><span class="content">lineTokenizer</span><span class="delimiter">&quot;</span></span><span class="tag">&gt;</span>
+                <span class="tag">&lt;bean</span> <span class="attribute-name">class</span>=<span class="string"><span class="delimiter">&quot;</span><span class="content">org.springframework.batch.item.file.transform.DelimitedLineTokenizer</span><span class="delimiter">&quot;</span></span>
+                      <span class="attribute-name">p:names</span>=<span class="string"><span class="delimiter">&quot;</span><span class="content">branchId,year,month,customerId,amount</span><span class="delimiter">&quot;</span></span><span class="tag">/&gt;</span>
+            <span class="tag">&lt;/property&gt;</span>
+            <span class="tag">&lt;property</span> <span class="attribute-name">name</span>=<span class="string"><span class="delimiter">&quot;</span><span class="content">fieldSetMapper</span><span class="delimiter">&quot;</span></span><span class="tag">&gt;</span>
+                <span class="tag">&lt;bean</span> <span class="attribute-name">class</span>=<span class="string"><span class="delimiter">&quot;</span><span class="content">org.springframework.batch.item.file.mapping.BeanWrapperFieldSetMapper</span><span class="delimiter">&quot;</span></span>
+                      <span class="attribute-name">p:targetType</span>=<span class="string"><span class="delimiter">&quot;</span><span class="content">org.terasoluna.batch.functionaltest.app.model.plan.SalesPlanDetail</span><span class="delimiter">&quot;</span></span><span class="tag">/&gt;</span>
+            <span class="tag">&lt;/property&gt;</span>
+        <span class="tag">&lt;/bean&gt;</span>
+    <span class="tag">&lt;/property&gt;</span>
+<span class="tag">&lt;/bean&gt;</span>
+
+<span class="comment">&lt;!-- (11) --&gt;</span>
+<span class="tag">&lt;batch:job</span> <span class="attribute-name">id</span>=<span class="string"><span class="delimiter">&quot;</span><span class="content">createSalesPlanChunkTranTask</span><span class="delimiter">&quot;</span></span> <span class="attribute-name">job-repository</span>=<span class="string"><span class="delimiter">&quot;</span><span class="content">jobRepository</span><span class="delimiter">&quot;</span></span><span class="tag">&gt;</span>
+    <span class="tag">&lt;batch:step</span> <span class="attribute-name">id</span>=<span class="string"><span class="delimiter">&quot;</span><span class="content">createSalesPlanChunkTranTask.step01</span><span class="delimiter">&quot;</span></span><span class="tag">&gt;</span>
+        <span class="tag">&lt;batch:tasklet</span> <span class="attribute-name">transaction-manager</span>=<span class="string"><span class="delimiter">&quot;</span><span class="content">jobTransactionManager</span><span class="delimiter">&quot;</span></span>
+                       <span class="attribute-name">ref</span>=<span class="string"><span class="delimiter">&quot;</span><span class="content">salesPlanChunkTranTask</span><span class="delimiter">&quot;</span></span><span class="tag">/&gt;</span>
+    <span class="tag">&lt;/batch:step&gt;</span>
+<span class="tag">&lt;/batch:job&gt;</span></code></pre>
+</div>
+</div>
+<table class="tableblock frame-all grid-all spread">
+<colgroup>
+<col style="width: 10%;">
+<col style="width: 90%;">
+</colgroup>
+<thead>
+<tr>
+<th class="tableblock halign-left valign-top">Sr. No.</th>
+<th class="tableblock halign-left valign-top">Explanation</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td class="tableblock halign-left valign-top"><p class="tableblock">(1)</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">Set the same step scope as the Bean scope of ItemReader to be used in this class.</p></td>
+</tr>
+<tr>
+<td class="tableblock halign-left valign-top"><p class="tableblock">(2)</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">Access input resources (flat files in this example) through <code>ItemReader</code>.<br>
+Specify Bean name as <code>detailCSVReader</code> but it is optional for clarity purpose.</p></td>
+</tr>
+<tr>
+<td class="tableblock halign-left valign-top"><p class="tableblock">(3)</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">Define the type as <code>ItemStreamReader</code> that is sub-interface of <code>ItemReader</code>.<br>
+This is because it is necessary to open/close the resource of (5), (8).
+It is supplemented later.</p></td>
+</tr>
+<tr>
+<td class="tableblock halign-left valign-top"><p class="tableblock">(4)</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">Access output resources (database in this example) through Mapper of MyBatis.<br>
+Mapper is directly used for the sake of simplicity. There is no need to always use <code>ItemWriter</code>.
+Of course, <code>MyBatisBatchItemWriter</code> can be used.</p></td>
+</tr>
+<tr>
+<td class="tableblock halign-left valign-top"><p class="tableblock">(5)</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">Open input resource.</p></td>
+</tr>
+<tr>
+<td class="tableblock halign-left valign-top"><p class="tableblock">(6)</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">Loop all input resources sequentially.<br>
+<code>ItemReader#read</code> returns <code>null</code> when it reads all the input data and reaches the end.</p></td>
+</tr>
+<tr>
+<td class="tableblock halign-left valign-top"><p class="tableblock">(7)</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">Output to database.</p></td>
+</tr>
+<tr>
+<td class="tableblock halign-left valign-top"><p class="tableblock">(8)</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">Resource should be closed without fail.<br>
+Exception handling should be implemented.
+When an exception occurs, the transactions of the entire tasklet are rolled-backed,
+stack trace of exception is output and the job terminates abnormally.</p></td>
+</tr>
+<tr>
+<td class="tableblock halign-left valign-top"><p class="tableblock">(9)</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">MyBatis-Spring settings.<br>
+For details of MyBatis-Spring settings, refer <a href="Ch05_DBAccess.html#Ch05_DBAccess">Database access</a>.</p></td>
+</tr>
+<tr>
+<td class="tableblock halign-left valign-top"><p class="tableblock">(10)</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">To enter from file, add Bean definition of <code>FlatFileItemReader</code>. The details are not explained here.</p></td>
+</tr>
+<tr>
+<td class="tableblock halign-left valign-top"><p class="tableblock">(11)</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">Since all the components are resolved by annotation,<br>
+it is same as <a href="#Ch03_CreateTaskletJob_HowToUse_Implements_Simple">Implementation of simple tasklet</a>.</p></td>
+</tr>
+</tbody>
+</table>
+<div class="admonitionblock important">
+<table>
+<tr>
+<td class="icon">
+<i class="fa icon-important" title="Important"></i>
+</td>
+<td class="content">
+<div class="title">On unification of scope</div>
+<div class="paragraph">
+<p>The scope of tasklet implementation class and Bean to be Injected should have the same scope.</p>
+</div>
+<div class="paragraph">
+<p>For example,  if <code> FlatFileItemReader</code> receives an input file path from an argument, the Bean scope should be <code> step</code>.
+In this case, the scope of tasklet implementation class should also be <code>step</code>.</p>
+</div>
+<div class="paragraph">
+<p>If the scope of tasklet implementation class is set to <code>singleton</code> temporarily,
+after instantiating the tasklet implementation class at the time of generating <code>ApplicationContext</code> at application startup
+if it tries to Inject by resolving the instance of <code>FlatFileItemReader</code>,
+<code>FlatFileItemReader</code> will be in the <code>step</code> scope, however will not exist yet. because it is to be generated at the time of step execution.
+As the result, the tasklet implementation class cannot be instantiated and fails to generate <code> ApplicationContext</code>.</p>
+</div>
+</td>
+</tr>
+</table>
+</div>
+<div class="admonitionblock important">
+<table>
+<tr>
+<td class="icon">
+<i class="fa icon-important" title="Important"></i>
+</td>
+<td class="content">
+<div class="title">Regarding the type of field assigned with @Inject</div>
+<div class="paragraph">
+<p>Any one of the following type depending on the implementation class to be used.</p>
+</div>
+<div class="ulist">
+<ul>
+<li>
+<p>ItemReader/ItemWriter</p>
+<div class="ulist">
+<ul>
+<li>
+<p>Used when there is no need to open/close the target resource.</p>
+</li>
+</ul>
+</div>
+</li>
+<li>
+<p>ItemSteamReader/ItemStreamWriter</p>
+<div class="ulist">
+<ul>
+<li>
+<p>Used when there is a need to open/close the target resource.</p>
+</li>
+</ul>
+</div>
+</li>
+</ul>
+</div>
+<div class="paragraph">
+<p>It should be decided which type to use after confirming javadoc. Typical examples are shown below.</p>
+</div>
+<div class="dlist">
+<dl>
+<dt class="hdlist1">In case of FlatFileItemReader/Writer</dt>
+<dd>
+<p>handle by ItemSteamReader/ItemStreamWriter</p>
+</dd>
+<dt class="hdlist1">In case of MyBatisCursorItemReader</dt>
+<dd>
+<p>handle by ItemStreamReader</p>
+</dd>
+<dt class="hdlist1">In case of MyBatisBatchItemWriter</dt>
+<dd>
+<p>handle by ItemWriter</p>
+</dd>
+</dl>
+</div>
+</td>
+</tr>
+</table>
+</div>
+<div class="paragraph">
+<p>The implementation example imitates a chunk model to process a certain number of records</p>
+</div>
+<div class="listingblock">
+<div class="title">Tasklet implementation example 2 that uses the components of chunk model</div>
+<div class="content">
+<pre class="CodeRay highlight"><code data-lang="java"><span class="annotation">@Component</span>
+<span class="annotation">@Scope</span>(<span class="string"><span class="delimiter">&quot;</span><span class="content">step</span><span class="delimiter">&quot;</span></span>)
+<span class="directive">public</span> <span class="type">class</span> <span class="class">SalesPerformanceTasklet</span> <span class="directive">implements</span> Tasklet {
+
+
+    <span class="annotation">@Inject</span>
+    ItemStreamReader&lt;SalesPerformanceDetail&gt; reader;
+
+    <span class="annotation">@Inject</span>
+    ItemWriter&lt;SalesPerformanceDetail&gt; writer; <span class="comment">// (1)</span>
+
+    <span class="type">int</span> chunkSize = <span class="integer">10</span>; <span class="comment">// (2)</span>
+
+    <span class="annotation">@Override</span>
+    <span class="directive">public</span> RepeatStatus execute(StepContribution contribution,
+            ChunkContext chunkContext) <span class="directive">throws</span> <span class="exception">Exception</span> {
+
+        <span class="keyword">try</span> {
+            reader.open(chunkContext.getStepContext().getStepExecution()
+                    .getExecutionContext());
+
+            <span class="predefined-type">List</span>&lt;SalesPerformanceDetail&gt; items = <span class="keyword">new</span> <span class="predefined-type">ArrayList</span>&lt;&gt;(chunkSize); <span class="comment">// (2)</span>
+            SalesPerformanceDetail item = <span class="predefined-constant">null</span>;
+            <span class="keyword">do</span> {
+                <span class="comment">// Pseudo operation of ItemReader</span>
+                <span class="keyword">for</span> (<span class="type">int</span> i = <span class="integer">0</span>; i &lt; chunkSize; i++) { <span class="comment">// (3)</span>
+                    item = reader.read();
+                    <span class="keyword">if</span> (item == <span class="predefined-constant">null</span>) {
+                        <span class="keyword">break</span>;
+                    }
+                    <span class="comment">// Pseudo operation of ItemProcessor</span>
+                    <span class="comment">// do some processes.</span>
+
+                    items.add(item);
+                }
+
+                <span class="comment">// Pseudo operation of ItemWriter</span>
+                <span class="keyword">if</span> (!items.isEmpty()) {
+                    writer.write(items); <span class="comment">// (4)</span>
+                    items.clear();
+                }
+            } <span class="keyword">while</span> (item != <span class="predefined-constant">null</span>);
+        } <span class="keyword">finally</span> {
+            <span class="keyword">try</span> {
+                reader.close();
+            } <span class="keyword">catch</span> (<span class="exception">Exception</span> e) {
+                <span class="comment">// do nothing.</span>
+            }
+        }
+
+        <span class="keyword">return</span> RepeatStatus.FINISHED;
+    }
+}</code></pre>
+</div>
+</div>
+<div class="listingblock">
+<div class="title">Bean definition example 2</div>
+<div class="content">
+<pre class="CodeRay highlight"><code data-lang="xml"><span class="comment">&lt;!-- omitted --&gt;</span>
+<span class="tag">&lt;import</span> <span class="attribute-name">resource</span>=<span class="string"><span class="delimiter">&quot;</span><span class="content">classpath:META-INF/spring/job-base-context.xml</span><span class="delimiter">&quot;</span></span><span class="tag">/&gt;</span>
+
+<span class="tag">&lt;context:annotation-config</span><span class="tag">/&gt;</span>
+<span class="tag">&lt;context:component-scan</span>
+    <span class="attribute-name">base-package</span>=<span class="string"><span class="delimiter">&quot;</span><span class="content">org.terasoluna.batch.functionaltest.app.common,</span>
+        <span class="content">org.terasoluna.batch.functionaltest.app.performance,</span>
+        <span class="content">org.terasoluna.batch.functionaltest.ch06.exceptionhandling</span><span class="delimiter">&quot;</span></span><span class="tag">/&gt;</span>
+<span class="tag">&lt;mybatis:scan</span>
+    <span class="attribute-name">base-package</span>=<span class="string"><span class="delimiter">&quot;</span><span class="content">org.terasoluna.batch.functionaltest.app.repository.performance</span><span class="delimiter">&quot;</span></span>
+    <span class="attribute-name">factory-ref</span>=<span class="string"><span class="delimiter">&quot;</span><span class="content">jobSqlSessionFactory</span><span class="delimiter">&quot;</span></span><span class="tag">/&gt;</span>
+
+<span class="tag">&lt;bean</span> <span class="attribute-name">id</span>=<span class="string"><span class="delimiter">&quot;</span><span class="content">detailCSVReader</span><span class="delimiter">&quot;</span></span>
+      <span class="attribute-name">class</span>=<span class="string"><span class="delimiter">&quot;</span><span class="content">org.springframework.batch.item.file.FlatFileItemReader</span><span class="delimiter">&quot;</span></span> <span class="attribute-name">scope</span>=<span class="string"><span class="delimiter">&quot;</span><span class="content">step</span><span class="delimiter">&quot;</span></span>
+      <span class="attribute-name">p:resource</span>=<span class="string"><span class="delimiter">&quot;</span><span class="content">file:#{jobParameters['inputFile']}</span><span class="delimiter">&quot;</span></span><span class="tag">&gt;</span>
+    <span class="tag">&lt;property</span> <span class="attribute-name">name</span>=<span class="string"><span class="delimiter">&quot;</span><span class="content">lineMapper</span><span class="delimiter">&quot;</span></span><span class="tag">&gt;</span>
+        <span class="tag">&lt;bean</span> <span class="attribute-name">class</span>=<span class="string"><span class="delimiter">&quot;</span><span class="content">org.springframework.batch.item.file.mapping.DefaultLineMapper</span><span class="delimiter">&quot;</span></span><span class="tag">&gt;</span>
+            <span class="tag">&lt;property</span> <span class="attribute-name">name</span>=<span class="string"><span class="delimiter">&quot;</span><span class="content">lineTokenizer</span><span class="delimiter">&quot;</span></span><span class="tag">&gt;</span>
+                <span class="tag">&lt;bean</span> <span class="attribute-name">class</span>=<span class="string"><span class="delimiter">&quot;</span><span class="content">org.springframework.batch.item.file.transform.DelimitedLineTokenizer</span><span class="delimiter">&quot;</span></span>
+                      <span class="attribute-name">p:names</span>=<span class="string"><span class="delimiter">&quot;</span><span class="content">branchId,year,month,customerId,amount</span><span class="delimiter">&quot;</span></span><span class="tag">/&gt;</span>
+            <span class="tag">&lt;/property&gt;</span>
+            <span class="tag">&lt;property</span> <span class="attribute-name">name</span>=<span class="string"><span class="delimiter">&quot;</span><span class="content">fieldSetMapper</span><span class="delimiter">&quot;</span></span><span class="tag">&gt;</span>
+                <span class="tag">&lt;bean</span> <span class="attribute-name">class</span>=<span class="string"><span class="delimiter">&quot;</span><span class="content">org.springframework.batch.item.file.mapping.BeanWrapperFieldSetMapper</span><span class="delimiter">&quot;</span></span>
+                      <span class="attribute-name">p:targetType</span>=<span class="string"><span class="delimiter">&quot;</span><span class="content">org.terasoluna.batch.functionaltest.app.model.performance.SalesPerformanceDetail</span><span class="delimiter">&quot;</span></span><span class="tag">/&gt;</span>
+            <span class="tag">&lt;/property&gt;</span>
+        <span class="tag">&lt;/bean&gt;</span>
+    <span class="tag">&lt;/property&gt;</span>
+<span class="tag">&lt;/bean&gt;</span>
+
+<span class="comment">&lt;!-- (1) --&gt;</span>
+<span class="tag">&lt;bean</span> <span class="attribute-name">id</span>=<span class="string"><span class="delimiter">&quot;</span><span class="content">detailWriter</span><span class="delimiter">&quot;</span></span>
+      <span class="attribute-name">class</span>=<span class="string"><span class="delimiter">&quot;</span><span class="content">org.mybatis.spring.batch.MyBatisBatchItemWriter</span><span class="delimiter">&quot;</span></span>
+      <span class="attribute-name">p:statementId</span>=<span class="string"><span class="delimiter">&quot;</span><span class="content">org.terasoluna.batch.functionaltest.app.repository.performance.SalesPerformanceDetailRepository.create</span><span class="delimiter">&quot;</span></span>
+      <span class="attribute-name">p:sqlSessionTemplate-ref</span>=<span class="string"><span class="delimiter">&quot;</span><span class="content">batchModeSqlSessionTemplate</span><span class="delimiter">&quot;</span></span><span class="tag">/&gt;</span>
+
+
+<span class="tag">&lt;batch:job</span> <span class="attribute-name">id</span>=<span class="string"><span class="delimiter">&quot;</span><span class="content">jobSalesPerfTasklet</span><span class="delimiter">&quot;</span></span> <span class="attribute-name">job-repository</span>=<span class="string"><span class="delimiter">&quot;</span><span class="content">jobRepository</span><span class="delimiter">&quot;</span></span><span class="tag">&gt;</span>
+    <span class="tag">&lt;batch:step</span> <span class="attribute-name">id</span>=<span class="string"><span class="delimiter">&quot;</span><span class="content">jobSalesPerfTasklet.step01</span><span class="delimiter">&quot;</span></span><span class="tag">&gt;</span>
+        <span class="tag">&lt;batch:tasklet</span> <span class="attribute-name">ref</span>=<span class="string"><span class="delimiter">&quot;</span><span class="content">salesPerformanceTasklet</span><span class="delimiter">&quot;</span></span>
+                       <span class="attribute-name">transaction-manager</span>=<span class="string"><span class="delimiter">&quot;</span><span class="content">jobTransactionManager</span><span class="delimiter">&quot;</span></span><span class="tag">/&gt;</span>
+    <span class="tag">&lt;/batch:step&gt;</span>
+<span class="tag">&lt;/batch:job&gt;</span></code></pre>
+</div>
+</div>
+<table class="tableblock frame-all grid-all spread">
+<colgroup>
+<col style="width: 10%;">
+<col style="width: 90%;">
+</colgroup>
+<thead>
+<tr>
+<th class="tableblock halign-left valign-top">Sr. No.</th>
+<th class="tableblock halign-left valign-top">Explanation</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td class="tableblock halign-left valign-top"><p class="tableblock">(1)</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">Use <code>MyBatisBatchItemWriter</code> as the implementation of <code>ItemWriter</code>.</p></td>
+</tr>
+<tr>
+<td class="tableblock halign-left valign-top"><p class="tableblock">(2)</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><code>ItemWriter</code> outputs a fixed number of records collectively.<br>
+It processes and output 10 records each.</p></td>
+</tr>
+<tr>
+<td class="tableblock halign-left valign-top"><p class="tableblock">(3)</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">As per the behavior of chunk model,<br>
+it should be read&#8594;process&#8594;read&#8594;process&#8594;&#8230;&#8203;&#8594;write.</p></td>
+</tr>
+<tr>
+<td class="tableblock halign-left valign-top"><p class="tableblock">(4)</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">Output through <code>ItemWriter</code> collectively.</p></td>
+</tr>
+</tbody>
+</table>
+<div class="paragraph">
+<p>Decide each time whether to use the implementation class of <code>ItemReader</code> or <code>ItemWriter</code>.
+For file access, the implementation class of <code>ItemReader</code> and <code>ItemWriter</code> can be used.
+For other than this such as database access, there is no need to use compulsorily. It can be used to improve performance.</p>
+</div>
+</div>
+</div>
+</div>
+</div>
+<div class="container">
+
+  <div class="common-bg">
+    <div class="information">
+      TERASOLUNA Batch Framework for Java (5.x) Development Guideline - version 5.0.1.RELEASE, 2017-9-27
+    </div>
+    <div class="index">
+      <a href="index.html">&gt; INDEX</a>
+    </div>
+  </div>
+
+  <div class="footer-bg">
+    <div class="copyright">
+      &copy; Copyright 2017 NTT DATA Corporation.
+    </div>
+  </div>
+
+</div>
+</body>
+</html>

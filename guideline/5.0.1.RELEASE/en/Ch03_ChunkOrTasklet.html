@@ -1,0 +1,151 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<!--[if IE]><meta http-equiv="X-UA-Compatible" content="IE=edge"><![endif]-->
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<meta name="generator" content="Asciidoctor 1.5.6.1">
+<title>How to choose chunk model or tasklet model</title>
+<link rel="stylesheet" href="./theme/css/readthedocs.css">
+<link rel="stylesheet" href="./theme/css/font-awesome.min.css">
+<link rel="stylesheet" href="./theme/css/coderay-asciidoctor.css">
+<link rel="stylesheet" href="./theme/css/header-footer.css">
+<title>TERASOLUNA Batch Framework for Java (5.x) Development Guideline</title>
+
+<div class="common-bg">
+  <div class="information">
+    TERASOLUNA Batch Framework for Java (5.x) Development Guideline - version 5.0.1.RELEASE, 2017-9-27
+  </div>
+  <div class="index">
+    <a href="index.html">&gt; INDEX</a>
+  </div>
+</div>
+</head>
+<body id="Ch03_ChunkOrTasklet" class="book">
+<div id="header">
+<h1>How to choose chunk model or tasklet model</h1>
+</div>
+<div id="content">
+<div id="preamble">
+<div class="sectionbody">
+<div class="paragraph">
+<p>Here, how to choose chunk model and tasklet model is explained by organizing each feature.
+Refer to the following chapters which are explained in detail appropriately.</p>
+</div>
+<div class="paragraph">
+<p>Understand the following contents as examples of concepts without any constraints or recommendations.
+Refer to it while creating a job depending on the characteristics of the users and systems.</p>
+</div>
+<div class="paragraph">
+<p>The main differences between the chunk model and the tasklet model are given below.</p>
+</div>
+<table class="tableblock frame-all grid-all spread">
+<caption class="title">Comparison of chunk model and tasklet model.</caption>
+<colgroup>
+<col style="width: 10%;">
+<col style="width: 45%;">
+<col style="width: 45%;">
+</colgroup>
+<thead>
+<tr>
+<th class="tableblock halign-left valign-top">Item</th>
+<th class="tableblock halign-left valign-top">Chunk</th>
+<th class="tableblock halign-left valign-top">Tasklet</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td class="tableblock halign-left valign-top"><p class="tableblock">Components</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">It consists of 3 components mainly <code>ItemReader</code>, <code>ItemProcessor</code> and <code>ItemWriter</code>.</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">It is consolidated in one <code>Tasklet</code>.</p></td>
+</tr>
+<tr>
+<td class="tableblock halign-left valign-top"><p class="tableblock">Transaction</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">A certain number of records are processed by issuing intermediate commit. Batch commit cannot be done.<br>
+It can be processed by specific machine resources regardless of the data count.<br>
+If an error occurs in the midway, then unprocessed data and processed data will get mixed.</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">The data is entirely processed by batch commit. There is a need for the user to implement intermediate commit.<br>
+If the data to be processed is large, machine resources may get exhausted.<br>
+If an error occurs in the midway, only the unprocessed data is rolled back.</p></td>
+</tr>
+<tr>
+<td class="tableblock halign-left valign-top"><p class="tableblock">Restart</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">It can be restarted based on the record count.</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">It cannot be restarted based on the record count.</p></td>
+</tr>
+</tbody>
+</table>
+<div class="paragraph">
+<p>Based on this, we will introduce some examples of using each one as follows.</p>
+</div>
+<div class="dlist">
+<dl>
+<dt class="hdlist1">To make recovery as simple as possible</dt>
+<dd>
+<p>When the job having error, is to be recovered by only re-running the target job,
+tasklet model can be chooseed to make recovery simple.<br>
+In chunk model, it should be dealt by returning the processed data
+to the state before executing the job and
+by creating a job to process only the unprocessed data.</p>
+</dd>
+<dt class="hdlist1">To consolidate the process contents</dt>
+<dd>
+<p>When you want to prioritize the outlook of job such as 1 job in 1 class, tasklet can be chooseed.</p>
+</dd>
+<dt class="hdlist1">To process large data stably</dt>
+<dd>
+<p>When performing batch process of 10 million records, consider to use chunk model in case the record count that influences the resources is the target.
+It means stabilizing the process by intermediate commit.
+Even in tasklet model, intermediate commit can be used, but it is simpler to implement in chunk model.</p>
+</dd>
+<dt class="hdlist1">To restart based on the record count for the recovery after error</dt>
+<dd>
+<p>When batch window is difficult and you want to resume from error data onwards,
+chunk model should be chooseed to use restart based on the record count provided by Spring Batch.
+This eliminates the need to create that mechanism for each job.</p>
+</dd>
+</dl>
+</div>
+<div class="admonitionblock important">
+<table>
+<tr>
+<td class="icon">
+<i class="fa icon-important" title="Important"></i>
+</td>
+<td class="content">
+<div class="paragraph">
+<p>Chunk model and tasklet model are basically used in combination.<br>
+It is not necessary to implement only one model in all jobs in the batch system.<br>
+Use one model based on the characteristics of jobs of the entire system and use the other model in accordance with the situation.</p>
+</div>
+<div class="paragraph">
+<p>For example, in most cases it is to choose a tasklet model if there is a margin in the number of processesing records and processing time.
+In a very small number of cases, choosing a chunk model for jobs that process large numbers of records.</p>
+</div>
+</td>
+</tr>
+</table>
+</div>
+</div>
+</div>
+</div>
+<div class="container">
+
+  <div class="common-bg">
+    <div class="information">
+      TERASOLUNA Batch Framework for Java (5.x) Development Guideline - version 5.0.1.RELEASE, 2017-9-27
+    </div>
+    <div class="index">
+      <a href="index.html">&gt; INDEX</a>
+    </div>
+  </div>
+
+  <div class="footer-bg">
+    <div class="copyright">
+      &copy; Copyright 2017 NTT DATA Corporation.
+    </div>
+  </div>
+
+</div>
+</body>
+</html>

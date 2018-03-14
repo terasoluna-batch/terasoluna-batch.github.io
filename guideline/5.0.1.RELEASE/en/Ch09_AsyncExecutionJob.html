@@ -1,0 +1,814 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<!--[if IE]><meta http-equiv="X-UA-Compatible" content="IE=edge"><![endif]-->
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<meta name="generator" content="Asciidoctor 1.5.6.1">
+<title>Asynchronous execution type job</title>
+<link rel="stylesheet" href="./theme/css/readthedocs.css">
+<link rel="stylesheet" href="./theme/css/font-awesome.min.css">
+<link rel="stylesheet" href="./theme/css/coderay-asciidoctor.css">
+<link rel="stylesheet" href="./theme/css/header-footer.css">
+<title>TERASOLUNA Batch Framework for Java (5.x) Development Guideline</title>
+
+<div class="common-bg">
+  <div class="information">
+    TERASOLUNA Batch Framework for Java (5.x) Development Guideline - version 5.0.1.RELEASE, 2017-9-27
+  </div>
+  <div class="index">
+    <a href="index.html">&gt; INDEX</a>
+  </div>
+</div>
+</head>
+<body id="Ch09_AsyncExecutionJob" class="book toc2 toc-left">
+<div id="header">
+<h1>Asynchronous execution type job</h1>
+<div id="toc" class="toc2">
+<div id="toctitle">Table of Contents</div>
+<ul class="sectlevel1">
+<li><a href="#Ch09_AsyncExecutionJob_Overview">Overview</a></li>
+<li><a href="#Ch09_AsyncExecutionJob_Preparation">Preparation</a>
+<ul class="sectlevel2">
+<li><a href="#Ch09_AsyncExecutionJob_Preparation_Properties">Polling process setting</a></li>
+<li><a href="#Ch09_AsyncExecutionJob_Preparation_Bean">Job configuration</a></li>
+<li><a href="#Ch09_AsyncExecutionJob_Preparation_Input">Input resource setting</a></li>
+</ul>
+</li>
+<li><a href="#Ch09_AsyncExecutionJob_StartAsyncBatchDeamon">Start asynchronous batch daemon</a></li>
+<li><a href="#Ch09_AsyncExecutionJob_JobRegistration">Register job information in job request table</a></li>
+<li><a href="#Ch09_AsyncExecutionJob_ExecutionResultCheck">Job execution and results verification</a>
+<ul class="sectlevel2">
+<li><a href="#Ch09_AsyncExecutionJob_ExecutionResultCheck_Console">Verifying console log</a></li>
+<li><a href="#Ch09_AsyncExecutionJob_ExecutionResultCheck_ExitCode">Verifying exit codes</a></li>
+<li><a href="#Ch09_AsyncExecutionJob_ExecutionResultCheck_Output">Verifying output resource</a>
+<ul class="sectlevel3">
+<li><a href="#Ch09_AsyncExecutionJob_ExecutionResultCheck_Output_Table">In case of a job which accesses database</a></li>
+<li><a href="#Ch09_AsyncExecutionJob_ExecutionResultCheck_Output_File">In case of a job which accesses a file</a></li>
+</ul>
+</li>
+</ul>
+</li>
+<li><a href="#Ch09_AsyncExecutionJob_StopAsyncBatchDeamon">Stopping asynchronous batch daemon</a></li>
+<li><a href="#Ch09_AsyncExecutionJob_ExecutionStatusCheck">Verifying job execution status</a></li>
+</ul>
+</div>
+</div>
+<div id="content">
+<div id="preamble">
+<div class="sectionbody">
+<div id="Ch09_AsyncExecutionJob_Prerequisite" class="admonitionblock note">
+<table>
+<tr>
+<td class="icon">
+<i class="fa icon-note" title="Note"></i>
+</td>
+<td class="content">
+<div class="title">Premise</div>
+<div class="paragraph">
+<p>As explained in <a href="Ch09_Introduction.html#Ch09_Introduction_HowToProceed">How to proceed with the tutorial</a>,
+it is assumed that asynchronous execution is performed for already created jobs.
+Note that, asynchronous execution method includes <a href="Ch04_AsyncJobWithDB.html#Ch04_AsyncJobWithDB">Method which uses DB polling</a> and
+<a href="Ch04_AsyncJobWithWebContainer.html#Ch04_AsyncJobWithWeb">Method which uses Web container</a>.<br>
+However, it must be noted that the description is for explanation of asynchronous execution of job using DB polling.</p>
+</div>
+</td>
+</tr>
+</table>
+</div>
+</div>
+</div>
+<div class="sect1">
+<h2 id="Ch09_AsyncExecutionJob_Overview"><a class="anchor" href="#Ch09_AsyncExecutionJob_Overview"></a>Overview</h2>
+<div class="sectionbody">
+<div class="paragraph">
+<p>Execute job asynchronously using DB polling.</p>
+</div>
+<div class="paragraph">
+<p>Note that, since this section is based on TERASOLUNA Batch 5.x Development guideline,
+refer <a href="Ch04_AsyncJobWithDB.html#Ch04_AsyncJobWithDB">Asynchronous execution (DB polling)</a> for details.<br>
+Background, process overview and business specifications of the application to be created are omitted as jobs are already created as per <a href="#Ch09_AsyncExecutionJob_Prerequisite">Premise</a>.</p>
+</div>
+<div class="paragraph">
+<p>Asynchronous execution of the job by using DB polling is subsequently explained by the following procedure.</p>
+</div>
+<div class="olist arabic">
+<ol class="arabic">
+<li>
+<p><a href="#Ch09_AsyncExecutionJob_Preparation">Preparation</a></p>
+</li>
+<li>
+<p><a href="#Ch09_AsyncExecutionJob_StartAsyncBatchDeamon">Start asynchronous batch daemon</a></p>
+</li>
+<li>
+<p><a href="#Ch09_AsyncExecutionJob_JobRegistration">Register job information in job request table</a></p>
+</li>
+<li>
+<p><a href="#Ch09_AsyncExecutionJob_ExecutionResultCheck">Job execution and results verification</a></p>
+</li>
+<li>
+<p><a href="#Ch09_AsyncExecutionJob_StopAsyncBatchDeamon">Stopping asynchronous batch daemon</a></p>
+</li>
+<li>
+<p><a href="#Ch09_AsyncExecutionJob_ExecutionStatusCheck">Verifying job execution status</a></p>
+</li>
+</ol>
+</div>
+</div>
+</div>
+<div class="sect1">
+<h2 id="Ch09_AsyncExecutionJob_Preparation"><a class="anchor" href="#Ch09_AsyncExecutionJob_Preparation"></a>Preparation</h2>
+<div class="sectionbody">
+<div class="paragraph">
+<p>Implement preparation to perform asynchronous execution (DB polling).</p>
+</div>
+<div class="paragraph">
+<p>Operations to be implemented are as given below.</p>
+</div>
+<div class="olist arabic">
+<ol class="arabic">
+<li>
+<p><a href="#Ch09_AsyncExecutionJob_Preparation_Properties">Polling process setting</a></p>
+</li>
+<li>
+<p><a href="#Ch09_AsyncExecutionJob_Preparation_Bean">Job configuration</a></p>
+</li>
+<li>
+<p><a href="#Ch09_AsyncExecutionJob_Preparation_Input">Input resource setting</a></p>
+</li>
+</ol>
+</div>
+<div class="sect2">
+<h3 id="Ch09_AsyncExecutionJob_Preparation_Properties"><a class="anchor" href="#Ch09_AsyncExecutionJob_Preparation_Properties"></a>Polling process setting</h3>
+<div class="paragraph">
+<p>Configure settings required for asynchronous execution by <code>batch-application.properties</code>.<br>
+Since TERASOLUNA Batch 5.x is already configured, a detail explanation is omitted.
+For the explanation of each item, refer polling process settings of <a href="Ch04_AsyncJobWithDB.html#Ch04_AsyncJobWithDB_HowToUse_Config">Various settings</a>.</p>
+</div>
+<div class="listingblock">
+<div class="title">src/main/resources/batch-application.properties</div>
+<div class="content">
+<pre class="CodeRay highlight"><code data-lang="properties"># TERASOLUNA AsyncBatchDaemon settings.
+async-batch-daemon.scheduler.size=1
+async-batch-daemon.schema.script=classpath:org/terasoluna/batch/async/db/schema-h2.sql
+async-batch-daemon.job-concurrency-num=3
+# (1)
+async-batch-daemon.polling-interval=5000
+async-batch-daemon.polling-initial-delay=1000
+# (2)
+async-batch-daemon.polling-stop-file-path=/tmp/stop-async-batch-daemon</code></pre>
+</div>
+</div>
+<table class="tableblock frame-all grid-all spread">
+<caption class="title">Explanation</caption>
+<colgroup>
+<col style="width: 10%;">
+<col style="width: 90%;">
+</colgroup>
+<thead>
+<tr>
+<th class="tableblock halign-left valign-top">Sr.No.</th>
+<th class="tableblock halign-left valign-top">Explanation</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td class="tableblock halign-left valign-top"><p class="tableblock">(1)</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">Set the polling cycle (milliseconds).<br>
+Here, specify 5000 milliseconds (5 seconds).</p></td>
+</tr>
+<tr>
+<td class="tableblock halign-left valign-top"><p class="tableblock">(2)</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">Configure exit file path to stop asynchronous batch daemon.<br>
+Since this tutorial is based on the assumption that it is implemented in Windows environment,
+stop-async-batch-daemon file is placed under C:\tmp in this configuration.</p></td>
+</tr>
+</tbody>
+</table>
+</div>
+<div class="sect2">
+<h3 id="Ch09_AsyncExecutionJob_Preparation_Bean"><a class="anchor" href="#Ch09_AsyncExecutionJob_Preparation_Bean"></a>Job configuration</h3>
+<div class="paragraph">
+<p>Job to be executed asynchronously is set to <code>automaticJobRegistrar</code> of <code>async-batch-daemon.xml</code>.</p>
+</div>
+<div class="paragraph">
+<p>As an example, configuration which specify <a href="Ch09_DBAccessJob.html#Ch09_DBAccessJob">Job which inputs or outputs data by accessing database</a>(chunk model) is shown below.</p>
+</div>
+<div class="listingblock">
+<div class="title">src/main/resources/META-INF/spring/async-batch-daemon.xml</div>
+<div class="content">
+<pre class="CodeRay highlight"><code data-lang="xml"><span class="preprocessor">&lt;?xml version=&quot;1.0&quot; encoding=&quot;UTF-8&quot;?&gt;</span>
+<span class="tag">&lt;beans</span> <span class="attribute-name">xmlns</span>=<span class="string"><span class="delimiter">&quot;</span><span class="content">http://www.springframework.org/schema/beans</span><span class="delimiter">&quot;</span></span>
+       <span class="attribute-name">xmlns:xsi</span>=<span class="string"><span class="delimiter">&quot;</span><span class="content">http://www.w3.org/2001/XMLSchema-instance</span><span class="delimiter">&quot;</span></span>
+       <span class="attribute-name">xmlns:jdbc</span>=<span class="string"><span class="delimiter">&quot;</span><span class="content">http://www.springframework.org/schema/jdbc</span><span class="delimiter">&quot;</span></span>
+       <span class="attribute-name">xmlns:c</span>=<span class="string"><span class="delimiter">&quot;</span><span class="content">http://www.springframework.org/schema/c</span><span class="delimiter">&quot;</span></span>
+       <span class="attribute-name">xmlns:p</span>=<span class="string"><span class="delimiter">&quot;</span><span class="content">http://www.springframework.org/schema/p</span><span class="delimiter">&quot;</span></span>
+       <span class="attribute-name">xmlns:task</span>=<span class="string"><span class="delimiter">&quot;</span><span class="content">http://www.springframework.org/schema/task</span><span class="delimiter">&quot;</span></span>
+       <span class="attribute-name">xmlns:context</span>=<span class="string"><span class="delimiter">&quot;</span><span class="content">http://www.springframework.org/schema/context</span><span class="delimiter">&quot;</span></span>
+       <span class="attribute-name">xsi:schemaLocation</span>=<span class="string"><span class="delimiter">&quot;</span><span class="content">http://www.springframework.org/schema/beans http://www.springframework.org/schema/beans/spring-beans.xsd</span>
+            <span class="content">http://www.springframework.org/schema/jdbc http://www.springframework.org/schema/jdbc/spring-jdbc.xsd</span>
+            <span class="content">http://www.springframework.org/schema/task http://www.springframework.org/schema/task/spring-task.xsd</span>
+            <span class="content">http://www.springframework.org/schema/context http://www.springframework.org/schema/context/spring-context.xsd</span><span class="delimiter">&quot;</span></span><span class="tag">&gt;</span>
+
+    <span class="comment">&lt;!-- omitted --&gt;</span>
+
+    <span class="tag">&lt;bean</span> <span class="attribute-name">id</span>=<span class="string"><span class="delimiter">&quot;</span><span class="content">automaticJobRegistrar</span><span class="delimiter">&quot;</span></span> <span class="attribute-name">class</span>=<span class="string"><span class="delimiter">&quot;</span><span class="content">org.springframework.batch.core.configuration.support.AutomaticJobRegistrar</span><span class="delimiter">&quot;</span></span><span class="tag">&gt;</span>
+        <span class="tag">&lt;property</span> <span class="attribute-name">name</span>=<span class="string"><span class="delimiter">&quot;</span><span class="content">applicationContextFactories</span><span class="delimiter">&quot;</span></span><span class="tag">&gt;</span>
+            <span class="tag">&lt;bean</span> <span class="attribute-name">class</span>=<span class="string"><span class="delimiter">&quot;</span><span class="content">org.springframework.batch.core.configuration.support.ClasspathXmlApplicationContextsFactoryBean</span><span class="delimiter">&quot;</span></span>
+                <span class="attribute-name">p:resources</span>=<span class="string"><span class="delimiter">&quot;</span><span class="content">classpath:/META-INF/jobs/dbaccess/jobPointAddChunk.xml</span><span class="delimiter">&quot;</span></span> <span class="tag">/&gt;</span> <span class="comment">&lt;!-- (1) --&gt;</span>
+        <span class="tag">&lt;/property&gt;</span>
+        <span class="tag">&lt;property</span> <span class="attribute-name">name</span>=<span class="string"><span class="delimiter">&quot;</span><span class="content">jobLoader</span><span class="delimiter">&quot;</span></span><span class="tag">&gt;</span>
+            <span class="tag">&lt;bean</span> <span class="attribute-name">class</span>=<span class="string"><span class="delimiter">&quot;</span><span class="content">org.springframework.batch.core.configuration.support.DefaultJobLoader</span><span class="delimiter">&quot;</span></span>
+                <span class="attribute-name">p:jobRegistry-ref</span>=<span class="string"><span class="delimiter">&quot;</span><span class="content">jobRegistry</span><span class="delimiter">&quot;</span></span> <span class="tag">/&gt;</span>
+        <span class="tag">&lt;/property&gt;</span>
+    <span class="tag">&lt;/bean&gt;</span>
+
+    <span class="comment">&lt;!-- omitted --&gt;</span>
+
+<span class="tag">&lt;/beans&gt;</span></code></pre>
+</div>
+</div>
+<table class="tableblock frame-all grid-all spread">
+<caption class="title">Explanation</caption>
+<colgroup>
+<col style="width: 10%;">
+<col style="width: 90%;">
+</colgroup>
+<thead>
+<tr>
+<th class="tableblock halign-left valign-top">Sr. No.</th>
+<th class="tableblock halign-left valign-top">Explanation</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td class="tableblock halign-left valign-top"><p class="tableblock">(1)</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">Specify a Bean definition file of job targeted for asynchronous execution.<br>
+Wild cards  (**/*) can also be used.
+Please refer to precautions in <a href="Ch04_AsyncJobWithDB.html#Ch04_AsyncJobWithDB_HowToUse_Config_Job">Job settings</a>
+while specifying a job.</p></td>
+</tr>
+</tbody>
+</table>
+<div class="admonitionblock warning">
+<table>
+<tr>
+<td class="icon">
+<i class="fa icon-warning" title="Warning"></i>
+</td>
+<td class="content">
+<div class="title">Considerations while designing a job</div>
+<div class="paragraph">
+<p>Since it is possible to execute the same job in parallel as a characteristic of asynchronous execution (DB polling), it is necessary to prevent the impact of the same job while executing the jobs in parallel.</p>
+</div>
+<div class="paragraph">
+<p>In this tutorial, the same job ID is used for database access job and file access job.
+Although these jobs are not executed in parallel, in this tutorial, it should be kept in mind while designing a job
+since an error is likely to occur if multiple jobs with the same job ID are specified.</p>
+</div>
+</td>
+</tr>
+</table>
+</div>
+</div>
+<div class="sect2">
+<h3 id="Ch09_AsyncExecutionJob_Preparation_Input"><a class="anchor" href="#Ch09_AsyncExecutionJob_Preparation_Input"></a>Input resource setting</h3>
+<div class="paragraph">
+<p>Set an input resource (database or file) while executing a job asynchronously.<br>
+Here, a job that uses normal data is executed.</p>
+</div>
+<div class="paragraph">
+<p>Set an input resource for the job to access database and the job to access file.</p>
+</div>
+<div class="dlist">
+<dl>
+<dt class="hdlist1">In case of a job which accesses database</dt>
+<dd>
+<p>Set Database Initialize script of <code>batch-application.proeprties</code> as shown below.</p>
+</dd>
+</dl>
+</div>
+<div class="listingblock">
+<div class="title">src/main/resources/batch-application.proeprties</div>
+<div class="content">
+<pre class="CodeRay highlight"><code data-lang="xml"># Database Initialize
+tutorial.create-table.script=file:sqls/create-member-info-table.sql
+tutorial.insert-data.script=file:sqls/insert-member-info-data.sql
+#tutorial.insert-data.script=file:sqls/insert-member-info-error-data.sql</code></pre>
+</div>
+</div>
+<div class="dlist">
+<dl>
+<dt class="hdlist1">In case of a job which accesses a file</dt>
+<dd>
+<p>It must be verified in advance that the input file is deployed and output directory exists.</p>
+<div class="ulist">
+<ul>
+<li>
+<p>Input file</p>
+<div class="ulist">
+<ul>
+<li>
+<p>files/input/input-member-info-data.csv</p>
+</li>
+</ul>
+</div>
+</li>
+<li>
+<p>Output directory</p>
+<div class="ulist">
+<ul>
+<li>
+<p>files/output/</p>
+</li>
+</ul>
+</div>
+</li>
+</ul>
+</div>
+</dd>
+</dl>
+</div>
+<div class="admonitionblock note">
+<table>
+<tr>
+<td class="icon">
+<i class="fa icon-note" title="Note"></i>
+</td>
+<td class="content">
+<div class="title">Regarding preparation of data for input resource in this tutorial</div>
+<div class="paragraph">
+<p>In case of a job which accesses database, execute INSERT SQL while starting asynchronous batch daemon (ApplicationContext generation)
+and prepare the data in database.</p>
+</div>
+<div class="paragraph">
+<p>In case of a job which accesses file, place input file in the directory,
+and specify path of input/output file as the parameter part of the job information while registering job information in the job request table.</p>
+</div>
+</td>
+</tr>
+</table>
+</div>
+</div>
+</div>
+</div>
+<div class="sect1">
+<h2 id="Ch09_AsyncExecutionJob_StartAsyncBatchDeamon"><a class="anchor" href="#Ch09_AsyncExecutionJob_StartAsyncBatchDeamon"></a>Start asynchronous batch daemon</h2>
+<div class="sectionbody">
+<div class="paragraph">
+<p>Start <code>AsyncBatchDaemon</code> provided by TERASOLUNA Batch 5.x.</p>
+</div>
+<div class="paragraph">
+<p>Create the execution configuration as shown below and start asynchronous batch daemon.<br>
+Refer <a href="Ch09_EnvironmentConstruction.html#Ch09_EnvironmentConstruction_OperationCheck_ExecJob_RunConf">Create Run Configuration (Execution configuration)</a> for the creation procedure.</p>
+</div>
+<table class="tableblock frame-all grid-all spread">
+<caption class="title">Value to be set in Main tab of Run Configurations</caption>
+<colgroup>
+<col style="width: 30%;">
+<col style="width: 70%;">
+</colgroup>
+<thead>
+<tr>
+<th class="tableblock halign-left valign-top">Item name</th>
+<th class="tableblock halign-left valign-top">Value</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td class="tableblock halign-left valign-top"><p class="tableblock">Name</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">Run Job With AsyncBatchDaemon<br>
+(Set any value)</p></td>
+</tr>
+<tr>
+<td class="tableblock halign-left valign-top"><p class="tableblock">Project</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">terasoluna-batch-tutorial</p></td>
+</tr>
+<tr>
+<td class="tableblock halign-left valign-top"><p class="tableblock">Main class</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">org.terasoluna.batch.async.db.AsyncBatchDaemon</p></td>
+</tr>
+</tbody>
+</table>
+<div class="paragraph">
+<p>When asynchronous batch daemon is started, polling process is executed within 5 seconds interval (milliseconds specified in <code>async-batch-daemon.polling-interval</code> of <code>batch-application.properties</code>).<br>
+Output example of log is shown below.<br>
+This log shows that the polling process was executed three times.</p>
+</div>
+<div class="listingblock">
+<div class="title">Output example of console log</div>
+<div class="content">
+<pre class="CodeRay highlight"><code data-lang="console">[2017/09/06 18:53:23][main] [o.t.b.a.d.AsyncBatchDaemon] [INFO ] Async Batch Daemon start.
+
+(.. omitted)
+
+[2017/09/06 18:53:27] [main] [o.t.b.a.d.AsyncBatchDaemon] [INFO ] Async Batch Daemon will start watching the creation of a polling stop file. [Path:\tmp\stop-async-batch-daemon]
+[2017/09/06 18:53:27] [daemonTaskScheduler-1] [o.t.b.a.d.JobRequestPollTask] [INFO ] Polling processing.
+[2017/09/06 18:53:33] [daemonTaskScheduler-1] [o.t.b.a.d.JobRequestPollTask] [INFO ] Polling processing.
+[2017/09/06 18:53:38] [daemonTaskScheduler-1] [o.t.b.a.d.JobRequestPollTask] [INFO ] Polling processing.</code></pre>
+</div>
+</div>
+</div>
+</div>
+<div class="sect1">
+<h2 id="Ch09_AsyncExecutionJob_JobRegistration"><a class="anchor" href="#Ch09_AsyncExecutionJob_JobRegistration"></a>Register job information in job request table</h2>
+<div class="sectionbody">
+<div class="paragraph">
+<p>Issue a SQL (INSERT statement) to register information for executing the job
+in job request table (batch_job_request).</p>
+</div>
+<div class="paragraph">
+<p>For table specifications of job request table, refer job request table structure of <a href="Ch04_AsyncJobWithDB.html#Ch04_AsyncJobWithDB_Arch_RequireTable">Table for polling</a>.</p>
+</div>
+<div class="paragraph">
+<p>How to execute SQL on STS is shown below.</p>
+</div>
+<div class="olist arabic">
+<div class="title">SQL execution procedure</div>
+<ol class="arabic">
+<li>
+<p>Display Data Source Explorer View<br>
+For how to display View, refer <a href="Ch09_EnvironmentConstruction.html#Ch09_EnvironmentConstruction_DataSourceExplorer">Preparation to refer database from STS</a>.</p>
+</li>
+</ol>
+</div>
+<div class="imageblock">
+<div class="content">
+<img src="./images/ch09/AsyncExecution/Ch09_AsyncExecutionJob_DataSourceExplorer.png" alt="Data Source Explorer View">
+</div>
+<div class="title">Data Source Explorer View</div>
+</div>
+<div class="olist arabic">
+<ol class="arabic" start="2">
+<li>
+<p>Open SQL Scrapbook<br>
+Right-click datasource and click "Open SQL Scrapbook".</p>
+</li>
+</ol>
+</div>
+<div class="imageblock">
+<div class="content">
+<img src="./images/ch09/AsyncExecution/Ch09_AsyncExecutionJob_SQLScrapbook.png" alt="Open SQL Scrapbook">
+</div>
+<div class="title">SQL Scrapbook</div>
+</div>
+<div class="olist arabic">
+<ol class="arabic" start="3">
+<li>
+<p>Describe SQL<br>
+SQL for executing a job which accesses a database and a job which accesses a file are shown below using an example of chunk model.</p>
+</li>
+</ol>
+</div>
+<div class="dlist">
+<dl>
+<dt class="hdlist1">In case of a job which accesses database</dt>
+<dd>
+<p>SQL to be described is shown below.</p>
+</dd>
+</dl>
+</div>
+<div class="listingblock">
+<div class="title">SQL for execution request of job which accesses database</div>
+<div class="content">
+<pre class="CodeRay highlight"><code data-lang="sql"><span class="class">INSERT</span> <span class="class">INTO</span> batch_job_request(job_name,job_parameter,polling_status,create_date)
+<span class="keyword">VALUES</span> (<span class="string"><span class="delimiter">'</span><span class="content">jobPointAddChunk</span><span class="delimiter">'</span></span>, <span class="string"><span class="delimiter">'</span><span class="delimiter">'</span></span>, <span class="string"><span class="delimiter">'</span><span class="content">INIT</span><span class="delimiter">'</span></span>, current_timestamp);</code></pre>
+</div>
+</div>
+<div class="dlist">
+<dl>
+<dt class="hdlist1">In case of a job which accesses a file</dt>
+<dd>
+<p>SQL to be described is shown below.</p>
+</dd>
+</dl>
+</div>
+<div class="listingblock">
+<div class="title">SQL for execution request of a job which accesses a file</div>
+<div class="content">
+<pre class="CodeRay highlight"><code data-lang="sql"><span class="class">INSERT</span> <span class="class">INTO</span> batch_job_request(job_name,job_parameter,polling_status,create_date)
+<span class="keyword">VALUES</span> (<span class="string"><span class="delimiter">'</span><span class="content">jobPointAddChunk</span><span class="delimiter">'</span></span>, <span class="string"><span class="delimiter">'</span><span class="content">inputFile=files/input/input-member-info-data.csv,outputFile=files/output/output-member_info_out.csv</span><span class="delimiter">'</span></span>, <span class="string"><span class="delimiter">'</span><span class="content">INIT</span><span class="delimiter">'</span></span>, current_timestamp);</code></pre>
+</div>
+</div>
+<div class="paragraph">
+<p>Image after SQL description is shown below.<br>
+Here, SQL for execution request of a job which accesses database is described.</p>
+</div>
+<div class="imageblock">
+<div class="content">
+<img src="./images/ch09/AsyncExecution/Ch09_AsyncExecutionJob_EnteringSQL.png" alt="Entering SQL">
+</div>
+<div class="title">SQL input</div>
+</div>
+<div class="olist arabic">
+<ol class="arabic" start="4">
+<li>
+<p>Execute SQL<br>
+As shown below, set Connection Profile of SQL Scrapbook,
+right-click on the margin and click  → [Execute All].<br>
+Connection Profile contents are based on
+contents set in <a href="Ch09_EnvironmentConstruction.html#Ch09_EnvironmentConstruction_DataSourceExplorer">Preparation which refers a database from STS</a>.</p>
+</li>
+</ol>
+</div>
+<div class="imageblock">
+<div class="content">
+<img src="./images/ch09/AsyncExecution/Ch09_AsyncExecutionJob_ExecuteSQL.png" alt="Execute SQL">
+</div>
+<div class="title">Execute SQL</div>
+</div>
+<div class="olist arabic">
+<ol class="arabic" start="5">
+<li>
+<p>Verify execution results of SQL<br>
+As shown in the diagram below, <code>Status</code> of SQL executed by SQL Results View is <code>Succeeded</code>.</p>
+</li>
+</ol>
+</div>
+<div class="imageblock">
+<div class="content">
+<img src="./images/ch09/AsyncExecution/Ch09_AsyncExecutionJob_SQLResults.png" alt="Confirm SQL Results">
+</div>
+<div class="title">Verify SQL execution results</div>
+</div>
+<div class="olist arabic">
+<ol class="arabic" start="6">
+<li>
+<p>Verify a job request table<br>
+As shown in the figure below, verify that information for executing the job is registered in the job request table.<br>
+<code>POLLING_STATUS</code> is registered by <code>INIT</code>, however, if the polling is executed already, <code>POLLING_STATUS</code> becomes <code>POLLED</code> or <code>EXECUTED</code>.<br>
+For details of <code>POLLING_STATUS</code>, refer <a href="Ch04_AsyncJobWithDB.html#Ch04_AsyncJobWithDB_Arch_RequireTable_PollingStatus">Transition pattern of polling status (polling_status)</a>.</p>
+</li>
+</ol>
+</div>
+<div class="imageblock">
+<div class="content">
+<img src="./images/ch09/AsyncExecution/Ch09_AsyncExecutionJob_BatchJobRequestTable.png" alt="Confrim batch_job_Request Table">
+</div>
+<div class="title">Verify job request table</div>
+</div>
+</div>
+</div>
+<div class="sect1">
+<h2 id="Ch09_AsyncExecutionJob_ExecutionResultCheck"><a class="anchor" href="#Ch09_AsyncExecutionJob_ExecutionResultCheck"></a>Job execution and results verification</h2>
+<div class="sectionbody">
+<div class="paragraph">
+<p>Verify execution results of a job for asynchronous execution.</p>
+</div>
+<div class="sect2">
+<h3 id="Ch09_AsyncExecutionJob_ExecutionResultCheck_Console"><a class="anchor" href="#Ch09_AsyncExecutionJob_ExecutionResultCheck_Console"></a>Verifying console log</h3>
+<div class="paragraph">
+<p>Open Console View and verify that log of following details is output.<br>
+Here, verify that the processing is completed (COMPLETED) and no exceptions have occurred.</p>
+</div>
+<div class="listingblock">
+<div class="title">Console log output example</div>
+<div class="content">
+<pre class="CodeRay highlight"><code data-lang="console">(.. omitted)
+
+[2017/09/06 18:59:50] [daemonTaskScheduler-1] [o.t.b.a.d.JobRequestPollTask] [INFO ] Polling processing.
+[2017/09/06 18:59:55] [daemonTaskScheduler-1] [o.t.b.a.d.JobRequestPollTask] [INFO ] Polling processing.
+[2017/09/06 18:59:55] [daemonTaskExecutor-1] [o.s.b.c.l.s.SimpleJobOperator] [INFO ] Checking status of job with name=jobPointAddChunk
+[2017/09/06 18:59:55] [daemonTaskExecutor-1] [o.s.b.c.l.s.SimpleJobOperator] [INFO ] Attempting to launch job with name=jobPointAddChunk and parameters=
+[2017/09/06 18:59:55] [daemonTaskExecutor-1] [o.s.b.c.l.s.SimpleJobLauncher] [INFO ] Job: [FlowJob: [name=jobPointAddChunk]] launched with the following parameters: [{jsr_batch_run_id=117}]
+[2017/09/06 18:59:55] [daemonTaskExecutor-1] [o.s.b.c.j.SimpleStepHandler] [INFO ] Executing step: [jobPointAddChunk.step01]
+[2017/09/06 18:59:55] [daemonTaskExecutor-1] [o.s.b.c.l.s.SimpleJobLauncher] [INFO ] Job: [FlowJob: [name=jobPointAddChunk]] completed with the following parameters: [{jsr_batch_run_id=117}] and the following status: [COMPLETED]
+[2017/09/06 19:00:00] [daemonTaskScheduler-1] [o.t.b.a.d.JobRequestPollTask] [INFO ] Polling processing.
+[2017/09/06 19:00:05] [daemonTaskScheduler-1] [o.t.b.a.d.JobRequestPollTask] [INFO ] Polling processing</code></pre>
+</div>
+</div>
+</div>
+<div class="sect2">
+<h3 id="Ch09_AsyncExecutionJob_ExecutionResultCheck_ExitCode"><a class="anchor" href="#Ch09_AsyncExecutionJob_ExecutionResultCheck_ExitCode"></a>Verifying exit codes</h3>
+<div class="paragraph">
+<p>In the case of asynchronous execution, it is not possible to check exit code if the job is been executed on STS.<br>
+Check job execution status with <a href="#Ch09_AsyncExecutionJob_ExecutionStatusCheck">Verifying job execution status</a>.</p>
+</div>
+</div>
+<div class="sect2">
+<h3 id="Ch09_AsyncExecutionJob_ExecutionResultCheck_Output"><a class="anchor" href="#Ch09_AsyncExecutionJob_ExecutionResultCheck_Output"></a>Verifying output resource</h3>
+<div class="paragraph">
+<p>Verify output resource (database or file) according to the executed job.</p>
+</div>
+<div class="sect3">
+<h4 id="Ch09_AsyncExecutionJob_ExecutionResultCheck_Output_Table"><a class="anchor" href="#Ch09_AsyncExecutionJob_ExecutionResultCheck_Output_Table"></a>In case of a job which accesses database</h4>
+<div class="paragraph">
+<p>Compare contents of member information table before and after update and verify that the contents are in accordance with verification details.<br>
+For verification procedure, refer <a href="Ch09_EnvironmentConstruction.html#Ch09_EnvironmentConstruction_OperationCheck_RefDB">Refer database by using Data Source Explorer</a>.</p>
+</div>
+<div class="dlist">
+<dl>
+<dt class="hdlist1">Verification details</dt>
+<dd>
+<div class="ulist">
+<ul>
+<li>
+<p>status column</p>
+<div class="ulist">
+<ul>
+<li>
+<p>Records with "0"(initial status) should not exist</p>
+</li>
+</ul>
+</div>
+</li>
+<li>
+<p>point column</p>
+<div class="ulist">
+<ul>
+<li>
+<p>Points should be added according to membership type, for point addition</p>
+<div class="ulist">
+<ul>
+<li>
+<p>100 points when type column is "G"(gold member)</p>
+</li>
+<li>
+<p>10 points when type column is "N"(normal member)</p>
+</li>
+</ul>
+</div>
+</li>
+<li>
+<p>Records exceeding 1,000,000 points (upper limit value) should not exist</p>
+</li>
+</ul>
+</div>
+</li>
+</ul>
+</div>
+</dd>
+</dl>
+</div>
+<div class="paragraph">
+<p>Contents of member information table before and after update are shown below.</p>
+</div>
+<div class="imageblock">
+<div class="content">
+<img src="./images/ch09/AsyncExecution/Ch09_AsyncExecutionJob_Result_MemberInfoTable.png" alt="Table of member_info">
+</div>
+<div class="title">Contents of member information table before and after update</div>
+</div>
+</div>
+<div class="sect3">
+<h4 id="Ch09_AsyncExecutionJob_ExecutionResultCheck_Output_File"><a class="anchor" href="#Ch09_AsyncExecutionJob_ExecutionResultCheck_Output_File"></a>In case of a job which accesses a file</h4>
+<div class="paragraph">
+<p>Compare input and output details of member information file and verify that the contents are in accordance with verification details.</p>
+</div>
+<div class="dlist">
+<dl>
+<dt class="hdlist1">Verification details</dt>
+<dd>
+<div class="ulist">
+<ul>
+<li>
+<p>Member information file should be output in the output directory</p>
+<div class="ulist">
+<ul>
+<li>
+<p>Output file: files/output/output-member-info-data.csv</p>
+</li>
+</ul>
+</div>
+</li>
+<li>
+<p>status field</p>
+<div class="ulist">
+<ul>
+<li>
+<p>Records with "0"(initial status) should not exist</p>
+</li>
+</ul>
+</div>
+</li>
+<li>
+<p>point field</p>
+<div class="ulist">
+<ul>
+<li>
+<p>Points should be added according to membership type, for point addition</p>
+<div class="ulist">
+<ul>
+<li>
+<p>100 points when type field is "G"(gold member)</p>
+</li>
+<li>
+<p>10 points when type field is "N"(normal member)</p>
+</li>
+</ul>
+</div>
+</li>
+<li>
+<p>Records with points exceeding 1,000,000(upper limit value) should not exist</p>
+</li>
+</ul>
+</div>
+</li>
+</ul>
+</div>
+</dd>
+</dl>
+</div>
+<div class="paragraph">
+<p>Input and output details of member information file are shown below.<br>
+File fields are output in the sequence of id(member id, type(membership type), status(product purchasing flag) and point(point).</p>
+</div>
+<div class="imageblock">
+<div class="content">
+<img src="./images/ch09/AsyncExecution/Ch09_AsyncExecutionJob_Result_MemberInfoFile.png" alt="File of member_info">
+</div>
+<div class="title">Input and output details of member information file</div>
+</div>
+</div>
+</div>
+</div>
+</div>
+<div class="sect1">
+<h2 id="Ch09_AsyncExecutionJob_StopAsyncBatchDeamon"><a class="anchor" href="#Ch09_AsyncExecutionJob_StopAsyncBatchDeamon"></a>Stopping asynchronous batch daemon</h2>
+<div class="sectionbody">
+<div class="paragraph">
+<p>Create an exit file and stop asynchronous batch daemon.</p>
+</div>
+<div class="paragraph">
+<p>Create stop-async-batch-daemon file(blank file) in C:tmp
+as instructed in polling process setting.</p>
+</div>
+<div class="imageblock">
+<div class="content">
+<img src="./images/ch09/AsyncExecution/Ch09_AsyncExecutionJob_StopAsyncBatchDaemon.png" alt="Stop AsyncBatchDeamon">
+</div>
+<div class="title">Create exit file</div>
+</div>
+<div class="paragraph">
+<p>Verify that asynchronous batch daemon is stopped as shown below in STS console.</p>
+</div>
+<div class="listingblock">
+<div class="title">Verify termination of asynchronous batch daemon</div>
+<div class="content">
+<pre class="CodeRay highlight"><code data-lang="console">(.. omitted)
+
+[2017/09/08 21:41:41] [daemonTaskScheduler-1] [o.t.b.a.d.JobRequestPollTask] [INFO ] Polling processing.
+[2017/09/08 21:41:44] [main] [o.t.b.a.d.AsyncBatchDaemon] [INFO ] Async Batch Daemon has detected the polling stop file, and then shutdown now!
+[2017/09/08 21:41:44] [main] [o.s.c.s.ClassPathXmlApplicationContext] [INFO ] Closing org.springframework.context.support.ClassPathXmlApplicationContext@6b2fad11: startup date [Fri Sep 08 21:41:01 JST 2017]; root of context hierarchy
+[2017/09/08 21:41:44] [main] [o.s.b.c.c.s.GenericApplicationContextFactory$ResourceXmlApplicationContext] [INFO ] Closing ResourceXmlApplicationContext:file:/C:/dev/workspace/tutorial/terasoluna-batch-tutorial/target/classes/META-INF/jobs/dbaccess/jobPointAddChunk.xml
+[2017/09/08 21:41:44] [main] [o.s.c.s.DefaultLifecycleProcessor] [INFO ] Stopping beans in phase 0
+[2017/09/08 21:41:44] [main] [o.t.b.a.d.JobRequestPollTask] [INFO ] JobRequestPollTask is called shutdown.
+[2017/09/08 21:41:44] [main] [o.s.s.c.ThreadPoolTaskScheduler] [INFO ] Shutting down ExecutorService 'daemonTaskScheduler'
+[2017/09/08 21:41:44] [main] [o.s.s.c.ThreadPoolTaskExecutor] [INFO ] Shutting down ExecutorService
+[2017/09/08 21:41:44] [main] [o.t.b.a.d.AsyncBatchDaemon] [INFO ] Async Batch Daemon stopped after all jobs completed.</code></pre>
+</div>
+</div>
+</div>
+</div>
+<div class="sect1">
+<h2 id="Ch09_AsyncExecutionJob_ExecutionStatusCheck"><a class="anchor" href="#Ch09_AsyncExecutionJob_ExecutionStatusCheck"></a>Verifying job execution status</h2>
+<div class="sectionbody">
+<div class="paragraph">
+<p>Verify the job status and execution result in meta data table of JobRepository. Here, refer to <code>batch_job_execution</code>.</p>
+</div>
+<div class="paragraph">
+<p>SQL to verify job status is shown below.</p>
+</div>
+<div class="listingblock">
+<div class="title">SQL for checking job status</div>
+<div class="content">
+<pre class="CodeRay highlight"><code data-lang="sql"><span class="class">SELECT</span> job_execution_id,start_time,end_time,exit_code <span class="keyword">FROM</span> batch_job_execution <span class="keyword">WHERE</span> job_execution_id =
+(<span class="class">SELECT</span> <span class="predefined">max</span>(job_execution_id) <span class="keyword">FROM</span> batch_job_request <span class="keyword">WHERE</span> job_execution_id <span class="keyword">IS</span> <span class="keyword">NOT</span> <span class="predefined-constant">NULL</span>);</code></pre>
+</div>
+</div>
+<div class="paragraph">
+<p>In this SQL, execution status of the last job is fetched.</p>
+</div>
+<div class="paragraph">
+<p>SQL execution results can be verified in SQL Results View displayed after execution of SQL on STS.<br>
+Verify that <code>EXIT_CODE</code> is <code>COMPLETED</code> as shown in the diagram below.</p>
+</div>
+<div class="imageblock">
+<div class="content">
+<img src="./images/ch09/AsyncExecution/Ch09_AsyncExecutionJob_Confirm_JobStatus.png" alt="SQL Results View">
+</div>
+<div class="title">Verify job status</div>
+</div>
+</div>
+</div>
+</div>
+<div class="container">
+
+  <div class="common-bg">
+    <div class="information">
+      TERASOLUNA Batch Framework for Java (5.x) Development Guideline - version 5.0.1.RELEASE, 2017-9-27
+    </div>
+    <div class="index">
+      <a href="index.html">&gt; INDEX</a>
+    </div>
+  </div>
+
+  <div class="footer-bg">
+    <div class="copyright">
+      &copy; Copyright 2017 NTT DATA Corporation.
+    </div>
+  </div>
+
+</div>
+</body>
+</html>

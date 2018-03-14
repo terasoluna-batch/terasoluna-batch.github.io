@@ -1,0 +1,2049 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<!--[if IE]><meta http-equiv="X-UA-Compatible" content="IE=edge"><![endif]-->
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<meta name="generator" content="Asciidoctor 1.5.6.1">
+<title>Asynchronous execution (DB polling)</title>
+<link rel="stylesheet" href="./theme/css/readthedocs.css">
+<link rel="stylesheet" href="./theme/css/font-awesome.min.css">
+<link rel="stylesheet" href="./theme/css/coderay-asciidoctor.css">
+<link rel="stylesheet" href="./theme/css/header-footer.css">
+<title>TERASOLUNA Batch Framework for Java (5.x) Development Guideline</title>
+
+<div class="common-bg">
+  <div class="information">
+    TERASOLUNA Batch Framework for Java (5.x) Development Guideline - version 5.0.1.RELEASE, 2017-9-27
+  </div>
+  <div class="index">
+    <a href="index.html">&gt; INDEX</a>
+  </div>
+</div>
+</head>
+<body id="Ch04_AsyncJobWithDB" class="book toc2 toc-left">
+<div id="header">
+<h1>Asynchronous execution (DB polling)</h1>
+<div id="toc" class="toc2">
+<div id="toctitle">Table of Contents</div>
+<ul class="sectlevel1">
+<li><a href="#Ch04_AsyncJobWithDB_Overview">Overview</a>
+<ul class="sectlevel2">
+<li><a href="#what-is-asynchronous-execution-by-using-db-polling">What is asynchronous execution by using DB polling?</a>
+<ul class="sectlevel3">
+<li><a href="#functions-offered-by-terasoluna-batch-5-x">Functions offered by TERASOLUNA Batch 5.x</a></li>
+<li><a href="#usage-scene">Usage scene</a></li>
+</ul>
+</li>
+</ul>
+</li>
+<li><a href="#Ch04_AsyncJobWithDB_Arch">Architecture</a>
+<ul class="sectlevel2">
+<li><a href="#Ch04_AsyncJobWithDB_Arch_Sequence">Processing sequence of DB polling</a></li>
+<li><a href="#Ch04_AsyncJobWithDB_Arch_RequireTable">About the table to be polled</a>
+<ul class="sectlevel3">
+<li><a href="#job-request-table-structure">Job-request-table structure</a></li>
+<li><a href="#job-request-sequence-structure">Job request sequence structure</a></li>
+<li><a href="#transition-pattern-of-polling-status-polling_status">Transition pattern of polling status (polling_status)</a></li>
+<li><a href="#job-request-fetch-sql">Job request fetch SQL</a></li>
+</ul>
+</li>
+<li><a href="#Ch04_AsyncJobWithDB_Arch_JobLaunching">About job running</a></li>
+<li><a href="#Ch04_AsyncJobWithDB_Arch_OnError">When abnormality is detected in DB polling process.</a>
+<ul class="sectlevel3">
+<li><a href="#database-connection-failure">Database connection failure</a></li>
+<li><a href="#abnormal-termination-of-asynchronous-batch-daemon-process">Abnormal termination of asynchronous batch daemon process</a></li>
+</ul>
+</li>
+<li><a href="#Ch04_AsyncJobWithDB_Arch_Shutdown">Stopping DB polling process</a></li>
+<li><a href="#Ch04_AsyncJobWithDB_Arch_Components">About  application configuration specific to asynchronous execution</a>
+<ul class="sectlevel3">
+<li><a href="#Ch04_AsyncJobWithDB_Arch_AppCtx">ApplicationContext configuration</a></li>
+<li><a href="#Ch04_AsyncJobWithDB_Arch_Config">Bean definition structure</a></li>
+</ul>
+</li>
+</ul>
+</li>
+<li><a href="#Ch04_AsyncJobWithDB_HowToUse">How to use</a>
+<ul class="sectlevel2">
+<li><a href="#Ch04_AsyncJobWithDB_HowToUse_Config">Various settings</a>
+<ul class="sectlevel3">
+<li><a href="#settings-for-polling-process">Settings for polling process</a></li>
+<li><a href="#Ch04_AsyncJobWithDB_HowToUse_Config_Job">Job settings</a></li>
+</ul>
+</li>
+<li><a href="#Ch04_AsyncJobWithDB_HowToUse_Daemon">From start to end of asynchronous execution</a>
+<ul class="sectlevel3">
+<li><a href="#start-of-asynchronous-batch-daemon">Start of asynchronous batch daemon</a></li>
+<li><a href="#job-request">Job request</a></li>
+<li><a href="#Ch04_AsyncJobWithDB_HowToUse_Daemon_stop">Stopping asynchronous batch daemon</a></li>
+</ul>
+</li>
+<li><a href="#Ch04_AsyncJobWithDB_HowToUse_RefStatus">Confirm job status</a></li>
+<li><a href="#Ch04_AsyncJobWithDB_HowToUse_Recovery">Recovery after a job is terminated abnormally</a>
+<ul class="sectlevel3">
+<li><a href="#re-run">Re-run</a></li>
+<li><a href="#restart">Restart</a></li>
+<li><a href="#termination">Termination</a></li>
+</ul>
+</li>
+<li><a href="#Ch04_AsyncJobWithDB_HowToUse_Env">About environment deployment</a></li>
+<li><a href="#Ch04_AsyncJobWithDB_HowToUse_Evacuation_Cumulative_Data">Evacuation of cumulative data</a></li>
+</ul>
+</li>
+<li><a href="#Ch04_AsyncJobWithDB_HowToExtend">How to extend</a>
+<ul class="sectlevel2">
+<li><a href="#Ch04_AsyncJobWithDB_HowToExtend_CustomTable">Customising Job-request-table</a>
+<ul class="sectlevel3">
+<li><a href="#Ch04_AsyncJobWithDB_HowToExtend_CustomTable_Priority">Example of controlling job execution sequence by priority column</a></li>
+<li><a href="#Ch04_AsyncJobWithDB_HowToExtend_CustomTable_GroupID">Distributed processing by multiple processes using a group ID</a></li>
+</ul>
+</li>
+<li><a href="#Ch04_AsyncJobWithDB_HowToExtend_MultiDaemon">Multiple runnings</a></li>
+</ul>
+</li>
+<li><a href="#Ch04_AsyncJobWithDB_Appendix">Appendix</a>
+<ul class="sectlevel2">
+<li><a href="#Ch04_AsyncJobWithDB_Appendix_Modular">About modularization of job definition</a></li>
+</ul>
+</li>
+</ul>
+</div>
+</div>
+<div id="content">
+<div class="sect1">
+<h2 id="Ch04_AsyncJobWithDB_Overview"><a class="anchor" href="#Ch04_AsyncJobWithDB_Overview"></a>Overview</h2>
+<div class="sectionbody">
+<div class="paragraph">
+<p>Running a job using DB polling is explained.</p>
+</div>
+<div class="paragraph">
+<p>The usage method of this function is same in the chunk model as well as tasklet model.</p>
+</div>
+<div class="sect2">
+<h3 id="what-is-asynchronous-execution-by-using-db-polling"><a class="anchor" href="#what-is-asynchronous-execution-by-using-db-polling"></a>What is asynchronous execution by using DB polling?</h3>
+<div class="paragraph">
+<p>A dedicated table which registers jobs to be executed asynchronously (hereafter referred to as Job-request-table) is monitored periodically and job is asynchronously executed based on the registered information.<br>
+In TERASOLUNA Batch 5.x, a module which monitors the table and starts the job is defined with the name asynchronous batch daemon.
+Asynchronous batch daemon runs as a single Java process and executes by assigning threads in the process for each job.</p>
+</div>
+<div class="sect3">
+<h4 id="functions-offered-by-terasoluna-batch-5-x"><a class="anchor" href="#functions-offered-by-terasoluna-batch-5-x"></a>Functions offered by TERASOLUNA Batch 5.x</h4>
+<div class="paragraph">
+<p>TERASOLUNA Batch 5.x offers following functions as <strong>Asynchronous execution (DB polling)</strong>.</p>
+</div>
+<table class="tableblock frame-all grid-all spread">
+<caption class="title">List of asynchronous execution (DB polling) functions</caption>
+<colgroup>
+<col style="width: 40%;">
+<col style="width: 60%;">
+</colgroup>
+<thead>
+<tr>
+<th class="tableblock halign-left valign-top">Function</th>
+<th class="tableblock halign-left valign-top">Description</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td class="tableblock halign-left valign-top"><p class="tableblock">Asynchronous batch daemon function</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">A function which permanently executes Job-request-table polling function</p></td>
+</tr>
+<tr>
+<td class="tableblock halign-left valign-top"><p class="tableblock">Job-request-table polling function</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">A function which asynchronously executes the job based on information registered in the Job-request-table.<br>
+It also offers a table definition of Job-request-table.</p></td>
+</tr>
+</tbody>
+</table>
+<div class="sect4">
+<h5 id="usage-premise"><a class="anchor" href="#usage-premise"></a>Usage premise</h5>
+<div class="paragraph">
+<p>Only job requests are managed in Job-request-table. Execution status and results of requested job is entrusted to <code>JobRepository</code>.
+It is assumed that job status is managed through these two factors.<br></p>
+</div>
+<div class="paragraph">
+<p>Further, if in-memory database is used in <code>JobRepository</code>, <code>JobRepository</code> is cleared after terminating asynchronous batch daemon and job execution status and results cannot be referred.
+Hence, it is assumed that a database that is ensured to be persistent is used in <code>JobRepository</code>.</p>
+</div>
+<div class="admonitionblock warning">
+<table>
+<tr>
+<td class="icon">
+<i class="fa icon-warning" title="Warning"></i>
+</td>
+<td class="content">
+<div class="title">Using in-memory database</div>
+<div class="paragraph">
+<p>When job execution results success or failure can be obtained without referring <code>JobRepository</code>, in-memory database can be used.<br>
+When long term continuous operations are performed in in-memory database, a large quantity of memory resources are likely to get consumed resulting in adverse effect on job execution.<br>
+In other words, in-memory database is not suitable for long term continuous operations and should be restarted periodically.<br>
+However, if it is to be used for long term continuous operations, maintenance work like deleting data periodically from <code>JobRepository</code> is necessary.<br>
+In case of a restart, if initialization is enabled, it gets recreated at the time of restart. Hence, maintenance is not required.
+For initialization, refer <a href="Ch03_CreateProject.html#Ch03_CreateProject_Make_Setting_DB">Database related settings</a>.</p>
+</div>
+</td>
+</tr>
+</table>
+</div>
+</div>
+</div>
+<div class="sect3">
+<h4 id="usage-scene"><a class="anchor" href="#usage-scene"></a>Usage scene</h4>
+<div class="paragraph">
+<p>A few scenes which use asynchronous execution (DB polling).</p>
+</div>
+<table class="tableblock frame-all grid-all spread">
+<caption class="title">List of application scenes</caption>
+<colgroup>
+<col style="width: 40%;">
+<col style="width: 60%;">
+</colgroup>
+<thead>
+<tr>
+<th class="tableblock halign-left valign-top">Usage scene</th>
+<th class="tableblock halign-left valign-top">Description</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td class="tableblock halign-left valign-top"><p class="tableblock">Delayed processing</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">When it is not necessary to complete the operation immediately in coordination with online processing and the operation which takes time to process is to be extracted as a job.</p></td>
+</tr>
+<tr>
+<td class="tableblock halign-left valign-top"><p class="tableblock">Continuous execution of jobs with short processing time</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">When continuous processing is done for a few seconds or a few tens of seconds for 1 job.<br>
+It is possible to avoid compression of resources by start and stop of Java process for 1 job, by using asynchronous execution (DB polling).
+Further, since it leads to omission of start and end processing, it is possible to reduce execution time of the job.</p></td>
+</tr>
+<tr>
+<td class="tableblock halign-left valign-top"><p class="tableblock">Aggregation of large number of jobs</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">Same as continuous execution of jobs with short processing time.</p></td>
+</tr>
+</tbody>
+</table>
+<div class="admonitionblock note">
+<table>
+<tr>
+<td class="icon">
+<i class="fa icon-note" title="Note"></i>
+</td>
+<td class="content">
+<div class="title">Points to choose asynchronous execution(DB polling) instead of asynchronous execution (Web container)</div>
+<div class="paragraph">
+<p>Points to choose asynchronous execution(DB polling) instead of <a href="#Ch04_AsyncJobWithWeb">"Asynchronous execution (Web container)"</a> are shown below.</p>
+</div>
+<div class="ulist">
+<ul>
+<li>
+<p>A hurdle in the introduction of WebAP server in batch processing</p>
+</li>
+<li>
+<p>Consider only database while ensuring availability</p>
+<div class="ulist">
+<ul>
+<li>
+<p>Alternatively, since the access is concentrated in the database, scale is not likely to be like asynchronous execution (Web container).</p>
+</li>
+</ul>
+</div>
+</li>
+</ul>
+</div>
+</td>
+</tr>
+</table>
+</div>
+<div class="admonitionblock note">
+<table>
+<tr>
+<td class="icon">
+<i class="fa icon-note" title="Note"></i>
+</td>
+<td class="content">
+<div class="title">Reasons not to use Spring Batch Integration</div>
+<div class="paragraph">
+<p>The same function can be implemented by using Spring Batch Integration.<br>
+However, when Spring Batch Integration is used, it is necessary to understand and fetch technical elements including the elements other than that of asynchronous execution.<br>
+Accordingly, application of Spring Batch Integration is deferred in order to avoid difficulty in understanding / use / customization of this function.</p>
+</div>
+</td>
+</tr>
+</table>
+</div>
+<div class="admonitionblock important">
+<table>
+<tr>
+<td class="icon">
+<i class="fa icon-important" title="Important"></i>
+</td>
+<td class="content">
+<div class="title">Precautions in asynchronous execution (DB polling)</div>
+<div class="paragraph">
+<p>When a large number of super short batches which are less than several seconds for 1 job are to be executed, database including <code>JobRepository</code> is accessed every time.
+Since performance degradation can occur at this point of time, mass processing of super short batches is not suitable for asynchronous execution (DB polling).
+This point must be adequately reviewed while using this function to check whether target performance is met.</p>
+</div>
+</td>
+</tr>
+</table>
+</div>
+</div>
+</div>
+</div>
+</div>
+<div class="sect1">
+<h2 id="Ch04_AsyncJobWithDB_Arch"><a class="anchor" href="#Ch04_AsyncJobWithDB_Arch"></a>Architecture</h2>
+<div class="sectionbody">
+<div class="sect2">
+<h3 id="Ch04_AsyncJobWithDB_Arch_Sequence"><a class="anchor" href="#Ch04_AsyncJobWithDB_Arch_Sequence"></a>Processing sequence of DB polling</h3>
+<div class="paragraph">
+<p>Processing sequence of DB polling is explained.</p>
+</div>
+<div class="imageblock">
+<div class="content">
+<img src="./images/Ch04_AsyncJobWithDB_Sequence_db_polling.png" alt="sequence of DB polling">
+</div>
+<div class="title">Processing sequence diagram of DB polling</div>
+</div>
+<div class="olist arabic">
+<ol class="arabic">
+<li>
+<p>Launch <code>AsyncBatchDaemon</code> from sh etc.</p>
+</li>
+<li>
+<p><code>AsyncBatchDaemon</code> reads all Bean definition files which defines the jobs at the startup.</p>
+</li>
+<li>
+<p><code>AsyncBatchDaemon</code> starts <code>TaskScheduler</code> for polling at regular intervals.</p>
+<div class="ulist">
+<ul>
+<li>
+<p><code>TaskScheduler</code> starts a specific process at regular interval.</p>
+</li>
+</ul>
+</div>
+</li>
+<li>
+<p><code>TaskScheduler</code> starts <code>JobRequestPollTask</code> (a process which performs polling of Job-request-table).</p>
+</li>
+<li>
+<p><code>JobRequestPollTask</code> fetches a record for which the polling status is "not executed" (INIT), from Job-request-table.</p>
+<div class="ulist">
+<ul>
+<li>
+<p>Fetch a fixed number of records collectively. Default is 3 records.</p>
+</li>
+<li>
+<p>When the target record does not exist, perform polling at regular intervals. Default is 5 seconds interval.</p>
+</li>
+</ul>
+</div>
+</li>
+<li>
+<p><code>JobRequestPollTask</code> allocates jobs to thread and executes them based on information of records.</p>
+</li>
+<li>
+<p><code>JobRequestPollTask</code> updates polling status of the Job-request-table to "polled" (POLLED).</p>
+<div class="ulist">
+<ul>
+<li>
+<p>When number of synchronous execution jobs is achieved, the record which cannot be activated from the fetched records is discarded and the record is fetched again at the time of next polling process.</p>
+</li>
+</ul>
+</div>
+</li>
+<li>
+<p>Job assigned to the thread run a job with <code>JobOperator</code>.</p>
+</li>
+<li>
+<p>Fetch job execution ID of executed jobs (Job execution id).</p>
+</li>
+<li>
+<p><code>JobRequestPollTask</code> updates the polling status of the Job-request-table to "Executed" (EXECUTED) based on job execution ID fetched at the time of job execution.</p>
+</li>
+</ol>
+</div>
+<div class="admonitionblock note">
+<table>
+<tr>
+<td class="icon">
+<i class="fa icon-note" title="Note"></i>
+</td>
+<td class="content">
+<div class="title">Supplement of processing sequence</div>
+<div class="paragraph">
+<p>Spring Batch reference shows that asynchronous execution can be implemented by setting <code>AsyncTaskExecutor</code> in <code>JobLauncher</code>.
+However, when this method is adopted, <code>AsyncTaskExecutor</code> cannot detect the state wherein job execution cannot be performed.
+This issue occurs when there is no thread assigned to the  job and it is likely to lead to following events.</p>
+</div>
+<div class="ulist">
+<ul>
+<li>
+<p>Even though the job cannot be executed, it tries to run the job and continues to perform unnecessary operation.</p>
+</li>
+<li>
+<p>The job does not run in the polling sequence but appears to be started randomly on the Job-request-table depending on the time when the thread is free.</p>
+</li>
+</ul>
+</div>
+<div class="paragraph">
+<p>The processing sequence described earlier is used in order to avoid this phenomenon.</p>
+</div>
+</td>
+</tr>
+</table>
+</div>
+</div>
+<div class="sect2">
+<h3 id="Ch04_AsyncJobWithDB_Arch_RequireTable"><a class="anchor" href="#Ch04_AsyncJobWithDB_Arch_RequireTable"></a>About the table to be polled</h3>
+<div class="paragraph">
+<p>Explanation is given about table which performs polling in asynchronous execution (DB polling).</p>
+</div>
+<div class="paragraph">
+<p>Following database objects are necessary.</p>
+</div>
+<div class="ulist">
+<ul>
+<li>
+<p>Job-request-table (Required)</p>
+</li>
+<li>
+<p>Job sequence (Required for some database products)</p>
+<div class="ulist">
+<ul>
+<li>
+<p>It is necessary when database does not support auto-numbering of columns.</p>
+</li>
+</ul>
+</div>
+</li>
+</ul>
+</div>
+<div class="sect3">
+<h4 id="job-request-table-structure"><a class="anchor" href="#job-request-table-structure"></a>Job-request-table structure</h4>
+<div class="paragraph">
+<p>PostgreSQL from database products corresponding to TERASOLUNA Batch 5.x is shown.
+For other databases, refer DDL included in jar of TERASOLUNA Batch 5.x.</p>
+</div>
+<div class="olist IMPORTANT">
+<ol class="IMPORTANT">
+<li>
+<p>Regarding character string stored in the job request table</p>
+</li>
+</ol>
+</div>
+<div class="exampleblock">
+<div class="content">
+<div class="paragraph">
+<p>Similar to meta data table, job request table column provides a DDL which explicitly sets character data type in character count definition.</p>
+</div>
+</div>
+</div>
+<table class="tableblock frame-all grid-all spread">
+<caption class="title">batch_job_request (In case of PostgreSQL)</caption>
+<colgroup>
+<col style="width: 20%;">
+<col style="width: 20%;">
+<col style="width: 20%;">
+<col style="width: 40%;">
+</colgroup>
+<thead>
+<tr>
+<th class="tableblock halign-left valign-top">Column Name</th>
+<th class="tableblock halign-left valign-top">Data type</th>
+<th class="tableblock halign-left valign-top">Constraint</th>
+<th class="tableblock halign-left valign-top">Description</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td class="tableblock halign-left valign-top"><p class="tableblock">job_seq_id</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">bigserial</p>
+<p class="tableblock">(Use bigint to define a separate sequence)</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">NOT NULL<br>
+PRIMARY KEY</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">A number to determine the sequence of jobs to be executed at the time of polling.<br>
+Use auto-numbering function of database.</p></td>
+</tr>
+<tr>
+<td class="tableblock halign-left valign-top"><p class="tableblock">job_name</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">varchar(100)</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">NOT NULL</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">Job name to be executed.<br>
+Required parameters for job execution.</p></td>
+</tr>
+<tr>
+<td class="tableblock halign-left valign-top"><p class="tableblock">job_parameter</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">varchar(200)</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">-</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">Parameters to be passed to jobs to be executed.</p>
+<p class="tableblock">Single parameter format is same as synchronous execution, however, when multiple parameters are to be specified,
+each parameter must be separated by a comma (see below) unlike blank delimiters of synchronous execution.<br></p>
+<p class="tableblock">{Parameter name}={parameter value},{Parameter name}={Parameter value}&#8230;&#8203;</p></td>
+</tr>
+<tr>
+<td class="tableblock halign-left valign-top"><p class="tableblock">job_execution_id</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">bigint</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">-</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">ID to be paid out at the time of job execution.<br>
+Refer <code>JobRepository</code> using ID as a key.</p></td>
+</tr>
+<tr>
+<td class="tableblock halign-left valign-top"><p class="tableblock">polling_status</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">varchar(10)</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">NOT NULL</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">Polling process status.<br>
+INIT : Not executed<br>
+POLLED: Polled<br>
+EXECUTED : Job executed</p></td>
+</tr>
+<tr>
+<td class="tableblock halign-left valign-top"><p class="tableblock">create_date</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">TIMESTAMP</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">NOT NULL</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">Date and time when the record of the job request is registered.</p></td>
+</tr>
+<tr>
+<td class="tableblock halign-left valign-top"><p class="tableblock">update_date</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">TIMESTAMP</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">-</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">Date and time when the record of job request is updated.</p></td>
+</tr>
+</tbody>
+</table>
+<div class="paragraph">
+<p>DDL is as below.</p>
+</div>
+<div class="listingblock">
+<div class="content">
+<pre class="CodeRay highlight"><code data-lang="sql"><span class="class">CREATE</span> <span class="type">TABLE</span> <span class="keyword">IF</span> <span class="keyword">NOT</span> <span class="keyword">EXISTS</span> batch_job_request (
+    job_seq_id bigserial <span class="directive">PRIMARY</span> <span class="type">KEY</span>,
+    job_name <span class="predefined-type">varchar</span>(<span class="integer">100</span>) <span class="keyword">NOT</span> <span class="predefined-constant">NULL</span>,
+    job_parameter <span class="predefined-type">varchar</span>(<span class="integer">200</span>),
+    job_execution_id <span class="predefined-type">bigint</span>,
+    polling_status <span class="predefined-type">varchar</span>(<span class="integer">10</span>) <span class="keyword">NOT</span> <span class="predefined-constant">NULL</span>,
+    create_date <span class="predefined-type">timestamp</span> <span class="keyword">NOT</span> <span class="predefined-constant">NULL</span>,
+    update_date <span class="predefined-type">timestamp</span>
+);</code></pre>
+</div>
+</div>
+</div>
+<div class="sect3">
+<h4 id="job-request-sequence-structure"><a class="anchor" href="#job-request-sequence-structure"></a>Job request sequence structure</h4>
+<div class="paragraph">
+<p>When the database does not support auto-numbering of database columns, numbering according to sequence is required.<br>
+A PostgreSQL from database products corresponding to TERASOLUNA Batch 5.x is shown.<br>
+For other databases, refer DDL included in jar of TERASOLUNA Batch 5.x.</p>
+</div>
+<div class="paragraph">
+<p>DDL is as below.</p>
+</div>
+<div class="listingblock">
+<div class="content">
+<pre class="CodeRay highlight"><code data-lang="sql"><span class="class">CREATE</span> SEQUENCE batch_job_request_seq MAXVALUE <span class="integer">9223372036854775807</span> NO CYCLE;</code></pre>
+</div>
+</div>
+<div class="admonitionblock warning">
+<table>
+<tr>
+<td class="icon">
+<i class="fa icon-warning" title="Warning"></i>
+</td>
+<td class="content">
+<div class="paragraph">
+<p>A job request sequence is not defined in DDL included in jar of TERASOLUNA Batch 5.x, for databases supporting auto-numbering of columns.
+When you want to change maximum value in the sequence, it is preferable to define the job request sequence besides changing data type
+of <code>job_seq_id</code> from auto-numbering definition to numeric data type
+(In case of PostgreSQL, from <code>bigserial</code> to <code>bigint</code>).</p>
+</div>
+</td>
+</tr>
+</table>
+</div>
+</div>
+<div class="sect3">
+<h4 id="transition-pattern-of-polling-status-polling_status"><a class="anchor" href="#transition-pattern-of-polling-status-polling_status"></a>Transition pattern of polling status (polling_status)</h4>
+<div class="paragraph">
+<p>Transition pattern of polling status is shown in the table below.</p>
+</div>
+<table class="tableblock frame-all grid-all spread">
+<caption class="title">Transition pattern list of polling status</caption>
+<colgroup>
+<col style="width: 20%;">
+<col style="width: 20%;">
+<col style="width: 60%;">
+</colgroup>
+<thead>
+<tr>
+<th class="tableblock halign-left valign-top">Transition source</th>
+<th class="tableblock halign-left valign-top">Transition destination</th>
+<th class="tableblock halign-left valign-top">Description</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td class="tableblock halign-left valign-top"><p class="tableblock">INIT</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">INIT</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">When the number of synchronous executions has been achieved and execution of job is denied, status remains unchanged.<br>
+It acts as a record for polling at the time of next polling.</p></td>
+</tr>
+<tr>
+<td class="tableblock halign-left valign-top"><p class="tableblock">INIT</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">POLLED</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">Transition is done when the job is successfully started.<br>
+Status when the job is running.</p></td>
+</tr>
+<tr>
+<td class="tableblock halign-left valign-top"><p class="tableblock">POLLED</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">EXECUTED</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">Transition occurs when job execution is completed.</p></td>
+</tr>
+</tbody>
+</table>
+</div>
+<div class="sect3">
+<h4 id="job-request-fetch-sql"><a class="anchor" href="#job-request-fetch-sql"></a>Job request fetch SQL</h4>
+<div class="paragraph">
+<p>Number to be fetched by job request fetch SQL is restricted in order to fetch job request for number of synchronously executed jobs.<br>
+Job request fetch SQL varies depending on the database product and version to be used.
+Hence, it may not be possible to handle with SQL provided by TERASOLUNA Batch 5.x.<br>
+In that case, SQLMap of <code>BatchJobRequestMapper.xml</code> should be redefined
+using <a href="#Ch04_AsyncJobWithDB_HowToExtend_CustomTable">Customising Job-request-table</a> as a reference.<br>
+For SQL offered, refer <code>BatchJobRequestMapper.xml</code> included in jar of TERASOLUNA Batch 5.x.</p>
+</div>
+</div>
+</div>
+<div class="sect2">
+<h3 id="Ch04_AsyncJobWithDB_Arch_JobLaunching"><a class="anchor" href="#Ch04_AsyncJobWithDB_Arch_JobLaunching"></a>About job running</h3>
+<div class="paragraph">
+<p>Running method of job is explained.</p>
+</div>
+<div class="paragraph">
+<p>Job is run by <code>start</code> method of <code>JobOperator</code> offered by Spring Batch in Job-request-table polling function of
+TERASOLUNA Batch 5.x.</p>
+</div>
+<div class="paragraph">
+<p>With TERASOLUNA Batch 5.x, guidelines explain the restart of jobs started by asynchronous execution (DB polling) from the command line.
+Hence, <code>JobOperator</code> also contains startup methods like <code>restart</code> etc besides <code>start</code>, however,
+only <code>start</code> method is used.</p>
+</div>
+<div class="dlist">
+<div class="title">Arguments of start method</div>
+<dl>
+<dt class="hdlist1">jobName</dt>
+<dd>
+<p>Set the value registered in <code>job_name</code> of Job-request-table.</p>
+</dd>
+<dt class="hdlist1">jobParametrers</dt>
+<dd>
+<p>Set the value registered in <code>job_parameters</code> of Job-request-table.</p>
+</dd>
+</dl>
+</div>
+</div>
+<div class="sect2">
+<h3 id="Ch04_AsyncJobWithDB_Arch_OnError"><a class="anchor" href="#Ch04_AsyncJobWithDB_Arch_OnError"></a>When abnormality is detected in DB polling process.</h3>
+<div class="paragraph">
+<p>Explanation is given for when an abnormality is detected in DB polling process.</p>
+</div>
+<div class="sect3">
+<h4 id="database-connection-failure"><a class="anchor" href="#database-connection-failure"></a>Database connection failure</h4>
+<div class="paragraph">
+<p>Describe behaviour for the processing performed at the time of failure occurrence.</p>
+</div>
+<div class="dlist">
+<dl>
+<dt class="hdlist1">When records of Job-request-table are fetched</dt>
+<dd>
+<div class="ulist">
+<ul>
+<li>
+<p><code>JobRequestPollTask</code> results in an error, however, <code>JobRequestPollTask</code> is executed again in next polling.</p>
+</li>
+</ul>
+</div>
+</dd>
+<dt class="hdlist1">While changing the polling status from INIT to POLLED</dt>
+<dd>
+<div class="ulist">
+<ul>
+<li>
+<p><code>JobRequestPollTask</code> terminates with an error prior to executing job by <code>JobOperator</code>. Polling status remains unchanged as INIT.</p>
+</li>
+<li>
+<p>In the polling process performed after connection failure recovery, the job becomes a target for execution as there is no change in the Job-request-table and the job is executed at the next polling.</p>
+</li>
+</ul>
+</div>
+</dd>
+<dt class="hdlist1">While changing polling status from POLLED to EXECUTED</dt>
+<dd>
+<div class="ulist">
+<ul>
+<li>
+<p><code>JobRequestPollTask</code> terminates with an error since the job execution ID cannot be updated in the Job-request-table. Polling status remains unchanged as POLLED.</p>
+</li>
+<li>
+<p>It is out of the scope for the polling process to be performed after connection failure recovery and the job at the time of failure is not executed.</p>
+</li>
+<li>
+<p>Since a job execution ID cannot be identified from a Job-request-table, final status of the job is determined from log or <code>JobRepository</code> and re-execute the job as a process of recovery when required.</p>
+</li>
+</ul>
+</div>
+</dd>
+</dl>
+</div>
+<div class="admonitionblock warning">
+<table>
+<tr>
+<td class="icon">
+<i class="fa icon-warning" title="Warning"></i>
+</td>
+<td class="content">
+<div class="paragraph">
+<p>Even if an exception occurs in <code>JobRequestPollTask</code>, it is not restored immediately. Reason is given below.</p>
+</div>
+<div class="olist arabic">
+<ol class="arabic">
+<li>
+<p>Since <code>JobRequestPollTask</code> is started at regular intervals, auto-restoration is possible (not immediate) by delegating the operation to <code>JobRequestPollTask</code>.</p>
+</li>
+<li>
+<p>It is very rare to be able to recover after retrying immediately at the time of failure occurrence, in addition, it is likely to generate load due to attempt of retry.</p>
+</li>
+</ol>
+</div>
+</td>
+</tr>
+</table>
+</div>
+</div>
+<div class="sect3">
+<h4 id="abnormal-termination-of-asynchronous-batch-daemon-process"><a class="anchor" href="#abnormal-termination-of-asynchronous-batch-daemon-process"></a>Abnormal termination of asynchronous batch daemon process</h4>
+<div class="paragraph">
+<p>When a process of asynchronous batch daemon terminates abnormally, transaction of the job being executed is rolled back implicitly.<br>
+State of the polling status is same as status at the time of database connection failure.</p>
+</div>
+</div>
+</div>
+<div class="sect2">
+<h3 id="Ch04_AsyncJobWithDB_Arch_Shutdown"><a class="anchor" href="#Ch04_AsyncJobWithDB_Arch_Shutdown"></a>Stopping DB polling process</h3>
+<div class="paragraph">
+<p>Asynchronous batch daemon (<code>AsyncBatchDaemon</code>) stops by generation of a file.
+After confirming that the file has been generated, make the polling process idle, wait as long as possible to job being started and then stop the process.</p>
+</div>
+</div>
+<div class="sect2">
+<h3 id="Ch04_AsyncJobWithDB_Arch_Components"><a class="anchor" href="#Ch04_AsyncJobWithDB_Arch_Components"></a>About  application configuration specific to asynchronous execution</h3>
+<div class="paragraph">
+<p>Configuration specific to asynchronous execution is explained.</p>
+</div>
+<div class="sect3">
+<h4 id="Ch04_AsyncJobWithDB_Arch_AppCtx"><a class="anchor" href="#Ch04_AsyncJobWithDB_Arch_AppCtx"></a>ApplicationContext configuration</h4>
+<div class="paragraph">
+<p>Asynchronous batch daemon reads <code>async-batch-daemon.xml</code> dedicated to asynchronous execution as ApplicationContext.
+Configuration below is added besides <code>launch-context.xml</code> used in synchronous execution as well.</p>
+</div>
+<div class="dlist">
+<dl>
+<dt class="hdlist1">Asynchronous execution settings</dt>
+<dd>
+<p>A Bean necessary for asynchronous execution like <code>JobRequestPollTask</code> etc. is defined.</p>
+</dd>
+<dt class="hdlist1">Job registration settings</dt>
+<dd>
+<p>Job executed as an asynchronous execution registers by <code>org.springframework.batch.core.configuration.support.AutomaticJobRegistrar</code>.
+Context for each job is modularized by using <code>AutomaticJobRegistrar</code>.
+When modularization is done, it does not pose an issue even of Bean ID used between the jobs is duplicated.</p>
+</dd>
+</dl>
+</div>
+<div class="admonitionblock note">
+<table>
+<tr>
+<td class="icon">
+<i class="fa icon-note" title="Note"></i>
+</td>
+<td class="content">
+<div class="title">What is modularization</div>
+<div class="paragraph">
+<p>Modularization is a hierarchical structure of "Common definition - Definition of each job" and the Bean defined in each job belongs to an independent context between jobs.
+If a reference to a Bean which is not defined in each job definition exists, it refers to a Bean defined in common definition.</p>
+</div>
+</td>
+</tr>
+</table>
+</div>
+</div>
+<div class="sect3">
+<h4 id="Ch04_AsyncJobWithDB_Arch_Config"><a class="anchor" href="#Ch04_AsyncJobWithDB_Arch_Config"></a>Bean definition structure</h4>
+<div class="paragraph">
+<p>Bean definition of a job can be same as Bean definition of synchronous execution. However, following precautions must be taken.</p>
+</div>
+<div class="ulist">
+<ul>
+<li>
+<p>When job is to be registered by <code>AutomaticJobRegistrar</code>, Bean ID of the job is an identifier, and hence should not be duplicated.</p>
+</li>
+<li>
+<p>It is also desirable to not to duplicate Bean ID of step.</p>
+<div class="ulist">
+<ul>
+<li>
+<p>Only the job ID should be uniquely designed by designing naming rules of Bean ID as <code>{Job ID}.{Step ID}</code>.</p>
+</li>
+</ul>
+</div>
+</li>
+</ul>
+</div>
+<div class="admonitionblock note">
+<table>
+<tr>
+<td class="icon">
+<i class="fa icon-note" title="Note"></i>
+</td>
+<td class="content">
+<div class="paragraph">
+<p>Import of <code>job-base-context.xml</code> in the Bean definition of job varies for synchronous and asynchronous execution.</p>
+</div>
+<div class="ulist">
+<ul>
+<li>
+<p>In synchronous execution, <code>launch-context.xml</code> is imported from <code>job-base-context.xml</code>.</p>
+</li>
+<li>
+<p>In asynchronous execution, <code>launch-context.xml</code> is not imported from <code>job-base-context.xml</code>.
+Alternatively,  import <code>launch-context.xml</code> from <code>async-batch-daemon.xml</code> which AsyncBatchDaemon loads.</p>
+</li>
+</ul>
+</div>
+<div class="paragraph">
+<p>This is because various Beans required for starting Spring Batch need not be instantiated for each job.
+Only one bean should be created in common definition (<code>async-batch-daemon.xml</code>) which acts as a parent for each job, from various Beans required for starting Spring Batch.</p>
+</div>
+</td>
+</tr>
+</table>
+</div>
+</div>
+</div>
+</div>
+</div>
+<div class="sect1">
+<h2 id="Ch04_AsyncJobWithDB_HowToUse"><a class="anchor" href="#Ch04_AsyncJobWithDB_HowToUse"></a>How to use</h2>
+<div class="sectionbody">
+<div class="sect2">
+<h3 id="Ch04_AsyncJobWithDB_HowToUse_Config"><a class="anchor" href="#Ch04_AsyncJobWithDB_HowToUse_Config"></a>Various settings</h3>
+<div class="sect3">
+<h4 id="settings-for-polling-process"><a class="anchor" href="#settings-for-polling-process"></a>Settings for polling process</h4>
+<div class="paragraph">
+<p>Use <code>batch-application.properties</code> for settings required for asynchronous execution.</p>
+</div>
+<div class="listingblock">
+<div class="title">batch-application.properties</div>
+<div class="content">
+<pre class="CodeRay highlight"><code data-lang="properties">#(1)
+# Admin DataSource settings.
+admin.jdbc.driver=org.postgresql.Driver
+admin.jdbc.url=jdbc:postgresql://localhost:5432/postgres
+admin.jdbc.username=postgres
+admin.jdbc.password=postgres
+
+# TERASOLUNA AsyncBatchDaemon settings.
+# (2)
+async-batch-daemon.schema.script=classpath:org/terasoluna/batch/async/db/schema-postgresql.sql
+# (3)
+async-batch-daemon.job-concurrency-num=3
+# (4)
+async-batch-daemon.polling-interval=5000
+# (5)
+async-batch-daemon.polling-initial-delay=1000
+# (6)
+async-batch-daemon.polling-stop-file-path=/tmp/end-async-batch-daemon</code></pre>
+</div>
+</div>
+<table class="tableblock frame-all grid-all spread">
+<caption class="title">Setup details item list</caption>
+<colgroup>
+<col style="width: 10%;">
+<col style="width: 90%;">
+</colgroup>
+<thead>
+<tr>
+<th class="tableblock halign-left valign-top">Sr. No.</th>
+<th class="tableblock halign-left valign-top">Description</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td class="tableblock halign-left valign-top"><p class="tableblock">(1)</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">Connection settings for database wherein Job-request-table is stored.<br>
+<code>JobRepository</code> settings are used by default.</p></td>
+</tr>
+<tr>
+<td class="tableblock halign-left valign-top"><p class="tableblock">(2)</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">A path for DDL which defines Job-request-table.<br>
+It is auto-generated when Job-request-table does not exist at the time of starting asynchronous batch daemon.<br>
+This is primarily a test function and execution can be set by <code>data-source.initialize.enabled</code> of+
+<code>batch-application.properties</code>.<br>
+For detailed definition, refer <code>&lt;jdbc:initialize-database&gt;&gt;</code> in <code>async-batch-daemon.xml</code>.</p></td>
+</tr>
+<tr>
+<td class="tableblock halign-left valign-top"><p class="tableblock">(3)</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">Setting for records which are fetched collectively at the time of polling. This setup value is also used as a synchronous parallel number.</p></td>
+</tr>
+<tr>
+<td class="tableblock halign-left valign-top"><p class="tableblock">(4)</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">Polling cycle settings. Unit is milliseconds.</p></td>
+</tr>
+<tr>
+<td class="tableblock halign-left valign-top"><p class="tableblock">(5)</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">Polling initial start delay time settings. Unit is milliseconds.</p></td>
+</tr>
+<tr>
+<td class="tableblock halign-left valign-top"><p class="tableblock">(6)</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">Exit file path settings.</p></td>
+</tr>
+</tbody>
+</table>
+<div class="admonitionblock note">
+<table>
+<tr>
+<td class="icon">
+<i class="fa icon-note" title="Note"></i>
+</td>
+<td class="content">
+<div class="title">Changing setup value using environment variable</div>
+<div class="paragraph">
+<p>Setup value of <code>batch-application.properties</code> can be changed by defining environment variable with same name.<br>
+When an environment variable is set, it is prioritized over property value.<br>
+This happens due to Bean definition below.</p>
+</div>
+<div class="listingblock">
+<div class="title">Settings for launch-context.xml</div>
+<div class="content">
+<pre class="CodeRay highlight"><code data-lang="xml"><span class="tag">&lt;context:property-placeholder</span> <span class="attribute-name">location</span>=<span class="string"><span class="delimiter">&quot;</span><span class="content">classpath:batch-application.properties</span><span class="delimiter">&quot;</span></span>
+        <span class="attribute-name">system-properties-mode</span>=<span class="string"><span class="delimiter">&quot;</span><span class="content">OVERRIDE</span><span class="delimiter">&quot;</span></span>
+        <span class="attribute-name">ignore-resource-not-found</span>=<span class="string"><span class="delimiter">&quot;</span><span class="content">false</span><span class="delimiter">&quot;</span></span>
+        <span class="attribute-name">ignore-unresolvable</span>=<span class="string"><span class="delimiter">&quot;</span><span class="content">true</span><span class="delimiter">&quot;</span></span>
+        <span class="attribute-name">order</span>=<span class="string"><span class="delimiter">&quot;</span><span class="content">1</span><span class="delimiter">&quot;</span></span><span class="tag">/&gt;</span></code></pre>
+</div>
+</div>
+<div class="paragraph">
+<p>For details, refer
+<a href="http://terasolunaorg.github.io/guideline/5.3.0.RELEASE/en/ArchitectureInDetail/GeneralFuncDetail/PropertyManagement.html#technical-details-label">How to define a property file</a> of TERASOLUNA Server 5.x Development Guideline.</p>
+</div>
+</td>
+</tr>
+</table>
+</div>
+</div>
+<div class="sect3">
+<h4 id="Ch04_AsyncJobWithDB_HowToUse_Config_Job"><a class="anchor" href="#Ch04_AsyncJobWithDB_HowToUse_Config_Job"></a>Job settings</h4>
+<div class="paragraph">
+<p>Job to be executed asynchronously is set in <code>automaticJobRegistrar</code> of <code>async-batch-daemon.xml</code>.<br>
+Default settings are shown below.</p>
+</div>
+<div class="listingblock">
+<div class="title">async-batch-daemon.xml</div>
+<div class="content">
+<pre class="CodeRay highlight"><code data-lang="xml"><span class="tag">&lt;bean</span> <span class="attribute-name">id</span>=<span class="string"><span class="delimiter">&quot;</span><span class="content">automaticJobRegistrar</span><span class="delimiter">&quot;</span></span>
+      <span class="attribute-name">class</span>=<span class="string"><span class="delimiter">&quot;</span><span class="content">org.springframework.batch.core.configuration.support.AutomaticJobRegistrar</span><span class="delimiter">&quot;</span></span><span class="tag">&gt;</span>
+    <span class="tag">&lt;property</span> <span class="attribute-name">name</span>=<span class="string"><span class="delimiter">&quot;</span><span class="content">applicationContextFactories</span><span class="delimiter">&quot;</span></span><span class="tag">&gt;</span>
+        <span class="tag">&lt;bean</span> <span class="attribute-name">class</span>=<span class="string"><span class="delimiter">&quot;</span><span class="content">org.springframework.batch.core.configuration.support.ClasspathXmlApplicationContextsFactoryBean</span><span class="delimiter">&quot;</span></span><span class="tag">&gt;</span>
+            <span class="tag">&lt;property</span> <span class="attribute-name">name</span>=<span class="string"><span class="delimiter">&quot;</span><span class="content">resources</span><span class="delimiter">&quot;</span></span><span class="tag">&gt;</span>
+                <span class="tag">&lt;list&gt;</span>
+                    <span class="tag">&lt;value&gt;</span>classpath:/META-INF/jobs/**/*.xml<span class="tag">&lt;/value&gt;</span>  <span class="comment">&lt;!-- (1) --&gt;</span>
+                <span class="tag">&lt;/list&gt;</span>
+            <span class="tag">&lt;/property&gt;</span>
+        <span class="tag">&lt;/bean&gt;</span>
+    <span class="tag">&lt;/property&gt;</span>
+    <span class="tag">&lt;property</span> <span class="attribute-name">name</span>=<span class="string"><span class="delimiter">&quot;</span><span class="content">jobLoader</span><span class="delimiter">&quot;</span></span><span class="tag">&gt;</span>
+        <span class="tag">&lt;bean</span> <span class="attribute-name">class</span>=<span class="string"><span class="delimiter">&quot;</span><span class="content">org.springframework.batch.core.configuration.support.DefaultJobLoader</span><span class="delimiter">&quot;</span></span>
+              <span class="attribute-name">p:jobRegistry-ref</span>=<span class="string"><span class="delimiter">&quot;</span><span class="content">jobRegistry</span><span class="delimiter">&quot;</span></span> <span class="tag">/&gt;</span>
+    <span class="tag">&lt;/property&gt;</span>
+<span class="tag">&lt;/bean&gt;</span></code></pre>
+</div>
+</div>
+<table class="tableblock frame-all grid-all spread">
+<caption class="title">Setting details item list</caption>
+<colgroup>
+<col style="width: 10%;">
+<col style="width: 90%;">
+</colgroup>
+<thead>
+<tr>
+<th class="tableblock halign-left valign-top">Sr.No.</th>
+<th class="tableblock halign-left valign-top">Description</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td class="tableblock halign-left valign-top"><p class="tableblock">(1)</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">A path for Bean definition of a job executed asynchronously.</p></td>
+</tr>
+</tbody>
+</table>
+<div class="admonitionblock warning">
+<table>
+<tr>
+<td class="icon">
+<i class="fa icon-warning" title="Warning"></i>
+</td>
+<td class="content">
+<div class="title">About registered jobs</div>
+<div class="paragraph">
+<p>For registering jobs, jobs which are designed and implemented on the premise that they are executed asynchronously should be specified.
+If the jobs which are not supposed to be executed asynchronously are included, exceptions may occur due to unintended references at the time of job registration.</p>
+</div>
+<div class="listingblock">
+<div class="title">Example of Narrowing down</div>
+<div class="content">
+<pre class="CodeRay highlight"><code data-lang="xml"><span class="tag">&lt;bean</span> <span class="attribute-name">id</span>=<span class="string"><span class="delimiter">&quot;</span><span class="content">automaticJobRegistrar</span><span class="delimiter">&quot;</span></span>
+      <span class="attribute-name">class</span>=<span class="string"><span class="delimiter">&quot;</span><span class="content">org.springframework.batch.core.configuration.support.AutomaticJobRegistrar</span><span class="delimiter">&quot;</span></span><span class="tag">&gt;</span>
+    <span class="tag">&lt;property</span> <span class="attribute-name">name</span>=<span class="string"><span class="delimiter">&quot;</span><span class="content">applicationContextFactories</span><span class="delimiter">&quot;</span></span><span class="tag">&gt;</span>
+        <span class="tag">&lt;bean</span> <span class="attribute-name">class</span>=<span class="string"><span class="delimiter">&quot;</span><span class="content">org.springframework.batch.core.configuration.support.ClasspathXmlApplicationContextsFactoryBean</span><span class="delimiter">&quot;</span></span><span class="tag">&gt;</span>
+            <span class="tag">&lt;property</span> <span class="attribute-name">name</span>=<span class="string"><span class="delimiter">&quot;</span><span class="content">resources</span><span class="delimiter">&quot;</span></span><span class="tag">&gt;</span>
+                <span class="tag">&lt;list&gt;</span>
+                    <span class="comment">&lt;!-- For the async directory and below --&gt;</span>
+                    <span class="tag">&lt;value&gt;</span>classpath:/META-INF/jobs/aysnc/**/*.xml<span class="tag">&lt;/value&gt;</span>
+                    <span class="comment">&lt;!-- For a specific job --&gt;</span>
+                    <span class="tag">&lt;value&gt;</span>classpath:/META-INF/jobs/CASE100/SpecialJob.xml<span class="tag">&lt;/value&gt;</span>
+                <span class="tag">&lt;/list&gt;</span>
+            <span class="tag">&lt;/property&gt;</span>
+        <span class="tag">&lt;/bean&gt;</span>
+    <span class="tag">&lt;/property&gt;</span>
+    <span class="tag">&lt;property</span> <span class="attribute-name">name</span>=<span class="string"><span class="delimiter">&quot;</span><span class="content">jobLoader</span><span class="delimiter">&quot;</span></span><span class="tag">&gt;</span>
+        <span class="tag">&lt;bean</span> <span class="attribute-name">class</span>=<span class="string"><span class="delimiter">&quot;</span><span class="content">org.springframework.batch.core.configuration.support.DefaultJobLoader</span><span class="delimiter">&quot;</span></span>
+            <span class="attribute-name">p:jobRegistry-ref</span>=<span class="string"><span class="delimiter">&quot;</span><span class="content">jobRegistry</span><span class="delimiter">&quot;</span></span> <span class="tag">/&gt;</span>
+    <span class="tag">&lt;/property&gt;</span>
+<span class="tag">&lt;/bean&gt;</span></code></pre>
+</div>
+</div>
+</td>
+</tr>
+</table>
+</div>
+<div class="admonitionblock tip">
+<table>
+<tr>
+<td class="icon">
+<i class="fa icon-tip" title="Tip"></i>
+</td>
+<td class="content">
+<div class="title">Input value verification for job parameters</div>
+<div class="paragraph">
+<p><code>JobPollingTask</code> does not validate the records obtained from Job-request-table.<br>
+Hence, the job name and job parameter must be verified for the table registration.<br>
+If the job name is incorrect, job is not detected even if it has started and an exception occurs.<br>
+If the job parameter is incorrect, an erroneous operation is performed even if the job has started.<br>
+Only job parameters can be verified once the job is started. For verification of job parameters, refer
+<a href="Ch04_JobParameter.html#Ch04_JobParameter_HowToUse_ParamsValidation">"Validity verification of parameters"</a>.</p>
+</div>
+</td>
+</tr>
+</table>
+</div>
+<div class="admonitionblock important">
+<table>
+<tr>
+<td class="icon">
+<i class="fa icon-important" title="Important"></i>
+</td>
+<td class="content">
+<div class="title">Job design considerations</div>
+<div class="paragraph">
+<p>As a characteristic of asynchronous execution (DB polling), the same job can be executed in parallel. It is necessary to prevent the same job to create an impact when the jobs are run in parallel.</p>
+</div>
+</td>
+</tr>
+</table>
+</div>
+</div>
+</div>
+<div class="sect2">
+<h3 id="Ch04_AsyncJobWithDB_HowToUse_Daemon"><a class="anchor" href="#Ch04_AsyncJobWithDB_HowToUse_Daemon"></a>From start to end of asynchronous execution</h3>
+<div class="paragraph">
+<p>Start and end of asynchronous batch daemon and how to register in Job-request-table are explained.</p>
+</div>
+<div class="sect3">
+<h4 id="start-of-asynchronous-batch-daemon"><a class="anchor" href="#start-of-asynchronous-batch-daemon"></a>Start of asynchronous batch daemon</h4>
+<div class="paragraph">
+<p>Start <code>AsyncBatchDaemon</code> offered by TERASOLUNA Batch 5.x.</p>
+</div>
+<div class="listingblock">
+<div class="title">Start of AsyncBatchDaemon</div>
+<div class="content">
+<pre class="CodeRay highlight"><code data-lang="console"># Start AsyncBatchDaemon
+$ java -cp dependency/* org.terasoluna.batch.async.db.AsyncBatchDaemon</code></pre>
+</div>
+</div>
+<div class="paragraph">
+<p>In this case, <code>META-INF/spring/async-batch-daemon.xml</code> is read and various Beans are generated.</p>
+</div>
+<div class="paragraph">
+<p>Further, when <code>async-batch-daemon.xml</code> customised separately, it is implemented by specifying first argument and starting <code>AsyncBatchDaemon</code>.<br>
+Bean definition file specified in the argument must be specified as a relative path from the class path.<br>
+Note that, the second and subsequent arguments are ignored.</p>
+</div>
+<div class="listingblock">
+<div class="title">When customised META-INF/spring/customized-async-batch-daemon.xml is used,</div>
+<div class="content">
+<pre class="CodeRay highlight"><code data-lang="console"># Start AsyncBatchDaemon
+$ java -cp dependency/* org.terasoluna.batch.async.db.AsyncBatchDaemon \
+    META-INF/spring/customized-async-batch-daemon.xml</code></pre>
+</div>
+</div>
+<div class="paragraph">
+<p>Customisation of <code>async-batch-daemon.xml</code> can be modified directly by changing some of the settings.<br>
+However, when significant changes are added or when multiple settings are managed in <a href="#Ch04_AsyncJobWithDB_HowToExtend_MultiDaemon">Multiple runnings</a>described later,
+it is easier to manage and create separate files.<br>
+It should be choosed according to user&#8217;s situation..</p>
+</div>
+<div class="admonitionblock note">
+<table>
+<tr>
+<td class="icon">
+<i class="fa icon-note" title="Note"></i>
+</td>
+<td class="content">
+<div class="paragraph">
+<p>It is assumed that jar expressions necessary for execution are stored under dependency.</p>
+</div>
+</td>
+</tr>
+</table>
+</div>
+</div>
+<div class="sect3">
+<h4 id="job-request"><a class="anchor" href="#job-request"></a>Job request</h4>
+<div class="paragraph">
+<p>Register in Job-request-table by issuing SQL of INSERT statement.</p>
+</div>
+<div class="listingblock">
+<div class="title">In case of PostgreSQL</div>
+<div class="content">
+<pre class="CodeRay highlight"><code data-lang="sql"><span class="class">INSERT</span> <span class="class">INTO</span> batch_job_request(job_name,job_parameter,polling_status,create_date)
+<span class="keyword">VALUES</span> (<span class="string"><span class="delimiter">'</span><span class="content">JOB01</span><span class="delimiter">'</span></span>, <span class="string"><span class="delimiter">'</span><span class="content">param1=dummy,param2=100</span><span class="delimiter">'</span></span>, <span class="string"><span class="delimiter">'</span><span class="content">INIT</span><span class="delimiter">'</span></span>, current_timestamp);</code></pre>
+</div>
+</div>
+</div>
+<div class="sect3">
+<h4 id="Ch04_AsyncJobWithDB_HowToUse_Daemon_stop"><a class="anchor" href="#Ch04_AsyncJobWithDB_HowToUse_Daemon_stop"></a>Stopping asynchronous batch daemon</h4>
+<div class="paragraph">
+<p>Keep exit file set in <code>batch-application.properties</code>.</p>
+</div>
+<div class="listingblock">
+<div class="content">
+<pre class="CodeRay highlight"><code data-lang="console">$ touch /tmp/end-async-batch-daemon</code></pre>
+</div>
+</div>
+<div class="admonitionblock important">
+<table>
+<tr>
+<td class="icon">
+<i class="fa icon-important" title="Important"></i>
+</td>
+<td class="content">
+<div class="title">When the exit file exists prior to starting asynchronous batch daemon</div>
+<div class="paragraph">
+<p>When the exit file exists prior to starting asynchronous batch daemon, asynchronous batch daemon terminates immediately.
+Asynchronous batch daemon must be started in the absence of exit file.</p>
+</div>
+</td>
+</tr>
+</table>
+</div>
+</div>
+</div>
+<div class="sect2">
+<h3 id="Ch04_AsyncJobWithDB_HowToUse_RefStatus"><a class="anchor" href="#Ch04_AsyncJobWithDB_HowToUse_RefStatus"></a>Confirm job status</h3>
+<div class="paragraph">
+<p>Job status management is performed with <code>JobRepository</code> offered by Spring Batch and the job status is not managed in the Job-request-table.
+Job-request-table has a column of <code>job_execution_id</code> and job status corresponding to individual requests can be confirmed by the value stored in this column.
+Here, a simple example wherein SQL is issued directly and job status is confirmed is shown.
+For details of job status confirmation, refer <a href="Ch07_JobManagement.html#Ch07_JobManagement_JobStatusManagement_Retrieve">"Status confirmation"</a>.</p>
+</div>
+<div class="listingblock">
+<div class="title">In case of PostgreSQL</div>
+<div class="content">
+<pre class="CodeRay highlight"><code data-lang="sql"><span class="class">SELECT</span> job_execution_id <span class="keyword">FROM</span> batch_job_request <span class="keyword">WHERE</span> job_seq_id = <span class="integer">1</span>;
+
+job_execution_id
+<span class="comment">----------------</span>
+              <span class="integer">2</span>
+(<span class="integer">1</span> <span class="type">row</span>)
+
+<span class="class">SELECT</span> * <span class="keyword">FROM</span> batch_job_execution <span class="keyword">WHERE</span> job_execution_id = <span class="integer">2</span>;
+
+job_execution_id | version | job_instance_id |       create_time       |       start_time        |        end_time         |  status   | exit_code | exit_message |
+ocation
+<span class="comment">------------------+---------+-----------------+-------------------------+-------------------------+-------------------------+-----------+-----------+--------------+-</span>
+<span class="comment">--------</span>
+              <span class="integer">2</span> |       <span class="integer">2</span> |               <span class="integer">2</span> | <span class="integer">2017</span><span class="integer">-02</span><span class="integer">-06</span> <span class="integer">20</span>:<span class="integer">54</span>:<span class="float">02.263</span> | <span class="integer">2017</span><span class="integer">-02</span><span class="integer">-06</span> <span class="integer">20</span>:<span class="integer">54</span>:<span class="float">02.295</span> | <span class="integer">2017</span><span class="integer">-02</span><span class="integer">-06</span> <span class="integer">20</span>:<span class="integer">54</span>:<span class="float">02.428</span> | COMPLETED | COMPLETED |              |
+(<span class="integer">1</span> <span class="type">row</span>)</code></pre>
+</div>
+</div>
+</div>
+<div class="sect2">
+<h3 id="Ch04_AsyncJobWithDB_HowToUse_Recovery"><a class="anchor" href="#Ch04_AsyncJobWithDB_HowToUse_Recovery"></a>Recovery after a job is terminated abnormally</h3>
+<div class="paragraph">
+<p>For basic points related to recovery of a job which is terminated abnormally, refer <a href="Ch06_ReProcessing.html#Ch06_RerunRestart">"Re-execution of process"</a>. Here, points specific to asynchronous execution are explained.</p>
+</div>
+<div class="sect3">
+<h4 id="re-run"><a class="anchor" href="#re-run"></a>Re-run</h4>
+<div class="paragraph">
+<p>Job which is terminated abnormally is re-run by inserting it as a separate record in Job-request-table.</p>
+</div>
+</div>
+<div class="sect3">
+<h4 id="restart"><a class="anchor" href="#restart"></a>Restart</h4>
+<div class="paragraph">
+<p>When the job which is terminated abnormally is to be restarted, it is executed as a synchronous execution job from the command line.
+The reason for executing from the command line is "since it is difficult to determine whether the restart is intended or whether it is an unintended duplicate execution resulting in chaotic operation."<br>
+For restart methods, refer <a href="Ch06_ReProcessing.html#Ch06_RerunRestart_HowToUse_Restart">"Job restart"</a>.</p>
+</div>
+</div>
+<div class="sect3">
+<h4 id="termination"><a class="anchor" href="#termination"></a>Termination</h4>
+<div class="olist arabic">
+<ol class="arabic">
+<li>
+<p>When the process has not terminated even after exceeding the expected processing time, attempt terminating the operation from the command line.
+For methods of termination, refer <a href="Ch07_JobManagement.html#Ch07_JobManagement_JobStatusManagement_JobStop">"Job stop"</a>.</p>
+</li>
+<li>
+<p>When the termination is not accepted even from a command line, asynchronous batch daemon should be terminated by <a href="#Ch04_AsyncJobWithDB_HowToUse_Daemon_stop">Stopping asynchronous batch daemon</a>.</p>
+</li>
+<li>
+<p>If even an asynchronous batch daemon cannot be terminated, process of asynchronous batch daemon should be forcibly terminated.</p>
+</li>
+</ol>
+</div>
+<div class="admonitionblock important">
+<table>
+<tr>
+<td class="icon">
+<i class="fa icon-important" title="Important"></i>
+</td>
+<td class="content">
+<div class="paragraph">
+<p>Adequate care should be taken not to impact other jobs when an asynchronous batch daemon is being terminated.</p>
+</div>
+</td>
+</tr>
+</table>
+</div>
+</div>
+</div>
+<div class="sect2">
+<h3 id="Ch04_AsyncJobWithDB_HowToUse_Env"><a class="anchor" href="#Ch04_AsyncJobWithDB_HowToUse_Env"></a>About environment deployment</h3>
+<div class="paragraph">
+<p>Building and deploying job is same as a synchronous execution. However, it is important to narrow down the jobs which are executed asynchronously as shown in <a href="#Ch04_AsyncJobWithDB_HowToUse_Config_Job">Job settings</a>.</p>
+</div>
+</div>
+<div class="sect2">
+<h3 id="Ch04_AsyncJobWithDB_HowToUse_Evacuation_Cumulative_Data"><a class="anchor" href="#Ch04_AsyncJobWithDB_HowToUse_Evacuation_Cumulative_Data"></a>Evacuation of cumulative data</h3>
+<div class="paragraph">
+<p>If you run an asynchronous batch daemon for a long time, a huge amount of data is accumulated in JobRepository and the Job-request-table.
+It is necessary to clear this cumulative data for the following reasons.</p>
+</div>
+<div class="ulist">
+<ul>
+<li>
+<p>Performance degradation when data is retrieved or updated for a large quantity of data</p>
+</li>
+<li>
+<p>Duplication of ID due to circulation of ID numbering sequence</p>
+</li>
+</ul>
+</div>
+<div class="paragraph">
+<p>For evacuation of table data and resetting a sequence, refer manual for the database to be used.</p>
+</div>
+<div class="paragraph">
+<p>List of tables and sequences for evacuation is shown below.</p>
+</div>
+<table class="tableblock frame-all grid-all spread">
+<caption class="title">List for evacuation</caption>
+<colgroup>
+<col style="width: 50%;">
+<col style="width: 50%;">
+</colgroup>
+<thead>
+<tr>
+<th class="tableblock halign-left valign-top">Table/Sequence</th>
+<th class="tableblock halign-left valign-top">Framework offered</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td class="tableblock halign-left valign-top"><p class="tableblock">batch_job_request</p></td>
+<td class="tableblock halign-left valign-top" rowspan="2"><p class="tableblock">TERASOLUNA Batch 5.x</p></td>
+</tr>
+<tr>
+<td class="tableblock halign-left valign-top"><p class="tableblock">batch_job_request_seq</p></td>
+</tr>
+<tr>
+<td class="tableblock halign-left valign-top"><p class="tableblock">batch_job_instance</p></td>
+<td class="tableblock halign-left valign-top" rowspan="9"><p class="tableblock">Spring Batch</p></td>
+</tr>
+<tr>
+<td class="tableblock halign-left valign-top"><p class="tableblock">batch_job_exeution</p></td>
+</tr>
+<tr>
+<td class="tableblock halign-left valign-top"><p class="tableblock">batch_job_exeution_params</p></td>
+</tr>
+<tr>
+<td class="tableblock halign-left valign-top"><p class="tableblock">batch_job_exeution_context</p></td>
+</tr>
+<tr>
+<td class="tableblock halign-left valign-top"><p class="tableblock">batch_step_exeution</p></td>
+</tr>
+<tr>
+<td class="tableblock halign-left valign-top"><p class="tableblock">batch_step_exeution_context</p></td>
+</tr>
+<tr>
+<td class="tableblock halign-left valign-top"><p class="tableblock">batch_job_seq</p></td>
+</tr>
+<tr>
+<td class="tableblock halign-left valign-top"><p class="tableblock">batch_job_execution_seq</p></td>
+</tr>
+<tr>
+<td class="tableblock halign-left valign-top"><p class="tableblock">batch_step_execution_seq</p></td>
+</tr>
+</tbody>
+</table>
+<div class="admonitionblock important">
+<table>
+<tr>
+<td class="icon">
+<i class="fa icon-important" title="Important"></i>
+</td>
+<td class="content">
+<div class="title">Auto-numbering column sequence</div>
+<div class="paragraph">
+<p>Since a sequence is created automatically for an auto-numbering column, remember to include this sequence while evacuating data.</p>
+</div>
+</td>
+</tr>
+</table>
+</div>
+<div class="admonitionblock important">
+<table>
+<tr>
+<td class="icon">
+<i class="fa icon-important" title="Important"></i>
+</td>
+<td class="content">
+<div class="title">About database specific specifications</div>
+<div class="paragraph">
+<p>Note that Oracle uses database-specific data types in some cases, such as using CLOB for data types.</p>
+</div>
+</td>
+</tr>
+</table>
+</div>
+</div>
+</div>
+</div>
+<div class="sect1">
+<h2 id="Ch04_AsyncJobWithDB_HowToExtend"><a class="anchor" href="#Ch04_AsyncJobWithDB_HowToExtend"></a>How to extend</h2>
+<div class="sectionbody">
+<div class="sect2">
+<h3 id="Ch04_AsyncJobWithDB_HowToExtend_CustomTable"><a class="anchor" href="#Ch04_AsyncJobWithDB_HowToExtend_CustomTable"></a>Customising Job-request-table</h3>
+<div class="paragraph">
+<p>Job-request-table can be customised by adding a column in order to change extraction conditions of fetched records.
+However, only <code>BatchJobRequest</code> can be passed as an item while issuing SQL from <code>JobRequestPollTask</code>.</p>
+</div>
+<div class="paragraph">
+<p>Extension procedure by customising the Job-request-table is shown below.</p>
+</div>
+<div class="olist arabic">
+<ol class="arabic">
+<li>
+<p>Customising Job-request-table</p>
+</li>
+<li>
+<p>Creating an extension interface of <code>BatchJobRequestRepository</code> interface</p>
+</li>
+<li>
+<p>Defining SQLMap which uses customised table</p>
+</li>
+<li>
+<p>Modifying Bean definition of <code>async-batch-daemon.xml</code></p>
+</li>
+</ol>
+</div>
+<div class="paragraph">
+<p>Examples of customization are as below.</p>
+</div>
+<div class="ulist">
+<ul>
+<li>
+<p><a href="#Ch04_AsyncJobWithDB_HowToExtend_CustomTable_Priority">Example of controlling job execution sequence by priority column</a></p>
+</li>
+<li>
+<p><a href="#Ch04_AsyncJobWithDB_HowToExtend_CustomTable_GroupID">Distributed processing by multiple processes using a group ID</a></p>
+</li>
+</ul>
+</div>
+<div class="paragraph">
+<p>Hereafter, the extension procedure will be described for these two examples.</p>
+</div>
+<div class="sect3">
+<h4 id="Ch04_AsyncJobWithDB_HowToExtend_CustomTable_Priority"><a class="anchor" href="#Ch04_AsyncJobWithDB_HowToExtend_CustomTable_Priority"></a>Example of controlling job execution sequence by priority column</h4>
+<div class="olist arabic">
+<ol class="arabic">
+<li>
+<p>Customising Job-request-table</p>
+</li>
+</ol>
+</div>
+<div class="paragraph">
+<p>Add a priority column (priority) in Job-request-table.</p>
+</div>
+<div class="listingblock">
+<div class="title">Adding a priority column (In case of PostgreSQL)</div>
+<div class="content">
+<pre class="CodeRay highlight"><code data-lang="sql"><span class="class">CREATE</span> <span class="type">TABLE</span> <span class="keyword">IF</span> <span class="keyword">NOT</span> <span class="keyword">EXISTS</span> batch_job_request (
+    job_seq_id bigserial <span class="directive">PRIMARY</span> <span class="type">KEY</span>,
+    job_name <span class="predefined-type">varchar</span>(<span class="integer">100</span>) <span class="keyword">NOT</span> <span class="predefined-constant">NULL</span>,
+    job_parameter <span class="predefined-type">varchar</span>(<span class="integer">200</span>),
+    priority <span class="predefined-type">int</span> <span class="keyword">NOT</span> <span class="predefined-constant">NULL</span>,
+    job_execution_id <span class="predefined-type">bigint</span>,
+    polling_status <span class="predefined-type">varchar</span>(<span class="integer">10</span>) <span class="keyword">NOT</span> <span class="predefined-constant">NULL</span>,
+    create_date <span class="predefined-type">timestamp</span> <span class="keyword">NOT</span> <span class="predefined-constant">NULL</span>,
+    update_date <span class="predefined-type">timestamp</span>
+);</code></pre>
+</div>
+</div>
+<div class="olist arabic">
+<ol class="arabic" start="2">
+<li>
+<p>Create extension interface of <code>BatchJobRequestRepository</code> interface</p>
+</li>
+</ol>
+</div>
+<div class="paragraph">
+<p>An interface which extends <code>BatchJobRequestRepository</code> interface is created.</p>
+</div>
+<div class="listingblock">
+<div class="title">Extension interface</div>
+<div class="content">
+<pre class="CodeRay highlight"><code data-lang="java"><span class="comment">// (1)</span>
+<span class="directive">public</span> <span class="type">interface</span> <span class="class">CustomizedBatchJobRequestRepository</span> <span class="directive">extends</span> BatchJobRequestRepository {
+    <span class="comment">// (2)</span>
+}</code></pre>
+</div>
+</div>
+<table class="tableblock frame-all grid-all spread">
+<caption class="title">Extension points</caption>
+<colgroup>
+<col style="width: 10%;">
+<col style="width: 90%;">
+</colgroup>
+<thead>
+<tr>
+<th class="tableblock halign-left valign-top">Sr. No.</th>
+<th class="tableblock halign-left valign-top">Description</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td class="tableblock halign-left valign-top"><p class="tableblock">(1)</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">Extend <code>BatchJobRequestRepository</code>.</p></td>
+</tr>
+<tr>
+<td class="tableblock halign-left valign-top"><p class="tableblock">(2)</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">Do not add a method.</p></td>
+</tr>
+</tbody>
+</table>
+<div class="olist arabic">
+<ol class="arabic" start="3">
+<li>
+<p>Definition of SQLMap which use a customised table</p>
+</li>
+</ol>
+</div>
+<div class="paragraph">
+<p>Define SQL in SQLMap with group ID as a condition for extraction.</p>
+</div>
+<div class="listingblock">
+<div class="title">SQLMap definition (CustomizedBatchJobRequestRepository.xml)</div>
+<div class="content">
+<pre class="CodeRay highlight"><code data-lang="xml"><span class="comment">&lt;!-- (1) --&gt;</span>
+<span class="tag">&lt;mapper</span> <span class="attribute-name">namespace</span>=<span class="string"><span class="delimiter">&quot;</span><span class="content">org.terasoluna.batch.extend.repository.CustomizedBatchJobRequestRepository</span><span class="delimiter">&quot;</span></span><span class="tag">&gt;</span>
+
+    <span class="tag">&lt;select</span> <span class="attribute-name">id</span>=<span class="string"><span class="delimiter">&quot;</span><span class="content">find</span><span class="delimiter">&quot;</span></span> <span class="attribute-name">resultType</span>=<span class="string"><span class="delimiter">&quot;</span><span class="content">org.terasoluna.batch.async.db.model.BatchJobRequest</span><span class="delimiter">&quot;</span></span><span class="tag">&gt;</span>
+        SELECT
+            job_seq_id AS jobSeqId,
+            job_name AS jobName,
+            job_parameter AS jobParameter,
+            job_execution_id AS jobExecutionId,
+            polling_status AS pollingStatus,
+            create_date AS createDate,
+            update_date AS updateDate
+        FROM
+            batch_job_request
+        WHERE
+            polling_status = 'INIT'
+        ORDER BY
+            priority ASC,   <span class="comment">&lt;!--(2) --&gt;</span>
+            job_seq_id ASC
+        LIMIT #{pollingRowLimit}
+    <span class="tag">&lt;/select&gt;</span>
+
+    <span class="comment">&lt;!-- (3) --&gt;</span>
+    <span class="tag">&lt;update</span> <span class="attribute-name">id</span>=<span class="string"><span class="delimiter">&quot;</span><span class="content">updateStatus</span><span class="delimiter">&quot;</span></span><span class="tag">&gt;</span>
+        UPDATE
+            batch_job_request
+        SET
+            polling_status = #{batchJobRequest.pollingStatus},
+            job_execution_id = #{batchJobRequest.jobExecutionId},
+            update_date = #{batchJobRequest.updateDate}
+        WHERE
+            job_seq_id = #{batchJobRequest.jobSeqId}
+        AND
+            polling_status = #{pollingStatus}
+    <span class="tag">&lt;/update&gt;</span>
+
+<span class="tag">&lt;/mapper&gt;</span></code></pre>
+</div>
+</div>
+<table class="tableblock frame-all grid-all spread">
+<caption class="title">Extension points</caption>
+<colgroup>
+<col style="width: 10%;">
+<col style="width: 90%;">
+</colgroup>
+<thead>
+<tr>
+<th class="tableblock halign-left valign-top">Sr. No.</th>
+<th class="tableblock halign-left valign-top">Description</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td class="tableblock halign-left valign-top"><p class="tableblock">(1)</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">Set extended interface of <code>BatchJobRequestRepository</code>in namespace by FQCN.</p></td>
+</tr>
+<tr>
+<td class="tableblock halign-left valign-top"><p class="tableblock">(2)</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">Add priority to ORDER clause.</p></td>
+</tr>
+<tr>
+<td class="tableblock halign-left valign-top"><p class="tableblock">(3)</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">Do not change updated SQL.</p></td>
+</tr>
+</tbody>
+</table>
+<div class="olist arabic">
+<ol class="arabic" start="4">
+<li>
+<p>Modifying Bean definition of <code>async-batch-daemon.xml</code></p>
+</li>
+</ol>
+</div>
+<div class="paragraph">
+<p>Set extended interface created in (2) in <code>batchJobRequestRepository</code>.</p>
+</div>
+<div class="listingblock">
+<div class="title">async-batch-daemon.xml</div>
+<div class="content">
+<pre class="CodeRay highlight"><code data-lang="xml"> <span class="comment">&lt;!--(1) --&gt;</span>
+<span class="tag">&lt;bean</span> <span class="attribute-name">id</span>=<span class="string"><span class="delimiter">&quot;</span><span class="content">batchJobRequestRepository</span><span class="delimiter">&quot;</span></span>
+      <span class="attribute-name">class</span>=<span class="string"><span class="delimiter">&quot;</span><span class="content">org.mybatis.spring.mapper.MapperFactoryBean</span><span class="delimiter">&quot;</span></span>
+      <span class="attribute-name">p:mapperInterface</span>=<span class="string"><span class="delimiter">&quot;</span><span class="content">org.terasoluna.batch.extend.repository.CustomizedBatchJobRequestRepository</span><span class="delimiter">&quot;</span></span>
+      <span class="attribute-name">p:sqlSessionFactory-ref</span>=<span class="string"><span class="delimiter">&quot;</span><span class="content">adminSqlSessionFactory</span><span class="delimiter">&quot;</span></span> <span class="tag">/&gt;</span></code></pre>
+</div>
+</div>
+<table class="tableblock frame-all grid-all spread">
+<caption class="title">Extension points</caption>
+<colgroup>
+<col style="width: 10%;">
+<col style="width: 90%;">
+</colgroup>
+<thead>
+<tr>
+<th class="tableblock halign-left valign-top">Sr. No.</th>
+<th class="tableblock halign-left valign-top">Description</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td class="tableblock halign-left valign-top"><p class="tableblock">(1)</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">Set extended interface of <code>BatchJobRequestRepository</code> in <code>mapperInterface</code> property by FQCN.</p></td>
+</tr>
+</tbody>
+</table>
+</div>
+<div class="sect3">
+<h4 id="Ch04_AsyncJobWithDB_HowToExtend_CustomTable_GroupID"><a class="anchor" href="#Ch04_AsyncJobWithDB_HowToExtend_CustomTable_GroupID"></a>Distributed processing by multiple processes using a group ID</h4>
+<div class="paragraph">
+<p>Specify group ID by using environment variable while starting <code>AsyncBatchDaemon</code> and narrow down the target job.</p>
+</div>
+<div class="olist arabic">
+<ol class="arabic">
+<li>
+<p>Customizing Job-request-table</p>
+</li>
+</ol>
+</div>
+<div class="paragraph">
+<p>Add group ID column (group_id) to Job-request-table.</p>
+</div>
+<div class="listingblock">
+<div class="title">Adding group ID column (In case of PostgreSQL)</div>
+<div class="content">
+<pre class="CodeRay highlight"><code data-lang="sql"><span class="class">CREATE</span> <span class="type">TABLE</span> <span class="keyword">IF</span> <span class="keyword">NOT</span> <span class="keyword">EXISTS</span> batch_job_request (
+    job_seq_id bigserial <span class="directive">PRIMARY</span> <span class="type">KEY</span>,
+    job_name <span class="predefined-type">varchar</span>(<span class="integer">100</span>) <span class="keyword">NOT</span> <span class="predefined-constant">NULL</span>,
+    job_parameter <span class="predefined-type">varchar</span>(<span class="integer">200</span>),
+    group_id <span class="predefined-type">varchar</span>(<span class="integer">10</span>) <span class="keyword">NOT</span> <span class="predefined-constant">NULL</span>,
+    job_execution_id <span class="predefined-type">bigint</span>,
+    polling_status <span class="predefined-type">varchar</span>(<span class="integer">10</span>) <span class="keyword">NOT</span> <span class="predefined-constant">NULL</span>,
+    create_date <span class="predefined-type">timestamp</span> <span class="keyword">NOT</span> <span class="predefined-constant">NULL</span>,
+    update_date <span class="predefined-type">timestamp</span>
+);</code></pre>
+</div>
+</div>
+<div class="olist arabic">
+<ol class="arabic" start="2">
+<li>
+<p>Creating extended interface of <code>BatchJobRequestRepository</code> interface</p>
+<div class="ulist">
+<ul>
+<li>
+<p>Same as <a href="#Ch04_AsyncJobWithDB_HowToExtend_CustomTable_Priority">Example of controlling job execution sequence by priority column</a></p>
+</li>
+</ul>
+</div>
+</li>
+</ol>
+</div>
+<div class="olist arabic">
+<ol class="arabic" start="3">
+<li>
+<p>Definition of SQLMap which use customised table</p>
+</li>
+</ol>
+</div>
+<div class="paragraph">
+<p>Define SQL in SQLMap with  the group ID as the extraction condition.</p>
+</div>
+<div class="listingblock">
+<div class="title">SQLMap definition (CustomizedBatchJobRequestRepository.xml)</div>
+<div class="content">
+<pre class="CodeRay highlight"><code data-lang="xml"><span class="comment">&lt;!-- (1) --&gt;</span>
+<span class="tag">&lt;mapper</span> <span class="attribute-name">namespace</span>=<span class="string"><span class="delimiter">&quot;</span><span class="content">org.terasoluna.batch.extend.repository.CustomizedBatchJobRequestRepository</span><span class="delimiter">&quot;</span></span><span class="tag">&gt;</span>
+
+    <span class="tag">&lt;select</span> <span class="attribute-name">id</span>=<span class="string"><span class="delimiter">&quot;</span><span class="content">find</span><span class="delimiter">&quot;</span></span> <span class="attribute-name">resultType</span>=<span class="string"><span class="delimiter">&quot;</span><span class="content">org.terasoluna.batch.async.db.model.BatchJobRequest</span><span class="delimiter">&quot;</span></span><span class="tag">&gt;</span>
+        SELECT
+            job_seq_id AS jobSeqId,
+            job_name AS jobName,
+            job_parameter AS jobParameter,
+            job_execution_id AS jobExecutionId,
+            polling_status AS pollingStatus,
+            create_date AS createDate,
+            update_date AS updateDate
+        FROM
+            batch_job_request
+        WHERE
+            polling_status = 'INIT'
+        AND
+            group_id = #{groupId}  <span class="comment">&lt;!--(2) --&gt;</span>
+        ORDER BY
+            job_seq_id ASC
+        LIMIT #{pollingRowLimit}
+    <span class="tag">&lt;/select&gt;</span>
+
+    <span class="comment">&lt;!-- omitted --&gt;</span>
+<span class="tag">&lt;/mapper&gt;</span></code></pre>
+</div>
+</div>
+<table class="tableblock frame-all grid-all spread">
+<caption class="title">Extension points</caption>
+<colgroup>
+<col style="width: 10%;">
+<col style="width: 90%;">
+</colgroup>
+<thead>
+<tr>
+<th class="tableblock halign-left valign-top">Sr. No.</th>
+<th class="tableblock halign-left valign-top">Description</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td class="tableblock halign-left valign-top"><p class="tableblock">(1)</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">Set extended interface of <code>BatchJobRequestRepository</code> in namespace by FQCN.</p></td>
+</tr>
+<tr>
+<td class="tableblock halign-left valign-top"><p class="tableblock">(2)</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">Add groupId to extraction conditions.</p></td>
+</tr>
+</tbody>
+</table>
+<div class="olist arabic">
+<ol class="arabic" start="4">
+<li>
+<p>Modifying Bean definition of <code>async-batch-daemon.xml</code></p>
+</li>
+</ol>
+</div>
+<div class="paragraph">
+<p>Set extended interface created in (2) in <code>batchJobRequestRepository</code> and
+set the group ID assigned by environment variable in <code>jobRequestPollTask</code> as a query parameter.</p>
+</div>
+<div class="listingblock">
+<div class="title">async-batch-daemon.xml</div>
+<div class="content">
+<pre class="CodeRay highlight"><code data-lang="xml"> <span class="comment">&lt;!--(1) --&gt;</span>
+<span class="tag">&lt;bean</span> <span class="attribute-name">id</span>=<span class="string"><span class="delimiter">&quot;</span><span class="content">batchJobRequestRepository</span><span class="delimiter">&quot;</span></span>
+      <span class="attribute-name">class</span>=<span class="string"><span class="delimiter">&quot;</span><span class="content">org.mybatis.spring.mapper.MapperFactoryBean</span><span class="delimiter">&quot;</span></span>
+      <span class="attribute-name">p:mapperInterface</span>=<span class="string"><span class="delimiter">&quot;</span><span class="content">org.terasoluna.batch.extend.repository.CustomizedBatchJobRequestRepository</span><span class="delimiter">&quot;</span></span>
+      <span class="attribute-name">p:sqlSessionFactory-ref</span>=<span class="string"><span class="delimiter">&quot;</span><span class="content">adminSqlSessionFactory</span><span class="delimiter">&quot;</span></span> <span class="tag">/&gt;</span>
+
+    <span class="tag">&lt;bean</span> <span class="attribute-name">id</span>=<span class="string"><span class="delimiter">&quot;</span><span class="content">jobRequestPollTask</span><span class="delimiter">&quot;</span></span>
+          <span class="attribute-name">class</span>=<span class="string"><span class="delimiter">&quot;</span><span class="content">org.terasoluna.batch.async.db.JobRequestPollTask</span><span class="delimiter">&quot;</span></span>
+          <span class="attribute-name">c:transactionManager-ref</span>=<span class="string"><span class="delimiter">&quot;</span><span class="content">adminTransactionManager</span><span class="delimiter">&quot;</span></span>
+          <span class="attribute-name">c:jobOperator-ref</span>=<span class="string"><span class="delimiter">&quot;</span><span class="content">jobOperator</span><span class="delimiter">&quot;</span></span>
+          <span class="attribute-name">c:batchJobRequestRepository-ref</span>=<span class="string"><span class="delimiter">&quot;</span><span class="content">batchJobRequestRepository</span><span class="delimiter">&quot;</span></span>
+          <span class="attribute-name">c:daemonTaskExecutor-ref</span>=<span class="string"><span class="delimiter">&quot;</span><span class="content">daemonTaskExecutor</span><span class="delimiter">&quot;</span></span>
+          <span class="attribute-name">c:automaticJobRegistrar-ref</span>=<span class="string"><span class="delimiter">&quot;</span><span class="content">automaticJobRegistrar</span><span class="delimiter">&quot;</span></span>
+          <span class="attribute-name">p:optionalPollingQueryParams-ref</span>=<span class="string"><span class="delimiter">&quot;</span><span class="content">pollingQueryParam</span><span class="delimiter">&quot;</span></span> <span class="tag">/&gt;</span> <span class="comment">&lt;!-- (2) --&gt;</span>
+
+   <span class="tag">&lt;bean</span> <span class="attribute-name">id</span>=<span class="string"><span class="delimiter">&quot;</span><span class="content">pollingQueryParam</span><span class="delimiter">&quot;</span></span>
+         <span class="attribute-name">class</span>=<span class="string"><span class="delimiter">&quot;</span><span class="content">org.springframework.beans.factory.config.MapFactoryBean</span><span class="delimiter">&quot;</span></span><span class="tag">&gt;</span>
+        <span class="tag">&lt;property</span> <span class="attribute-name">name</span>=<span class="string"><span class="delimiter">&quot;</span><span class="content">sourceMap</span><span class="delimiter">&quot;</span></span><span class="tag">&gt;</span>
+            <span class="tag">&lt;map&gt;</span>
+                <span class="tag">&lt;entry</span> <span class="attribute-name">key</span>=<span class="string"><span class="delimiter">&quot;</span><span class="content">groupId</span><span class="delimiter">&quot;</span></span> <span class="attribute-name">value</span>=<span class="string"><span class="delimiter">&quot;</span><span class="content">${GROUP_ID}</span><span class="delimiter">&quot;</span></span><span class="tag">/&gt;</span>  <span class="comment">&lt;!-- (3) --&gt;</span>
+            <span class="tag">&lt;/map&gt;</span>
+        <span class="tag">&lt;/property&gt;</span>
+   <span class="tag">&lt;/bean&gt;</span></code></pre>
+</div>
+</div>
+<table class="tableblock frame-all grid-all spread">
+<caption class="title">Extension points</caption>
+<colgroup>
+<col style="width: 10%;">
+<col style="width: 90%;">
+</colgroup>
+<thead>
+<tr>
+<th class="tableblock halign-left valign-top">Sr. No.</th>
+<th class="tableblock halign-left valign-top">Description</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td class="tableblock halign-left valign-top"><p class="tableblock">(1)</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">Set extended interface of <code>BatchJobRequestRepository</code> in <code>mapperInterface</code> property by FQCN..</p></td>
+</tr>
+<tr>
+<td class="tableblock halign-left valign-top"><p class="tableblock">(2)</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">Set Map defined in (3), in <code>optionalPollingQueryParams</code> property of <code>JobRequestPollTask</code>.</p></td>
+</tr>
+<tr>
+<td class="tableblock halign-left valign-top"><p class="tableblock">(3)</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">Set group ID assigned by environment variable (GROUP_ID) in group ID (groupId) of query parameter.</p></td>
+</tr>
+</tbody>
+</table>
+<div class="olist arabic">
+<ol class="arabic" start="5">
+<li>
+<p>Set group ID in environment variable and start <code>AsyncBatchDaemon</code>.</p>
+</li>
+</ol>
+</div>
+<div class="listingblock">
+<div class="title">Starting AsyncBatchDaemon</div>
+<div class="content">
+<pre class="CodeRay highlight"><code data-lang="console"># Set environment variables
+$ export GROUP_ID=G1
+
+# Start AsyncBatchDaemon
+$ java -cp dependency/* org.terasoluna.batch.async.db.AsyncBatchDaemon</code></pre>
+</div>
+</div>
+</div>
+</div>
+<div class="sect2">
+<h3 id="Ch04_AsyncJobWithDB_HowToExtend_MultiDaemon"><a class="anchor" href="#Ch04_AsyncJobWithDB_HowToExtend_MultiDaemon"></a>Multiple runnings</h3>
+<div class="paragraph">
+<p>Asynchronous batch daemon is run on multiple servers for the following purposes.</p>
+</div>
+<div class="ulist">
+<ul>
+<li>
+<p>Enhanced availability</p>
+<div class="ulist">
+<ul>
+<li>
+<p>It suffices if an asynchronous batch job can be executed on one of the servers, and it is to eliminate the situation that the job can not be run.</p>
+</li>
+</ul>
+</div>
+</li>
+<li>
+<p>Enhanced performance</p>
+<div class="ulist">
+<ul>
+<li>
+<p>When batch processing load is to be distributed across multiple servers</p>
+</li>
+</ul>
+</div>
+</li>
+<li>
+<p>Effective use of resources</p>
+<div class="ulist">
+<ul>
+<li>
+<p>When a specific job is to be distributed on a server with optimal resources when a variation is observed in the server performance</p>
+<div class="ulist">
+<ul>
+<li>
+<p>Equivalent to dividing a job node based on group ID shown in <a href="#Ch04_AsyncJobWithDB_HowToExtend_CustomTable">Customising Job-request-table</a></p>
+</li>
+</ul>
+</div>
+</li>
+</ul>
+</div>
+</li>
+</ul>
+</div>
+<div class="paragraph">
+<p>An operational design must be adopted considering whether it can be used based on the viewpoints given above.</p>
+</div>
+<div class="imageblock">
+<div class="content">
+<img src="./images/Ch04_AsyncJobWithDB_MultipleActivation.png" alt="Ch04 AsyncJobWithDB MultipleActivation">
+</div>
+<div class="title">Schematic diagram for multiple starts</div>
+</div>
+<div class="admonitionblock note">
+<table>
+<tr>
+<td class="icon">
+<i class="fa icon-note" title="Note"></i>
+</td>
+<td class="content">
+<div class="title">When multiple asynchronous batch daemons fetch identical job request records</div>
+<div class="paragraph">
+<p>Since <code>JobRequestPollTask</code> performs exclusive control using optimistic locking, it can execute the job of the record fetched by asynchronous batch daemon which can update the polling status from INIT to POLLED.
+Other exclusive asynchronous batch daemons fetch next job request record.</p>
+</div>
+</td>
+</tr>
+</table>
+</div>
+</div>
+</div>
+</div>
+<div class="sect1">
+<h2 id="Ch04_AsyncJobWithDB_Appendix"><a class="anchor" href="#Ch04_AsyncJobWithDB_Appendix"></a>Appendix</h2>
+<div class="sectionbody">
+<div class="sect2">
+<h3 id="Ch04_AsyncJobWithDB_Appendix_Modular"><a class="anchor" href="#Ch04_AsyncJobWithDB_Appendix_Modular"></a>About modularization of job definition</h3>
+<div class="paragraph">
+<p>Although it is briefly explained in <a href="#Ch04_AsyncJobWithDB_Arch_AppCtx">ApplicationContext configuration</a>, following events can be avoided by using <code>AutomaticJobRegistrar</code>.</p>
+</div>
+<div class="ulist">
+<ul>
+<li>
+<p>When same BeanID (BeanName) is used, Bean is overwritten and the job shows unintended behaviour.</p>
+<div class="ulist">
+<ul>
+<li>
+<p>Accordingly, there is a high risk of occurrence of unintended errors.</p>
+</li>
+</ul>
+</div>
+</li>
+<li>
+<p>Naming should be performed to make all Bean IDs in the job unique, to avoid these errors.</p>
+<div class="ulist">
+<ul>
+<li>
+<p>As the number of job increases, it becomes difficult to manage the same resulting in unnecessary troubles.</p>
+</li>
+</ul>
+</div>
+</li>
+</ul>
+</div>
+<div class="paragraph">
+<p>An event when <code>AutomaticJobRegistrar</code> is not used is explained.
+Since the contents explained here pose the issues given above, it is not used in asynchronous execution.</p>
+</div>
+<div class="listingblock">
+<div class="title">Job1.xml</div>
+<div class="content">
+<pre class="CodeRay highlight"><code data-lang="xml"><span class="comment">&lt;!-- Reader --&gt;</span>
+<span class="comment">&lt;!-- (1) --&gt;</span>
+<span class="tag">&lt;bean</span> <span class="attribute-name">id</span>=<span class="string"><span class="delimiter">&quot;</span><span class="content">reader</span><span class="delimiter">&quot;</span></span> <span class="attribute-name">class</span>=<span class="string"><span class="delimiter">&quot;</span><span class="content">org.mybatis.spring.batch.MyBatisCursorItemReader</span><span class="delimiter">&quot;</span></span>
+      <span class="attribute-name">p:queryId</span>=<span class="string"><span class="delimiter">&quot;</span><span class="content">jp.terasoluna.batch.job.repository.EmployeeRepositoy.findAll</span><span class="delimiter">&quot;</span></span>
+      <span class="attribute-name">p:sqlSessionFactory-ref</span>=<span class="string"><span class="delimiter">&quot;</span><span class="content">jobSqlSessionFactory</span><span class="delimiter">&quot;</span></span><span class="tag">/&gt;</span>
+
+<span class="comment">&lt;!-- Writer --&gt;</span>
+<span class="comment">&lt;!-- (2) --&gt;</span>
+<span class="tag">&lt;bean</span> <span class="attribute-name">id</span>=<span class="string"><span class="delimiter">&quot;</span><span class="content">writer</span><span class="delimiter">&quot;</span></span>
+      <span class="attribute-name">class</span>=<span class="string"><span class="delimiter">&quot;</span><span class="content">org.springframework.batch.item.file.FlatFileItemWriter</span><span class="delimiter">&quot;</span></span> <span class="attribute-name">scope</span>=<span class="string"><span class="delimiter">&quot;</span><span class="content">step</span><span class="delimiter">&quot;</span></span>
+      <span class="attribute-name">p:resource</span>=<span class="string"><span class="delimiter">&quot;</span><span class="content">file:#{jobParameters['basedir']}/input/employee.csv</span><span class="delimiter">&quot;</span></span><span class="tag">&gt;</span>
+  <span class="tag">&lt;property</span> <span class="attribute-name">name</span>=<span class="string"><span class="delimiter">&quot;</span><span class="content">lineAggregator</span><span class="delimiter">&quot;</span></span><span class="tag">&gt;</span>
+    <span class="tag">&lt;bean</span> <span class="attribute-name">class</span>=<span class="string"><span class="delimiter">&quot;</span><span class="content">org.springframework.batch.item.file.transform.DelimitedLineAggregator</span><span class="delimiter">&quot;</span></span><span class="tag">&gt;</span>
+      <span class="tag">&lt;property</span> <span class="attribute-name">name</span>=<span class="string"><span class="delimiter">&quot;</span><span class="content">fieldExtractor</span><span class="delimiter">&quot;</span></span><span class="tag">&gt;</span>
+        <span class="tag">&lt;bean</span> <span class="attribute-name">class</span>=<span class="string"><span class="delimiter">&quot;</span><span class="content">org.springframework.batch.item.file.transform.BeanWrapperFieldExtractor</span><span class="delimiter">&quot;</span></span>
+              <span class="attribute-name">p:names</span>=<span class="string"><span class="delimiter">&quot;</span><span class="content">invoiceNo,salesDate,productId,customerId,quant,price</span><span class="delimiter">&quot;</span></span><span class="tag">/&gt;</span>
+      <span class="tag">&lt;/property&gt;</span>
+    <span class="tag">&lt;/bean&gt;</span>
+  <span class="tag">&lt;/property&gt;</span>
+<span class="tag">&lt;/bean&gt;</span>
+
+
+<span class="comment">&lt;!-- Job --&gt;</span>
+<span class="tag">&lt;batch:job</span> <span class="attribute-name">id</span>=<span class="string"><span class="delimiter">&quot;</span><span class="content">job1</span><span class="delimiter">&quot;</span></span> <span class="attribute-name">job-repository</span>=<span class="string"><span class="delimiter">&quot;</span><span class="content">jobRepository</span><span class="delimiter">&quot;</span></span><span class="tag">&gt;</span>
+  <span class="tag">&lt;batch:step</span> <span class="attribute-name">id</span>=<span class="string"><span class="delimiter">&quot;</span><span class="content">job1.step</span><span class="delimiter">&quot;</span></span><span class="tag">&gt;</span>
+    <span class="tag">&lt;batch:tasklet</span> <span class="attribute-name">transaction-manager</span>=<span class="string"><span class="delimiter">&quot;</span><span class="content">transactionManager</span><span class="delimiter">&quot;</span></span><span class="tag">&gt;</span>
+      <span class="tag">&lt;batch:chunk</span> <span class="attribute-name">reader</span>=<span class="string"><span class="delimiter">&quot;</span><span class="content">reader</span><span class="delimiter">&quot;</span></span> <span class="attribute-name">writer</span>=<span class="string"><span class="delimiter">&quot;</span><span class="content">writer</span><span class="delimiter">&quot;</span></span> <span class="attribute-name">commit-interval</span>=<span class="string"><span class="delimiter">&quot;</span><span class="content">100</span><span class="delimiter">&quot;</span></span> <span class="tag">/&gt;</span>
+    <span class="tag">&lt;/batch:tasklet&gt;</span>
+  <span class="tag">&lt;/batch:step&gt;</span>
+<span class="tag">&lt;/batch:job&gt;</span></code></pre>
+</div>
+</div>
+<div class="listingblock">
+<div class="title">Job2.xml</div>
+<div class="content">
+<pre class="CodeRay highlight"><code data-lang="xml"><span class="comment">&lt;!-- Reader --&gt;</span>
+<span class="comment">&lt;!-- (3) --&gt;</span>
+<span class="tag">&lt;bean</span> <span class="attribute-name">id</span>=<span class="string"><span class="delimiter">&quot;</span><span class="content">reader</span><span class="delimiter">&quot;</span></span>
+      <span class="attribute-name">class</span>=<span class="string"><span class="delimiter">&quot;</span><span class="content">org.springframework.batch.item.file.FlatFileItemReader</span><span class="delimiter">&quot;</span></span> <span class="attribute-name">scope</span>=<span class="string"><span class="delimiter">&quot;</span><span class="content">step</span><span class="delimiter">&quot;</span></span>
+      <span class="attribute-name">p:resource</span>=<span class="string"><span class="delimiter">&quot;</span><span class="content">file:#{jobParameters['basedir']}/input/invoice.csv</span><span class="delimiter">&quot;</span></span><span class="tag">&gt;</span>
+  <span class="tag">&lt;property</span> <span class="attribute-name">name</span>=<span class="string"><span class="delimiter">&quot;</span><span class="content">lineMapper</span><span class="delimiter">&quot;</span></span><span class="tag">&gt;</span>
+    <span class="tag">&lt;bean</span> <span class="attribute-name">class</span>=<span class="string"><span class="delimiter">&quot;</span><span class="content">org.springframework.batch.item.file.mapping.DefaultLineMapper</span><span class="delimiter">&quot;</span></span><span class="tag">&gt;</span>
+      <span class="tag">&lt;property</span> <span class="attribute-name">name</span>=<span class="string"><span class="delimiter">&quot;</span><span class="content">lineTokenizer</span><span class="delimiter">&quot;</span></span><span class="tag">&gt;</span>
+        <span class="tag">&lt;bean</span> <span class="attribute-name">class</span>=<span class="string"><span class="delimiter">&quot;</span><span class="content">org.springframework.batch.item.file.transform.DelimitedLineTokenizer</span><span class="delimiter">&quot;</span></span>
+              <span class="attribute-name">p:names</span>=<span class="string"><span class="delimiter">&quot;</span><span class="content">invoiceNo,salesDate,productId,customerId,quant,price</span><span class="delimiter">&quot;</span></span><span class="tag">/&gt;</span>
+      <span class="tag">&lt;/property&gt;</span>
+      <span class="tag">&lt;property</span> <span class="attribute-name">name</span>=<span class="string"><span class="delimiter">&quot;</span><span class="content">fieldSetMapper</span><span class="delimiter">&quot;</span></span> <span class="attribute-name">ref</span>=<span class="string"><span class="delimiter">&quot;</span><span class="content">invoiceFieldSetMapper</span><span class="delimiter">&quot;</span></span><span class="tag">/&gt;</span>
+    <span class="tag">&lt;/bean&gt;</span>
+  <span class="tag">&lt;/property&gt;</span>
+<span class="tag">&lt;/bean&gt;</span>
+
+<span class="comment">&lt;!-- Writer --&gt;</span>
+<span class="comment">&lt;!-- (4) --&gt;</span>
+<span class="tag">&lt;bean</span> <span class="attribute-name">id</span>=<span class="string"><span class="delimiter">&quot;</span><span class="content">writer</span><span class="delimiter">&quot;</span></span> <span class="attribute-name">class</span>=<span class="string"><span class="delimiter">&quot;</span><span class="content">org.mybatis.spring.batch.MyBatisBatchItemWriter</span><span class="delimiter">&quot;</span></span>
+      <span class="attribute-name">p:statementId</span>=<span class="string"><span class="delimiter">&quot;</span><span class="content">jp.terasoluna.batch.job.repository.InvoiceRepository.create</span><span class="delimiter">&quot;</span></span>
+      <span class="attribute-name">p:sqlSessionFactory-ref</span>=<span class="string"><span class="delimiter">&quot;</span><span class="content">jobSqlSessionFactory</span><span class="delimiter">&quot;</span></span><span class="tag">/&gt;</span>
+
+<span class="comment">&lt;!-- Job --&gt;</span>
+<span class="tag">&lt;batch:job</span> <span class="attribute-name">id</span>=<span class="string"><span class="delimiter">&quot;</span><span class="content">job2</span><span class="delimiter">&quot;</span></span> <span class="attribute-name">job-repository</span>=<span class="string"><span class="delimiter">&quot;</span><span class="content">jobRepository</span><span class="delimiter">&quot;</span></span><span class="tag">&gt;</span>
+  <span class="tag">&lt;batch:step</span> <span class="attribute-name">id</span>=<span class="string"><span class="delimiter">&quot;</span><span class="content">job2.step</span><span class="delimiter">&quot;</span></span><span class="tag">&gt;</span>
+    <span class="tag">&lt;batch:tasklet</span> <span class="attribute-name">transaction-manager</span>=<span class="string"><span class="delimiter">&quot;</span><span class="content">transactionManager</span><span class="delimiter">&quot;</span></span><span class="tag">&gt;</span>
+      <span class="tag">&lt;batch:chunk</span> <span class="attribute-name">reader</span>=<span class="string"><span class="delimiter">&quot;</span><span class="content">reader</span><span class="delimiter">&quot;</span></span> <span class="attribute-name">writer</span>=<span class="string"><span class="delimiter">&quot;</span><span class="content">writer</span><span class="delimiter">&quot;</span></span> <span class="attribute-name">commit-interval</span>=<span class="string"><span class="delimiter">&quot;</span><span class="content">100</span><span class="delimiter">&quot;</span></span> <span class="tag">/&gt;</span>
+    <span class="tag">&lt;/batch:tasklet&gt;</span>
+  <span class="tag">&lt;/batch:step&gt;</span>
+<span class="tag">&lt;/batch:job&gt;</span></code></pre>
+</div>
+</div>
+<div class="listingblock">
+<div class="title">Definition wherein BeanId is overwritten</div>
+<div class="content">
+<pre class="CodeRay highlight"><code data-lang="xml"><span class="tag">&lt;bean</span> <span class="attribute-name">id</span>=<span class="string"><span class="delimiter">&quot;</span><span class="content">automaticJobRegistrar</span><span class="delimiter">&quot;</span></span>
+      <span class="attribute-name">class</span>=<span class="string"><span class="delimiter">&quot;</span><span class="content">org.springframework.batch.core.configuration.support.AutomaticJobRegistrar</span><span class="delimiter">&quot;</span></span><span class="tag">&gt;</span>
+    <span class="tag">&lt;property</span> <span class="attribute-name">name</span>=<span class="string"><span class="delimiter">&quot;</span><span class="content">applicationContextFactories</span><span class="delimiter">&quot;</span></span><span class="tag">&gt;</span>
+        <span class="tag">&lt;bean</span> <span class="attribute-name">class</span>=<span class="string"><span class="delimiter">&quot;</span><span class="content">org.springframework.batch.core.configuration.support.ClasspathXmlApplicationContextsFactoryBean</span><span class="delimiter">&quot;</span></span><span class="tag">&gt;</span>
+            <span class="tag">&lt;property</span> <span class="attribute-name">name</span>=<span class="string"><span class="delimiter">&quot;</span><span class="content">resources</span><span class="delimiter">&quot;</span></span><span class="tag">&gt;</span>
+                <span class="tag">&lt;list&gt;</span>
+                    <span class="tag">&lt;value&gt;</span>classpath:/META-INF/jobs/other/async/*.xml<span class="tag">&lt;/value&gt;</span>  <span class="comment">&lt;!-- (5) --&gt;</span>
+                <span class="tag">&lt;/list&gt;</span>
+            <span class="tag">&lt;/property&gt;</span>
+        <span class="tag">&lt;/bean&gt;</span>
+    <span class="tag">&lt;/property&gt;</span>
+    <span class="tag">&lt;property</span> <span class="attribute-name">name</span>=<span class="string"><span class="delimiter">&quot;</span><span class="content">jobLoader</span><span class="delimiter">&quot;</span></span><span class="tag">&gt;</span>
+        <span class="tag">&lt;bean</span> <span class="attribute-name">class</span>=<span class="string"><span class="delimiter">&quot;</span><span class="content">org.springframework.batch.core.configuration.support.DefaultJobLoader</span><span class="delimiter">&quot;</span></span>
+              <span class="attribute-name">p:jobRegistry-ref</span>=<span class="string"><span class="delimiter">&quot;</span><span class="content">jobRegistry</span><span class="delimiter">&quot;</span></span><span class="tag">/&gt;</span>
+    <span class="tag">&lt;/property&gt;</span>
+<span class="tag">&lt;/bean&gt;</span>
+
+<span class="tag">&lt;bean</span> <span class="attribute-name">class</span>=<span class="string"><span class="delimiter">&quot;</span><span class="content">org.springframework.batch.core.configuration.support.JobRegistryBeanPostProcessor</span><span class="delimiter">&quot;</span></span>
+    <span class="attribute-name">p:jobRegistry-ref</span>=<span class="string"><span class="delimiter">&quot;</span><span class="content">jobRegistry</span><span class="delimiter">&quot;</span></span> <span class="tag">/&gt;</span>
+
+<span class="tag">&lt;import</span> <span class="attribute-name">resource</span>=<span class="string"><span class="delimiter">&quot;</span><span class="content">classpath:/META-INF/jobs/async/*.xml</span><span class="delimiter">&quot;</span></span> <span class="tag">/&gt;</span>   <span class="comment">&lt;!-- (6) --&gt;</span></code></pre>
+</div>
+</div>
+<table class="tableblock frame-all grid-all spread">
+<caption class="title">List of setup points</caption>
+<colgroup>
+<col style="width: 10%;">
+<col style="width: 90%;">
+</colgroup>
+<thead>
+<tr>
+<th class="tableblock halign-left valign-top">Sr. No.</th>
+<th class="tableblock halign-left valign-top">Description</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td class="tableblock halign-left valign-top"><p class="tableblock">(1)</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">In Job1, ItemReader which reads from the database is defined by a Bean ID - <code>reader</code>.</p></td>
+</tr>
+<tr>
+<td class="tableblock halign-left valign-top"><p class="tableblock">(2)</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">In Job1, ItemWriter which writes in a file is defined by a Bean ID - <code>writer</code>.</p></td>
+</tr>
+<tr>
+<td class="tableblock halign-left valign-top"><p class="tableblock">(3)</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">In Job2, ItemReader which reads from the file is defined by a Bean ID - <code>reader</code>.</p></td>
+</tr>
+<tr>
+<td class="tableblock halign-left valign-top"><p class="tableblock">(4)</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">In Job2, ItemWriter which writes to a database is defined by a Bean ID - <code>writer</code>.</p></td>
+</tr>
+<tr>
+<td class="tableblock halign-left valign-top"><p class="tableblock">(5)</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><code>AutomaticJobRegistrar</code> is set so as to read job definitions other than target jobs.</p></td>
+</tr>
+<tr>
+<td class="tableblock halign-left valign-top"><p class="tableblock">(6)</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">Use import of Spring and enable reading of target job definition.</p></td>
+</tr>
+</tbody>
+</table>
+<div class="paragraph">
+<p>In this case, if Job1.xml and Job2.xml are read in the sequence, reader and writer to be defined by Job1.xml will be overwritten by Job2.xml definition.<br>
+As a result, when Job1 is executed, reader and writer of Job2 are used and intended processing cannot be performed.</p>
+</div>
+</div>
+</div>
+</div>
+</div>
+<div class="container">
+
+  <div class="common-bg">
+    <div class="information">
+      TERASOLUNA Batch Framework for Java (5.x) Development Guideline - version 5.0.1.RELEASE, 2017-9-27
+    </div>
+    <div class="index">
+      <a href="index.html">&gt; INDEX</a>
+    </div>
+  </div>
+
+  <div class="footer-bg">
+    <div class="copyright">
+      &copy; Copyright 2017 NTT DATA Corporation.
+    </div>
+  </div>
+
+</div>
+</body>
+</html>

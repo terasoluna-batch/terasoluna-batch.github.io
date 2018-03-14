@@ -1,0 +1,1900 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<!--[if IE]><meta http-equiv="X-UA-Compatible" content="IE=edge"><![endif]-->
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<meta name="generator" content="Asciidoctor 1.5.6.1">
+<title>Transaction control</title>
+<link rel="stylesheet" href="./theme/css/readthedocs.css">
+<link rel="stylesheet" href="./theme/css/font-awesome.min.css">
+<link rel="stylesheet" href="./theme/css/coderay-asciidoctor.css">
+<link rel="stylesheet" href="./theme/css/header-footer.css">
+<title>TERASOLUNA Batch Framework for Java (5.x) Development Guideline</title>
+
+<div class="common-bg">
+  <div class="information">
+    TERASOLUNA Batch Framework for Java (5.x) Development Guideline - version 5.0.1.RELEASE, 2017-9-27
+  </div>
+  <div class="index">
+    <a href="index.html">&gt; INDEX</a>
+  </div>
+</div>
+</head>
+<body id="Ch05_Transaction" class="book toc2 toc-left">
+<div id="header">
+<h1>Transaction control</h1>
+<div id="toc" class="toc2">
+<div id="toctitle">Table of Contents</div>
+<ul class="sectlevel1">
+<li><a href="#Ch05_Transaction_Overview">Overview</a>
+<ul class="sectlevel2">
+<li><a href="#Ch05_Transaction_Overview_TxType">About the pattern of transaction control in general batch processing</a></li>
+</ul>
+</li>
+<li><a href="#architecture">Architecture</a>
+<ul class="sectlevel2">
+<li><a href="#Ch05_Transaction_architecture_UnderSpringBatch">Transaction control in Spring Batch</a>
+<ul class="sectlevel3">
+<li><a href="#Ch05_Transaction_architecture_ChunkModel">Transaction control mechanism in chunk model</a></li>
+<li><a href="#Ch05_Transaction_architecture_TaskletModel">Mechanism of transaction control in tasklet model</a></li>
+<li><a href="#selection-policy-for-model-specific-transaction-control">Selection policy for model-specific transaction control</a></li>
+</ul>
+</li>
+<li><a href="#Ch05_Transaction_Overview_DiffLaunching">Difference in transaction control for each execution method</a>
+<ul class="sectlevel3">
+<li><a href="#about-transaction-of-db-polling">About transaction of DB polling</a></li>
+<li><a href="#about-the-transaction-of-webap-server-process">About the transaction of WebAP server process</a></li>
+</ul>
+</li>
+</ul>
+</li>
+<li><a href="#Ch05_Transaction_HowToUse">How to use</a>
+<ul class="sectlevel2">
+<li><a href="#Ch05_Transaction_HowToUse_SingleDataSource">For a single data source</a>
+<ul class="sectlevel3">
+<li><a href="#Ch05_Transaction_HowToUse_SingleDataSource_Tx">Implement transaction control</a></li>
+<li><a href="#Ch05_Transaction_HowToUse_SingleDataSource_NonTx">Note for non-transactional data sources</a></li>
+</ul>
+</li>
+<li><a href="#Ch05_Transaction_HowToUse_MultiDataSource">For multiple data sources</a>
+<ul class="sectlevel3">
+<li><a href="#Ch05_Transaction_HowToUse_MultiDataSource_Input">Input from multiple data source</a></li>
+<li><a href="#Ch05_Transaction_HowToUse_MultiDataSource_IndividualTx">Output to multiple data sources(multiple steps)</a></li>
+<li><a href="#Ch05_Transaction_HowToUse_MultiDataSource_SingleTx">Output to multiple data sources(single step)</a></li>
+</ul>
+</li>
+<li><a href="#notes-on-intermediate-method-commit">Notes on intermediate method commit</a></li>
+</ul>
+</li>
+</ul>
+</div>
+</div>
+<div id="content">
+<div class="sect1">
+<h2 id="Ch05_Transaction_Overview"><a class="anchor" href="#Ch05_Transaction_Overview"></a>Overview</h2>
+<div class="sectionbody">
+<div class="paragraph">
+<p>In this section, transaction control in jobs will be described in the following order.</p>
+</div>
+<div class="olist arabic">
+<ol class="arabic">
+<li>
+<p><a href="#Ch05_Transaction_Overview_TxType">About the pattern of transaction control in general batch processing</a></p>
+</li>
+<li>
+<p><a href="#Ch05_Transaction_architecture_UnderSpringBatch">Transaction control in Spring Batch</a></p>
+</li>
+<li>
+<p><a href="#Ch05_Transaction_HowToUse">"How to process resources like database and file transactionally"</a></p>
+</li>
+</ol>
+</div>
+<div class="paragraph">
+<p>Since this function is different in usage between chunk model and tasklet model, each will be explained.</p>
+</div>
+<div class="sect2">
+<h3 id="Ch05_Transaction_Overview_TxType"><a class="anchor" href="#Ch05_Transaction_Overview_TxType"></a>About the pattern of transaction control in general batch processing</h3>
+<div class="paragraph">
+<p>Generally, since batch processing is processing a large number of cases, if any errors are thrown at the end of the processing and all processing need to be done again,
+the batch system schedule will be adversely affected.<br>
+In order to avoid this, the influence at the time of error occurrence is often localized by advancing the process
+while confirming the transaction for each fixed number of data within the processing of one job.<br>
+(Hereafter, we call the "intermediate commit method" as the method of commiting the transaction for every fixed number of data,
+ and the "chunk" as the one grouping the data in the commit unit.)</p>
+</div>
+<div class="paragraph">
+<p>The points of the intermediate commit method are summarized below.</p>
+</div>
+<div class="olist arabic">
+<ol class="arabic">
+<li>
+<p>Localize the effects at the time of error occurrence.</p>
+<div class="ulist">
+<ul>
+<li>
+<p>Even if an error occurs, the processing till the chunk just before the error part is confirmed.</p>
+</li>
+</ul>
+</div>
+</li>
+<li>
+<p>Only use a certain amount of resources.</p>
+<div class="ulist">
+<ul>
+<li>
+<p>Regardless of whether the data to be processed is large or small, only resources for chunks are used, so they are stable.</p>
+</li>
+</ul>
+</div>
+</li>
+</ol>
+</div>
+<div class="paragraph">
+<p>However, the intermediate commit method is not a valid method in every situation.<br>
+Processed data and unprocessed data are mixed in the system even though it is temporary.
+As a result, since it is necessary to identify unprocessed data at the time of recovery processing, there is a possibility that the recovery becomes complicated.
+In order to avoid this, all of the cases must be confirmed with one transaction, and not use the intermediate commit method.<br>
+(Hereinafter, the method of determining all transactions in one transaction is called "single commit method".)</p>
+</div>
+<div class="paragraph">
+<p>Nevertheless, if you process a large number of such as tens of thousands of items in a single commit method,
+you will get a heavy load trying to reflect all the databases when committing.
+Therefore, although the single commit method is suitable for small-scale batch processing, care must be taken when adopting it in a large-scale batch.
+So this method is not a versatile method too.</p>
+</div>
+<div class="paragraph">
+<p>In other words, there is a trade-off between "localization of impact" and "ease of recovery".
+Which one of "intermediate commit method" and "single commit method" is used depends on the nature of the job and decides which one should be prioritized.<br>
+Of course, it is not necessary to implement all the jobs in the batch system on either side.
+It is natural to basically use "intermediate commit method" and use "single commit method" for special jobs (or the other way).</p>
+</div>
+<div class="paragraph">
+<p>Below is the summary of advantages, disadvantages and adoption points of "intermediate commit method" and "single commit method".</p>
+</div>
+<table class="tableblock frame-all grid-all spread">
+<caption class="title">Features list by method</caption>
+<colgroup>
+<col style="width: 25%;">
+<col style="width: 25%;">
+<col style="width: 25%;">
+<col style="width: 25%;">
+</colgroup>
+<thead>
+<tr>
+<th class="tableblock halign-left valign-top">Commit method</th>
+<th class="tableblock halign-left valign-top">Advantage</th>
+<th class="tableblock halign-left valign-top">Disadvantage</th>
+<th class="tableblock halign-left valign-top">Adoption point</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td class="tableblock halign-left valign-top"><p class="tableblock">intermediate commit method</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">Localize the effect at the time of error occurrence</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">Recovery processing may be complicated</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">When you want to process large amounts of data with certain machine resources</p></td>
+</tr>
+<tr>
+<td class="tableblock halign-left valign-top"><p class="tableblock">single commit method</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">Ensure data integrity</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">There is a possibility of high work-load when processing a large number of cases</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">When you want to set the processing result for the persistent resource to All or Nothing<br>
+Suitable for small batch processing</p></td>
+</tr>
+</tbody>
+</table>
+<div class="admonitionblock warning">
+<table>
+<tr>
+<td class="icon">
+<i class="fa icon-warning" title="Warning"></i>
+</td>
+<td class="content">
+<div class="title">Notes on inputting and outputting to the same table in the database</div>
+<div class="paragraph">
+<p>In terms of the structure of the database,
+care is required when handling large amounts of data in processing to input and output to the same table regardless of the commit method.</p>
+</div>
+<div class="ulist">
+<ul>
+<li>
+<p>As information that guarantees reading consistency is lost due to output (issuance of UPDATE),
+errors may occur at the input (SELECT).</p>
+</li>
+</ul>
+</div>
+<div class="paragraph">
+<p>In order to avoid this, the following measures are taken.</p>
+</div>
+<div class="ulist">
+<ul>
+<li>
+<p>Increase the area to secure information.</p>
+<div class="ulist">
+<ul>
+<li>
+<p>When expanding, please consider it carefully in resource design.</p>
+</li>
+<li>
+<p>Since the extension method depends on the database to be used, refer to the manual.</p>
+</li>
+</ul>
+</div>
+</li>
+<li>
+<p>Divides input data and performs multiplexing processing.</p>
+<div class="ulist">
+<ul>
+<li>
+<p>Refer to <a href="Ch08_ParallelAndMultiple.html#Ch08_ParallelAndMultiple_Partitioning">"Partitioning Step (Multiple processing)"</a> for multiple processing.</p>
+</li>
+</ul>
+</div>
+</li>
+</ul>
+</div>
+</td>
+</tr>
+</table>
+</div>
+</div>
+</div>
+</div>
+<div class="sect1">
+<h2 id="architecture"><a class="anchor" href="#architecture"></a>Architecture</h2>
+<div class="sectionbody">
+<div class="sect2">
+<h3 id="Ch05_Transaction_architecture_UnderSpringBatch"><a class="anchor" href="#Ch05_Transaction_architecture_UnderSpringBatch"></a>Transaction control in Spring Batch</h3>
+<div class="paragraph">
+<p>Job transaction control leverages the mechanism of Spring Batch.</p>
+</div>
+<div class="paragraph">
+<p>Two kinds of transactions are defined below.</p>
+</div>
+<div class="dlist">
+<dl>
+<dt class="hdlist1">Framework transaction</dt>
+<dd>
+<p>Transaction controlled by Spring Batch</p>
+</dd>
+<dt class="hdlist1">User transaction</dt>
+<dd>
+<p>Transactions controlled by the user</p>
+</dd>
+</dl>
+</div>
+<div class="sect3">
+<h4 id="Ch05_Transaction_architecture_ChunkModel"><a class="anchor" href="#Ch05_Transaction_architecture_ChunkModel"></a>Transaction control mechanism in chunk model</h4>
+<div class="paragraph">
+<p>Transaction control in the chunk model is only the intermediate commit method.
+A single commit method can not be done.</p>
+</div>
+<div class="admonitionblock warning">
+<table>
+<tr>
+<td class="icon">
+<i class="fa icon-warning" title="Warning"></i>
+</td>
+<td class="content">
+<div class="paragraph">
+<p>The single commit method in the chunk model is reported in JIRA.<br>
+<a href="https://jira.spring.io/browse/BATCH-647" class="bare">https://jira.spring.io/browse/BATCH-647</a><br>
+As a result, it is solved by customizing <code>chunk completion policy</code> and dynamically changing the chunk size.
+However, with this method, since all data is stored in one chunk and memory is compressed, it can not be adopted as a method.</p>
+</div>
+</td>
+</tr>
+</table>
+</div>
+<div class="paragraph">
+<p>A feature of this method is that transactions are repeatedly performed for each chunk.</p>
+</div>
+<div class="dlist">
+<dl>
+<dt class="hdlist1">Transaction control in normal process</dt>
+<dd>
+<p>Transaction control in normal process will be explained.</p>
+</dd>
+</dl>
+</div>
+<div class="imageblock">
+<div class="content">
+<img src="./images/Ch05_transaction_TransactionControlChunkModel_commit.png" alt="Transaction Control Chunk Model Normal Process">
+</div>
+<div class="title">Sequence diagram of normal process</div>
+</div>
+<div class="olist arabic">
+<div class="title">Description of the Sequence Diagram</div>
+<ol class="arabic">
+<li>
+<p>Steps are executed from the job.</p>
+<div class="ulist">
+<ul>
+<li>
+<p>The subsequent processing is repeated until there is no input data.</p>
+</li>
+<li>
+<p>Start a framework transaction on a per chunk basis.</p>
+</li>
+<li>
+<p>Repeat steps 2 to 5 until the chunk size is reached.</p>
+</li>
+</ul>
+</div>
+</li>
+<li>
+<p>The step obtains input data from <code>ItemReader</code>.</p>
+</li>
+<li>
+<p><code>ItemReader</code> returns the input data to the step.</p>
+</li>
+<li>
+<p>In the step, <code>ItemProcessor</code> processes input data.</p>
+</li>
+<li>
+<p><code>ItemProcessor</code> returns the processing result to the step.</p>
+</li>
+<li>
+<p>The step outputs data for chunk size with <code>ItemWriter</code>.</p>
+</li>
+<li>
+<p><code>ItemWriter</code> will output to the target resource.</p>
+</li>
+<li>
+<p>The step commits the framework transaction.</p>
+</li>
+</ol>
+</div>
+<div class="dlist">
+<dl>
+<dt class="hdlist1">Transaction control in abnormal process</dt>
+<dd>
+<p>Transaction control in abnormal process will be explained.</p>
+</dd>
+</dl>
+</div>
+<div class="imageblock">
+<div class="content">
+<img src="./images/Ch05_transaction_TransactionControlChunkModel_rollback.png" alt="Transaction Control Chunk Model Abnormal Process">
+</div>
+<div class="title">Sequence diagram of abnormal process</div>
+</div>
+<div class="olist arabic">
+<div class="title">Description of the Sequence Diagram</div>
+<ol class="arabic">
+<li>
+<p>Steps are executed from the job.</p>
+<div class="ulist">
+<ul>
+<li>
+<p>The subsequent processing is repeated until there is no input data.</p>
+</li>
+<li>
+<p>Start a framework transaction on a per chunk basis.</p>
+</li>
+<li>
+<p>Repeat steps 2 to 5 until the chunk size is reached.</p>
+</li>
+</ul>
+</div>
+</li>
+<li>
+<p>The step obtains input data from <code>ItemReader</code>.</p>
+</li>
+<li>
+<p><code>ItemReader</code> returns the input data to the step.</p>
+</li>
+<li>
+<p>In the step, <code>ItemProcessor</code> processes input data.</p>
+</li>
+<li>
+<p><code>ItemProcessor</code> returns the processing result to the step.</p>
+</li>
+<li>
+<p>The step outputs data for chunk size with <code>ItemWriter</code>.</p>
+</li>
+<li>
+<p><code>ItemWriter</code> will output to the target resource.</p>
+</li>
+</ol>
+</div>
+<div class="paragraph">
+<p>If any <strong>exception occurs</strong> between the process from 2 to 7,</p>
+</div>
+<div class="olist arabic">
+<ol class="arabic" start="8">
+<li>
+<p>The step rolls back the framework transaction.</p>
+</li>
+</ol>
+</div>
+</div>
+<div class="sect3">
+<h4 id="Ch05_Transaction_architecture_TaskletModel"><a class="anchor" href="#Ch05_Transaction_architecture_TaskletModel"></a>Mechanism of transaction control in tasklet model</h4>
+<div class="paragraph">
+<p>For transaction control in the tasklet model,
+either the single commit method or the intermediate commit method can be used.</p>
+</div>
+<div class="dlist">
+<dl>
+<dt class="hdlist1">single commit method</dt>
+<dd>
+<p>Use the transaction control mechanism of Spring Batch</p>
+</dd>
+<dt class="hdlist1">Intermediate commit method</dt>
+<dd>
+<p>Manipulate the transaction directly with the user</p>
+</dd>
+</dl>
+</div>
+<div class="sect4">
+<h5 id="Ch05_Transaction_architecture_TaskletModel_SingleTransaction"><a class="anchor" href="#Ch05_Transaction_architecture_TaskletModel_SingleTransaction"></a>single commit method in tasklet model</h5>
+<div class="paragraph">
+<p>Explain the mechanism of transaction control by Spring Batch.</p>
+</div>
+<div class="paragraph">
+<p>A feature of this method is to process data repeatedly within one transaction.</p>
+</div>
+<div class="dlist">
+<dl>
+<dt class="hdlist1">Transaction control in normal process</dt>
+<dd>
+<p>Transaction control in normal process will be explained.</p>
+</dd>
+</dl>
+</div>
+<div class="imageblock">
+<div class="content">
+<img src="./images/Ch05_transaction_TransactionControlTaskletModel_SingleTransaction_commit.png" alt="Single Transaction Control Tasklet Model Normal Process">
+</div>
+<div class="title">Sequence diagram of normal process</div>
+</div>
+<div class="olist arabic">
+<div class="title">Description of the Sequence Diagram</div>
+<ol class="arabic">
+<li>
+<p>Steps are executed from the job.</p>
+<div class="ulist">
+<ul>
+<li>
+<p>The step starts a framework transaction.</p>
+</li>
+</ul>
+</div>
+</li>
+<li>
+<p>The step executes the tasklet.</p>
+<div class="ulist">
+<ul>
+<li>
+<p>Repeat steps 3 to 7 until there is no more input data.</p>
+</li>
+</ul>
+</div>
+</li>
+<li>
+<p>Tasklet gets input data from <code>Repository</code>.</p>
+</li>
+<li>
+<p><code>Repository</code> will return input data to tasklet.</p>
+</li>
+<li>
+<p>Tasklets process input data.</p>
+</li>
+<li>
+<p>Tasklets pass output data to <code>Repository</code>.</p>
+</li>
+<li>
+<p><code>Repository</code> will output to the target resource.</p>
+</li>
+<li>
+<p>The tasklet returns the process end to the step.</p>
+</li>
+<li>
+<p>The step commits the framework transaction.</p>
+</li>
+</ol>
+</div>
+<div class="dlist">
+<dl>
+<dt class="hdlist1">Transaction control in abnormal process</dt>
+<dd>
+<p>Transaction control in abnormal process will be explained.</p>
+</dd>
+</dl>
+</div>
+<div class="imageblock">
+<div class="content">
+<img src="./images/Ch05_transaction_TransactionControlTaskletModel_SingleTransaction_rollback.png" alt="Single Transaction Control Tasklet Model Abormal Process">
+</div>
+<div class="title">Sequence diagram of abnormal process</div>
+</div>
+<div class="olist arabic">
+<div class="title">Description of the Sequence Diagram</div>
+<ol class="arabic">
+<li>
+<p>Steps are executed from the job.</p>
+<div class="ulist">
+<ul>
+<li>
+<p>The step starts a framework transaction.</p>
+</li>
+</ul>
+</div>
+</li>
+<li>
+<p>The step executes the tasklet.</p>
+<div class="ulist">
+<ul>
+<li>
+<p>Repeat steps 3 to 7 until there is no more input data.</p>
+</li>
+</ul>
+</div>
+</li>
+<li>
+<p>Tasklet gets input data from <code>Repository</code>.</p>
+</li>
+<li>
+<p><code>Repository</code> will return input data to tasklet.</p>
+</li>
+<li>
+<p>Tasklets process input data.</p>
+</li>
+<li>
+<p>Tasklets pass output data to <code>Repository</code>.</p>
+</li>
+<li>
+<p><code>Repository</code> will output to the target resource.</p>
+</li>
+</ol>
+</div>
+<div class="paragraph">
+<p>If any <strong>exception occurs</strong> between the process from 2 to 7,</p>
+</div>
+<div class="olist arabic">
+<ol class="arabic" start="8">
+<li>
+<p>The tasklet throws an exception to the step.</p>
+</li>
+<li>
+<p>The step rolls back the framework transaction.</p>
+</li>
+</ol>
+</div>
+</div>
+<div class="sect4">
+<h5 id="Ch05_Transaction_architecture_TaskletModel_ChunkTransaction"><a class="anchor" href="#Ch05_Transaction_architecture_TaskletModel_ChunkTransaction"></a>Intermediate commit method in tasklet model</h5>
+<div class="paragraph">
+<p>A mechanism for directly operating a transaction by a user will be described.</p>
+</div>
+<div class="paragraph">
+<p>Feature of this method is that resource transactions are handled only by user transactions, by using framework transactions that can manipulate resources.
+Specify <code>org.springframework.batch.support.transaction.ResourcelessTransactionManager</code> without resources, in <code>transaction-manager</code> attribute.</p>
+</div>
+<div class="dlist">
+<dl>
+<dt class="hdlist1">Transaction control in normal process</dt>
+<dd>
+<p>Transaction control in normal process will be explained.</p>
+</dd>
+</dl>
+</div>
+<div class="imageblock">
+<div class="content">
+<img src="./images/Ch05_transaction_TransactionControlTaskletModel_ChunkTransaction_commit.png" alt="Chunk Transaction Control Tasklet Model Normal Process">
+</div>
+<div class="title">Sequence diagram of normal process</div>
+</div>
+<div class="olist arabic">
+<div class="title">Description of the Sequence Diagram</div>
+<ol class="arabic">
+<li>
+<p>Steps are executed from the job.</p>
+<div class="ulist">
+<ul>
+<li>
+<p>The step starts <strong>framework transaction</strong>.</p>
+</li>
+</ul>
+</div>
+</li>
+<li>
+<p>The step executes the tasklet.</p>
+<div class="ulist">
+<ul>
+<li>
+<p>Repeat steps 3 to 10 until there is no more input data.</p>
+</li>
+</ul>
+</div>
+</li>
+<li>
+<p>The tasklet starts <strong>user transaction</strong> via <code>TransacitonManager</code>.</p>
+<div class="ulist">
+<ul>
+<li>
+<p>Repeat steps 4 to 6 until the chunk size is reached.</p>
+</li>
+</ul>
+</div>
+</li>
+<li>
+<p>Tasklet gets input data from <code>Repository</code>.</p>
+</li>
+<li>
+<p><code>Repository</code> will return input data to tasklet.</p>
+</li>
+<li>
+<p>Tasklets process input data.</p>
+</li>
+<li>
+<p>Tasklets pass output data to <code>Repository</code>.</p>
+</li>
+<li>
+<p><code>Repository</code> will output to the target resource.</p>
+</li>
+<li>
+<p>The tasklet commits the <strong>user transaction</strong> via <code> TransacitonManager</code>.</p>
+</li>
+<li>
+<p><code>TransacitonManager</code> issues a commit to the target resource.</p>
+</li>
+<li>
+<p>The tasklet returns the process end to the step.</p>
+</li>
+<li>
+<p>The step commits the <strong>framework transaction</strong>.</p>
+</li>
+</ol>
+</div>
+<div class="admonitionblock note">
+<table>
+<tr>
+<td class="icon">
+<i class="fa icon-note" title="Note"></i>
+</td>
+<td class="content">
+<div class="paragraph">
+<p>In this case, each item is output to a resource, but like the chunk model,
+it is also possible to update the processing throughput collectively by chunk unit and improve the processing throughput.
+At that time, you can also use BatchUpdate by setting <code>executorType</code> of <code>SqlSessionTemplate</code> to <code>BATCH</code>.
+This is the same behavior as using MyBatis' ItemWriter, so you can update it using MyBatis' ItemWriter.
+For details of MyBatis' ItemWriter, refer to
+<a href="Ch05_DBAccess.html#Ch05_DBAccess_HowToUse_Output_MyBatisItemWriter">Database access with ItemWriter</a>.</p>
+</div>
+</td>
+</tr>
+</table>
+</div>
+<div class="dlist">
+<dl>
+<dt class="hdlist1">Transaction control in abnormal process</dt>
+<dd>
+<p>Transaction control in abnormal process will be explained.</p>
+</dd>
+</dl>
+</div>
+<div class="imageblock">
+<div class="content">
+<img src="./images/Ch05_transaction_TransactionControlTaskletModel_ChunkTransaction_rollback.png" alt="Chunk Transaction Control Tasklet Model Abormal Process">
+</div>
+<div class="title">Sequence diagram of abnormal process</div>
+</div>
+<div class="olist arabic">
+<div class="title">Description of the Sequence Diagram</div>
+<ol class="arabic">
+<li>
+<p>Steps are executed from the job.</p>
+<div class="ulist">
+<ul>
+<li>
+<p>The step starts <strong>framework transaction</strong>.</p>
+</li>
+</ul>
+</div>
+</li>
+<li>
+<p>The step executes the tasklet.</p>
+<div class="ulist">
+<ul>
+<li>
+<p>Repeat steps 3 to 11 until there is no more input data.</p>
+</li>
+</ul>
+</div>
+</li>
+<li>
+<p>The tasklet starts <strong>user transaction</strong> from <code>TransacitonManager</code>.</p>
+<div class="ulist">
+<ul>
+<li>
+<p>Repeat steps 4 to 6 until the chunk size is reached.</p>
+</li>
+</ul>
+</div>
+</li>
+<li>
+<p>Tasklet gets input data from <code>Repository</code>.</p>
+</li>
+<li>
+<p><code>Repository</code> will return input data to tasklet.</p>
+</li>
+<li>
+<p>Tasklets process input data.</p>
+</li>
+<li>
+<p>Tasklets pass output data to <code>Repository</code>.</p>
+</li>
+<li>
+<p><code>Repository</code> will output to the target resource.</p>
+</li>
+</ol>
+</div>
+<div class="paragraph">
+<p>If any <strong>exception occurs</strong> between the process from 3 to 8,</p>
+</div>
+<div class="olist arabic">
+<ol class="arabic" start="9">
+<li>
+<p>The tasklet processes the exception that occurred.</p>
+</li>
+<li>
+<p>The tasklet performs a rollback of <strong>user transaction</strong> via <code>TransacitonManager</code>.</p>
+</li>
+<li>
+<p><code>TransacitonManager</code> issues a rollback to the target resource.</p>
+</li>
+<li>
+<p>The tasklet throws an exception to the step.</p>
+</li>
+<li>
+<p>The step rolls back <strong>framework transaction</strong>.</p>
+</li>
+</ol>
+</div>
+<div class="admonitionblock note">
+<table>
+<tr>
+<td class="icon">
+<i class="fa icon-note" title="Note"></i>
+</td>
+<td class="content">
+<div class="title">About processing continuation</div>
+<div class="paragraph">
+<p>Here, although processing is abnormally terminated after handling exceptions and rolling back the processing,
+it is possible to continue processing the next chunk.
+In either case, it is necessary to notify the subsequent processing by changing the status / end code of the step that an error has occurred during that process.</p>
+</div>
+</td>
+</tr>
+</table>
+</div>
+<div class="admonitionblock note">
+<table>
+<tr>
+<td class="icon">
+<i class="fa icon-note" title="Note"></i>
+</td>
+<td class="content">
+<div class="title">About framework transactions</div>
+<div class="paragraph">
+<p>In this case, although the job is abnormally terminated by throwing an exception after rolling back the user transaction,
+it is also possible to return the processing end to the step and terminate the job normally.
+In this case, the framework transaction is <strong>committed</strong>.</p>
+</div>
+</td>
+</tr>
+</table>
+</div>
+</div>
+</div>
+<div class="sect3">
+<h4 id="selection-policy-for-model-specific-transaction-control"><a class="anchor" href="#selection-policy-for-model-specific-transaction-control"></a>Selection policy for model-specific transaction control</h4>
+<div class="paragraph">
+<p>In Spring Batch that is the basis of TERASOLUNA Batch 5.x, only the intermediate commit method can be implemented in the chunk model.
+However, in the tasklet model, either the intermediate commit method or the single commit method can be implemented.</p>
+</div>
+<div class="paragraph">
+<p>Therefore, in TERASOLUNA Batch 5.x, when the single commit method is necessary, it is to be implemented in the tasklet model.</p>
+</div>
+</div>
+</div>
+<div class="sect2">
+<h3 id="Ch05_Transaction_Overview_DiffLaunching"><a class="anchor" href="#Ch05_Transaction_Overview_DiffLaunching"></a>Difference in transaction control for each execution method</h3>
+<div class="paragraph">
+<p>Depending on the execution method, a transaction that is not managed by Spring Batch occurs before and after the job is executed.
+This section explains transactions in two asynchronous execution processing schemes.</p>
+</div>
+<div class="sect3">
+<h4 id="about-transaction-of-db-polling"><a class="anchor" href="#about-transaction-of-db-polling"></a>About transaction of DB polling</h4>
+<div class="paragraph">
+<p>Regarding processing to the Job-request-table performed by the DB polling, transaction processing other than Spring Batch managed will be performed.
+Also, regarding exceptions that occurred in the job, since correspondence is completed within the job, it does not affect transactions performed by <code>JobRequestPollTask</code>.</p>
+</div>
+<div class="paragraph">
+<p>A simple sequence diagram focusing on transactions is shown in the figure below.</p>
+</div>
+<div class="imageblock">
+<div class="content">
+<img src="./images/Ch05_transaction_AsyncWithDB_Transaction_Difference.png" alt="With Database polling transaction">
+</div>
+<div class="title">Transaction of DB polling</div>
+</div>
+<div class="olist arabic">
+<div class="title">Description of the Sequence Diagram</div>
+<ol class="arabic">
+<li>
+<p><code>JobRequestPollTask</code> is executed periodically from asynchronous batch daemon.</p>
+</li>
+<li>
+<p><code>JobRequestPollTask</code> will start a transaction other than Spring Batch managed.</p>
+</li>
+<li>
+<p><code>JobRequestPollTask</code> will retreive an asynchronous batch to execute from Job-request-table.</p>
+</li>
+<li>
+<p><code>JobRequestPollTask</code> will commit the transaction other than Spring Batch managed.</p>
+</li>
+<li>
+<p><code>JobRequestPollTask</code> will start a transaction other than Spring Batch managed.</p>
+</li>
+<li>
+<p><code>JobRequestPollTask</code> will update the status of Job-request-table&#8217;s polling status from INIT to POLLED.</p>
+</li>
+<li>
+<p><code>JobRequestPollTask</code> will commit the transaction other than Spring Batch managed.</p>
+</li>
+<li>
+<p><code>JobRequestPollTask</code> will execute the job.</p>
+</li>
+<li>
+<p>Inside the job, transaction control for DB for Management(<code>JobRepository</code>) will be managed by Spring Batch.</p>
+</li>
+<li>
+<p>Inside the job, transaction control for DB for Job will be managed by Spring Batch.</p>
+</li>
+<li>
+<p>job_execution_id is returned to <code>JobRequestPollTask</code></p>
+</li>
+<li>
+<p><code>JobRequestPollTask</code> will start a transaction other than Spring Batch managed.</p>
+</li>
+<li>
+<p><code>JobRequestPollTask</code> will update the status of Job-request-table&#8217;s polling status from INIT to EXECUTE.</p>
+</li>
+<li>
+<p><code>JobRequestPollTask</code> will commit the transaction other than Spring Batch managed.</p>
+</li>
+</ol>
+</div>
+<div class="admonitionblock note">
+<table>
+<tr>
+<td class="icon">
+<i class="fa icon-note" title="Note"></i>
+</td>
+<td class="content">
+<div class="title">About Commit at SELECT Issuance</div>
+<div class="paragraph">
+<p>Some databases may implicitly start transactions when SELECT is issued.
+Therefore, by explicitly issuing a commit, the transaction is confirmed so that the transaction is clearly distinguished from other transactions and is not influenced.</p>
+</div>
+</td>
+</tr>
+</table>
+</div>
+</div>
+<div class="sect3">
+<h4 id="about-the-transaction-of-webap-server-process"><a class="anchor" href="#about-the-transaction-of-webap-server-process"></a>About the transaction of WebAP server process</h4>
+<div class="paragraph">
+<p>As for processing to resources targeted by WebAP, transaction processing outside Spring Batch managed is performed.
+Also, regarding exceptions that occurred in the job, since correspondence is completed within the job, it does not affect transactions performed by WebAP.</p>
+</div>
+<div class="paragraph">
+<p>A simple sequence diagram focusing on transactions is shown in the figure below.</p>
+</div>
+<div class="imageblock">
+<div class="content">
+<img src="./images/Ch05_transaction_AsyncWithWeb_Transaction_Difference.png" alt="With Web Application transaction">
+</div>
+<div class="title">Transaction of WebAP server process</div>
+</div>
+<div class="olist arabic">
+<div class="title">Description of the Sequence Diagram</div>
+<ol class="arabic">
+<li>
+<p>WebAP processing is executed by the request from the client</p>
+</li>
+<li>
+<p>WebAP will start the transaction managed outside of Spring Batch.</p>
+</li>
+<li>
+<p>WebAP reads from and writes to resources in WebAP before job execution.</p>
+</li>
+<li>
+<p>WebAP executes the job.</p>
+</li>
+<li>
+<p>Within a job, Spring Batch carries out transaction management to the Management DB (<code>JobRepository</code>).</p>
+</li>
+<li>
+<p>Within a job, Spring Batch carries out transaction management to the Job DB.</p>
+</li>
+<li>
+<p>job_execution_id is returned to WebAP</p>
+</li>
+<li>
+<p>WebAP reads from and writes to resources in WebAP after job execution.</p>
+</li>
+<li>
+<p>WebAP will commit the transaction managed outside of Spring Batch.</p>
+</li>
+<li>
+<p>WebAP returns a response to the client.</p>
+</li>
+</ol>
+</div>
+</div>
+</div>
+</div>
+</div>
+<div class="sect1">
+<h2 id="Ch05_Transaction_HowToUse"><a class="anchor" href="#Ch05_Transaction_HowToUse"></a>How to use</h2>
+<div class="sectionbody">
+<div class="paragraph">
+<p>Here, transaction control in one job will be explained separately in the following cases.</p>
+</div>
+<div class="ulist">
+<ul>
+<li>
+<p><a href="#Ch05_Transaction_HowToUse_SingleDataSource">For a single data source</a></p>
+</li>
+<li>
+<p><a href="#Ch05_Transaction_HowToUse_MultiDataSource">For multiple data sources</a></p>
+</li>
+</ul>
+</div>
+<div class="paragraph">
+<p>The data source refers to the data storage location (database, file, etc.).
+A single data source refers to one data source, and multiple data sources refers to two or more data sources.</p>
+</div>
+<div class="paragraph">
+<p>In the case of processing a single data source, the case of processing database data is representative.<br>
+There are some variations in the case of processing multiple data sources as follows.</p>
+</div>
+<div class="ulist">
+<ul>
+<li>
+<p>multiple databases</p>
+</li>
+<li>
+<p>databases and files</p>
+</li>
+</ul>
+</div>
+<div class="sect2">
+<h3 id="Ch05_Transaction_HowToUse_SingleDataSource"><a class="anchor" href="#Ch05_Transaction_HowToUse_SingleDataSource"></a>For a single data source</h3>
+<div class="paragraph">
+<p>Transaction control of jobs input / output to one data source will be described.</p>
+</div>
+<div class="paragraph">
+<p>Below is a sample setting with TERASOLUNA Batch 5.x.</p>
+</div>
+<div class="listingblock">
+<div class="title">DataSource setting(META-INF/spring/launch-context.xml)</div>
+<div class="content">
+<pre class="CodeRay highlight"><code data-lang="xml"><span class="comment">&lt;!-- Job-common definitions --&gt;</span>
+<span class="tag">&lt;bean</span> <span class="attribute-name">id</span>=<span class="string"><span class="delimiter">&quot;</span><span class="content">jobDataSource</span><span class="delimiter">&quot;</span></span> <span class="attribute-name">class</span>=<span class="string"><span class="delimiter">&quot;</span><span class="content">org.apache.commons.dbcp2.BasicDataSource</span><span class="delimiter">&quot;</span></span>
+      <span class="attribute-name">destroy-method</span>=<span class="string"><span class="delimiter">&quot;</span><span class="content">close</span><span class="delimiter">&quot;</span></span>
+      <span class="attribute-name">p:driverClassName</span>=<span class="string"><span class="delimiter">&quot;</span><span class="content">${jdbc.driver}</span><span class="delimiter">&quot;</span></span>
+      <span class="attribute-name">p:url</span>=<span class="string"><span class="delimiter">&quot;</span><span class="content">${jdbc.url}</span><span class="delimiter">&quot;</span></span>
+      <span class="attribute-name">p:username</span>=<span class="string"><span class="delimiter">&quot;</span><span class="content">${jdbc.username}</span><span class="delimiter">&quot;</span></span>
+      <span class="attribute-name">p:password</span>=<span class="string"><span class="delimiter">&quot;</span><span class="content">${jdbc.password}</span><span class="delimiter">&quot;</span></span>
+      <span class="attribute-name">p:maxTotal</span>=<span class="string"><span class="delimiter">&quot;</span><span class="content">10</span><span class="delimiter">&quot;</span></span>
+      <span class="attribute-name">p:minIdle</span>=<span class="string"><span class="delimiter">&quot;</span><span class="content">1</span><span class="delimiter">&quot;</span></span>
+      <span class="attribute-name">p:maxWaitMillis</span>=<span class="string"><span class="delimiter">&quot;</span><span class="content">5000</span><span class="delimiter">&quot;</span></span>
+      <span class="attribute-name">p:defaultAutoCommit</span>=<span class="string"><span class="delimiter">&quot;</span><span class="content">false</span><span class="delimiter">&quot;</span></span> <span class="tag">/&gt;</span></code></pre>
+</div>
+</div>
+<div class="listingblock">
+<div class="title">TransactionManager setting(META-INF/spring/launch-context.xml)</div>
+<div class="content">
+<pre class="CodeRay highlight"><code data-lang="xml"><span class="comment">&lt;!-- (1) --&gt;</span>
+<span class="tag">&lt;bean</span> <span class="attribute-name">id</span>=<span class="string"><span class="delimiter">&quot;</span><span class="content">jobTransactionManager</span><span class="delimiter">&quot;</span></span> <span class="attribute-name">class</span>=<span class="string"><span class="delimiter">&quot;</span><span class="content">org.springframework.jdbc.datasource.DataSourceTransactionManager</span><span class="delimiter">&quot;</span></span>
+      <span class="attribute-name">p:dataSource-ref</span>=<span class="string"><span class="delimiter">&quot;</span><span class="content">jobDataSource</span><span class="delimiter">&quot;</span></span>
+      <span class="attribute-name">p:rollbackOnCommitFailure</span>=<span class="string"><span class="delimiter">&quot;</span><span class="content">true</span><span class="delimiter">&quot;</span></span> <span class="tag">/&gt;</span></code></pre>
+</div>
+</div>
+<table class="tableblock frame-all grid-all spread">
+<colgroup>
+<col style="width: 10%;">
+<col style="width: 90%;">
+</colgroup>
+<thead>
+<tr>
+<th class="tableblock halign-left valign-top">No</th>
+<th class="tableblock halign-left valign-top">Description</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td class="tableblock halign-left valign-top"><p class="tableblock">(1)</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">Bean definition of TransactionManager.<br>
+Set <code>jobDataSource</code> defined above for the data source.<br>
+It has been set to roll back if commit fails.</p></td>
+</tr>
+</tbody>
+</table>
+<div class="sect3">
+<h4 id="Ch05_Transaction_HowToUse_SingleDataSource_Tx"><a class="anchor" href="#Ch05_Transaction_HowToUse_SingleDataSource_Tx"></a>Implement transaction control</h4>
+<div class="paragraph">
+<p>The control method differs depending on the job model and the commit method.</p>
+</div>
+<div class="sect4">
+<h5 id="in-case-of-chunk-model"><a class="anchor" href="#in-case-of-chunk-model"></a>In case of chunk model</h5>
+<div class="paragraph">
+<p>In the case of the chunk model, it is an intermediate commit method, leaving transaction control to Spring Batch.
+Do not control the transaction at all by the user.</p>
+</div>
+<div class="listingblock">
+<div class="title">Setting sample(job definition)</div>
+<div class="content">
+<pre class="CodeRay highlight"><code data-lang="xml"><span class="tag">&lt;batch:job</span> <span class="attribute-name">id</span>=<span class="string"><span class="delimiter">&quot;</span><span class="content">jobSalesPlan01</span><span class="delimiter">&quot;</span></span> <span class="attribute-name">job-repository</span>=<span class="string"><span class="delimiter">&quot;</span><span class="content">jobRepository</span><span class="delimiter">&quot;</span></span><span class="tag">&gt;</span>
+    <span class="tag">&lt;batch:step</span> <span class="attribute-name">id</span>=<span class="string"><span class="delimiter">&quot;</span><span class="content">jobSalesPlan01.step01</span><span class="delimiter">&quot;</span></span><span class="tag">&gt;</span>
+        <span class="tag">&lt;batch:tasklet</span> <span class="attribute-name">transaction-manager</span>=<span class="string"><span class="delimiter">&quot;</span><span class="content">jobTransactionManager</span><span class="delimiter">&quot;</span></span><span class="tag">&gt;</span> <span class="comment">&lt;!-- (1) --&gt;</span>
+            <span class="tag">&lt;batch:chunk</span> <span class="attribute-name">reader</span>=<span class="string"><span class="delimiter">&quot;</span><span class="content">detailCSVReader</span><span class="delimiter">&quot;</span></span>
+                         <span class="attribute-name">writer</span>=<span class="string"><span class="delimiter">&quot;</span><span class="content">detailWriter</span><span class="delimiter">&quot;</span></span>
+                         <span class="attribute-name">commit-interval</span>=<span class="string"><span class="delimiter">&quot;</span><span class="content">10</span><span class="delimiter">&quot;</span></span> <span class="tag">/&gt;</span> <span class="comment">&lt;!-- (2) --&gt;</span>
+        <span class="tag">&lt;/batch:tasklet&gt;</span>
+    <span class="tag">&lt;/batch:step&gt;</span>
+<span class="tag">&lt;/batch:job&gt;</span></code></pre>
+</div>
+</div>
+<table class="tableblock frame-all grid-all spread">
+<colgroup>
+<col style="width: 10%;">
+<col style="width: 90%;">
+</colgroup>
+<thead>
+<tr>
+<th class="tableblock halign-left valign-top">No</th>
+<th class="tableblock halign-left valign-top">Description</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td class="tableblock halign-left valign-top"><p class="tableblock">(1)</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">Set <code>jobTransactionManager</code> which is already defined in <code>transaction-manager</code> attribute of <code>&lt;batch:tasklet&gt;</code> tag.<br>
+The intermediate commit method transaction is controlled by the transaction manager set here.</p></td>
+</tr>
+<tr>
+<td class="tableblock halign-left valign-top"><p class="tableblock">(2)</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">Set chunk size to <code>commit-interval</code> attribute. In this sample, commit once for every 10 processing.</p></td>
+</tr>
+</tbody>
+</table>
+</div>
+<div class="sect4">
+<h5 id="for-the-tasklet-model"><a class="anchor" href="#for-the-tasklet-model"></a>For the tasklet model</h5>
+<div class="paragraph">
+<p>In the case of the tasklet model, the method of transaction control differs depending on whether the method is single commit method or the intermediate commit method.</p>
+</div>
+<div class="dlist">
+<dl>
+<dt class="hdlist1">single commit method</dt>
+<dd>
+<p>Spring Batch control transaction.</p>
+</dd>
+</dl>
+</div>
+<div class="listingblock">
+<div class="title">Setting sample(job definition)</div>
+<div class="content">
+<pre class="CodeRay highlight"><code data-lang="xml"><span class="tag">&lt;batch:job</span> <span class="attribute-name">id</span>=<span class="string"><span class="delimiter">&quot;</span><span class="content">jobSalesPlan01</span><span class="delimiter">&quot;</span></span> <span class="attribute-name">job-repository</span>=<span class="string"><span class="delimiter">&quot;</span><span class="content">jobRepository</span><span class="delimiter">&quot;</span></span><span class="tag">&gt;</span>
+    <span class="tag">&lt;batch:step</span> <span class="attribute-name">id</span>=<span class="string"><span class="delimiter">&quot;</span><span class="content">jobSalesPlan01.step01</span><span class="delimiter">&quot;</span></span><span class="tag">&gt;</span>
+        <span class="comment">&lt;!-- (1) --&gt;</span>
+        <span class="tag">&lt;batch:tasklet</span> <span class="attribute-name">transaction-manager</span>=<span class="string"><span class="delimiter">&quot;</span><span class="content">jobTransactionManager</span><span class="delimiter">&quot;</span></span>
+                       <span class="attribute-name">ref</span>=<span class="string"><span class="delimiter">&quot;</span><span class="content">salesPlanSingleTranTask</span><span class="delimiter">&quot;</span></span> <span class="tag">/&gt;</span>
+    <span class="tag">&lt;/batch:step&gt;</span>
+<span class="tag">&lt;/batch:job&gt;</span></code></pre>
+</div>
+</div>
+<table class="tableblock frame-all grid-all spread">
+<colgroup>
+<col style="width: 10%;">
+<col style="width: 90%;">
+</colgroup>
+<thead>
+<tr>
+<th class="tableblock halign-left valign-top">No</th>
+<th class="tableblock halign-left valign-top">Description</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td class="tableblock halign-left valign-top"><p class="tableblock">(1)</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">Set <code>jobTransactionManager</code> which is already defined in <code>transaction-manager</code> attribute of <code>&lt;batch:tasklet&gt;</code> tag.<br>
+The single commit method transaction is controlled by the transaction manager set here.</p></td>
+</tr>
+</tbody>
+</table>
+<div class="dlist">
+<dl>
+<dt class="hdlist1">intermediate commit method</dt>
+<dd>
+<p>Control transaction by user.</p>
+<div class="ulist">
+<ul>
+<li>
+<p>If you want to commit in the middle of processing, inject the <code>TransacitonManager</code> and operate manually.</p>
+</li>
+</ul>
+</div>
+</dd>
+</dl>
+</div>
+<div class="listingblock">
+<div class="title">Setting sample(job definition)</div>
+<div class="content">
+<pre class="CodeRay highlight"><code data-lang="xml"><span class="tag">&lt;batch:job</span> <span class="attribute-name">id</span>=<span class="string"><span class="delimiter">&quot;</span><span class="content">jobSalesPlan01</span><span class="delimiter">&quot;</span></span> <span class="attribute-name">job-repository</span>=<span class="string"><span class="delimiter">&quot;</span><span class="content">jobRepository</span><span class="delimiter">&quot;</span></span><span class="tag">&gt;</span>
+    <span class="tag">&lt;batch:step</span> <span class="attribute-name">id</span>=<span class="string"><span class="delimiter">&quot;</span><span class="content">jobSalesPlan01.step01</span><span class="delimiter">&quot;</span></span><span class="tag">&gt;</span>
+        <span class="comment">&lt;!-- (1) --&gt;</span>
+        <span class="tag">&lt;batch:tasklet</span> <span class="attribute-name">transaction-manager</span>=<span class="string"><span class="delimiter">&quot;</span><span class="content">jobResourcelessTransactionManager</span><span class="delimiter">&quot;</span></span>
+                       <span class="attribute-name">ref</span>=<span class="string"><span class="delimiter">&quot;</span><span class="content">salesPlanChunkTranTask</span><span class="delimiter">&quot;</span></span> <span class="tag">/&gt;</span>
+    <span class="tag">&lt;/batch:step&gt;</span>
+<span class="tag">&lt;/batch:job&gt;</span></code></pre>
+</div>
+</div>
+<div class="listingblock">
+<div class="title">Implementation sample</div>
+<div class="content">
+<pre class="CodeRay highlight"><code data-lang="java"><span class="annotation">@Component</span>()
+<span class="directive">public</span> <span class="type">class</span> <span class="class">SalesPlanChunkTranTask</span> <span class="directive">implements</span> Tasklet {
+
+    <span class="annotation">@Inject</span>
+    ItemStreamReader&lt;SalesPlanDetail&gt; itemReader;
+
+     <span class="comment">// (2)</span>
+    <span class="annotation">@Inject</span>
+    <span class="annotation">@Named</span>(<span class="string"><span class="delimiter">&quot;</span><span class="content">jobTransactionManager</span><span class="delimiter">&quot;</span></span>)
+    PlatformTransactionManager transactionManager;
+
+    <span class="annotation">@Inject</span>
+    SalesPlanDetailRepository repository;
+
+    <span class="directive">private</span> <span class="directive">static</span> <span class="directive">final</span> <span class="type">int</span> CHUNK_SIZE = <span class="integer">10</span>;
+
+    <span class="annotation">@Override</span>
+    <span class="directive">public</span> RepeatStatus execute(StepContribution contribution,
+                                ChunkContext chunkContext) <span class="directive">throws</span> <span class="exception">Exception</span> {
+
+        DefaultTransactionDefinition definition = <span class="keyword">new</span> DefaultTransactionDefinition();
+        TransactionStatus status = <span class="predefined-constant">null</span>;
+
+        <span class="keyword">try</span> {
+            <span class="comment">// omitted.</span>
+
+            itemReader.open(executionContext);
+
+            <span class="keyword">while</span> ((item = itemReader.read()) != <span class="predefined-constant">null</span>) {
+
+                <span class="keyword">if</span> (count % CHUNK_SIZE == <span class="integer">0</span>) {
+                    status = transactionManager.getTransaction(definition); <span class="comment">// (3)</span>
+                }
+                count++;
+
+                <span class="comment">// omitted.</span>
+
+                repository.create(item);
+                <span class="keyword">if</span> (count % CHUNK_SIZE == <span class="integer">0</span>) {
+                    transactionManager.commit(status);  <span class="comment">// (4)</span>
+                }
+            }
+        } <span class="keyword">catch</span> (<span class="exception">Exception</span> e) {
+            logger.error(<span class="string"><span class="delimiter">&quot;</span><span class="content">Exception occurred while reading.</span><span class="delimiter">&quot;</span></span>, e);
+            transactionManager.rollback(status);    <span class="comment">// (5)</span>
+            <span class="keyword">throw</span> e;
+        } <span class="keyword">finally</span> {
+            <span class="keyword">if</span> (!status.isCompleted()) {
+                transactionManager.commit(status);   <span class="comment">// (6)</span>
+            }
+            itemReader.close();
+        }
+
+        <span class="keyword">return</span> RepeatStatus.FINISHED;
+    }
+}</code></pre>
+</div>
+</div>
+<table class="tableblock frame-all grid-all spread">
+<colgroup>
+<col style="width: 10%;">
+<col style="width: 90%;">
+</colgroup>
+<thead>
+<tr>
+<th class="tableblock halign-left valign-top">No</th>
+<th class="tableblock halign-left valign-top">Description</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td class="tableblock halign-left valign-top"><p class="tableblock">(1)</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">Set <code>jobResourcelessTransactionManager</code> which is already defined in <code>transaction-manager</code> attribute of <code>&lt;batch:tasklet&gt;</code> tag.<br></p></td>
+</tr>
+<tr>
+<td class="tableblock halign-left valign-top"><p class="tableblock">(2)</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">Inject the transaction manager.<br>
+In the @Named annotation, specify <code>jobTransactionManager</code> to identify the bean to use.</p></td>
+</tr>
+<tr>
+<td class="tableblock halign-left valign-top"><p class="tableblock">(3)</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">Start transaction at the beginning of chunk.</p></td>
+</tr>
+<tr>
+<td class="tableblock halign-left valign-top"><p class="tableblock">(4)</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">Commit the transaction at the end of the chunk.</p></td>
+</tr>
+<tr>
+<td class="tableblock halign-left valign-top"><p class="tableblock">(5)</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">When an exception occurs, roll back the transaction.</p></td>
+</tr>
+<tr>
+<td class="tableblock halign-left valign-top"><p class="tableblock">(6)</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">For the last chunk, commit the transaction.</p></td>
+</tr>
+</tbody>
+</table>
+<div class="admonitionblock tip">
+<table>
+<tr>
+<td class="icon">
+<i class="fa icon-tip" title="Tip"></i>
+</td>
+<td class="content">
+<div class="title">Updating by ItemWriter</div>
+<div class="paragraph">
+<p>In the above example, although Repository is used, it is possible to update data using ItemWriter.
+Using ItemWriter has the effect of simplifying implementation, especially FlatFileItemWriter should be used when updating files.</p>
+</div>
+</td>
+</tr>
+</table>
+</div>
+</div>
+</div>
+<div class="sect3">
+<h4 id="Ch05_Transaction_HowToUse_SingleDataSource_NonTx"><a class="anchor" href="#Ch05_Transaction_HowToUse_SingleDataSource_NonTx"></a>Note for non-transactional data sources</h4>
+<div class="paragraph">
+<p>In the case of files, no transaction setting or operation is necessary.</p>
+</div>
+<div class="paragraph">
+<p>When using <code>FlatFileItemWriter</code>, pseudo transaction control can be performed.
+This is implemented by delaying the writing to the resource and actually writing out at the commit timing.
+Normally, when it reaches the chunk size, it outputs chunk data to the actual file, and if an exception occurs, data output of the chunk is not performed.</p>
+</div>
+<div class="paragraph">
+<p><code>FlatFileItemWriter</code> can switch transaction control on and off with <code>transactional</code> property. The default is true and transaction control is enabled.
+If the <code>transactional</code> property is false, <code>FlatFileItemWriter</code> will output the data regardless of the transaction.</p>
+</div>
+<div class="paragraph">
+<p>When adopting the single commit method, it is recommend to set the <code>transactional</code> property to false.
+As described above, since data is written to the resource at the commit timing, until then, all the output data is held in the memory.
+Therefore, when the amount of data is large, there is a high possibility that the memory becomes insufficient and an error will occur.</p>
+</div>
+<div class="admonitionblock note">
+<table>
+<tr>
+<td class="icon">
+<i class="fa icon-note" title="Note"></i>
+</td>
+<td class="content">
+<div class="title">On TransacitonManager settings in jobs that only handle files</div>
+<div class="paragraph">
+<p>As in the following job definition, the <code>transaction-manager</code> attribute of <code>batch: tasklet</code> is mandatory in the xsd schema and can not be omitted.</p>
+</div>
+<div class="listingblock">
+<div class="title">Excerpt of TransacitonManager setting part</div>
+<div class="content">
+<pre class="CodeRay highlight"><code data-lang="xml"><span class="tag">&lt;batch:tasklet</span> <span class="attribute-name">transaction-manager</span>=<span class="string"><span class="delimiter">&quot;</span><span class="content">jobTransactionManager</span><span class="delimiter">&quot;</span></span><span class="tag">&gt;</span>
+<span class="tag">&lt;batch:chunk</span> <span class="attribute-name">reader</span>=<span class="string"><span class="delimiter">&quot;</span><span class="content">reader</span><span class="delimiter">&quot;</span></span> <span class="attribute-name">writer</span>=<span class="string"><span class="delimiter">&quot;</span><span class="content">writer</span><span class="delimiter">&quot;</span></span> <span class="attribute-name">commit-interval</span>=<span class="string"><span class="delimiter">&quot;</span><span class="content">100</span><span class="delimiter">&quot;</span></span> <span class="tag">/&gt;</span>
+<span class="tag">&lt;/batch:tasklet&gt;</span></code></pre>
+</div>
+</div>
+<div class="paragraph">
+<p>Therefore, always specify <code>jobTransactionManager</code>. At this time, the following behaviors are obtained.</p>
+</div>
+<div class="ulist">
+<ul>
+<li>
+<p>If <code>transactional</code> is true</p>
+<div class="ulist">
+<ul>
+<li>
+<p>Synchronize with specified TransacitonManager and output to resource.</p>
+</li>
+</ul>
+</div>
+</li>
+<li>
+<p>If <code>transactional</code> is false</p>
+<div class="ulist">
+<ul>
+<li>
+<p>Transaction processing of the specified TransacitonManager is idle and it outputs to the resource regardless of the transaction.</p>
+</li>
+</ul>
+</div>
+</li>
+</ul>
+</div>
+<div class="paragraph">
+<p>At this time, transactions are issued to the resource (eg, database) referred to by <code>jobTransactionManager</code>,
+but since there is no table access, there is no actual damage.</p>
+</div>
+<div class="paragraph">
+<p>If you do not want to issue transactions to refer to even if it is idle or in case of actual damage, you can use <code>ResourcelessTransactionManager</code> which does not require resources.
+<code>ResourcelessTransactionManager</code> is defined as <code>jobResourcelessTransactionManager</code> in <code>launch-context.xml</code>.</p>
+</div>
+<div class="listingblock">
+<div class="title">Sample usage of ResourcelessTransactionManager</div>
+<div class="content">
+<pre class="CodeRay highlight"><code data-lang="xml"><span class="tag">&lt;batch:tasklet</span> <span class="attribute-name">transaction-manager</span>=<span class="string"><span class="delimiter">&quot;</span><span class="content">jobResourcelessTransactionManager</span><span class="delimiter">&quot;</span></span><span class="tag">&gt;</span>
+    <span class="tag">&lt;batch:chunk</span> <span class="attribute-name">reader</span>=<span class="string"><span class="delimiter">&quot;</span><span class="content">reader</span><span class="delimiter">&quot;</span></span> <span class="attribute-name">writer</span>=<span class="string"><span class="delimiter">&quot;</span><span class="content">writer</span><span class="delimiter">&quot;</span></span> <span class="attribute-name">commit-interval</span>=<span class="string"><span class="delimiter">&quot;</span><span class="content">100</span><span class="delimiter">&quot;</span></span> <span class="tag">/&gt;</span>
+<span class="tag">&lt;/batch:tasklet&gt;</span></code></pre>
+</div>
+</div>
+</td>
+</tr>
+</table>
+</div>
+</div>
+</div>
+<div class="sect2">
+<h3 id="Ch05_Transaction_HowToUse_MultiDataSource"><a class="anchor" href="#Ch05_Transaction_HowToUse_MultiDataSource"></a>For multiple data sources</h3>
+<div class="paragraph">
+<p>Transaction control of jobs input / output to multiple data sources will be described.
+Since consideration points are different between input and output, they will be explained separately.</p>
+</div>
+<div class="sect3">
+<h4 id="Ch05_Transaction_HowToUse_MultiDataSource_Input"><a class="anchor" href="#Ch05_Transaction_HowToUse_MultiDataSource_Input"></a>Input from multiple data source</h4>
+<div class="paragraph">
+<p>When retrieving data from multiple data sources, the data that is the axis of the process and it&#8217;s additional data should be retrieved separately.
+Hereinafter, the data as the axis of processing is referred to as the process target record, and the additional data accompanying it is referred to as accompanying data.</p>
+</div>
+<div class="paragraph">
+<p>Because of the structure of Spring Batch, ItemReader is based on the premise that it retriedves a process target record from one resource.
+This is the same way of thinking regardless of the type of resource.</p>
+</div>
+<div class="olist arabic">
+<ol class="arabic">
+<li>
+<p>Retriving process target record</p>
+<div class="ulist">
+<ul>
+<li>
+<p>Get it by ItemReader.</p>
+</li>
+</ul>
+</div>
+</li>
+<li>
+<p>Retriving accompanying data</p>
+<div class="ulist">
+<ul>
+<li>
+<p>In the accompanying data, it is necessary to select the following retreiving method according to the presence or absence of change to the data and the number of cases. This is not an option, and it may be used in combination.</p>
+<div class="ulist">
+<ul>
+<li>
+<p>Batch retrieval before step execution</p>
+</li>
+<li>
+<p>Retrieve each time according to the record to be processed</p>
+</li>
+</ul>
+</div>
+</li>
+</ul>
+</div>
+</li>
+</ol>
+</div>
+<div class="sect4">
+<h5 id="when-retrieving-all-at-once-before-step-execution"><a class="anchor" href="#when-retrieving-all-at-once-before-step-execution"></a>When retrieving all at once before step execution</h5>
+<div class="paragraph">
+<p>Implement Listener to do the following and refer to data from the following Step.</p>
+</div>
+<div class="ulist">
+<ul>
+<li>
+<p>Retrieve data collectively</p>
+</li>
+<li>
+<p>Store the information in the bean whose scope is <code>Job</code> or <code>Step</code></p>
+<div class="ulist">
+<ul>
+<li>
+<p><code>ExecutionContext</code> of Spring Batch can be used,
+but a diffferent class can be created to store data considering the readability and maintainability.
+For the sake of simplicity, the sample will be explained using <code>ExecutionContext</code>.</p>
+</li>
+</ul>
+</div>
+</li>
+</ul>
+</div>
+<div class="paragraph">
+<p>This method is adopted when reading data that does not depend on data to be processed such as master data.
+However, even if it is a master data, if there is a large number of items which may give an impact to the  memory, retrieving each time should be considered.</p>
+</div>
+<div class="listingblock">
+<div class="title">Implementation of Listener for collective retrieve</div>
+<div class="content">
+<pre class="CodeRay highlight"><code data-lang="java"><span class="annotation">@Component</span>
+<span class="comment">// (1)</span>
+<span class="directive">public</span> <span class="type">class</span> <span class="class">BranchMasterReadStepListener</span> <span class="directive">extends</span> StepExecutionListenerSupport {
+
+    <span class="annotation">@Inject</span>
+    BranchRepository branchRepository;
+
+    <span class="annotation">@Override</span>
+    <span class="directive">public</span> <span class="type">void</span> beforeStep(StepExecution stepExecution) {   <span class="comment">// (2)</span>
+
+        <span class="predefined-type">List</span>&lt;Branch&gt; branches = branchRepository.findAll(); <span class="comment">//(3)</span>
+
+        <span class="predefined-type">Map</span>&lt;<span class="predefined-type">String</span>, Branch&gt; map = branches.stream()
+                .collect(Collectors.toMap(Branch::getBranchId,
+                        UnaryOperator.identity()));  <span class="comment">// (4)</span>
+
+        stepExecution.getExecutionContext().put(<span class="string"><span class="delimiter">&quot;</span><span class="content">branches</span><span class="delimiter">&quot;</span></span>, map); <span class="comment">// (5)</span>
+    }
+}</code></pre>
+</div>
+</div>
+<div class="listingblock">
+<div class="title">Definition of Listener for collective retrieve</div>
+<div class="content">
+<pre class="CodeRay highlight"><code data-lang="xml"><span class="tag">&lt;batch:job</span> <span class="attribute-name">id</span>=<span class="string"><span class="delimiter">&quot;</span><span class="content">outputAllCustomerList01</span><span class="delimiter">&quot;</span></span> <span class="attribute-name">job-repository</span>=<span class="string"><span class="delimiter">&quot;</span><span class="content">jobRepository</span><span class="delimiter">&quot;</span></span><span class="tag">&gt;</span>
+    <span class="tag">&lt;batch:step</span> <span class="attribute-name">id</span>=<span class="string"><span class="delimiter">&quot;</span><span class="content">outputAllCustomerList01.step01</span><span class="delimiter">&quot;</span></span><span class="tag">&gt;</span>
+        <span class="tag">&lt;batch:tasklet</span> <span class="attribute-name">transaction-manager</span>=<span class="string"><span class="delimiter">&quot;</span><span class="content">jobTransactionManager</span><span class="delimiter">&quot;</span></span><span class="tag">&gt;</span>
+            <span class="tag">&lt;batch:chunk</span> <span class="attribute-name">reader</span>=<span class="string"><span class="delimiter">&quot;</span><span class="content">reader</span><span class="delimiter">&quot;</span></span>
+                         <span class="attribute-name">processor</span>=<span class="string"><span class="delimiter">&quot;</span><span class="content">retrieveBranchFromContextItemProcessor</span><span class="delimiter">&quot;</span></span>
+                         <span class="attribute-name">writer</span>=<span class="string"><span class="delimiter">&quot;</span><span class="content">writer</span><span class="delimiter">&quot;</span></span> <span class="attribute-name">commit-interval</span>=<span class="string"><span class="delimiter">&quot;</span><span class="content">10</span><span class="delimiter">&quot;</span></span><span class="tag">/&gt;</span>
+            <span class="tag">&lt;batch:listeners&gt;</span>
+                <span class="tag">&lt;batch:listener</span> <span class="attribute-name">ref</span>=<span class="string"><span class="delimiter">&quot;</span><span class="content">branchMasterReadStepListener</span><span class="delimiter">&quot;</span></span><span class="tag">/&gt;</span> <span class="comment">&lt;!-- (6) --&gt;</span>
+            <span class="tag">&lt;/batch:listeners&gt;</span>
+        <span class="tag">&lt;/batch:tasklet&gt;</span>
+    <span class="tag">&lt;/batch:step&gt;</span>
+<span class="tag">&lt;/batch:job&gt;</span></code></pre>
+</div>
+</div>
+<div class="listingblock">
+<div class="title">An example of referring data collectively retrieved by the ItemProcessor of the subsequent step</div>
+<div class="content">
+<pre class="CodeRay highlight"><code data-lang="java"><span class="annotation">@Component</span>
+<span class="directive">public</span> <span class="type">class</span> <span class="class">RetrieveBranchFromContextItemProcessor</span> <span class="directive">implements</span>
+        ItemProcessor&lt;Customer, CustomerWithBranch&gt; {
+
+    <span class="directive">private</span> <span class="predefined-type">Map</span>&lt;<span class="predefined-type">String</span>, Branch&gt; branches;
+
+    <span class="annotation">@BeforeStep</span>       <span class="comment">// (7)</span>
+    <span class="annotation">@SuppressWarnings</span>(<span class="string"><span class="delimiter">&quot;</span><span class="content">unchecked</span><span class="delimiter">&quot;</span></span>)
+    <span class="directive">public</span> <span class="type">void</span> beforeStep(StepExecution stepExecution) {
+        branches = (<span class="predefined-type">Map</span>&lt;<span class="predefined-type">String</span>, Branch&gt;) stepExecution.getExecutionContext()
+                .get(<span class="string"><span class="delimiter">&quot;</span><span class="content">branches</span><span class="delimiter">&quot;</span></span>); <span class="comment">// (8)</span>
+    }
+
+    <span class="annotation">@Override</span>
+    <span class="directive">public</span> CustomerWithBranch process(Customer item) <span class="directive">throws</span> <span class="exception">Exception</span> {
+        CustomerWithBranch newItem = <span class="keyword">new</span> CustomerWithBranch(item);
+        newItem.setBranch(branches.get(item.getChargeBranchId()));    <span class="comment">// (9)</span>
+        <span class="keyword">return</span> newItem;
+    }
+}</code></pre>
+</div>
+</div>
+<table class="tableblock frame-all grid-all spread">
+<colgroup>
+<col style="width: 10%;">
+<col style="width: 90%;">
+</colgroup>
+<thead>
+<tr>
+<th class="tableblock halign-left valign-top">No</th>
+<th class="tableblock halign-left valign-top">Description</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td class="tableblock halign-left valign-top"><p class="tableblock">(1)</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">Implement <code>StepExecutionListener</code> interface.<br>
+In order to simplify the implementation here, it is an extension from <code>StepExecutionListenerSupport</code> which implements the <code>StepExecutionListener</code> interface.</p></td>
+</tr>
+<tr>
+<td class="tableblock halign-left valign-top"><p class="tableblock">(2)</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">Implement the <code>beforeStep</code> method to get data before step execution.</p></td>
+</tr>
+<tr>
+<td class="tableblock halign-left valign-top"><p class="tableblock">(3)</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">Implement processing to retrieve master data.</p></td>
+</tr>
+<tr>
+<td class="tableblock halign-left valign-top"><p class="tableblock">(4)</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">Convert from List type to Map type so that it can be used easily in subsequent processing.</p></td>
+</tr>
+<tr>
+<td class="tableblock halign-left valign-top"><p class="tableblock">(5)</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">Set the acquired master data in the context of the step as <code>branches</code>.</p></td>
+</tr>
+<tr>
+<td class="tableblock halign-left valign-top"><p class="tableblock">(6)</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">Register the created Listener to the target job.</p></td>
+</tr>
+<tr>
+<td class="tableblock halign-left valign-top"><p class="tableblock">(7)</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">In order to acquire master data before step execution of ItemProcessor, set up Listener with @BeforeStep annotation.</p></td>
+</tr>
+<tr>
+<td class="tableblock halign-left valign-top"><p class="tableblock">(8)</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">In the method given the @BeforeStep annotation, obtain the master data set in (5) from the context of the step.</p></td>
+</tr>
+<tr>
+<td class="tableblock halign-left valign-top"><p class="tableblock">(9)</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">In the process method of ItemProcessor, data is retrieved from the master data.</p></td>
+</tr>
+</tbody>
+</table>
+<div class="admonitionblock warning">
+<table>
+<tr>
+<td class="icon">
+<i class="fa icon-warning" title="Warning"></i>
+</td>
+<td class="content">
+<div class="title">Object to store in context</div>
+<div class="paragraph">
+<p>The object to be stored in the context(<code>ExecutionContext</code>) must be a class that implements <code>java.io.Serializable</code>.
+This is because <code>ExecutionContext</code> is stored in <code>JobRepository</code>.</p>
+</div>
+</td>
+</tr>
+</table>
+</div>
+</div>
+<div class="sect4">
+<h5 id="retrieving-each-time-according-to-the-record-to-be-processed"><a class="anchor" href="#retrieving-each-time-according-to-the-record-to-be-processed"></a>Retrieving each time according to the record to be processed</h5>
+<div class="paragraph">
+<p>Apart from ItemProcessor of business processing, it retrieves by ItemProcessor designated just for retrieving every time.
+This simplifies processing of each ItemProcessor.</p>
+</div>
+<div class="olist arabic">
+<ol class="arabic">
+<li>
+<p>Define ItemProcessor designated just for retrieving every time, and separate it from business process.</p>
+<div class="ulist">
+<ul>
+<li>
+<p>At this time, use MyBatis as it is when accessing the table.</p>
+</li>
+</ul>
+</div>
+</li>
+<li>
+<p>Concatenate multiple ItemProcessors using CompositeItemProcessor.</p>
+<div class="ulist">
+<ul>
+<li>
+<p>Note that ItemProcessor is processed in the order specified in the delegates attribute.</p>
+</li>
+</ul>
+</div>
+</li>
+</ol>
+</div>
+<div class="listingblock">
+<div class="title">Sample implementation of ItemProcessor designated just for retrieving every time</div>
+<div class="content">
+<pre class="CodeRay highlight"><code data-lang="java"><span class="annotation">@Component</span>
+<span class="directive">public</span> <span class="type">class</span> <span class="class">RetrieveBranchFromRepositoryItemProcessor</span> <span class="directive">implements</span>
+        ItemProcessor&lt;Customer, CustomerWithBranch&gt; {
+
+    <span class="annotation">@Inject</span>
+    BranchRepository branchRepository;  <span class="comment">// (1)</span>
+
+    <span class="annotation">@Override</span>
+    <span class="directive">public</span> CustomerWithBranch process(Customer item) <span class="directive">throws</span> <span class="exception">Exception</span> {
+        CustomerWithBranch newItem = <span class="keyword">new</span> CustomerWithBranch(item);
+        newItem.setBranch(branchRepository.findOne(
+                item.getChargeBranchId())); <span class="comment">// (2)</span>
+        <span class="keyword">return</span> newItem; <span class="comment">// (3)</span>
+    }
+}</code></pre>
+</div>
+</div>
+<div class="listingblock">
+<div class="title">Definition sample of ItemProcessor designated just for retrieving every time and ItemProcessor for business process</div>
+<div class="content">
+<pre class="CodeRay highlight"><code data-lang="xml"><span class="tag">&lt;bean</span> <span class="attribute-name">id</span>=<span class="string"><span class="delimiter">&quot;</span><span class="content">compositeItemProcessor</span><span class="delimiter">&quot;</span></span>
+      <span class="attribute-name">class</span>=<span class="string"><span class="delimiter">&quot;</span><span class="content">org.springframework.batch.item.support.CompositeItemProcessor</span><span class="delimiter">&quot;</span></span><span class="tag">&gt;</span>
+    <span class="tag">&lt;property</span> <span class="attribute-name">name</span>=<span class="string"><span class="delimiter">&quot;</span><span class="content">delegates</span><span class="delimiter">&quot;</span></span><span class="tag">&gt;</span>
+        <span class="tag">&lt;list&gt;</span>
+            <span class="tag">&lt;ref</span> <span class="attribute-name">bean</span>=<span class="string"><span class="delimiter">&quot;</span><span class="content">retrieveBranchFromRepositoryItemProcessor</span><span class="delimiter">&quot;</span></span><span class="tag">/&gt;</span> <span class="comment">&lt;!-- (4) --&gt;</span>
+            <span class="tag">&lt;ref</span> <span class="attribute-name">bean</span>=<span class="string"><span class="delimiter">&quot;</span><span class="content">businessLogicItemProcessor</span><span class="delimiter">&quot;</span></span><span class="tag">/&gt;</span>  <span class="comment">&lt;!-- (5) --&gt;</span>
+        <span class="tag">&lt;/list&gt;</span>
+    <span class="tag">&lt;/property&gt;</span>
+<span class="tag">&lt;/bean&gt;</span></code></pre>
+</div>
+</div>
+<table class="tableblock frame-all grid-all spread">
+<colgroup>
+<col style="width: 10%;">
+<col style="width: 90%;">
+</colgroup>
+<thead>
+<tr>
+<th class="tableblock halign-left valign-top">No</th>
+<th class="tableblock halign-left valign-top">Description</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td class="tableblock halign-left valign-top"><p class="tableblock">(1)</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">Inject Repository for retrieving every time using MyBatis.</p></td>
+</tr>
+<tr>
+<td class="tableblock halign-left valign-top"><p class="tableblock">(2)</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">Accompaniment data is retrieved from the Repository for input data(process target record).</p></td>
+</tr>
+<tr>
+<td class="tableblock halign-left valign-top"><p class="tableblock">(3)</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">Return data with processing target record and accompanying data together.<br>
+Notice that this data will be the input data to the next ItemProcessor.</p></td>
+</tr>
+<tr>
+<td class="tableblock halign-left valign-top"><p class="tableblock">(4)</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">Set ItemProcessor for retrieving every time.</p></td>
+</tr>
+<tr>
+<td class="tableblock halign-left valign-top"><p class="tableblock">(5)</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">Set ItemProcessor for business logic.</p></td>
+</tr>
+</tbody>
+</table>
+</div>
+</div>
+<div class="sect3">
+<h4 id="Ch05_Transaction_HowToUse_MultiDataSource_IndividualTx"><a class="anchor" href="#Ch05_Transaction_HowToUse_MultiDataSource_IndividualTx"></a>Output to multiple data sources(multiple steps)</h4>
+<div class="paragraph">
+<p>Process multiple data sources throughout the job by dividing the steps for each data source and processing a single data source at each step.</p>
+</div>
+<div class="ulist">
+<ul>
+<li>
+<p>Data processed at the first step is stored in a table, and at the second step, it is outputted to a file.</p>
+</li>
+<li>
+<p>Although each step is simple and easy to recover, there is a possibility that it may be troublesome twice.</p>
+<div class="ulist">
+<ul>
+<li>
+<p>As a result, in the case of causing the following harmful effects, consider processing multiple data sources in one step.</p>
+<div class="ulist">
+<ul>
+<li>
+<p>Processing time increases</p>
+</li>
+<li>
+<p>Business logic becomes redundant</p>
+</li>
+</ul>
+</div>
+</li>
+</ul>
+</div>
+</li>
+</ul>
+</div>
+</div>
+<div class="sect3">
+<h4 id="Ch05_Transaction_HowToUse_MultiDataSource_SingleTx"><a class="anchor" href="#Ch05_Transaction_HowToUse_MultiDataSource_SingleTx"></a>Output to multiple data sources(single step)</h4>
+<div class="paragraph">
+<p>Generally, when transactions for a plurality of data sources are combined into one, a distributed transaction based on 2 phase-commit is used.
+However, it is also known that there are the following disadvantages.</p>
+</div>
+<div class="ulist">
+<ul>
+<li>
+<p>Middleware must be compatible with distributed transaction API such as XAResource, and special setting based on it is required</p>
+</li>
+<li>
+<p>In standalone Java like a batch program, you need to add a JTA implementation library for distributed transactions</p>
+</li>
+<li>
+<p>Recovery in case of failure is difficult</p>
+</li>
+</ul>
+</div>
+<div class="paragraph">
+<p>Although it is possible to utilize distributed transactions also in Spring Batch, the method using global transaction by JTA requires performance overhead due to the characteristics of the protocol.
+As a method to process multiple data sources collectively more easily, <strong>Best Efforts 1PC pattern</strong> is recommended.</p>
+</div>
+<div class="dlist">
+<dl>
+<dt class="hdlist1">What is Best Efforts 1PC pattern</dt>
+<dd>
+<p>Briefly, it refers to the technique of handling multiple data sources as local transactions and issuing sequential commits at the same timing.
+The conceptual diagram is shown in the figure below.</p>
+</dd>
+</dl>
+</div>
+<div class="imageblock">
+<div class="content">
+<img src="./images/Ch05_transaction_Best_Efforts_1PC.png" alt="Best Efforts 1PC Overview">
+</div>
+<div class="title">Conceptual diagram of Best Efforts 1PC pattern</div>
+</div>
+<div class="olist arabic">
+<div class="title">Description of figure</div>
+<ol class="arabic">
+<li>
+<p>The user instructs <code>ChainedTransactionManager</code> to start the transaction.</p>
+</li>
+<li>
+<p><code>ChainedTransactionManager</code> starts a transaction sequentially with registered transaction managers.</p>
+</li>
+<li>
+<p>The user performs transactional operations on each resource.</p>
+</li>
+<li>
+<p>The user instructs <code>ChainedTransactionManager</code> to commit.</p>
+</li>
+<li>
+<p><code>ChainedTransactionManager</code> issues sequential commits on registered transaction managers.</p>
+<div class="ulist">
+<ul>
+<li>
+<p>Commit(or roll back) in reverse order of transaction start</p>
+</li>
+</ul>
+</div>
+</li>
+</ol>
+</div>
+<div class="paragraph">
+<p>Since this method is not a distributed transaction, there is a possibility that data consistency may not be maintained
+if a failure(exception) occurs at commit / rollback in the second and subsequent transaction managers.
+Therefore, although it is necessary to design a recovery method when a failure occurs at a transaction boundary, there is an effect that the recovery frequency can be reduced and the recovery procedure can be simplified.</p>
+</div>
+<div class="sect4">
+<h5 id="when-processing-multiple-transactional-resources-at-the-same-time"><a class="anchor" href="#when-processing-multiple-transactional-resources-at-the-same-time"></a>When processing multiple transactional resources at the same time</h5>
+<div class="paragraph">
+<p>Use it on cases such as when processing multiple databases simultaneously, when processing databases and MQ, and so on.</p>
+</div>
+<div class="paragraph">
+<p>Process as 1 phase-commit by defining multiple transaction managers as one using <code>ChainedTransactionManager</code> as follows.
+Note that <code>ChainedTransactionManager</code> is a class provided by Spring Data.</p>
+</div>
+<div class="listingblock">
+<div class="title">pom.xml</div>
+<div class="content">
+<pre class="CodeRay highlight"><code data-lang="xml"><span class="tag">&lt;dependencies&gt;</span>
+    <span class="comment">&lt;!-- omitted --&gt;</span>
+    <span class="comment">&lt;!-- (1) --&gt;</span>
+    <span class="tag">&lt;dependency&gt;</span>
+        <span class="tag">&lt;groupId&gt;</span>org.springframework.data<span class="tag">&lt;/groupId&gt;</span>
+        <span class="tag">&lt;artifactId&gt;</span>spring-data-commons<span class="tag">&lt;/artifactId&gt;</span>
+    <span class="tag">&lt;/dependency&gt;</span>
+<span class="tag">&lt;dependencies&gt;</span></code></pre>
+</div>
+</div>
+<div class="listingblock">
+<div class="title">Sample usage of chainedTransactionManager</div>
+<div class="content">
+<pre class="CodeRay highlight"><code data-lang="xml"><span class="comment">&lt;!-- Chained Transaction Manager --&gt;</span>
+<span class="comment">&lt;!-- (2) --&gt;</span>
+<span class="tag">&lt;bean</span> <span class="attribute-name">id</span>=<span class="string"><span class="delimiter">&quot;</span><span class="content">chainedTransactionManager</span><span class="delimiter">&quot;</span></span>
+      <span class="attribute-name">class</span>=<span class="string"><span class="delimiter">&quot;</span><span class="content">org.springframework.data.transaction.ChainedTransactionManager</span><span class="delimiter">&quot;</span></span><span class="tag">&gt;</span>
+   <span class="tag">&lt;constructor-arg&gt;</span>
+        <span class="comment">&lt;!-- (3) --&gt;</span>
+        <span class="tag">&lt;list&gt;</span>
+            <span class="tag">&lt;ref</span> <span class="attribute-name">bean</span>=<span class="string"><span class="delimiter">&quot;</span><span class="content">transactionManager1</span><span class="delimiter">&quot;</span></span><span class="tag">/&gt;</span>
+            <span class="tag">&lt;ref</span> <span class="attribute-name">bean</span>=<span class="string"><span class="delimiter">&quot;</span><span class="content">transactionManager2</span><span class="delimiter">&quot;</span></span><span class="tag">/&gt;</span>
+        <span class="tag">&lt;/list&gt;</span>
+    <span class="tag">&lt;/constructor-arg&gt;</span>
+<span class="tag">&lt;/bean&gt;</span>
+
+<span class="tag">&lt;batch:job</span> <span class="attribute-name">id</span>=<span class="string"><span class="delimiter">&quot;</span><span class="content">jobSalesPlan01</span><span class="delimiter">&quot;</span></span> <span class="attribute-name">job-repository</span>=<span class="string"><span class="delimiter">&quot;</span><span class="content">jobRepository</span><span class="delimiter">&quot;</span></span><span class="tag">&gt;</span>
+    <span class="tag">&lt;batch:step</span> <span class="attribute-name">id</span>=<span class="string"><span class="delimiter">&quot;</span><span class="content">jobSalesPlan01.step01</span><span class="delimiter">&quot;</span></span><span class="tag">&gt;</span>
+        <span class="comment">&lt;!-- (4) --&gt;</span>
+        <span class="tag">&lt;batch:tasklet</span> <span class="attribute-name">transaction-manager</span>=<span class="string"><span class="delimiter">&quot;</span><span class="content">chainedTransactionManager</span><span class="delimiter">&quot;</span></span><span class="tag">&gt;</span>
+            <span class="comment">&lt;!-- omitted --&gt;</span>
+        <span class="tag">&lt;/batch:tasklet&gt;</span>
+    <span class="tag">&lt;/batch:step&gt;</span>
+<span class="tag">&lt;/batch:job&gt;</span></code></pre>
+</div>
+</div>
+<table class="tableblock frame-all grid-all spread">
+<colgroup>
+<col style="width: 10%;">
+<col style="width: 90%;">
+</colgroup>
+<thead>
+<tr>
+<th class="tableblock halign-left valign-top">No</th>
+<th class="tableblock halign-left valign-top">Description</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td class="tableblock halign-left valign-top"><p class="tableblock">(1)</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">Add a dependency to use <code>ChainedTransactionManager</code>.</p></td>
+</tr>
+<tr>
+<td class="tableblock halign-left valign-top"><p class="tableblock">(2)</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">Define the bean of <code>ChainedTransactionManager</code>.</p></td>
+</tr>
+<tr>
+<td class="tableblock halign-left valign-top"><p class="tableblock">(3)</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">Define multiple transaction managers that you want to summarize in a list.</p></td>
+</tr>
+<tr>
+<td class="tableblock halign-left valign-top"><p class="tableblock">(4)</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">Specify the bean ID defined in (1) for the transaction manager used by the job.</p></td>
+</tr>
+</tbody>
+</table>
+</div>
+<div class="sect4">
+<h5 id="when-processing-transactional-and-nontransactional-resources-simultaneously"><a class="anchor" href="#when-processing-transactional-and-nontransactional-resources-simultaneously"></a>When processing transactional and nontransactional resources simultaneously</h5>
+<div class="paragraph">
+<p>This method is used when processing databases and files at the same time.</p>
+</div>
+<div class="paragraph">
+<p>For database it is the same as <a href="#Ch05_Transaction_HowToUse_SingleDataSource">For a single data source</a>.</p>
+</div>
+<div class="paragraph">
+<p>For files, setting FlatFileItemWriter&#8217;s <code>transactional</code> property to true provides the same effect as the "Best Efforts 1PC pattern" described above.<br>
+For details, refer to <a href="#Ch05_Transaction_HowToUse_SingleDataSource_NonTx">Note for non-transactional data sources</a>.</p>
+</div>
+<div class="paragraph">
+<p>This setting delays writing to the file until just before committing the transaction of the database, so it is easy to synchronize with the two data sources.
+However, even in this case, if an error occurs during file output processing after committing to the database, there is a possibility that data consistency can not be maintained,
+It is necessary to design a recovery method.</p>
+</div>
+</div>
+</div>
+</div>
+<div class="sect2">
+<h3 id="notes-on-intermediate-method-commit"><a class="anchor" href="#notes-on-intermediate-method-commit"></a>Notes on intermediate method commit</h3>
+<div class="paragraph">
+<p>Although it is deprecated, when processing data is skipped in ItemWriter, the chunk size setting value is forcibly changed.
+Note that this has a very big impact on transactions. Refer to
+<a href="Ch06_ExceptionHandling.html#Ch06_ExceptionHandling_HowToUse_ExceptionHandling_Skip">Skip</a> for details.</p>
+</div>
+</div>
+</div>
+</div>
+</div>
+<div class="container">
+
+  <div class="common-bg">
+    <div class="information">
+      TERASOLUNA Batch Framework for Java (5.x) Development Guideline - version 5.0.1.RELEASE, 2017-9-27
+    </div>
+    <div class="index">
+      <a href="index.html">&gt; INDEX</a>
+    </div>
+  </div>
+
+  <div class="footer-bg">
+    <div class="copyright">
+      &copy; Copyright 2017 NTT DATA Corporation.
+    </div>
+  </div>
+
+</div>
+</body>
+</html>

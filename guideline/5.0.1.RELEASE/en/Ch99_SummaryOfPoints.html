@@ -1,0 +1,530 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<!--[if IE]><meta http-equiv="X-UA-Compatible" content="IE=edge"><![endif]-->
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<meta name="generator" content="Asciidoctor 1.5.6.1">
+<title>Summary of points</title>
+<link rel="stylesheet" href="./theme/css/readthedocs.css">
+<link rel="stylesheet" href="./theme/css/font-awesome.min.css">
+<link rel="stylesheet" href="./theme/css/coderay-asciidoctor.css">
+<link rel="stylesheet" href="./theme/css/header-footer.css">
+<title>TERASOLUNA Batch Framework for Java (5.x) Development Guideline</title>
+
+<div class="common-bg">
+  <div class="information">
+    TERASOLUNA Batch Framework for Java (5.x) Development Guideline - version 5.0.1.RELEASE, 2017-9-27
+  </div>
+  <div class="index">
+    <a href="index.html">&gt; INDEX</a>
+  </div>
+</div>
+</head>
+<body id="Ch99_SummaryOfPoints" class="book toc2 toc-left">
+<div id="header">
+<h1>Summary of points</h1>
+<div id="toc" class="toc2">
+<div id="toctitle">Table of Contents</div>
+<ul class="sectlevel1">
+<li><a href="#Ch99_SummaryOfPoints_AboutThis">Notes on TERASOLUNA Batch 5.x</a></li>
+</ul>
+</div>
+</div>
+<div id="content">
+<div class="sect1">
+<h2 id="Ch99_SummaryOfPoints_AboutThis"><a class="anchor" href="#Ch99_SummaryOfPoints_AboutThis"></a>Notes on TERASOLUNA Batch 5.x</h2>
+<div class="sectionbody">
+<div class="paragraph">
+<p>This is a summarized list of the rules and notes about using TERASOLUNA Batch 5.x that are explained in each section.
+Users should keep in mind the following points and proceed when developing a batch application.</p>
+</div>
+<div class="admonitionblock warning">
+<table>
+<tr>
+<td class="icon">
+<i class="fa icon-warning" title="Warning"></i>
+</td>
+<td class="content">
+<div class="paragraph">
+<p>Only the salient points are mentioned here instead of covering the entire consider material.
+Users should read the guideline of function to be used.</p>
+</div>
+</td>
+</tr>
+</table>
+</div>
+<hr>
+<div class="ulist">
+<div class="title">Rules and notes to be considered for batch process</div>
+<ul>
+<li>
+<p>Single batch process should be simplified and complex logical structures should be avoided.</p>
+</li>
+<li>
+<p>Same operation should not be performed in multiple jobs over and over again.</p>
+</li>
+<li>
+<p>Usage of system resources should be minimized, unnecessary physical I/O should be avoided and on-memory operations should be utilized.</p>
+</li>
+</ul>
+</div>
+<hr>
+<div class="ulist">
+<div class="title">Guidelines for TERASOLUNA Batch 5.x</div>
+<ul>
+<li>
+<p><a href="Ch03_CreateProject.html#Ch03_CreateProject">Development of batch application</a></p>
+<div class="ulist">
+<ul>
+<li>
+<p>Create as 1 job=1 Bean definition(1 job definition)</p>
+</li>
+<li>
+<p>Create as 1 step=1 batch process=1 business logic</p>
+</li>
+</ul>
+</div>
+</li>
+<li>
+<p><a href="Ch03_CreateChunkJob.html#Ch03_CreateChunkJob">Chunk model</a></p>
+<div class="ulist">
+<ul>
+<li>
+<p>Use it for efficiently processing large amount of data.</p>
+</li>
+</ul>
+</div>
+</li>
+<li>
+<p><a href="Ch03_CreateTaskletJob.html#Ch03_CreateTaskletJob">Tasklet model</a></p>
+<div class="ulist">
+<ul>
+<li>
+<p>Use for simple processing, processing that is hard to standardize, and to process data by single commit.</p>
+</li>
+</ul>
+</div>
+</li>
+<li>
+<p><a href="Ch04_SyncJob.html#Ch04_SyncJob">Synchronous job</a></p>
+<div class="ulist">
+<ul>
+<li>
+<p>Use for starting a job as per the schedule and for batch processing by combining multiple jobs.</p>
+</li>
+</ul>
+</div>
+</li>
+<li>
+<p><a href="Ch04_AsyncJobWithDB.html#Ch04_AsyncJobWithDB">Asynchronous job(DB polling)</a></p>
+<div class="ulist">
+<ul>
+<li>
+<p>Use for delayed process, continuous execution of job with short processing time and consolidation of large jobs.</p>
+</li>
+</ul>
+</div>
+</li>
+<li>
+<p><a href="Ch04_AsyncJobWithWebContainer.html#Ch04_AsyncJobWithWeb">Asynchronous job (Web container)</a></p>
+<div class="ulist">
+<ul>
+<li>
+<p>Similar to DB polling. However, use when instantaneous start is required.</p>
+</li>
+</ul>
+</div>
+</li>
+<li>
+<p>Management of JobRepository</p>
+<div class="ulist">
+<ul>
+<li>
+<p>In Spring Batch, use <code>JobRepository</code> for recording start status and execution result of job.</p>
+</li>
+<li>
+<p>In TERASOLUNA Batch 5.x, persistence is optional if it corresponds to all the following.</p>
+<div class="ulist">
+<ul>
+<li>
+<p>Using TERASOLUNA Batch 5.x for executing synchronous job only.</p>
+</li>
+<li>
+<p>All job execution management including stop, restart of job is assigned to the job scheduler.</p>
+<div class="ulist">
+<ul>
+<li>
+<p>Do not use restart where the <code>JobRepository</code> possessed by Spring Batch is a prerequisite.</p>
+</li>
+</ul>
+</div>
+</li>
+</ul>
+</div>
+</li>
+<li>
+<p>When these are applicable, use <code> H2</code> which is an in-memory and built-in database as an option of RDBMS used by <code> JobRepository</code>.
+On the other hand, when using asynchronous job or stop and restart by Spring Batch, RDBMS that can make the job execution status and result permanent, is required.<br>
+For this point, <a href="Ch07_JobManagement.html">Job management</a> should also be read.</p>
+</li>
+</ul>
+</div>
+</li>
+</ul>
+</div>
+<hr>
+<div class="ulist">
+<div class="title">How to choose chunk model or tasklet model</div>
+<ul>
+<li>
+<p><a href="Ch03_CreateChunkJob.html#Ch03_CreateChunkJob">Chunk model</a></p>
+<div class="ulist">
+<ul>
+<li>
+<p>When you want to steadily process large amount of data</p>
+</li>
+<li>
+<p>When you want to restart based on the record count</p>
+</li>
+</ul>
+</div>
+</li>
+<li>
+<p><a href="Ch03_CreateTaskletJob.html#Ch03_CreateTaskletJob">Tasklet model</a></p>
+<div class="ulist">
+<ul>
+<li>
+<p>When you want to make recovery as simple as possible</p>
+</li>
+<li>
+<p>When you want to consolidate the process contents</p>
+</li>
+</ul>
+</div>
+</li>
+</ul>
+</div>
+<div class="paragraph">
+<p><a href="Ch03_ChunkOrTasklet.html#Ch03_ChunkOrTasklet">How to choose chunk model or tasklet model</a> should also be read.</p>
+</div>
+<hr>
+<div class="ulist">
+<div class="title">Unification of bean scope</div>
+<ul>
+<li>
+<p>In the Tasklet implementation, match with the scope of component to be Injected.</p>
+</li>
+<li>
+<p>Composite type component matches with the scope of component to be delegated.</p>
+</li>
+<li>
+<p>When using JobParameter, set to the scope of <code> step</code>.</p>
+</li>
+<li>
+<p>If you want to save instance variables in Step unit, set to the scope of <code> step</code>.</p>
+</li>
+</ul>
+</div>
+<hr>
+<div class="ulist">
+<div class="title">Performance tuning points</div>
+<ul>
+<li>
+<p>Adjust chunk size</p>
+<div class="ulist">
+<ul>
+<li>
+<p>When using Chunk, set the number of commits to an appropriate size. Do not increase the size too much.</p>
+</li>
+</ul>
+</div>
+</li>
+<li>
+<p>Adjust fetch size</p>
+<div class="ulist">
+<ul>
+<li>
+<p>In database access, set fetch size to an appropriate size. Do not increase the size too much.</p>
+</li>
+</ul>
+</div>
+</li>
+<li>
+<p>Make file reading more efficient</p>
+<div class="ulist">
+<ul>
+<li>
+<p>Provide a dedicated FieldSetMapper interface implementation.</p>
+</li>
+</ul>
+</div>
+</li>
+<li>
+<p>Parallel process and multiple processes</p>
+<div class="ulist">
+<ul>
+<li>
+<p>Implement by job scheduler.</p>
+</li>
+</ul>
+</div>
+</li>
+<li>
+<p>Distributed processing</p>
+<div class="ulist">
+<ul>
+<li>
+<p>Implement by job scheduler.</p>
+</li>
+</ul>
+</div>
+</li>
+</ul>
+</div>
+<hr>
+<div id="Ch99_SummaryOfPoints_dbpolling" class="ulist">
+<div class="title">Asynchronous job (DB polling)</div>
+<ul>
+<li>
+<p>Usage of in-memory database</p>
+<div class="ulist">
+<ul>
+<li>
+<p>It is not suitable for long-term continuous operation so it is desirable to restart it periodically.</p>
+</li>
+<li>
+<p>When it is to be used for long-term continuous operation, maintenance work such as periodically deleting data from <code>JobRepository</code> is required.</p>
+</li>
+</ul>
+</div>
+</li>
+<li>
+<p>Narrow-down of registered job</p>
+<div class="ulist">
+<ul>
+<li>
+<p>Specify the designed and implemented job based on asynchronous execution.</p>
+</li>
+</ul>
+</div>
+</li>
+<li>
+<p>Mass processing of very short batch is not suitable since performance deterioration is possible.</p>
+</li>
+<li>
+<p>Since parallel execution of the same job is possible, it is necessary to prevent the same job from affecting in parallel execution</p>
+</li>
+</ul>
+</div>
+<hr>
+<div class="ulist">
+<div class="title">Asynchronous job (Web container)</div>
+<ul>
+<li>
+<p>The basic consideration is same as <a href="#Ch99_SummaryOfPoints_dbpolling">Asynchronous job (DB polling)</a>.</p>
+</li>
+<li>
+<p>Adjust thread pool.</p>
+<div class="ulist">
+<ul>
+<li>
+<p>Apart from the thread pool of asynchronous execution, it is necessary to consider the request thread of the Web container and other applications operating within the same unit.</p>
+</li>
+</ul>
+</div>
+</li>
+<li>
+<p>In Web and batch, you cannot cross-reference data source, MyBatis setting and Mapper interface.</p>
+</li>
+<li>
+<p>Failure to start a job due to thread pool exhaustion cannot be captured at job start, so provide a means to confirm it separately.</p>
+</li>
+</ul>
+</div>
+<hr>
+<div class="ulist">
+<div class="title">Database access and transaction</div>
+<ul>
+<li>
+<p>"Use <code>MyBatisBatchItemWriter</code> in ItemWriter" and "Update reference using Mapper interface in ItemProcessor" cannot be done at the same time.</p>
+<div class="ulist">
+<ul>
+<li>
+<p>There is a restriction in MyBatis of not executing with two or more <code> ExecutorType</code> in the same transaction.
+Refer to <a href="Ch05_DBAccess.html#Ch05_DBAccess_HowToUse_Processor">Database access of other than ItemReader/ItemWriter</a>.</p>
+</li>
+</ul>
+</div>
+</li>
+<li>
+<p>Notes on input/output of database to the same table</p>
+<div class="ulist">
+<ul>
+<li>
+<p>As the result of losing the information that guarantees reading consistency due to output (issue of UPDATE), error may occur in the input (SELECT). Consider the following measures.</p>
+<div class="ulist">
+<ul>
+<li>
+<p>It depends on the database so, increase the area to secure the information.</p>
+</li>
+<li>
+<p>Split the input data and perform multiple processing.</p>
+</li>
+</ul>
+</div>
+</li>
+</ul>
+</div>
+</li>
+</ul>
+</div>
+<hr>
+<div class="ulist">
+<div class="title">File access</div>
+<ul>
+<li>
+<p>When dealing with the following fixed-length file, be sure to use the component provided by TERASOLUNA Batch 5.x.</p>
+<div class="ulist">
+<ul>
+<li>
+<p>Fixed-length file containing multibyte characters</p>
+</li>
+<li>
+<p>Fixed length file without line break</p>
+</li>
+</ul>
+</div>
+</li>
+<li>
+<p>When skipping footer records, it is necessary to process with OS command.</p>
+</li>
+</ul>
+</div>
+<hr>
+<div class="ulist">
+<div class="title">Exclusive control</div>
+<ul>
+<li>
+<p>When multiple jobs are concurrently executed, design a job so that the exclusive control is not required.</p>
+<div class="ulist">
+<ul>
+<li>
+<p>Resources to be accessed and processing targets should be split for each job.</p>
+</li>
+</ul>
+</div>
+</li>
+<li>
+<p>Design in such a way that deadlocks are prevented from occurring.</p>
+</li>
+<li>
+<p>File exclusive control should be implemented in the tasklet model.</p>
+</li>
+</ul>
+</div>
+<hr>
+<div class="ulist">
+<div class="title">Handling abnormal system</div>
+<ul>
+<li>
+<p>Do not perform transaction processing in exception handling.</p>
+</li>
+<li>
+<p>Note that ChunkListener behaves differently by the process model.</p>
+<div class="ulist">
+<ul>
+<li>
+<p>The exceptions generated by opening and closing the resources are</p>
+<div class="ulist">
+<ul>
+<li>
+<p>Chunk model: Not in the scope of catching  by ChunkListener interface.</p>
+</li>
+<li>
+<p>Tasklet model: In the scope of catching  by ChunkListener interface.</p>
+</li>
+</ul>
+</div>
+</li>
+</ul>
+</div>
+</li>
+<li>
+<p>Input check error cannot be recovered even by restarting unless the input resource that is the cause of check error is modified</p>
+</li>
+<li>
+<p>How to cope when a failure occurs in JobRepository should be considered.</p>
+</li>
+</ul>
+</div>
+<hr>
+<div class="ulist">
+<div class="title">About ExecutionContext</div>
+<ul>
+<li>
+<p>Since <code>ExecutionContext</code> is stored in the <code>JobRepository</code>, there are following restrictions.</p>
+<div class="ulist">
+<ul>
+<li>
+<p>The object to be stored in <code>ExecutionContext</code> should be the class that implements <code>java.io.Serializable</code>.</p>
+</li>
+<li>
+<p>There should be a limit in the size that can be stored.</p>
+</li>
+</ul>
+</div>
+</li>
+</ul>
+</div>
+<hr>
+<div class="ulist">
+<div class="title">Exit code</div>
+<ul>
+<li>
+<p>Exit code at the time of forced termination of Java process and the exit code of batch application are clearly distinguished.</p>
+<div class="ulist">
+<ul>
+<li>
+<p>It is strictly prohibited to set the exit code of process to 1 by batch application.</p>
+</li>
+</ul>
+</div>
+</li>
+</ul>
+</div>
+<hr>
+<div class="ulist">
+<div class="title">Parallel processing and multiple processing</div>
+<ul>
+<li>
+<p>Do not use <code>Multi Thread Step</code>.</p>
+</li>
+<li>
+<p>Depending on the processing content, be careful to possibility of resource contention and deadlock</p>
+</li>
+</ul>
+</div>
+</div>
+</div>
+</div>
+<div class="container">
+
+  <div class="common-bg">
+    <div class="information">
+      TERASOLUNA Batch Framework for Java (5.x) Development Guideline - version 5.0.1.RELEASE, 2017-9-27
+    </div>
+    <div class="index">
+      <a href="index.html">&gt; INDEX</a>
+    </div>
+  </div>
+
+  <div class="footer-bg">
+    <div class="copyright">
+      &copy; Copyright 2017 NTT DATA Corporation.
+    </div>
+  </div>
+
+</div>
+</body>
+</html>

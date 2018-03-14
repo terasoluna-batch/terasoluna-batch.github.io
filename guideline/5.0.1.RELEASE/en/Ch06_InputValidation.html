@@ -1,0 +1,861 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<!--[if IE]><meta http-equiv="X-UA-Compatible" content="IE=edge"><![endif]-->
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<meta name="generator" content="Asciidoctor 1.5.6.1">
+<title>Input Validation</title>
+<link rel="stylesheet" href="./theme/css/readthedocs.css">
+<link rel="stylesheet" href="./theme/css/font-awesome.min.css">
+<link rel="stylesheet" href="./theme/css/coderay-asciidoctor.css">
+<link rel="stylesheet" href="./theme/css/header-footer.css">
+<title>TERASOLUNA Batch Framework for Java (5.x) Development Guideline</title>
+
+<div class="common-bg">
+  <div class="information">
+    TERASOLUNA Batch Framework for Java (5.x) Development Guideline - version 5.0.1.RELEASE, 2017-9-27
+  </div>
+  <div class="index">
+    <a href="index.html">&gt; INDEX</a>
+  </div>
+</div>
+</head>
+<body id="Ch06_InputValidation" class="book toc2 toc-left">
+<div id="header">
+<h1>Input Validation</h1>
+<div id="toc" class="toc2">
+<div id="toctitle">Table of Contents</div>
+<ul class="sectlevel1">
+<li><a href="#Ch06_InputValidation_Overview">Overview</a>
+<ul class="sectlevel2">
+<li><a href="#Ch06_InputValidation_Overview_Category">Classification of input validation</a></li>
+<li><a href="#Ch06_InputValidation_Overview_architecture">Overview of Input Validation</a></li>
+</ul>
+</li>
+<li><a href="#Ch06_InputValidation_HowToUse">How to use</a>
+<ul class="sectlevel2">
+<li><a href="#Ch06_InputValidation_HowToUse_Settings">Various settings</a></li>
+<li><a href="#Ch06_InputValidation_HowToUse_defRules">Input validation rule definition</a></li>
+<li><a href="#Ch06_InputValidation_HowToUse_Execution">Input validation execution</a></li>
+<li><a href="#Ch06_InputValidation_HowToUse_ErrorHandling">Input validation error handling</a>
+<ul class="sectlevel3">
+<li><a href="#Ch06_InputValidation_HowToUse_ErrorHandling_Abend">Abnormal Termination of Processing</a></li>
+<li><a href="#Ch06_InputValidation_HowToUse_ErrorHandling_Skip">Skipping Error Records</a></li>
+<li><a href="#Ch06_InputValidation_HowToUse_ErrorHandling_ExitCode">Setting the exit code</a></li>
+</ul>
+</li>
+</ul>
+</li>
+</ul>
+</div>
+</div>
+<div id="content">
+<div class="sect1">
+<h2 id="Ch06_InputValidation_Overview"><a class="anchor" href="#Ch06_InputValidation_Overview"></a>Overview</h2>
+<div class="sectionbody">
+<div class="paragraph">
+<p>In this section, Explain the validation check of job input data (hereinafter referred to as input validation).</p>
+</div>
+<div class="paragraph">
+<p>This function is the same usage for chunk model and tasklet model.</p>
+</div>
+<div class="paragraph">
+<p>In general, input validation in batch processing is often carried out
+to confirm that data received from other systems etc. is valid in its own system.<br>
+Conversely, it can be said that it is unnecessary to perform input validation
+on reliable data in its own system (for example, data stored in the database).</p>
+</div>
+<div class="paragraph">
+<p>Please refer to
+<a href="http://terasolunaorg.github.io/guideline/5.3.0.RELEASE/en/ArchitectureInDetail/WebApplicationDetail/Validation.html">input Validation</a> in TERASOLUNA Server 5.x Development Guideline
+because the input validation duplicates the contents of TERASOLUNA Server 5.x.
+Explain the main comparisons below.</p>
+</div>
+<table class="tableblock frame-all grid-all spread">
+<caption class="title">Main comparison list</caption>
+<colgroup>
+<col style="width: 30%;">
+<col style="width: 35%;">
+<col style="width: 35%;">
+</colgroup>
+<thead>
+<tr>
+<th class="tableblock halign-left valign-top">Comparison target</th>
+<th class="tableblock halign-left valign-top">TERASOLUNA Server 5.x</th>
+<th class="tableblock halign-left valign-top">TERASOLUNA Batch 5.x</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td class="tableblock halign-left valign-top"><p class="tableblock">Available input validation rules</p></td>
+<td class="tableblock halign-center valign-top" colspan="2"><p class="tableblock">Same as TERASOLUNA Server 5.x</p></td>
+</tr>
+<tr>
+<td class="tableblock halign-left valign-top"><p class="tableblock">The target to which the rule is attached</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><code>form class</code></p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><code>DTO</code></p></td>
+</tr>
+<tr>
+<td class="tableblock halign-left valign-top"><p class="tableblock">Validation execute method</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><code>Give @Validated annotation to the Controller</code></p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><code>Call the API of Validator class</code></p></td>
+</tr>
+<tr>
+<td class="tableblock halign-left valign-top"><p class="tableblock">Setting error messages</p></td>
+<td class="tableblock halign-center valign-top" colspan="2"><p class="tableblock">Same as
+<a href="http://terasolunaorg.github.io/guideline/5.3.0.RELEASE/en/ArchitectureInDetail/WebApplicationDetail/Validation.html?highlight=validationmessages#validation-message-def">Definition of error messages</a> in TERASOLUNA Server 5.x Development Guideline.</p></td>
+</tr>
+<tr>
+<td class="tableblock halign-left valign-top"><p class="tableblock">Error message output destination</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">View</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">Log etc.</p></td>
+</tr>
+</tbody>
+</table>
+<div class="paragraph">
+<p>The input validation to be explained in this section mainly covers data obtained from <code>ItemReader</code>.<br>
+For checking job parameters, refer to <a href="Ch04_JobParameter.html#Ch04_JobParameter_HowToUse_ParamsValidation">Validation check of parameters</a>.</p>
+</div>
+<div class="sect2">
+<h3 id="Ch06_InputValidation_Overview_Category"><a class="anchor" href="#Ch06_InputValidation_Overview_Category"></a>Classification of input validation</h3>
+<div class="paragraph">
+<p>The input validation is classified into single item check and correlation item check.</p>
+</div>
+<table class="tableblock frame-all grid-all spread">
+<caption class="title">List of setting contents</caption>
+<colgroup>
+<col style="width: 15%;">
+<col style="width: 30%;">
+<col style="width: 25%;">
+<col style="width: 30%;">
+</colgroup>
+<thead>
+<tr>
+<th class="tableblock halign-left valign-top">Type</th>
+<th class="tableblock halign-left valign-top">Description</th>
+<th class="tableblock halign-left valign-top">Example</th>
+<th class="tableblock halign-left valign-top">Implementation method</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td class="tableblock halign-left valign-top"><p class="tableblock">Single item check</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">Check to be completed with a single field</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">Required input check<br>
+Digit check<br>
+Type check</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">Bean Validation (using Hibernate Validator as implementation library)</p></td>
+</tr>
+<tr>
+<td class="tableblock halign-left valign-top"><p class="tableblock">Correlation item check</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">Check to compare multiple fields</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">Comparison of numerical values<br>
+Comparison of dates</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><code>Validation</code> class that implements <code>org.springframework.validation.Validator</code> interface<br>
+or Bean Validation</p></td>
+</tr>
+</tbody>
+</table>
+<div class="paragraph">
+<p>Spring supports Bean Validation which is a Java standard.
+For this single item check, this Bean Validation is used.
+For correlation item check, use Bean Validation of the <code>org.springframework.validation.Validator</code> interface provided by Spring.</p>
+</div>
+<div class="paragraph">
+<p>In this respect,
+same as <a href="http://terasolunaorg.github.io/guideline/5.3.0.RELEASE/en/ArchitectureInDetail/WebApplicationDetail/Validation.html#id3">Classification of input validation</a> in TERASOLUNA Server 5.x Development Guideline.</p>
+</div>
+</div>
+<div class="sect2">
+<h3 id="Ch06_InputValidation_Overview_architecture"><a class="anchor" href="#Ch06_InputValidation_Overview_architecture"></a>Overview of Input Validation</h3>
+<div class="paragraph">
+<p>The timing of input validation in the chunk model and tasklet model is as follows.<br></p>
+</div>
+<div class="ulist">
+<ul>
+<li>
+<p>For chunk model, use <code>ItemProcessor</code></p>
+</li>
+<li>
+<p>For tasklet model, use <code>Tasklet#execute()</code> at an arbitrary timing.</p>
+</li>
+</ul>
+</div>
+<div class="paragraph">
+<p>In the chunk model and tasklet model, the implementation method of input validation is the same,
+so here, explain the case where input validation is done in <code>ItemProcessor</code> of the chunk model.</p>
+</div>
+<div class="paragraph">
+<p>First, explain an overview of input validation. The relationships of classes related to input validation are as follows.</p>
+</div>
+<div class="imageblock">
+<div class="content">
+<img src="./images/Ch06_InputValidation_Architecture_classes.png" alt="InputValidation architecture">
+</div>
+<div class="title">Related class of input validation</div>
+</div>
+<div class="ulist">
+<ul>
+<li>
+<p>Inject <code>org.springframework.batch.item.validator.SpringValidator</code> which is
+the implementation of <code>org.springframework.batch.item.validator.Validator</code> in <code>ItemProcessor</code> and execute the validate method.</p>
+<div class="ulist">
+<ul>
+<li>
+<p><code>SpringValidator</code> internally holds <code>org.springframework.validation.Validator</code> and execute the validate method.<br>
+It can be said that it is a wrapper for <code>org.springframework.validation.Validator</code>.<br>
+The implementation of <code>org.springframework.validation.Validator</code> is
+<code>org.springframework.validation.beanvalidation.LocalValidatorFactoryBean</code>.
+Use Hibernate Validator through this class.</p>
+</li>
+</ul>
+</div>
+</li>
+<li>
+<p>Implement <code>org.springframework.batch.item.ItemCountAware</code> in the input DTO to determine where the input validation error occured.</p>
+</li>
+</ul>
+</div>
+<div class="admonitionblock important">
+<table>
+<tr>
+<td class="icon">
+<i class="fa icon-important" title="Important"></i>
+</td>
+<td class="content">
+<div class="title">Setting the number of data</div>
+<div class="paragraph">
+<p><code>ItemCountAware#setItemCount</code> is set by <code>AbstractItemCountingItemStreamItemReader</code>.
+Therefore, if you do not use <code>ItemReader</code> in the tasklet model, it will not be updated.
+In this case, it is necessary for the user to set what error occurred in the data.</p>
+</div>
+</td>
+</tr>
+</table>
+</div>
+<div class="admonitionblock important">
+<table>
+<tr>
+<td class="icon">
+<i class="fa icon-important" title="Important"></i>
+</td>
+<td class="content">
+<div class="title">Validators such as javax.validation.Validator or org.springframework.validation.Validator should not be used directly.</div>
+<div class="paragraph">
+<p>Validators such as <code>javax.validation.Validator</code> or <code>org.springframework.validation.Validator</code> should not be used directly,
+use <code>org.springframework.batch.item.validator.SpringValidator</code>.</p>
+</div>
+<div class="paragraph">
+<p><code>SpringValidator</code> is wrapper of <code>org.springframework.validation.Validator</code>.<br>
+<code>SpringValidator</code> wraps the raised exception in <code>BindException</code> and throws it as <code>ValidationException</code>.<br>
+Therefore, <code>BindException</code> can be accessed via <code>ValidationException</code> which makes flexible handling easier.</p>
+</div>
+<div class="paragraph">
+<p>On the other hand, if validators such as <code>javax.validation.Validator</code> and <code>org.springframework.validation.Validator</code> are used directly, it will be cumbersome logic to process the information that caused the validation error.</p>
+</div>
+</td>
+</tr>
+</table>
+</div>
+<div class="admonitionblock important">
+<table>
+<tr>
+<td class="icon">
+<i class="fa icon-important" title="Important"></i>
+</td>
+<td class="content">
+<div class="title">Do not use org.springframework.batch.item.validator.ValidatingItemProcessor</div>
+<div class="paragraph">
+<p>The input validation by <code>org.springframework.validation.Validator</code>
+can also be realized by using <code>ValidatingItemProcessor</code> provided by Spring Batch.</p>
+</div>
+<div class="paragraph">
+<p>However, depending on the circumstances, it is necessary to extend it because of the following reasons,
+so do not use it from the viewpoint of unifying the implementation method.</p>
+</div>
+<div class="ulist">
+<ul>
+<li>
+<p>input validation error can not be handled and processing can not be continued.</p>
+</li>
+<li>
+<p>It is not possible to flexibly deal with data that has become an input validation error.</p>
+<div class="ulist">
+<ul>
+<li>
+<p>It is assumed that the processing for the data that becomes the input validation error becomes various kinds by the user (only log output, save error data to another file, etc.).</p>
+</li>
+</ul>
+</div>
+</li>
+</ul>
+</div>
+</td>
+</tr>
+</table>
+</div>
+</div>
+</div>
+</div>
+<div class="sect1">
+<h2 id="Ch06_InputValidation_HowToUse"><a class="anchor" href="#Ch06_InputValidation_HowToUse"></a>How to use</h2>
+<div class="sectionbody">
+<div class="paragraph">
+<p>As mentioned earlier, the implementation method of input validation is the same as TERASOLUNA Server 5.x as follows.</p>
+</div>
+<div class="ulist">
+<ul>
+<li>
+<p>single item check uses Bean Validation.</p>
+</li>
+<li>
+<p>correlation item check uses Bean Validation or the <code>org.springframework.validation.Validator</code> interface provided by Spring.</p>
+</li>
+</ul>
+</div>
+<div class="paragraph">
+<p>Explain The method of input validation in the following order.</p>
+</div>
+<div class="ulist">
+<ul>
+<li>
+<p><a href="#Ch06_InputValidation_HowToUse_Settings">Various settings</a></p>
+</li>
+<li>
+<p><a href="#Ch06_InputValidation_HowToUse_defRules">Input validation rule definition</a></p>
+</li>
+<li>
+<p><a href="#Ch06_InputValidation_HowToUse_Execution">Input validation execution</a></p>
+</li>
+<li>
+<p><a href="#Ch06_InputValidation_HowToUse_ErrorHandling">Input validation error handling</a></p>
+</li>
+</ul>
+</div>
+<div class="sect2">
+<h3 id="Ch06_InputValidation_HowToUse_Settings"><a class="anchor" href="#Ch06_InputValidation_HowToUse_Settings"></a>Various settings</h3>
+<div class="paragraph">
+<p>Use Hibernate Validator for input validation.
+Confirm that the definition of Hibernate Validator is in the library dependency and that the required bean definition exists.
+These have already been set in the blank project provided by TERASOLUNA Batch 5.x.</p>
+</div>
+<div class="listingblock">
+<div class="title">Setting example of dependent library</div>
+<div class="content">
+<pre class="CodeRay highlight"><code data-lang="xml"><span class="tag">&lt;dependency&gt;</span>
+    <span class="tag">&lt;groupId&gt;</span>org.hibernate<span class="tag">&lt;/groupId&gt;</span>
+    <span class="tag">&lt;artifactId&gt;</span>hibernate-validator<span class="tag">&lt;/artifactId&gt;</span>
+<span class="tag">&lt;/dependency&gt;</span></code></pre>
+</div>
+</div>
+<div class="listingblock">
+<div class="title">launch-context.xml</div>
+<div class="content">
+<pre class="CodeRay highlight"><code data-lang="xml"><span class="tag">&lt;bean</span> <span class="attribute-name">id</span>=<span class="string"><span class="delimiter">&quot;</span><span class="content">validator</span><span class="delimiter">&quot;</span></span> <span class="attribute-name">class</span>=<span class="string"><span class="delimiter">&quot;</span><span class="content">org.springframework.batch.item.validator.SpringValidator</span><span class="delimiter">&quot;</span></span>
+      <span class="attribute-name">p:validator-ref</span>=<span class="string"><span class="delimiter">&quot;</span><span class="content">beanValidator</span><span class="delimiter">&quot;</span></span><span class="tag">/&gt;</span>
+
+<span class="tag">&lt;bean</span> <span class="attribute-name">id</span>=<span class="string"><span class="delimiter">&quot;</span><span class="content">beanValidator</span><span class="delimiter">&quot;</span></span>
+      <span class="attribute-name">class</span>=<span class="string"><span class="delimiter">&quot;</span><span class="content">org.springframework.validation.beanvalidation.LocalValidatorFactoryBean</span><span class="delimiter">&quot;</span></span> <span class="tag">/&gt;</span></code></pre>
+</div>
+</div>
+<div class="paragraph">
+<div class="title">Error message setting</div>
+<p>As mentioned earlier, for setting of error messages,
+refer to
+<a href="http://terasolunaorg.github.io/guideline/5.3.0.RELEASE/en/ArchitectureInDetail/WebApplicationDetail/Validation.html?highlight=validationmessages#validation-message-def">Definition of error messages</a> in TERASOLUNA Server 5.x Development Guideline.</p>
+</div>
+</div>
+<div class="sect2">
+<h3 id="Ch06_InputValidation_HowToUse_defRules"><a class="anchor" href="#Ch06_InputValidation_HowToUse_defRules"></a>Input validation rule definition</h3>
+<div class="paragraph">
+<p>The target of implementing the rule of input validation is the DTO obtained through <code>ItemReader</code>.
+Implement the DTO obtained through <code>ItemReader</code> as follows.</p>
+</div>
+<div class="ulist">
+<ul>
+<li>
+<p>Implement <code>org.springframework.batch.item.ItemCountAware</code> in the input DTO to determine where the input validation error occured.</p>
+<div class="ulist">
+<ul>
+<li>
+<p>In the <code>setItemCount</code> method, hold a numerical value in the class field indicating the number of items read in the currently processed item received as an argument.</p>
+</li>
+</ul>
+</div>
+</li>
+<li>
+<p>Define the input validation rule.</p>
+<div class="ulist">
+<ul>
+<li>
+<p>refer to <a href="http://terasolunaorg.github.io/guideline/5.3.0.RELEASE/en/ArchitectureInDetail/WebApplicationDetail/Validation.html">Input Validation</a> in TERASOLUNA Server 5.x Development Guideline.</p>
+</li>
+</ul>
+</div>
+</li>
+</ul>
+</div>
+<div class="paragraph">
+<p>Show an example of a DTO defining an input validation rule below.</p>
+</div>
+<div class="listingblock">
+<div class="title">An example of a DTO defining an input validation rule</div>
+<div class="content">
+<pre class="CodeRay highlight"><code data-lang="java"><span class="directive">public</span> <span class="type">class</span> <span class="class">VerificationSalesPlanDetail</span> <span class="directive">implements</span> ItemCountAware {  <span class="comment">// (1)</span>
+
+    <span class="directive">private</span> <span class="type">int</span> count;
+
+    <span class="annotation">@NotEmpty</span>
+    <span class="annotation">@Size</span>(min = <span class="integer">1</span>, max = <span class="integer">6</span>)
+    <span class="directive">private</span> <span class="predefined-type">String</span> branchId;
+
+    <span class="annotation">@NotNull</span>
+    <span class="annotation">@Min</span>(<span class="integer">1</span>)
+    <span class="annotation">@Max</span>(<span class="integer">9999</span>)
+    <span class="directive">private</span> <span class="type">int</span> year;
+
+    <span class="annotation">@NotNull</span>
+    <span class="annotation">@Min</span>(<span class="integer">1</span>)
+    <span class="annotation">@Max</span>(<span class="integer">12</span>)
+    <span class="directive">private</span> <span class="type">int</span> month;
+
+    <span class="annotation">@NotEmpty</span>
+    <span class="annotation">@Size</span>(min = <span class="integer">1</span>, max = <span class="integer">10</span>)
+    <span class="directive">private</span> <span class="predefined-type">String</span> customerId;
+
+    <span class="annotation">@NotNull</span>
+    <span class="annotation">@DecimalMin</span>(<span class="string"><span class="delimiter">&quot;</span><span class="content">0</span><span class="delimiter">&quot;</span></span>)
+    <span class="annotation">@DecimalMax</span>(<span class="string"><span class="delimiter">&quot;</span><span class="content">9999999999</span><span class="delimiter">&quot;</span></span>)
+    <span class="directive">private</span> <span class="predefined-type">BigDecimal</span> amount;
+
+    <span class="annotation">@Override</span>
+    <span class="directive">public</span> <span class="type">void</span> setItemCount(<span class="type">int</span> count) {
+        <span class="local-variable">this</span>.count = count;  <span class="comment">// (2)</span>
+    }
+
+    <span class="comment">// omitted getter/setter</span>
+}</code></pre>
+</div>
+</div>
+<table class="tableblock frame-all grid-all spread">
+<caption class="title">List of setting contents</caption>
+<colgroup>
+<col style="width: 10%;">
+<col style="width: 90%;">
+</colgroup>
+<thead>
+<tr>
+<th class="tableblock halign-left valign-top">Sr. No.</th>
+<th class="tableblock halign-left valign-top">Description</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td class="tableblock halign-left valign-top"><p class="tableblock">(1)</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">Implement the <code>ItemCountAware</code> class and override the <code>setItemCount</code> method.<br>
+<code>ItemCountAware#setItemCount()</code> is passed to the argument as to what the data read by <code>ItemReader</code> is.</p></td>
+</tr>
+<tr>
+<td class="tableblock halign-left valign-top"><p class="tableblock">(2)</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">Holds the <code>count</code> received in the argument in the class field.<br>
+This value is used to determine the number of items of data that caused an input validation error.</p></td>
+</tr>
+</tbody>
+</table>
+</div>
+<div class="sect2">
+<h3 id="Ch06_InputValidation_HowToUse_Execution"><a class="anchor" href="#Ch06_InputValidation_HowToUse_Execution"></a>Input validation execution</h3>
+<div class="paragraph">
+<p>Explain how to implement input validation.
+Implement input validation execution as follows.</p>
+</div>
+<div class="ulist">
+<ul>
+<li>
+<p>Execute <code>org.springframework.batch.item.validator.Validator#validate()</code> in the implementation of <code>ItemProcessor</code>.</p>
+<div class="ulist">
+<ul>
+<li>
+<p>Use an instance of <code>SpringValidator</code> by injecting it as <code>Validator</code> field.</p>
+</li>
+</ul>
+</div>
+</li>
+<li>
+<p>Handle input validation error. For details, refer to <a href="#Ch06_InputValidation_HowToUse_ErrorHandling">Input validation error handling</a>.</p>
+</li>
+</ul>
+</div>
+<div class="paragraph">
+<p>Show an implementation example of input validation below.</p>
+</div>
+<div class="listingblock">
+<div class="title">An implementation example of input validation</div>
+<div class="content">
+<pre class="CodeRay highlight"><code data-lang="java"><span class="annotation">@Component</span>
+<span class="directive">public</span> <span class="type">class</span> <span class="class">ValidateAndContinueItemProcessor</span> <span class="directive">implements</span> ItemProcessor&lt;VerificationSalesPlanDetail, SalesPlanDetail&gt; {
+    <span class="annotation">@Inject</span>  <span class="comment">// (1)</span>
+    <span class="predefined-type">Validator</span>&lt;VerificationSalesPlanDetail&gt; validator;
+
+    <span class="annotation">@Override</span>
+    <span class="directive">public</span> SalesPlanDetail process(VerificationSalesPlanDetail item) <span class="directive">throws</span> <span class="exception">Exception</span> {
+        <span class="keyword">try</span> {  <span class="comment">// (2)</span>
+            validator.validate(item);  <span class="comment">// (3)</span>
+        } <span class="keyword">catch</span> (ValidationException e) {
+          <span class="comment">// omitted exception handling</span>
+        }
+
+        SalesPlanDetail salesPlanDetail = <span class="keyword">new</span> SalesPlanDetail();
+        <span class="comment">// omitted business logic</span>
+
+        <span class="keyword">return</span> salesPlanDetail;
+    }
+}</code></pre>
+</div>
+</div>
+<table class="tableblock frame-all grid-all spread">
+<caption class="title">List of setting contents</caption>
+<colgroup>
+<col style="width: 10%;">
+<col style="width: 90%;">
+</colgroup>
+<thead>
+<tr>
+<th class="tableblock halign-left valign-top">Sr. No.</th>
+<th class="tableblock halign-left valign-top">Description</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td class="tableblock halign-left valign-top"><p class="tableblock">(1)</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">Inject <code>SpringValidator</code> instance.<br>
+For the type argument of <code>org.springframework.batch.item.validator.Validator</code>, set the DTO to be acquired via <code>ItemReader</code>.</p></td>
+</tr>
+<tr>
+<td class="tableblock halign-left valign-top"><p class="tableblock">(2)</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">Handle input validation error.<br>
+In the example, exception is handled by catching with try/catch.<br>
+For details, refer to <a href="#Ch06_InputValidation_HowToUse_ErrorHandling">Input validation error handling</a>.</p></td>
+</tr>
+<tr>
+<td class="tableblock halign-left valign-top"><p class="tableblock">(3)</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">Execute <code>Validator#validate()</code> with the DTO obtained through <code>ItemReader</code> as an argument.</p></td>
+</tr>
+</tbody>
+</table>
+</div>
+<div class="sect2">
+<h3 id="Ch06_InputValidation_HowToUse_ErrorHandling"><a class="anchor" href="#Ch06_InputValidation_HowToUse_ErrorHandling"></a>Input validation error handling</h3>
+<div class="paragraph">
+<p>There are following 2 ways to handle input validation error.</p>
+</div>
+<div class="olist arabic">
+<ol class="arabic">
+<li>
+<p>Processing is aborted at the time when input validation error occurs, abnormally end the job.</p>
+</li>
+<li>
+<p>Leave the occurrence of input validation error in the log etc. and continue processing the subsequent data. Thereafter, at the end of the job, the job is ended by specifying a warning.</p>
+</li>
+</ol>
+</div>
+<div class="sect3">
+<h4 id="Ch06_InputValidation_HowToUse_ErrorHandling_Abend"><a class="anchor" href="#Ch06_InputValidation_HowToUse_ErrorHandling_Abend"></a>Abnormal Termination of Processing</h4>
+<div class="paragraph">
+<p>In order to abnormally terminate processing when an exception occurs, it throws <code>java.lang.RuntimeException</code> or its subclass.</p>
+</div>
+<div class="paragraph">
+<p>There are two ways to perform processing such as log output when an exception occurs.</p>
+</div>
+<div class="olist arabic">
+<ol class="arabic">
+<li>
+<p>Catch exceptions with try/catch and do it before throwing an exception.</p>
+</li>
+<li>
+<p>Do not catch exceptions with try/catch, implement <code>ItemProcessListener</code> and do it with the onProcessError method.</p>
+<div class="ulist">
+<ul>
+<li>
+<p><code>ItemProcessListener#onProcessError()</code> can be implemented using the <code>@OnProcessError</code> annotation.
+For details, refer to <a href="Ch04_Listener.html">Listener</a>.</p>
+</li>
+</ul>
+</div>
+</li>
+</ol>
+</div>
+<div class="paragraph">
+<p>Following is an example of logging exception information and abnormally terminating processing when an exception occurs.</p>
+</div>
+<div class="listingblock">
+<div class="title">An error handling example with try/catch</div>
+<div class="content">
+<pre class="CodeRay highlight"><code data-lang="java"><span class="annotation">@Component</span>
+<span class="directive">public</span> <span class="type">class</span> <span class="class">ValidateAndAbortItemProcessor</span> <span class="directive">implements</span> ItemProcessor&lt;VerificationSalesPlanDetail, SalesPlanDetail&gt; {
+    <span class="comment">/**
+     * Logger.
+     */</span>
+    <span class="directive">private</span> <span class="directive">static</span> <span class="directive">final</span> <span class="predefined-type">Logger</span> logger = LoggerFactory.getLogger(ValidateAndAbortItemProcessor.class);
+
+    <span class="annotation">@Inject</span>
+    <span class="predefined-type">Validator</span>&lt;VerificationSalesPlanDetail&gt; validator;
+
+    <span class="annotation">@Override</span>
+    <span class="directive">public</span> SalesPlanDetail process(VerificationSalesPlanDetail item) <span class="directive">throws</span> <span class="exception">Exception</span> {
+        <span class="keyword">try</span> {  <span class="comment">// (1)</span>
+            validator.validate(item);  <span class="comment">// (2)</span>
+        } <span class="keyword">catch</span> (ValidationException e) {
+            <span class="comment">// (3)</span>
+            logger.error(<span class="string"><span class="delimiter">&quot;</span><span class="content">Exception occurred in input validation at the {} th item. [message:{}]</span><span class="delimiter">&quot;</span></span>,
+                    item.getCount(), e.getMessage());
+            <span class="keyword">throw</span> e;  <span class="comment">// (4)</span>
+        }
+
+        SalesPlanDetail salesPlanDetail = <span class="keyword">new</span> SalesPlanDetail();
+        <span class="comment">// omitted business logic</span>
+
+        <span class="keyword">return</span> salesPlanDetail;
+    }
+}</code></pre>
+</div>
+</div>
+<table class="tableblock frame-all grid-all spread">
+<caption class="title">List of setting contents</caption>
+<colgroup>
+<col style="width: 10%;">
+<col style="width: 90%;">
+</colgroup>
+<thead>
+<tr>
+<th class="tableblock halign-left valign-top">Sr. No.</th>
+<th class="tableblock halign-left valign-top">Description</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td class="tableblock halign-left valign-top"><p class="tableblock">(1)</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">Catch exceptions with try/catch.</p></td>
+</tr>
+<tr>
+<td class="tableblock halign-left valign-top"><p class="tableblock">(2)</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">Execute input validation.</p></td>
+</tr>
+<tr>
+<td class="tableblock halign-left valign-top"><p class="tableblock">(3)</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">Perform log output processing before throwing an exception.</p></td>
+</tr>
+<tr>
+<td class="tableblock halign-left valign-top"><p class="tableblock">(4)</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">Throw exceptions<br>
+Since <code>org.springframework.batch.item.validator.ValidationException</code> is a subclass of <code>RuntimeException</code>,
+it can be thrown as it is.</p></td>
+</tr>
+</tbody>
+</table>
+<div class="listingblock">
+<div class="title">An error handling example with ItemProcessListener#OnProcessError</div>
+<div class="content">
+<pre class="CodeRay highlight"><code data-lang="java"><span class="annotation">@Component</span>
+<span class="directive">public</span> <span class="type">class</span> <span class="class">ValidateAndAbortItemProcessor</span> <span class="directive">implements</span> ItemProcessor&lt;VerificationSalesPlanDetail, SalesPlanDetail&gt; {
+
+    <span class="comment">/**
+     * Logger.
+     */</span>
+    <span class="directive">private</span> <span class="directive">static</span> <span class="directive">final</span> <span class="predefined-type">Logger</span> logger = LoggerFactory.getLogger(ValidateAndAbortItemProcessor.class);
+
+    <span class="annotation">@Inject</span>
+    <span class="predefined-type">Validator</span>&lt;VerificationSalesPlanDetail&gt; validator;
+
+    <span class="annotation">@Override</span>
+    <span class="directive">public</span> SalesPlanDetail process(VerificationSalesPlanDetail item) <span class="directive">throws</span> <span class="exception">Exception</span> {
+        validator.validate(item);  <span class="comment">// (1)</span>
+
+        SalesPlanDetail salesPlanDetail = <span class="keyword">new</span> SalesPlanDetail();
+        <span class="comment">// omitted business logic</span>
+
+        <span class="keyword">return</span> salesPlanDetail;
+    }
+
+    <span class="annotation">@OnProcessError</span>  <span class="comment">// (2)</span>
+    <span class="type">void</span> onProcessError(VerificationSalesPlanDetail item, <span class="exception">Exception</span> e) {
+        <span class="comment">// (3)</span>
+        logger.error(<span class="string"><span class="delimiter">&quot;</span><span class="content">Exception occurred in input validation at the {} th item. [message:{}]</span><span class="delimiter">&quot;</span></span>, item.getCount() ,e.getMessage());
+    }
+}</code></pre>
+</div>
+</div>
+<table class="tableblock frame-all grid-all spread">
+<caption class="title">List of setting contents</caption>
+<colgroup>
+<col style="width: 10%;">
+<col style="width: 90%;">
+</colgroup>
+<thead>
+<tr>
+<th class="tableblock halign-left valign-top">Sr. No.</th>
+<th class="tableblock halign-left valign-top">Description</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td class="tableblock halign-left valign-top"><p class="tableblock">(1)</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">Execute input validation.</p></td>
+</tr>
+<tr>
+<td class="tableblock halign-left valign-top"><p class="tableblock">(2)</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">Implement <code>ItemProcessListener#onProcessError()</code> using <code>@OnProcessError</code> annotation.</p></td>
+</tr>
+<tr>
+<td class="tableblock halign-left valign-top"><p class="tableblock">(3)</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">Perform log output processing before throwing an exception.</p></td>
+</tr>
+</tbody>
+</table>
+<div class="admonitionblock warning">
+<table>
+<tr>
+<td class="icon">
+<i class="fa icon-warning" title="Warning"></i>
+</td>
+<td class="content">
+<div class="title">Note on using ItemProcessListener#onProcessError()</div>
+<div class="paragraph">
+<p>Using of the onProcessError method is useful for improving the readability of source code, maintainability, etc. since business process and exception handling can be separated.<br>
+However, when an exception other than <code>ValidationException</code> performing handling processing in the above example occurs, the same method is executed, so it is necessary to be careful.</p>
+</div>
+<div class="paragraph">
+<p>When outputting log output in <code>ItemProcessor#process()</code> by exception,
+it is necessary to judge the kind of exception caused by the onProcessError method and handle exception.
+If this is cumbersome, it is good to share responsibility so that only input validation errors are handled by handling with try / catch and others are handed over to listeners.</p>
+</div>
+</td>
+</tr>
+</table>
+</div>
+</div>
+<div class="sect3">
+<h4 id="Ch06_InputValidation_HowToUse_ErrorHandling_Skip"><a class="anchor" href="#Ch06_InputValidation_HowToUse_ErrorHandling_Skip"></a>Skipping Error Records</h4>
+<div class="paragraph">
+<p>After logging the information of the record where input validation error occurred, skip the record where the error occurred and continue the processing of the subsequent data as follows.</p>
+</div>
+<div class="ulist">
+<ul>
+<li>
+<p>Catch exceptions with try/catch.</p>
+</li>
+<li>
+<p>Perform log output etc. when an exceptions occurs.</p>
+</li>
+<li>
+<p>Return <code>null</code> as the return value of <code>ItemProcessor#process()</code>.</p>
+<div class="ulist">
+<ul>
+<li>
+<p>By returning <code>null</code>, records in which an input validation error occurs are no longer included in subsequent processing targets (output with <code>ItemWriter</code>).</p>
+</li>
+</ul>
+</div>
+</li>
+</ul>
+</div>
+<div class="listingblock">
+<div class="title">A skipping example with ItemProcessor</div>
+<div class="content">
+<pre class="CodeRay highlight"><code data-lang="java"><span class="annotation">@Component</span>
+<span class="directive">public</span> <span class="type">class</span> <span class="class">ValidateAndContinueItemProcessor</span> <span class="directive">implements</span> ItemProcessor&lt;VerificationSalesPlanDetail, SalesPlanDetail&gt; {
+    <span class="comment">/**
+     * Logger.
+     */</span>
+    <span class="directive">private</span> <span class="directive">static</span> <span class="directive">final</span> <span class="predefined-type">Logger</span> logger = LoggerFactory.getLogger(ValidateAndContinueItemProcessor.class);
+
+    <span class="annotation">@Inject</span>
+    <span class="predefined-type">Validator</span>&lt;VerificationSalesPlanDetail&gt; validator;
+
+    <span class="annotation">@Override</span>
+    <span class="directive">public</span> SalesPlanDetail process(VerificationSalesPlanDetail item) <span class="directive">throws</span> <span class="exception">Exception</span> {
+        <span class="keyword">try</span> {  <span class="comment">// (1)</span>
+            validator.validate(item);  <span class="comment">// (2)</span>
+        } <span class="keyword">catch</span> (ValidationException e) {
+            <span class="comment">// (3)</span>
+            logger.warn(<span class="string"><span class="delimiter">&quot;</span><span class="content">Skipping item because exception occurred in input validation at the {} th item. [message:{}]</span><span class="delimiter">&quot;</span></span>,
+                    item.getCount(), e.getMessage());
+            <span class="comment">// (4)</span>
+            <span class="keyword">return</span> <span class="predefined-constant">null</span>;  <span class="comment">// skipping item</span>
+        }
+
+        SalesPlanDetail salesPlanDetail = <span class="keyword">new</span> SalesPlanDetail();
+        <span class="comment">// omitted business logic</span>
+
+        <span class="keyword">return</span> salesPlanDetail;
+    }
+}</code></pre>
+</div>
+</div>
+<table class="tableblock frame-all grid-all spread">
+<caption class="title">List of setting contents</caption>
+<colgroup>
+<col style="width: 10%;">
+<col style="width: 90%;">
+</colgroup>
+<thead>
+<tr>
+<th class="tableblock halign-left valign-top">Sr. No.</th>
+<th class="tableblock halign-left valign-top">Description</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td class="tableblock halign-left valign-top"><p class="tableblock">(1)</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">Catch exceptions with try/catch</p></td>
+</tr>
+<tr>
+<td class="tableblock halign-left valign-top"><p class="tableblock">(2)</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">Execute the input validation.</p></td>
+</tr>
+<tr>
+<td class="tableblock halign-left valign-top"><p class="tableblock">(3)</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">Perform log output processing before returning <code>null</code>.</p></td>
+</tr>
+<tr>
+<td class="tableblock halign-left valign-top"><p class="tableblock">(4)</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">Return <code>null</code> to skip this data and move on to the next data processing.</p></td>
+</tr>
+</tbody>
+</table>
+</div>
+<div class="sect3">
+<h4 id="Ch06_InputValidation_HowToUse_ErrorHandling_ExitCode"><a class="anchor" href="#Ch06_InputValidation_HowToUse_ErrorHandling_ExitCode"></a>Setting the exit code</h4>
+<div class="paragraph">
+<p>When an input validation error occurs, in order to distinguish between the case where input validation error did not occur and the state of the job, be sure to set an exit code that is not a normal termination.<br>
+If data with input validation error is skipped, setting of exit code is required even when abnormal termination occurs.</p>
+</div>
+<div class="paragraph">
+<p>For details on how to set the exit code, refer to <a href="Ch07_JobManagement.html">Job Management</a>.</p>
+</div>
+</div>
+</div>
+</div>
+</div>
+</div>
+<div class="container">
+
+  <div class="common-bg">
+    <div class="information">
+      TERASOLUNA Batch Framework for Java (5.x) Development Guideline - version 5.0.1.RELEASE, 2017-9-27
+    </div>
+    <div class="index">
+      <a href="index.html">&gt; INDEX</a>
+    </div>
+  </div>
+
+  <div class="footer-bg">
+    <div class="copyright">
+      &copy; Copyright 2017 NTT DATA Corporation.
+    </div>
+  </div>
+
+</div>
+</body>
+</html>

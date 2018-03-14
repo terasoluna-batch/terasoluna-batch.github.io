@@ -1,0 +1,734 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<!--[if IE]><meta http-equiv="X-UA-Compatible" content="IE=edge"><![endif]-->
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<meta name="generator" content="Asciidoctor 1.5.6.1">
+<title>Restart processing</title>
+<link rel="stylesheet" href="./theme/css/readthedocs.css">
+<link rel="stylesheet" href="./theme/css/font-awesome.min.css">
+<link rel="stylesheet" href="./theme/css/coderay-asciidoctor.css">
+<link rel="stylesheet" href="./theme/css/header-footer.css">
+<title>TERASOLUNA Batch Framework for Java (5.x) Development Guideline</title>
+
+<div class="common-bg">
+  <div class="information">
+    TERASOLUNA Batch Framework for Java (5.x) Development Guideline - version 5.0.1.RELEASE, 2017-9-27
+  </div>
+  <div class="index">
+    <a href="index.html">&gt; INDEX</a>
+  </div>
+</div>
+</head>
+<body id="Ch06_RerunRestart" class="book toc2 toc-left">
+<div id="header">
+<h1>Restart processing</h1>
+<div id="toc" class="toc2">
+<div id="toctitle">Table of Contents</div>
+<ul class="sectlevel1">
+<li><a href="#Ch06_RerunRestart_Overview">Overview</a></li>
+<li><a href="#Ch06_RerunRestart_HowToUse">How to use</a>
+<ul class="sectlevel2">
+<li><a href="#Ch06_RerunRestart_HowToUse_Rerun">Job rerun</a></li>
+<li><a href="#Ch06_RerunRestart_HowToUse_Restart">Job restart</a></li>
+<li><a href="#Ch06_RerunRestart_HowToUse_Restart_Stateless">Stateless restart</a></li>
+<li><a href="#Ch06_RerunRestart_HowToUse_Restart_Statefull">Stateful restart</a></li>
+</ul>
+</li>
+</ul>
+</div>
+</div>
+<div id="content">
+<div class="sect1">
+<h2 id="Ch06_RerunRestart_Overview"><a class="anchor" href="#Ch06_RerunRestart_Overview"></a>Overview</h2>
+<div class="sectionbody">
+<div class="paragraph">
+<p>After the job gets terminated abnormally due to occurence of some failure,means to recover to restart the job is explained.</p>
+</div>
+<div class="paragraph">
+<p>Since this function has different usage for chunk model and tasklet model, each will be explained.</p>
+</div>
+<div class="paragraph">
+<p>There are the following methods to restart a job.</p>
+</div>
+<div class="olist arabic">
+<ol class="arabic">
+<li>
+<p>Job rerun</p>
+</li>
+<li>
+<p>Job restart</p>
+<div class="ulist">
+<ul>
+<li>
+<p>Stateless restart</p>
+<div class="ulist">
+<ul>
+<li>
+<p>Number based restart</p>
+</li>
+</ul>
+</div>
+</li>
+<li>
+<p>Stateful restart</p>
+<div class="ulist">
+<ul>
+<li>
+<p>Determine processing status, restart process to extract unprocessed data</p>
+<div class="ulist">
+<ul>
+<li>
+<p>It is necessary to separately implement a process for identifying the processing state</p>
+</li>
+</ul>
+</div>
+</li>
+</ul>
+</div>
+</li>
+</ul>
+</div>
+</li>
+</ol>
+</div>
+<div class="paragraph">
+<p>Below is terminology definition:</p>
+</div>
+<div class="dlist">
+<dl>
+<dt class="hdlist1">Rerun</dt>
+<dd>
+<p>Redoing the job from the beginning.<br>
+As a preliminary work, it is necessary to recover to the state before failure occurred such as initializing data,at the time of starting the job.</p>
+</dd>
+<dt class="hdlist1">Restart</dt>
+<dd>
+<p>Resume the processing from where the job was interrupted.<br>
+It is necessary to design/implement retention of restart position processing, acquisition method, data skip method till restart position etc in advance.<br>
+There are two types of restart, stateless and stateful.</p>
+</dd>
+<dt class="hdlist1">Stateless restart</dt>
+<dd>
+<p>A restart method not considering the state (unprocessed / processed) for each input data.</p>
+</dd>
+<dt class="hdlist1">Number based restart</dt>
+<dd>
+<p>One of stateless restart.<br>
+A method of retaining the processed input data count and skipping that input data at the time of restart.<br>
+If the output is a non-transactional resource, it is also necessary to hold the output position and move the write position to that position at the time of restart.</p>
+</dd>
+<dt class="hdlist1">Stateful restart</dt>
+<dd>
+<p>A restart method in which the state (unprocessed / processed) for each input data is judged, and only unprocessed data is acquired as an acquisition condition.<br>
+If the output is a non-transactional resource, make the resource additional, and at the time of restart, add it to the previous result.</p>
+</dd>
+</dl>
+</div>
+<div class="paragraph">
+<p>Generally rerun is the easiest way to re-execute.
+With Rerun &lt; Stateless restart &lt; Stateful restart order, it becomes difficult to design and implement.
+Of course, it is always preferable to use rerun if possible,
+For each job that the user implements, please consider which method to apply depending on the allowable batch window and processing characteristics.</p>
+</div>
+</div>
+</div>
+<div class="sect1">
+<h2 id="Ch06_RerunRestart_HowToUse"><a class="anchor" href="#Ch06_RerunRestart_HowToUse"></a>How to use</h2>
+<div class="sectionbody">
+<div class="paragraph">
+<p>Implementation method of Rerun and restart is explained.</p>
+</div>
+<div class="sect2">
+<h3 id="Ch06_RerunRestart_HowToUse_Rerun"><a class="anchor" href="#Ch06_RerunRestart_HowToUse_Rerun"></a>Job rerun</h3>
+<div class="paragraph">
+<p>How to implement job rerun is explained.</p>
+</div>
+<div class="olist arabic">
+<ol class="arabic">
+<li>
+<p>Preliminary work of data recovery such as initialization of data before re-run is carried out.</p>
+</li>
+<li>
+<p>Execute the failed job again with the same condition (same parameter).</p>
+<div class="ulist">
+<ul>
+<li>
+<p>In Spring Batch, if you execute a job with the same parameters, it will be treated as double execution, but TERASOLUNA Batch 5.x treats it as a separate job<br>
+For details,please refer<a href="Ch04_JobParameter.html#Ch04_JobParameter_HowToUse_Converter">"About parameter conversion class"</a>.</p>
+</li>
+</ul>
+</div>
+</li>
+</ol>
+</div>
+</div>
+<div class="sect2">
+<h3 id="Ch06_RerunRestart_HowToUse_Restart"><a class="anchor" href="#Ch06_RerunRestart_HowToUse_Restart"></a>Job restart</h3>
+<div class="paragraph">
+<p>How to restart a job is explained.</p>
+</div>
+<div class="paragraph">
+<p>When restarting a job, it is basically done on a job executed synchronously.</p>
+</div>
+<div class="paragraph">
+<p>It is recommended that asynchronously executed jobs should be designed with a corresponding job design with a rerun instead of a restart.
+This is difficult to judge whether it is <strong>"intended restart execution"</strong> or <strong>"unintended duplicate execution"</strong>,
+this is because there is a possibility of confusion in operation.</p>
+</div>
+<div class="paragraph">
+<p>If restart requirements can not be excluded for asynchronous execution job,
+The following methods can be used to clarify <strong>"intended restart execution"</strong>.</p>
+</div>
+<div class="ulist">
+<ul>
+<li>
+<p>Restart by <code>-restart</code> of <code>CommandLineJobRunner</code></p>
+<div class="ulist">
+<ul>
+<li>
+<p>Restart asynchronously executed job separately from synchronous execution. It becomes effective when progressing the recovery process sequentially.</p>
+</li>
+</ul>
+</div>
+</li>
+<li>
+<p>Restart by <code>JobOperator#restart(JobExecutionId)</code></p>
+<div class="ulist">
+<ul>
+<li>
+<p>Restart the asynchronously executed job on the mechanism of asynchronous execution again.It is effective when progressing with recovery processing collectively.</p>
+<div class="ulist">
+<ul>
+<li>
+<p><a href="Ch04_AsyncJobWithDB.html">Asynchronous execution(DB polling)</a> does not support restart. Therefore, it is necessary to implement it separately by the user.</p>
+</li>
+<li>
+<p><a href="Ch04_AsyncJobWithWebContainer.html">Asynchronous execution(Web container)</a> guides how to implement restart.User implements it according to this description.</p>
+</li>
+</ul>
+</div>
+</li>
+</ul>
+</div>
+</li>
+</ul>
+</div>
+<div class="admonitionblock important">
+<table>
+<tr>
+<td class="icon">
+<i class="fa icon-important" title="Important"></i>
+</td>
+<td class="content">
+<div class="title">About restart when there is input check</div>
+<div class="paragraph">
+<p>The input check error is not recoverable unless the input resource causing the check error is corrected.
+For reference, an input resource correction example when an input check error occurs is shown below.</p>
+</div>
+<div class="olist arabic">
+<ol class="arabic">
+<li>
+<p>When an input check error occurs, log output is performed so that the target data can be specified.</p>
+</li>
+<li>
+<p>Based on the output log information, correct the input data.</p>
+<div class="ulist">
+<ul>
+<li>
+<p>Make sure that the order of input data does not change.</p>
+</li>
+<li>
+<p>Correction method differs according to generation method of input resource.</p>
+<div class="ulist">
+<ul>
+<li>
+<p>Correct manually</p>
+</li>
+<li>
+<p>Recreate with job etc</p>
+</li>
+<li>
+<p>Retransmission from collaboration source</p>
+</li>
+</ul>
+</div>
+</li>
+</ul>
+</div>
+</li>
+<li>
+<p>Deploy corrected input data and execute restart.</p>
+</li>
+</ol>
+</div>
+</td>
+</tr>
+</table>
+</div>
+<div class="admonitionblock note">
+<table>
+<tr>
+<td class="icon">
+<i class="fa icon-note" title="Note"></i>
+</td>
+<td class="content">
+<div class="title">In the case of multiple processing (Partition Step)</div>
+<div class="paragraph">
+<p>When restarting in <a href="Ch08_ParallelAndMultiple.html#Ch08_ParallelAndMultiple_Partitioning">"multiple processing(Partition Step)"</a>,
+processing is carried out again <strong>from split processing</strong>.
+When all of the data are processed as the result of dividing the data, unnecessary splitting is performed and recorded on <code>JobRepository</code>,
+there is no problem such as data inconsistency caused by this.</p>
+</div>
+</td>
+</tr>
+</table>
+</div>
+</div>
+<div class="sect2">
+<h3 id="Ch06_RerunRestart_HowToUse_Restart_Stateless"><a class="anchor" href="#Ch06_RerunRestart_HowToUse_Restart_Stateless"></a>Stateless restart</h3>
+<div class="paragraph">
+<p>How to implement stateless restart is explained.</p>
+</div>
+<div class="paragraph">
+<p>Stateless restart with TERASOLUNA Batch 5.x refers to a number based restart.This is implemented by using the mechanism of Spring Batch as it is.<br>
+The number based restart can be used in job execution of chunk model.
+In addition, the number based restart uses context information about inputs and outputs registered in <code>JobRepository</code>.
+Therefore, in a number based restart, it is assumed that <code>JobRepository</code> does not use the in-memory database, but uses persistence guaranteed.</p>
+</div>
+<div class="admonitionblock important">
+<table>
+<tr>
+<td class="icon">
+<i class="fa icon-important" title="Important"></i>
+</td>
+<td class="content">
+<div class="title">About failure occurence of JobRepository</div>
+<div class="paragraph">
+<p>Updating to <code>JobRepository</code> is done in transactions that are independent of transactions of the database used by the business process.<br>
+In other words, only the failure to the business process is subject to recovery.<br>
+This means that if a failure occurs in <code>JobRepository</code>, there is a possibility that it will deviate from the actual count of processes,
+it means that there is a danger of double processing at restart.<br>
+Therefore, it is necessary to consider how to deal with failure. For example, design availability of <code>JobRepository</code> higher, then review rerun&#8217;s method in advance, and so on.</p>
+</div>
+</td>
+</tr>
+</table>
+</div>
+<div class="dlist">
+<dl>
+<dt class="hdlist1">Input at restart</dt>
+<dd>
+<p>Since most of the ItemReaders provided by Spring Batch are compatible with the number-based restart, special support is not necessary.<br>
+If you want to create a number based restartable ItemReader yourself, the following abstract classes can be extended that have restart processing implemented.</p>
+<div class="dlist">
+<dl>
+<dt class="hdlist1"></dt>
+<dd>
+<div class="ulist">
+<ul>
+<li>
+<p><code>org.springframework.batch.item.support.AbstractItemCountingItemStreamItemReader</code></p>
+</li>
+</ul>
+</div>
+</dd>
+</dl>
+</div>
+</dd>
+<dt class="hdlist1"></dt>
+<dd>
+<p>Since the number based restart determines the restart starting point based only on the number of items to the last, it can not detect change / addition / deletion of input data.
+Often the input data is corrected after the job ends abnormally,
+When data change like the following, be careful as there will be a difference in the output between,
+the result after the job ends normally and the result after the job ends abnormally is restarted and recovered.</p>
+<div class="dlist">
+<dl>
+<dt class="hdlist1"></dt>
+<dd>
+<div class="ulist">
+<ul>
+<li>
+<p>Change the data acquisition order</p>
+<div class="ulist">
+<ul>
+<li>
+<p>At the time of restart, duplicate or unprocessed data will get generated, so never go as it results in a different recovery result from the result of rerun.</p>
+</li>
+</ul>
+</div>
+</li>
+<li>
+<p>Update processed data</p>
+<div class="ulist">
+<ul>
+<li>
+<p>Since the data updated at the time of restarting is skipped, it is not preferred as there are cases where rerun result and the recovered result by restart result changes.</p>
+</li>
+</ul>
+</div>
+</li>
+<li>
+<p>Update or add unprocessed data</p>
+<div class="ulist">
+<ul>
+<li>
+<p>As rerun result and recovered result becomes same, its allowed. However, it is different from the result of the normal termination in the first execution.
+This should be used when patching abnormal data in an emergency coping manner or when processing as much as possible data received at the time of execution.</p>
+</li>
+</ul>
+</div>
+</li>
+</ul>
+</div>
+</dd>
+</dl>
+</div>
+</dd>
+<dt class="hdlist1">Output at Restart</dt>
+<dd>
+<p>Care must be taken in output to non-transactional resources. For example in a file, it is necessary to grasp the position to which the output was made and output from that position.<br>
+The <code>FlatFileItemWriter</code> provided by Spring Batch gets the previous output position from the context and outputs from that position at the time of restart, so no special countermeasure is necessary.<br>
+For transactional resources, since rollback is performed at the time of failure, it is possible to perform processing without taking any special action at restart.</p>
+</dd>
+</dl>
+</div>
+<div class="paragraph">
+<p>If the above conditions are satisfied, add the option <code>-restart</code> to the failed job and execute it again.
+Below an example of job restart is shown.</p>
+</div>
+<div class="listingblock">
+<div class="title">Restart example of synchronous job</div>
+<div class="content">
+<pre class="CodeRay highlight"><code data-lang="console"># (1)
+java -cp dependency/* org.springframework.batch.core.launch.support.CommandLineJobRunner &lt;jobPath&gt; &lt;jobName&gt; -restart</code></pre>
+</div>
+</div>
+<table class="tableblock frame-all grid-all spread">
+<caption class="title">Description</caption>
+<colgroup>
+<col style="width: 10%;">
+<col style="width: 90%;">
+</colgroup>
+<tbody>
+<tr>
+<td class="tableblock halign-left valign-top"><p class="tableblock">Sr.No.</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">Description</p></td>
+</tr>
+<tr>
+<td class="tableblock halign-left valign-top"><p class="tableblock">(1)</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">At <code>CommandLineJobRunner</code>specify the failed job&#8217;s job bean path and job name, add <code>-restart</code>and execute it<br>
+Since job parameters are restored from <code>JobRepository</code>, it is not necessary to specify them.</p></td>
+</tr>
+</tbody>
+</table>
+<div class="paragraph">
+<p>An example of restarting a job executed in asynchronous execution (DB polling) is shown below.</p>
+</div>
+<div class="listingblock">
+<div class="title">Restart example of job executed in asynchronous execution (DB polling)</div>
+<div class="content">
+<pre class="CodeRay highlight"><code data-lang="console"># (1)
+java -cp dependency/* org.springframework.batch.core.launch.support.CommandLineJobRunner &lt;JobExecutionId&gt; -restart</code></pre>
+</div>
+</div>
+<table class="tableblock frame-all grid-all spread">
+<caption class="title">Description</caption>
+<colgroup>
+<col style="width: 10%;">
+<col style="width: 90%;">
+</colgroup>
+<tbody>
+<tr>
+<td class="tableblock halign-left valign-top"><p class="tableblock">Sr.No.</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">Description</p></td>
+</tr>
+<tr>
+<td class="tableblock halign-left valign-top"><p class="tableblock">(1)</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">Run <code>CommandLineJobRunner</code>by specifying the same job execution ID (JobExecutionId) as the failed job and adding <code>-restart</code>.<br>
+Since job parameters are restored from <code>JobRepository</code>, it is not necessary to specify them.</p>
+<p class="tableblock">The job execution ID can be acquired from the job-request-table.
+About the job-request-table, please refer <a href="Ch04_AsyncJobWithDB.html#Ch04_AsyncJobWithDB_Arch_RequireTable">"About polling table"</a>.</p></td>
+</tr>
+</tbody>
+</table>
+<div class="admonitionblock tip">
+<table>
+<tr>
+<td class="icon">
+<i class="fa icon-tip" title="Tip"></i>
+</td>
+<td class="content">
+<div class="title">Output log of job execution ID</div>
+<div class="paragraph">
+<p>In order to promptly specify the job execution ID of the abnormally terminated job,
+It is recommended to implement a listener or exception handling class that logs the job execution ID when the job ends or when an exception occurs.</p>
+</div>
+</td>
+</tr>
+</table>
+</div>
+<div class="paragraph">
+<p>An example of restart in asynchronous execution (Web container) is shown below.</p>
+</div>
+<div class="listingblock">
+<div class="title">Examples of restarting jobs executed in asynchronous execution (web container)</div>
+<div class="content">
+<pre class="CodeRay highlight"><code data-lang="java"><span class="directive">public</span> <span class="type">long</span> restart(<span class="type">long</span> JobExecutionId) <span class="directive">throws</span> Execption {
+  <span class="keyword">return</span> jobOperator.restart(JobExecutionId); <span class="comment">// (1)</span>
+}</code></pre>
+</div>
+</div>
+<table class="tableblock frame-all grid-all spread">
+<caption class="title">Description</caption>
+<colgroup>
+<col style="width: 10%;">
+<col style="width: 90%;">
+</colgroup>
+<tbody>
+<tr>
+<td class="tableblock halign-left valign-top"><p class="tableblock">Sr.No.</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">Description</p></td>
+</tr>
+<tr>
+<td class="tableblock halign-left valign-top"><p class="tableblock">(1)</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">Specify the same job execution ID (JobExecutionId) as the failed job to <code>JobOperator</code> and execute it with <code>restart</code> method.<br>
+Job parameters are restored from <code>JobRepository</code>.</p>
+<p class="tableblock">The job execution ID can be obtained from the ID acquired when executing the job with the web application or from <code>JobRepository</code>.
+For acquisition method, please refer <a href="Ch07_JobManagement.html#Ch07_JobManagement_JobStatusManagement">"Job status management"</a>.</p></td>
+</tr>
+</tbody>
+</table>
+</div>
+<div class="sect2">
+<h3 id="Ch06_RerunRestart_HowToUse_Restart_Statefull"><a class="anchor" href="#Ch06_RerunRestart_HowToUse_Restart_Statefull"></a>Stateful restart</h3>
+<div class="paragraph">
+<p>How to achieve stateful restart is explained.</p>
+</div>
+<div class="paragraph">
+<p>Stateful restart is a method of reprocessing by acquiring only unprocessed data together with input/output results at the time of execution.
+Although this method is difficult to design such as state retaining / determination unprocessed etc, it is sometimes used because it has a strong characteristic in data change.</p>
+</div>
+<div class="paragraph">
+<p>In stateful restart, since restart conditions are determined from input / output resources, persistence of <code>JobRepository</code> becomes unnecessary.</p>
+</div>
+<div class="dlist">
+<dl>
+<dt class="hdlist1">Input at restart</dt>
+<dd>
+<p>Prepare an ItemReader that implements logic that acquires only unprocessed data with input / output results.</p>
+</dd>
+<dt class="hdlist1">Output at restart</dt>
+<dd>
+<p>Similar to <a href="#Ch06_RerunRestart_HowToUse_Restart_Stateless">Stateless restart</a> caution is required for output to non-transactional resource.<br>
+In the case of a file, assuming that the context is not used, it is necessary to design such that file addition is permitted.</p>
+</dd>
+</dl>
+</div>
+<div class="paragraph">
+<p>Stateful restart,similar to <a href="#Ch06_RerunRestart_HowToUse_Rerun">Job rerun</a> reruns the job with the same condition as with the failed job.<br>
+Unlike stateless restart, <code>-restart</code> option is not used.</p>
+</div>
+<div class="paragraph">
+<p>An example of implementing an easy stateful restart is shown below.</p>
+</div>
+<div class="olist arabic">
+<div class="title">Processing specification</div>
+<ol class="arabic">
+<li>
+<p>Define a processed column in the input target table, and update it with a value other than NULL if the processing succeeds.</p>
+<div class="ulist">
+<ul>
+<li>
+<p>For the extraction condition of unprocessed data, the value of the processed column is NULL.</p>
+</li>
+</ul>
+</div>
+</li>
+<li>
+<p>Output the processing result to a file.</p>
+</li>
+</ol>
+</div>
+<div class="listingblock">
+<div class="title">RestartOnConditionRepository.xml</div>
+<div class="content">
+<pre class="CodeRay highlight"><code data-lang="xml"><span class="comment">&lt;!-- (1) --&gt;</span>
+<span class="tag">&lt;select</span> <span class="attribute-name">id</span>=<span class="string"><span class="delimiter">&quot;</span><span class="content">findByProcessedIsNull</span><span class="delimiter">&quot;</span></span>
+        <span class="attribute-name">resultType</span>=<span class="string"><span class="delimiter">&quot;</span><span class="content">org.terasoluna.batch.functionaltest.app.model.plan.SalesPlanDetail</span><span class="delimiter">&quot;</span></span><span class="tag">&gt;</span>
+    <span class="inline-delimiter">&lt;![CDATA[</span>
+    SELECT
+        branch_id AS branchId, year, month, customer_id AS customerId, amount
+    FROM
+        sales_plan_detail
+    WHERE
+        processed IS NULL
+    ORDER BY
+        branch_id ASC, year ASC, month ASC, customer_id ASC
+    <span class="inline-delimiter">]]&gt;</span>
+<span class="tag">&lt;/select&gt;</span>
+
+<span class="comment">&lt;!-- (2) --&gt;</span>
+<span class="tag">&lt;update</span> <span class="attribute-name">id</span>=<span class="string"><span class="delimiter">&quot;</span><span class="content">update</span><span class="delimiter">&quot;</span></span> <span class="attribute-name">parameterType</span>=<span class="string"><span class="delimiter">&quot;</span><span class="content">org.terasoluna.batch.functionaltest.app.model.plan.SalesPlanDetail</span><span class="delimiter">&quot;</span></span><span class="tag">&gt;</span>
+    <span class="inline-delimiter">&lt;![CDATA[</span>
+    UPDATE
+        sales_plan_detail
+    SET
+        processed = '1'
+    WHERE
+        branch_id = #{branchId}
+    AND
+        year = #{year}
+    AND
+        month = #{month}
+    AND
+        customer_id = #{customerId}
+    <span class="inline-delimiter">]]&gt;</span>
+<span class="tag">&lt;/update&gt;</span></code></pre>
+</div>
+</div>
+<div class="listingblock">
+<div class="title">restartOnConditionBasisJob.xml</div>
+<div class="content">
+<pre class="CodeRay highlight"><code data-lang="xml"><span class="comment">&lt;!-- (3) --&gt;</span>
+<span class="tag">&lt;bean</span> <span class="attribute-name">id</span>=<span class="string"><span class="delimiter">&quot;</span><span class="content">reader</span><span class="delimiter">&quot;</span></span> <span class="attribute-name">class</span>=<span class="string"><span class="delimiter">&quot;</span><span class="content">org.mybatis.spring.batch.MyBatisCursorItemReader</span><span class="delimiter">&quot;</span></span>
+      <span class="attribute-name">p:queryId</span>=<span class="string"><span class="delimiter">&quot;</span><span class="content">org.terasoluna.batch.functionaltest.ch06.reprocessing.repository.RestartOnConditionRepository.findByZeroOrLessAmount</span><span class="delimiter">&quot;</span></span>
+      <span class="attribute-name">p:sqlSessionFactory-ref</span>=<span class="string"><span class="delimiter">&quot;</span><span class="content">jobSqlSessionFactory</span><span class="delimiter">&quot;</span></span><span class="tag">/&gt;</span>
+
+<span class="comment">&lt;!-- (4) --&gt;</span>
+<span class="tag">&lt;bean</span> <span class="attribute-name">id</span>=<span class="string"><span class="delimiter">&quot;</span><span class="content">dbWriter</span><span class="delimiter">&quot;</span></span> <span class="attribute-name">class</span>=<span class="string"><span class="delimiter">&quot;</span><span class="content">org.mybatis.spring.batch.MyBatisBatchItemWriter</span><span class="delimiter">&quot;</span></span>
+      <span class="attribute-name">p:statementId</span>=<span class="string"><span class="delimiter">&quot;</span><span class="content">org.terasoluna.batch.functionaltest.ch06.reprocessing.repository.RestartOnConditionRepository.update</span><span class="delimiter">&quot;</span></span>
+      <span class="attribute-name">p:sqlSessionTemplate-ref</span>=<span class="string"><span class="delimiter">&quot;</span><span class="content">batchModeSqlSessionTemplate</span><span class="delimiter">&quot;</span></span><span class="tag">/&gt;</span>
+
+<span class="tag">&lt;bean</span> <span class="attribute-name">id</span>=<span class="string"><span class="delimiter">&quot;</span><span class="content">fileWriter</span><span class="delimiter">&quot;</span></span>
+      <span class="attribute-name">class</span>=<span class="string"><span class="delimiter">&quot;</span><span class="content">org.springframework.batch.item.file.FlatFileItemWriter</span><span class="delimiter">&quot;</span></span> <span class="attribute-name">scope</span>=<span class="string"><span class="delimiter">&quot;</span><span class="content">step</span><span class="delimiter">&quot;</span></span>
+      <span class="attribute-name">p:resource</span>=<span class="string"><span class="delimiter">&quot;</span><span class="content">file:#{jobParameters['outputFile']}</span><span class="delimiter">&quot;</span></span>
+      <span class="attribute-name">p:appendAllowed</span>=<span class="string"><span class="delimiter">&quot;</span><span class="content">true</span><span class="delimiter">&quot;</span></span><span class="tag">&gt;</span> <span class="comment">&lt;!-- (5) --&gt;</span>
+    <span class="tag">&lt;property</span> <span class="attribute-name">name</span>=<span class="string"><span class="delimiter">&quot;</span><span class="content">lineAggregator</span><span class="delimiter">&quot;</span></span><span class="tag">&gt;</span>
+        <span class="tag">&lt;bean</span> <span class="attribute-name">class</span>=<span class="string"><span class="delimiter">&quot;</span><span class="content">org.springframework.batch.item.file.transform.DelimitedLineAggregator</span><span class="delimiter">&quot;</span></span><span class="tag">&gt;</span>
+            <span class="tag">&lt;property</span> <span class="attribute-name">name</span>=<span class="string"><span class="delimiter">&quot;</span><span class="content">fieldExtractor</span><span class="delimiter">&quot;</span></span><span class="tag">&gt;</span>
+                <span class="tag">&lt;bean</span> <span class="attribute-name">class</span>=<span class="string"><span class="delimiter">&quot;</span><span class="content">org.springframework.batch.item.file.transform.BeanWrapperFieldExtractor</span><span class="delimiter">&quot;</span></span>
+                      <span class="attribute-name">p:names</span>=<span class="string"><span class="delimiter">&quot;</span><span class="content">branchId,year,month,customerId,amount</span><span class="delimiter">&quot;</span></span><span class="tag">/&gt;</span>
+            <span class="tag">&lt;/property&gt;</span>
+        <span class="tag">&lt;/bean&gt;</span>
+    <span class="tag">&lt;/property&gt;</span>
+<span class="tag">&lt;/bean&gt;</span>
+<span class="comment">&lt;!-- (6) --&gt;</span>
+<span class="tag">&lt;bean</span> <span class="attribute-name">id</span>=<span class="string"><span class="delimiter">&quot;</span><span class="content">compositeWriter</span><span class="delimiter">&quot;</span></span> <span class="attribute-name">class</span>=<span class="string"><span class="delimiter">&quot;</span><span class="content">org.springframework.batch.item.support.CompositeItemWriter</span><span class="delimiter">&quot;</span></span><span class="tag">&gt;</span>
+    <span class="tag">&lt;property</span> <span class="attribute-name">name</span>=<span class="string"><span class="delimiter">&quot;</span><span class="content">delegates</span><span class="delimiter">&quot;</span></span><span class="tag">&gt;</span>
+        <span class="tag">&lt;list&gt;</span>
+            <span class="tag">&lt;ref</span> <span class="attribute-name">bean</span>=<span class="string"><span class="delimiter">&quot;</span><span class="content">fileWriter</span><span class="delimiter">&quot;</span></span><span class="tag">/&gt;</span>
+            <span class="tag">&lt;ref</span> <span class="attribute-name">bean</span>=<span class="string"><span class="delimiter">&quot;</span><span class="content">dbWriter</span><span class="delimiter">&quot;</span></span><span class="tag">/&gt;</span>
+        <span class="tag">&lt;/list&gt;</span>
+    <span class="tag">&lt;/property&gt;</span>
+<span class="tag">&lt;/bean&gt;</span>
+
+<span class="tag">&lt;batch:job</span> <span class="attribute-name">id</span>=<span class="string"><span class="delimiter">&quot;</span><span class="content">restartOnConditionBasisJob</span><span class="delimiter">&quot;</span></span>
+           <span class="attribute-name">job-repository</span>=<span class="string"><span class="delimiter">&quot;</span><span class="content">jobRepository</span><span class="delimiter">&quot;</span></span> <span class="attribute-name">restartable</span>=<span class="string"><span class="delimiter">&quot;</span><span class="content">false</span><span class="delimiter">&quot;</span></span><span class="tag">&gt;</span> <span class="comment">&lt;!-- (7) --&gt;</span>
+
+    <span class="tag">&lt;batch:step</span> <span class="attribute-name">id</span>=<span class="string"><span class="delimiter">&quot;</span><span class="content">restartOnConditionBasisJob.step01</span><span class="delimiter">&quot;</span></span><span class="tag">&gt;</span>
+        <span class="tag">&lt;batch:tasklet</span> <span class="attribute-name">transaction-manager</span>=<span class="string"><span class="delimiter">&quot;</span><span class="content">jobTransactionManager</span><span class="delimiter">&quot;</span></span><span class="tag">&gt;</span>
+            <span class="tag">&lt;batch:chunk</span> <span class="attribute-name">reader</span>=<span class="string"><span class="delimiter">&quot;</span><span class="content">reader</span><span class="delimiter">&quot;</span></span> <span class="attribute-name">processor</span>=<span class="string"><span class="delimiter">&quot;</span><span class="content">amountUpdateItemProcessor</span><span class="delimiter">&quot;</span></span>
+                         <span class="attribute-name">writer</span>=<span class="string"><span class="delimiter">&quot;</span><span class="content">compositeWriter</span><span class="delimiter">&quot;</span></span> <span class="attribute-name">commit-interval</span>=<span class="string"><span class="delimiter">&quot;</span><span class="content">10</span><span class="delimiter">&quot;</span></span> <span class="tag">/&gt;</span>
+        <span class="tag">&lt;/batch:tasklet&gt;</span>
+    <span class="tag">&lt;/batch:step&gt;</span>
+
+<span class="tag">&lt;/batch:job&gt;</span></code></pre>
+</div>
+</div>
+<div class="listingblock">
+<div class="title">Example of restart command execution</div>
+<div class="content">
+<pre class="CodeRay highlight"><code data-lang="console"># (8)
+java -cp dependency/* org.springframework.batch.core.launch.support.CommandLineJobRunner &lt;jobPath&gt; &lt;jobName&gt; &lt;jobParameters&gt; ...</code></pre>
+</div>
+</div>
+<table class="tableblock frame-all grid-all spread">
+<caption class="title">Description</caption>
+<colgroup>
+<col style="width: 10%;">
+<col style="width: 90%;">
+</colgroup>
+<thead>
+<tr>
+<th class="tableblock halign-left valign-top">Sr.No.</th>
+<th class="tableblock halign-left valign-top">Description</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td class="tableblock halign-left valign-top"><p class="tableblock">(1)</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">Define SQL so that the processed column has only NULL data.</p></td>
+</tr>
+<tr>
+<td class="tableblock halign-left valign-top"><p class="tableblock">(2)</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">Define SQL to update processed columns with non-NULL</p></td>
+</tr>
+<tr>
+<td class="tableblock halign-left valign-top"><p class="tableblock">(3)</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">For ItemReader, set the SQLID defined in (1).</p></td>
+</tr>
+<tr>
+<td class="tableblock halign-left valign-top"><p class="tableblock">(4)</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">For updating to the database, set the SQLID defined in (2).</p></td>
+</tr>
+<tr>
+<td class="tableblock halign-left valign-top"><p class="tableblock">(5)</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">At restart,allow addition of files in order to make it possible to write from the last interruption point.</p></td>
+</tr>
+<tr>
+<td class="tableblock halign-left valign-top"><p class="tableblock">(6)</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">Set <code>CompositeItemWriter</code> to be processed in the order of file output &#8594; database update, and set it to chunk writer.</p></td>
+</tr>
+<tr>
+<td class="tableblock halign-left valign-top"><p class="tableblock">(7)</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">It is not mandatory, but set the <code>restartable</code> attribute to false so that it will get an error if it is started accidentally with the <code>-restart</code> option.</p></td>
+</tr>
+<tr>
+<td class="tableblock halign-left valign-top"><p class="tableblock">(8)</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">Execute again according to the execution condition of the failed job.</p></td>
+</tr>
+</tbody>
+</table>
+<div class="admonitionblock important">
+<table>
+<tr>
+<td class="icon">
+<i class="fa icon-important" title="Important"></i>
+</td>
+<td class="content">
+<div class="title">About the job&#8217;s restartable attribute</div>
+<div class="paragraph">
+<p>If <code>restartable</code>is true, as explained in <a href="#Ch06_RerunRestart_HowToUse_Restart_Stateless">Stateless restart</a>, use the context information to skip input / output data.
+If you are using ItemReader or ItemWriter provided by Spring Batch in stateful restart, there is a possibility that this process may stop processing as expected.
+Therefore, by setting <code>restartable</code> to false, activation with the <code>-restart</code> option will result in an error, preventing malfunction.</p>
+</div>
+</td>
+</tr>
+</table>
+</div>
+</div>
+</div>
+</div>
+</div>
+<div class="container">
+
+  <div class="common-bg">
+    <div class="information">
+      TERASOLUNA Batch Framework for Java (5.x) Development Guideline - version 5.0.1.RELEASE, 2017-9-27
+    </div>
+    <div class="index">
+      <a href="index.html">&gt; INDEX</a>
+    </div>
+  </div>
+
+  <div class="footer-bg">
+    <div class="copyright">
+      &copy; Copyright 2017 NTT DATA Corporation.
+    </div>
+  </div>
+
+</div>
+</body>
+</html>
