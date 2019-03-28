@@ -1,0 +1,1669 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<!--[if IE]><meta http-equiv="X-UA-Compatible" content="IE=edge"><![endif]-->
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<meta name="generator" content="Asciidoctor 1.5.6.1">
+<title>Asynchronous execution (Web container)</title>
+<link rel="stylesheet" href="./theme/css/readthedocs.css">
+<link rel="stylesheet" href="./theme/css/font-awesome.min.css">
+<link rel="stylesheet" href="./theme/css/coderay-asciidoctor.css">
+<link rel="stylesheet" href="./theme/css/header-footer.css">
+<title>TERASOLUNA Batch Framework for Java (5.x) Development Guideline</title>
+
+<div class="common-bg">
+  <div class="information">
+    TERASOLUNA Batch Framework for Java (5.x) Development Guideline - version 5.1.1.RELEASE, 2018-3-16
+  </div>
+  <div class="index">
+    <a href="index.html">&gt; INDEX</a>
+  </div>
+</div>
+</head>
+<body id="Ch04_AsyncJobWithWeb" class="book toc2 toc-left">
+<div id="header">
+<h1>Asynchronous execution (Web container)</h1>
+<div id="toc" class="toc2">
+<div id="toctitle">Table of Contents</div>
+<ul class="sectlevel1">
+<li><a href="#Ch04_AsyncJobWithWeb_Overview">Overview</a></li>
+<li><a href="#Ch04_AsyncJobWithWeb_Arch">Architecture</a>
+<ul class="sectlevel2">
+<li><a href="#Ch04_AsyncJobWithWeb_Arch_OnError">About detection of abnormality occurrence at the time of running a job</a></li>
+<li><a href="#Ch04_AsyncJobWithWeb_Arch_Components">Application configuration of asynchronous execution (Web container)</a>
+<ul class="sectlevel3">
+<li><a href="#Ch04_AsyncJobWithWeb_Arch_AppCtx">ApplicationContext configuration</a></li>
+</ul>
+</li>
+</ul>
+</li>
+<li><a href="#Ch04_AsyncJobWithWeb_HowToUse">How to use</a>
+<ul class="sectlevel2">
+<li><a href="#Ch04_AsyncJobWithWeb_HowToUse_Impl">Overview of implementation of application by asynchronous execution (Web container)</a></li>
+<li><a href="#Ch04_AsyncJobWithWeb_HowToUse_Config">Various settings</a></li>
+<li><a href="#Ch04_AsyncJobWithWeb_HowToUse_WebApp">Implementation of Web application</a>
+<ul class="sectlevel3">
+<li><a href="#Ch04_AsyncJobWithWeb_HowToUse_WebApp_Config">Web application settings</a></li>
+<li><a href="#Ch04_AsyncJobWithWeb_HowToUse_WebApp_JavaBeans">Implementation of JavaBeans used in Controller</a></li>
+<li><a href="#Ch04_AsyncJobWithWeb_HowToUse_WebApp_Controller">Implementation of controller</a></li>
+<li><a href="#Ch04_AsyncJobWithWeb_HowToUse_WebApp_IntegrationConfig">Integration of Web/batch application module setting</a></li>
+<li><a href="#Ch04_AsyncJobWithWeb_HowToUse_WebApp_Build">Build</a></li>
+<li><a href="#Ch04_AsyncJobWithWeb_HowToUse_WebApp_Deploy">Deploy</a></li>
+</ul>
+</li>
+<li><a href="#Ch04_AsyncJobWithWeb_HowToUse_Run">Job start and confirmation of execution results using REST Client</a></li>
+</ul>
+</li>
+<li><a href="#Ch04_AsyncJobWithWeb_HowToExtend">How to extend</a>
+<ul class="sectlevel2">
+<li><a href="#Ch04_AsyncJobWithWeb_HowToExtend_StopAndRestart">Stopping and restarting jobs</a></li>
+<li><a href="#Ch04_AsyncJobWithWeb_HowToExtend_MultipleLaunch">Multiple running</a></li>
+</ul>
+</li>
+</ul>
+</div>
+</div>
+<div id="content">
+<div class="sect1">
+<h2 id="Ch04_AsyncJobWithWeb_Overview"><a class="anchor" href="#Ch04_AsyncJobWithWeb_Overview"></a>Overview</h2>
+<div class="sectionbody">
+<div class="paragraph">
+<p>A method to execute the job asynchronously in Web container is explained.</p>
+</div>
+<div class="paragraph">
+<p>The way to use this function is same in chunk model and tasklet model.</p>
+</div>
+<div class="paragraph">
+<div class="title">What is asynchronous execution of jobs by Web container</div>
+<p>Web application that contains a job is deployed in a Web container
+and the job is executed based on information of sent request.<br>
+Since one thread is allocated for each job execution and operation is run in parallel,
+it can be executed independent of processes for other jobs and requests.</p>
+</div>
+<div class="paragraph">
+<div class="title">Function offered</div>
+<p>TERASOLUNA Batch 5.x does not offer implementation for asynchronous execution (Web container).<br>
+Only methods of implementation will be provided in this guideline.<br>
+This is because the start timing of the Web application is diverse such as HTTP / SOAP / MQ,
+and hence it is determined that the implementation should be appropriately done by the user.</p>
+</div>
+<div class="ulist">
+<div class="title">Usage premise</div>
+<ul>
+<li>
+<p>A Web container is required besides the application.</p>
+</li>
+<li>
+<p>Besides implementation of job, required Web application and client are separately implemented according to the operation requirements.</p>
+</li>
+<li>
+<p>Execution status and results of the job are entrusted to <code>JobRepository</code>.
+Further, a permanently residing database is used instead of in-memory database to enable execution status and results
+of job to be referred from  <code>JobRepository</code> even after stopping Web container.</p>
+</li>
+</ul>
+</div>
+<div class="paragraph">
+<div class="title">Usage scene</div>
+<p>It is same as <a href="Ch04_AsyncJobWithDB.html#Ch04_AsyncJobWithDB_Overview">"Asynchronous execution (DB polling) - Overview"</a>.</p>
+</div>
+<div class="admonitionblock tip">
+<table>
+<tr>
+<td class="icon">
+<i class="fa icon-tip" title="Tip"></i>
+</td>
+<td class="content">
+<div class="title">Difference with asynchronous execution (DB polling)</div>
+<div class="paragraph">
+<p>On the architecture front, immediacy at the time of asynchronous execution and presence or absence of request management table are different.<br>
+<a href="Ch04_AsyncJobWithDB.html#Ch04_AsyncJobWithDB">"Asynchronous execution (DB polling)"</a> performs asynchronous execution of multiple jobs registered in the request management table.<br>
+On the other hand, this function does not require request management table and accepts asynchronous execution on the Web container instead.<br>
+It is suitable for a short batch which requires immediacy till the start of the operation in order to execute the operation immediately by sending a Web request.</p>
+</div>
+</td>
+</tr>
+</table>
+</div>
+</div>
+</div>
+<div class="sect1">
+<h2 id="Ch04_AsyncJobWithWeb_Arch"><a class="anchor" href="#Ch04_AsyncJobWithWeb_Arch"></a>Architecture</h2>
+<div class="sectionbody">
+<div class="paragraph">
+<p>Asynchronous jobs by using this method are operated as applications (war) deployed on the Web container, however, the job itself runs asynchronously (another thread) from the request processing of Web container.</p>
+</div>
+<div class="imageblock">
+<div class="content">
+<img src="./images/Ch04_AsyncJobWithWebContainer_Sequence.png" alt="sequence of async web">
+</div>
+<div class="title">Sequence diagram of asynchronous execution (Web container)</div>
+</div>
+<div class="olist arabic">
+<div class="title">Running a job</div>
+<ol class="arabic">
+<li>
+<p>Web client requests Web container to execute the job.</p>
+</li>
+<li>
+<p><code>JobController</code> asks <code>JobOperator</code> of Spring Batch to start the execution of the job.</p>
+</li>
+<li>
+<p>Execute the job asynchronously by using <code>ThreadPoolTaskExecutor</code>.</p>
+</li>
+<li>
+<p>Return a job execution ID  (<code>job execution id</code>) for uniquely identifying an executed target job.</p>
+</li>
+<li>
+<p><code>JobController</code> returns a response including job execution ID for the Web client.</p>
+</li>
+<li>
+<p>Execute target job.</p>
+<div class="ulist">
+<ul>
+<li>
+<p>Job results are reflected in <code>JobRepository</code>.</p>
+</li>
+</ul>
+</div>
+</li>
+<li>
+<p><code>Job</code> returns execution results. It cannot be notified directly to the client.</p>
+</li>
+</ol>
+</div>
+<div class="olist arabic">
+<div class="title">Confirm job execution results</div>
+<ol class="arabic" start="8">
+<li>
+<p>Web client sends job execution ID and <code>JobController</code> to Web container.</p>
+</li>
+<li>
+<p><code>JobController</code> asks <code>JobExplorer</code> for execution results of job by using a job execution ID.</p>
+</li>
+<li>
+<p><code>JobExplorer</code> returns job execution results.</p>
+</li>
+<li>
+<p><code>JobController</code> returns a response for Web client.</p>
+<div class="ulist">
+<ul>
+<li>
+<p>Set Job execution ID in the response.</p>
+</li>
+</ul>
+</div>
+</li>
+</ol>
+</div>
+<div class="paragraph">
+<p>After receiving a request using Web container, operation is synchronised with the request processing till job execution ID payout, however subsequent job execution is performed asynchronously in a thread pool
+different from that of Web container.<br>
+As long as the query is not sent again in a request, it signifies that execution status of asynchronous job cannot be detected on web client side.</p>
+</div>
+<div class="paragraph">
+<p>Hence, the request should be sent once at the time of "running a job" on the Web client side during one job execution.
+When "confirmation of results" is necessary, request must be sent once again to the Web container.<br>
+Abnormality detection which looks different from  first "running a job" will be explained later in
+<a href="#Ch04_AsyncJobWithWeb_Arch_OnError">About detection of abnormality occurrence at the time of running a job</a>.</p>
+</div>
+<div class="admonitionblock tip">
+<table>
+<tr>
+<td class="icon">
+<i class="fa icon-tip" title="Tip"></i>
+</td>
+<td class="content">
+<div class="paragraph">
+<p>Job execution status can be checked by referring direct RDBMS, by using <code>JobRepository</code> and <code>JobExplorer</code>.
+For details of the function which refer to job execution status and results, refer <a href="Ch07_JobManagement.html#Ch07_JobManagement">Job management</a>.</p>
+</div>
+</td>
+</tr>
+</table>
+</div>
+<div class="admonitionblock warning">
+<table>
+<tr>
+<td class="icon">
+<i class="fa icon-warning" title="Warning"></i>
+</td>
+<td class="content">
+<div class="title">About handling job execution ID (job execution id)</div>
+<div class="paragraph">
+<p>Job execution ID generates a different sequence value for each job even though job and job parameters are identical.<br>
+Job execution ID accepted by sending a request is persisted in external RDBMS by <code>JobRepository</code>.<br>
+However, when this ID is lost due to failure of Web client, specifying or tracking job execution status becomes difficult.<br>
+Hence, adequate preparations must be made on Web client side to cope with loss of job execution ID like logging the job execution ID returned as a response.</p>
+</div>
+</td>
+</tr>
+</table>
+</div>
+<div class="sect2">
+<h3 id="Ch04_AsyncJobWithWeb_Arch_OnError"><a class="anchor" href="#Ch04_AsyncJobWithWeb_Arch_OnError"></a>About detection of abnormality occurrence at the time of running a job</h3>
+<div class="paragraph">
+<p>After sending a job run request from Web client, abnormality detection appearance varies along with job execution ID payout.</p>
+</div>
+<div class="ulist">
+<ul>
+<li>
+<p>Abnormality can be detected immediately by the response at the time of running a job</p>
+<div class="ulist">
+<ul>
+<li>
+<p>Job to be activated does not exist.</p>
+</li>
+<li>
+<p>Invalid job parameter format.</p>
+</li>
+</ul>
+</div>
+</li>
+<li>
+<p>After running a job, queries regarding job execution status and results for Web container are necessary</p>
+<div class="ulist">
+<ul>
+<li>
+<p>Job execution status</p>
+</li>
+<li>
+<p>Job start failure due to depletion of thread pool used in asynchronous job execution</p>
+</li>
+</ul>
+</div>
+</li>
+</ul>
+</div>
+<div class="admonitionblock note">
+<table>
+<tr>
+<td class="icon">
+<i class="fa icon-note" title="Note"></i>
+</td>
+<td class="content">
+<div class="paragraph">
+<p>"Job running error" can be detected as an exception occurring in Spring MVC controller.
+Since the explanation is omitted here, refer
+<a href="http://terasolunaorg.github.io/guideline/5.3.0.RELEASE/en/ArchitectureInDetail/WebServiceDetail/REST.html#resthowtouseexceptionhandling">Implementation of exception handling</a> of TERASOLUNA Server 5.x Development Guideline described separately.</p>
+</div>
+<div class="paragraph">
+<p>Further, input check of the request used as a job parameter is performed in the Spring MVC controller as required.<br>
+For basic implementation methods, refer
+<a href="http://terasolunaorg.github.io/guideline/5.3.0.RELEASE/en/ArchitectureInDetail/WebApplicationDetail/Validation.html">Input check</a> of TERASOLUNA Server 5.x Development Guideline.</p>
+</div>
+</td>
+</tr>
+</table>
+</div>
+<div class="admonitionblock tip">
+<table>
+<tr>
+<td class="icon">
+<i class="fa icon-tip" title="Tip"></i>
+</td>
+<td class="content">
+<div class="title">Job start failure occurring due to depletion of thread pool cannot be captured at the time of running a job.</div>
+<div class="paragraph">
+<p>Job start failure due to depletion of thread pool is not generated from <code>JobOperator</code>, hence it must be checked separately.
+One of the methods of confirmation include using <code>JobExplorer</code> while checking execution status of job and checking whether the following conditions are satisfied.</p>
+</div>
+<div class="ulist">
+<ul>
+<li>
+<p>Status is <code>FAILED</code></p>
+</li>
+<li>
+<p>Exception stack trace of <code>org.springframework.core.task.TaskRejectedException</code> is recorded in
+<code>jobExecution.getExitStatus().getExitDescription()</code>.</p>
+</li>
+</ul>
+</div>
+</td>
+</tr>
+</table>
+</div>
+</div>
+<div class="sect2">
+<h3 id="Ch04_AsyncJobWithWeb_Arch_Components"><a class="anchor" href="#Ch04_AsyncJobWithWeb_Arch_Components"></a>Application configuration of asynchronous execution (Web container)</h3>
+<div class="paragraph">
+<p>The function is same as <a href="Ch04_AsyncJobWithDB.html#Ch04_AsyncJobWithDB">"Asynchronous execution (DB polling)"</a> and use
+<code>async</code> and <code>AutomaticJobRegistrar</code> of Spring profile as a configuration specific to asynchronous execution.</p>
+</div>
+<div class="paragraph">
+<p>On the other hand, prior knowledge and some specific settings are required in order to use these functions asynchronously (Web container).
+Refer <a href="#Ch04_AsyncJobWithWeb_Arch_AppCtx">"ApplicationContext configuration"</a>.<br>
+For configuration methods of basic <code>async</code> profile and <code>AutomaticJobRegistrar</code>,
+<a href="#Ch04_AsyncJobWithWeb_HowToUse_Impl">"How to implement applications using asynchronous execution (Web container)"</a> will be described later.</p>
+</div>
+<div class="sect3">
+<h4 id="Ch04_AsyncJobWithWeb_Arch_AppCtx"><a class="anchor" href="#Ch04_AsyncJobWithWeb_Arch_AppCtx"></a>ApplicationContext configuration</h4>
+<div class="paragraph">
+<p>As described above, multiple application modules are included as application configuration of asynchronous execution (Web container).<br>
+It is necessary to understand respective application contexts, types of Bean definitions and their relationships.</p>
+</div>
+<div class="imageblock">
+<div class="content">
+<img src="./images/Ch04_AsyncJobWithWebContainer_Package.png" alt="Package structure of async web">
+</div>
+<div class="title">ApplicationContext configuration</div>
+</div>
+<div class="imageblock">
+<div class="content">
+<img src="./images/Ch04_AsyncJobWithWebContainer_BeanDefinitions.png" alt="BeanDefinitions structure of async web">
+</div>
+<div class="title">Bean definition file configuration</div>
+</div>
+<div class="paragraph">
+<p><code>ApplicationContext</code> of batch application is incorporated in the context, in <code>ApplicationContext</code> during asynchronous execution (Web container).<br>
+Individual job contexts are modularised from  Web context using <code>AutomaticJobRegistrar</code> and
+it acts as a sub-context of Web context.</p>
+</div>
+<div class="paragraph">
+<p>Bean definition file which constitute respective contexts are explained.</p>
+</div>
+<table class="tableblock frame-all grid-all spread">
+<caption class="title">List of Bean definition files</caption>
+<colgroup>
+<col style="width: 10%;">
+<col style="width: 90%;">
+</colgroup>
+<thead>
+<tr>
+<th class="tableblock halign-left valign-top">Sr. No.</th>
+<th class="tableblock halign-left valign-top">Description</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td class="tableblock halign-left valign-top"><p class="tableblock">(1)</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">Common Bean definition file.<br>
+It acts as a parent context in the application and is uniquely shared among jobs acting as sub-contexts.</p></td>
+</tr>
+<tr>
+<td class="tableblock halign-left valign-top"><p class="tableblock">(2)</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">Bean definition file which is always imported from job Bean definitions.<br>
+If Spring profile is <code>async</code> specified at the time of asynchronous execution, <code>launch-context.xml</code> of (1) is not read.</p></td>
+</tr>
+<tr>
+<td class="tableblock halign-left valign-top"><p class="tableblock">(3)</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">Bean definition file created for each job.<br>
+It is modularized by <code>AutomaticJobRegistrar</code> and are used as respective independent sub-contexts in the application.</p></td>
+</tr>
+<tr>
+<td class="tableblock halign-left valign-top"><p class="tableblock">(4)</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">It is read from <code>DispatcherServlet</code>.<br>
+Define the Beans unique to asynchronous execution such as <code>AutomaticJobRegistrar</code> which performs modularization of job Bean definition and <code>taskExecutor</code> which is a thread pool used in asynchronous and parallel execution of jobs.<br>
+Further, in asynchronous execution, <code>launch-context.xml</code> of (1) is imported directly<br>
+and uniquely shared as parent contexts.</p></td>
+</tr>
+<tr>
+<td class="tableblock halign-left valign-top"><p class="tableblock">(5)</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">It acts as a parent context shared within the Web application by using <code>ContextLoaderListener</code>.</p></td>
+</tr>
+</tbody>
+</table>
+</div>
+</div>
+</div>
+</div>
+<div class="sect1">
+<h2 id="Ch04_AsyncJobWithWeb_HowToUse"><a class="anchor" href="#Ch04_AsyncJobWithWeb_HowToUse"></a>How to use</h2>
+<div class="sectionbody">
+<div class="paragraph">
+<p>Here, explanation is given using TERASOLUNA Server Framework for Java (5.x), as an implementation example of Web application.<br>
+Kindly remember that only explanation is offered and TERASOLUNA Server 5.x is not a necessary requirement of asynchronous execution (Web container).</p>
+</div>
+<div class="sect2">
+<h3 id="Ch04_AsyncJobWithWeb_HowToUse_Impl"><a class="anchor" href="#Ch04_AsyncJobWithWeb_HowToUse_Impl"></a>Overview of implementation of application by asynchronous execution (Web container)</h3>
+<div class="paragraph">
+<p>Explanation is given based on following configuration.</p>
+</div>
+<div class="ulist">
+<ul>
+<li>
+<p>Web application project and batch application project are independent
+and a batch application is referred from a web application.</p>
+<div class="ulist">
+<ul>
+<li>
+<p>war file generated from Web application project contains
+jar file generated from batch application project</p>
+</li>
+</ul>
+</div>
+</li>
+</ul>
+</div>
+<div class="paragraph">
+<p>Implementation of asynchronous execution is performed in accordance with <a href="#Ch04_AsyncJobWithWeb_Arch">Architecture</a> wherein Spring
+MVC controller in the Web application starts the job by using <code>JobOperator</code>.</p>
+</div>
+<div class="admonitionblock tip">
+<table>
+<tr>
+<td class="icon">
+<i class="fa icon-tip" title="Tip"></i>
+</td>
+<td class="content">
+<div class="title">About isolation of Web/batch application project</div>
+<div class="paragraph">
+<p>Final deliverable of application build is a war file of Web application, however,
+a development project should be implemented by separating Web/batch applications.<br>
+Since it is a library which can be operated by a batch application alone, it helps in identifying work boundary
+and library dependency besides making the development project testing easier to implement.</p>
+</div>
+</td>
+</tr>
+</table>
+</div>
+<div class="paragraph">
+<p>Web/batch development is explained now assuming the use of 2 components below.</p>
+</div>
+<div class="ulist">
+<ul>
+<li>
+<p>Batch application project by TERASOLUNA Batch 5.x</p>
+</li>
+<li>
+<p>Web application project by TERASOLUNA Server 5.x</p>
+</li>
+</ul>
+</div>
+<div class="paragraph">
+<p>For how to create a batch application project and how to implement a basic job, refer
+<a href="Ch03_CreateProject.html#Ch03_CreateProject_HowToCreate">"How to create a project"</a>,
+<a href="Ch03_CreateTaskletJob.html#Ch03_CreateTaskletJob">"Creation of tasklet model job"</a>,
+<a href="Ch03_CreateChunkJob.html#Ch03_CreateChunkJob">"Creation of chunk model job"</a>.</p>
+</div>
+<div class="paragraph">
+<p>Here, we will focus on starting a batch application from a Web application.</p>
+</div>
+<div class="paragraph">
+<p>Here, explanation is given by creating a batch application project,
+by using Maven archetype:generate.</p>
+</div>
+<table class="tableblock frame-all grid-all spread">
+<caption class="title">How to create a job project</caption>
+<colgroup>
+<col style="width: 20%;">
+<col style="width: 80%;">
+</colgroup>
+<thead>
+<tr>
+<th class="tableblock halign-left valign-top">Name</th>
+<th class="tableblock halign-left valign-top">Value</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td class="tableblock halign-left valign-top"><p class="tableblock">groupId</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">org.terasoluna.batch.sample</p></td>
+</tr>
+<tr>
+<td class="tableblock halign-left valign-top"><p class="tableblock">artifactId</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">asyncbatch</p></td>
+</tr>
+<tr>
+<td class="tableblock halign-left valign-top"><p class="tableblock">version</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">1.0-SNAPSHOT</p></td>
+</tr>
+<tr>
+<td class="tableblock halign-left valign-top"><p class="tableblock">package</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">org.terasoluna.batch.sample</p></td>
+</tr>
+</tbody>
+</table>
+<div class="paragraph">
+<p>A job registered from the beginning for a blank project is used for convenience of explanation.</p>
+</div>
+<table class="tableblock frame-all grid-all spread">
+<caption class="title">Job used for explanation</caption>
+<colgroup>
+<col style="width: 20%;">
+<col style="width: 80%;">
+</colgroup>
+<thead>
+<tr>
+<th class="tableblock halign-left valign-top">Name</th>
+<th class="tableblock halign-left valign-top">Description</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td class="tableblock halign-left valign-top"><p class="tableblock">Job name</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">job01</p></td>
+</tr>
+<tr>
+<td class="tableblock halign-left valign-top"><p class="tableblock">Job parameter</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">param1=value1</p></td>
+</tr>
+</tbody>
+</table>
+<div class="admonitionblock caution">
+<table>
+<tr>
+<td class="icon">
+<i class="fa icon-caution" title="Caution"></i>
+</td>
+<td class="content">
+<div class="title">Precautions for asynchronous execution (Web container) job design</div>
+<div class="paragraph">
+<p>Individual jobs are completed in a short period of time as a characteristic of asynchronous execution (Web container)
+ and are operated in a stateless manner on the Web container.<br>
+Further, it is necessary to build a job definition with only a single step to avoid complexity and it is desirable not
+ to define flow branching by using exit codes of step and parallel/multiple processing.</p>
+</div>
+</td>
+</tr>
+</table>
+</div>
+<div class="paragraph">
+<p>Create a Web application as a state wherein a jar file including a job implementation can be created.</p>
+</div>
+<div class="paragraph">
+<div class="title">Implementation of Web application</div>
+<p>How to implement a Web application is explained by using a blank project offered by TERASOLUNA Server 5.x.
+For details, refer TERASOLUNA Server 5.x Development Guideline
+<a href="http://terasolunaorg.github.io/guideline/5.3.0.RELEASE/en/ImplementationAtEachLayer/CreateWebApplicationProject.html">Creating a development project for Web application</a>.</p>
+</div>
+<div class="paragraph">
+<p>Here, similar to asynchronous execution application project, it is assumed that the project is created with the following values.</p>
+</div>
+<table class="tableblock frame-all grid-all spread">
+<caption class="title">Example of Web container project creation</caption>
+<colgroup>
+<col style="width: 20%;">
+<col style="width: 80%;">
+</colgroup>
+<thead>
+<tr>
+<th class="tableblock halign-left valign-top">Name</th>
+<th class="tableblock halign-left valign-top">Value</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td class="tableblock halign-left valign-top"><p class="tableblock">groupId</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">org.terasoluna.batch.sample</p></td>
+</tr>
+<tr>
+<td class="tableblock halign-left valign-top"><p class="tableblock">artifactId</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">asyncapp</p></td>
+</tr>
+<tr>
+<td class="tableblock halign-left valign-top"><p class="tableblock">version</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">1.0-SNAPSHOT</p></td>
+</tr>
+<tr>
+<td class="tableblock halign-left valign-top"><p class="tableblock">package</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">org.terasoluna.batch.sample</p></td>
+</tr>
+</tbody>
+</table>
+<div class="admonitionblock tip">
+<table>
+<tr>
+<td class="icon">
+<i class="fa icon-tip" title="Tip"></i>
+</td>
+<td class="content">
+<div class="title">About naming of groupId</div>
+<div class="paragraph">
+<p>Although naming a project is optional, when a batch application as a Maven multiproject is considered as a sub-module,
+it is easy to manage if <code>groupId</code> is integrated.<br>
+Here, <code>groupId</code> of both is considered as <code>org.terasoluna.batch.sample</code>.</p>
+</div>
+</td>
+</tr>
+</table>
+</div>
+</div>
+<div class="sect2">
+<h3 id="Ch04_AsyncJobWithWeb_HowToUse_Config"><a class="anchor" href="#Ch04_AsyncJobWithWeb_HowToUse_Config"></a>Various settings</h3>
+<div class="paragraph">
+<div class="title">Include batch application as a part of Web application</div>
+<p>Edit pom.xml and include batch application as a part of Web application.</p>
+</div>
+<div class="admonitionblock caution">
+<table>
+<tr>
+<td class="icon">
+<i class="fa icon-caution" title="Caution"></i>
+</td>
+<td class="content">
+<div class="paragraph">
+<p>This procedure is unnecessary if you register a batch application as <code>jar</code> in NEXUS or Maven local repository
+and make it as a separate project from the web application.<br>
+However, be aware that the target built by Maven is a different project, and even if you modify the batch application, it will not be reflected when
+building the web application.</p>
+</div>
+</td>
+</tr>
+</table>
+</div>
+<div class="imageblock">
+<div class="content">
+<img src="./images/Ch04_AsyncJobWithWebContainer_DirectoryStructure.png" alt="directory structure">
+</div>
+<div class="title">Directory structure</div>
+</div>
+<div class="listingblock">
+<div class="title">asyncapp/pom.xml</div>
+<div class="content">
+<pre class="CodeRay highlight"><code data-lang="xml"><span class="tag">&lt;project&gt;</span>
+  <span class="comment">&lt;!-- omitted --&gt;</span>
+  <span class="tag">&lt;modules&gt;</span>
+    <span class="tag">&lt;module&gt;</span>asyncapp-domain<span class="tag">&lt;/module&gt;</span>
+    <span class="tag">&lt;module&gt;</span>asyncapp-env<span class="tag">&lt;/module&gt;</span>
+    <span class="tag">&lt;module&gt;</span>asyncapp-initdb<span class="tag">&lt;/module&gt;</span>
+    <span class="tag">&lt;module&gt;</span>asyncapp-web<span class="tag">&lt;/module&gt;</span>
+    <span class="tag">&lt;module&gt;</span>asyncapp-selenium<span class="tag">&lt;/module&gt;</span>
+    <span class="tag">&lt;module&gt;</span>asyncbatch<span class="tag">&lt;/module&gt;</span> <span class="comment">&lt;!-- (1) --&gt;</span>
+  <span class="tag">&lt;/modules&gt;</span>
+<span class="tag">&lt;/project&gt;</span></code></pre>
+</div>
+</div>
+<div class="listingblock">
+<div class="title">asyncapp/asyncbatch/pom.xml</div>
+<div class="content">
+<pre class="CodeRay highlight"><code data-lang="xml"><span class="tag">&lt;project&gt;</span>
+  <span class="tag">&lt;modelVersion&gt;</span>4.0.0<span class="tag">&lt;/modelVersion&gt;</span>
+  <span class="tag">&lt;groupId&gt;</span>org.terasoluna.batch.sample<span class="tag">&lt;/groupId&gt;</span> <span class="comment">&lt;!-- (2) --&gt;</span>
+  <span class="tag">&lt;artifactId&gt;</span>asyncbatch<span class="tag">&lt;/artifactId&gt;</span>
+  <span class="tag">&lt;version&gt;</span>1.0-SNAPSHOT<span class="tag">&lt;/version&gt;</span> <span class="comment">&lt;!-- (2) --&gt;</span>
+  <span class="comment">&lt;!-- (1) --&gt;</span>
+  <span class="tag">&lt;parent&gt;</span>
+    <span class="tag">&lt;groupId&gt;</span>org.terasoluna.batch.sample<span class="tag">&lt;/groupId&gt;</span>
+    <span class="tag">&lt;artifactId&gt;</span>asyncapp<span class="tag">&lt;/artifactId&gt;</span>
+    <span class="tag">&lt;version&gt;</span>1.0-SNAPSHOT<span class="tag">&lt;/version&gt;</span>
+    <span class="tag">&lt;relativePath&gt;</span>../pom.xml<span class="tag">&lt;/relativePath&gt;</span>
+  <span class="tag">&lt;/parent&gt;</span>
+  <span class="comment">&lt;!-- omitted --&gt;</span>
+<span class="tag">&lt;/project&gt;</span></code></pre>
+</div>
+</div>
+<table class="tableblock frame-all grid-all spread">
+<caption class="title">Deleted / added contents</caption>
+<colgroup>
+<col style="width: 10%;">
+<col style="width: 90%;">
+</colgroup>
+<thead>
+<tr>
+<th class="tableblock halign-left valign-top">Sr. No.</th>
+<th class="tableblock halign-left valign-top">Description</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td class="tableblock halign-left valign-top"><p class="tableblock">(1)</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">Add settings for considering the Web application as a parent and batch application as a child.</p></td>
+</tr>
+<tr>
+<td class="tableblock halign-left valign-top"><p class="tableblock">(2)</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">Delete unnecessary description with deletion of child or sub-module.</p></td>
+</tr>
+</tbody>
+</table>
+<div class="paragraph">
+<div class="title">Addition of dependent library</div>
+<p>Add a batch application as a dependent library of Web application.</p>
+</div>
+<div class="listingblock">
+<div class="title">asyncapp/async-web/pom.xml</div>
+<div class="content">
+<pre class="CodeRay highlight"><code data-lang="xml"><span class="tag">&lt;project&gt;</span>
+  <span class="comment">&lt;!-- omitted --&gt;</span>
+  <span class="tag">&lt;dependencies&gt;</span>
+  <span class="comment">&lt;!-- (1) --&gt;</span>
+    <span class="tag">&lt;dependency&gt;</span>
+        <span class="tag">&lt;groupId&gt;</span>${project.groupId}<span class="tag">&lt;/groupId&gt;</span>
+        <span class="tag">&lt;artifactId&gt;</span>asyncbatch<span class="tag">&lt;/artifactId&gt;</span>
+        <span class="tag">&lt;version&gt;</span>${project.version}<span class="tag">&lt;/version&gt;</span>
+    <span class="tag">&lt;/dependency&gt;</span>
+    <span class="comment">&lt;!-- omitted --&gt;</span>
+  <span class="tag">&lt;/dependencies&gt;</span>
+  <span class="comment">&lt;!-- omitted --&gt;</span>
+<span class="tag">&lt;/project&gt;</span></code></pre>
+</div>
+</div>
+<table class="tableblock frame-all grid-all spread">
+<caption class="title">Details added</caption>
+<colgroup>
+<col style="width: 10%;">
+<col style="width: 90%;">
+</colgroup>
+<thead>
+<tr>
+<th class="tableblock halign-left valign-top">Sr. No.</th>
+<th class="tableblock halign-left valign-top">Description</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td class="tableblock halign-left valign-top"><p class="tableblock">(1)</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">Add a batch application as a dependent library of Web application.</p></td>
+</tr>
+</tbody>
+</table>
+</div>
+<div class="sect2">
+<h3 id="Ch04_AsyncJobWithWeb_HowToUse_WebApp"><a class="anchor" href="#Ch04_AsyncJobWithWeb_HowToUse_WebApp"></a>Implementation of Web application</h3>
+<div class="paragraph">
+<p>Here, a RESTful Web service is created as a Web application using TERASOLUNA Server 5.x Development Guideline as a reference below.</p>
+</div>
+<div class="paragraph">
+<p>Setting for enabling Spring MVC component which is necessary for <a href="http://terasolunaorg.github.io/guideline/5.3.0.RELEASE/en/ArchitectureInDetail/WebServiceDetail/REST.html">RESTful Web Service</a></p>
+</div>
+<div class="sect3">
+<h4 id="Ch04_AsyncJobWithWeb_HowToUse_WebApp_Config"><a class="anchor" href="#Ch04_AsyncJobWithWeb_HowToUse_WebApp_Config"></a>Web application settings</h4>
+<div class="paragraph">
+<p>At first, add, delete and edit various configuration files from the blank project of Web application.</p>
+</div>
+<div class="admonitionblock note">
+<table>
+<tr>
+<td class="icon">
+<i class="fa icon-note" title="Note"></i>
+</td>
+<td class="content">
+<div class="paragraph">
+<p>For the explanation, an implementation which use RESTful Web Service as an implementation status of batch application is given.<br>
+Procedure will be same even when conventional Web application (Servlet/JSP) or SOAP is used. Read accordingly.</p>
+</div>
+</td>
+</tr>
+</table>
+</div>
+<div class="imageblock">
+<div class="content">
+<img src="./images/Ch04_AsyncJobWithWebContainer_AppendBeanDefinitionsOnBlank.png" alt="AppendBeanDefinitionsOnBlank">
+</div>
+<div class="title">Bean definition file to be added/deleted from a blank project</div>
+</div>
+<table class="tableblock frame-all grid-all spread">
+<caption class="title">Bean definition file to be added/deleted</caption>
+<colgroup>
+<col style="width: 10%;">
+<col style="width: 90%;">
+</colgroup>
+<thead>
+<tr>
+<th class="tableblock halign-left valign-top">Sr. No.</th>
+<th class="tableblock halign-left valign-top">Description</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td class="tableblock halign-left valign-top"><p class="tableblock">(1)</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">Since (2) is created, delete spring-mvc.xml as it is not required.</p></td>
+</tr>
+<tr>
+<td class="tableblock halign-left valign-top"><p class="tableblock">(2)</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">Create spring-mvc-rest.xml for RESTful Web Service. Description example of the required definition is shown below.</p></td>
+</tr>
+</tbody>
+</table>
+<div class="listingblock">
+<div class="title">Description example of asyncapp/asyncapp-web/src/main/resources/META-INF/spring/spring-mvc-rest.xml</div>
+<div class="content">
+<pre class="CodeRay highlight"><code data-lang="xml"><span class="comment">&lt;!-- omitted --&gt;</span>
+<span class="comment">&lt;!-- (1) --&gt;</span>
+<span class="tag">&lt;import</span> <span class="attribute-name">resource</span>=<span class="string"><span class="delimiter">&quot;</span><span class="content">classpath:META-INF/spring/launch-context.xml</span><span class="delimiter">&quot;</span></span><span class="tag">/&gt;</span>
+
+<span class="tag">&lt;bean</span> <span class="attribute-name">id</span>=<span class="string"><span class="delimiter">&quot;</span><span class="content">jsonMessageConverter</span><span class="delimiter">&quot;</span></span>
+      <span class="attribute-name">class</span>=<span class="string"><span class="delimiter">&quot;</span><span class="content">org.springframework.http.converter.json.MappingJackson2HttpMessageConverter</span><span class="delimiter">&quot;</span></span>
+      <span class="attribute-name">p:objectMapper-ref</span>=<span class="string"><span class="delimiter">&quot;</span><span class="content">objectMapper</span><span class="delimiter">&quot;</span></span><span class="tag">/&gt;</span>
+
+<span class="tag">&lt;bean</span> <span class="attribute-name">id</span>=<span class="string"><span class="delimiter">&quot;</span><span class="content">objectMapper</span><span class="delimiter">&quot;</span></span>
+      <span class="attribute-name">class</span>=<span class="string"><span class="delimiter">&quot;</span><span class="content">org.springframework.http.converter.json.Jackson2ObjectMapperFactoryBean</span><span class="delimiter">&quot;</span></span><span class="tag">&gt;</span>
+  <span class="tag">&lt;property</span> <span class="attribute-name">name</span>=<span class="string"><span class="delimiter">&quot;</span><span class="content">dateFormat</span><span class="delimiter">&quot;</span></span><span class="tag">&gt;</span>
+      <span class="tag">&lt;bean</span> <span class="attribute-name">class</span>=<span class="string"><span class="delimiter">&quot;</span><span class="content">com.fasterxml.jackson.databind.util.StdDateFormat</span><span class="delimiter">&quot;</span></span><span class="tag">/&gt;</span>
+  <span class="tag">&lt;/property&gt;</span>
+<span class="tag">&lt;/bean&gt;</span>
+
+<span class="tag">&lt;mvc:annotation-driven&gt;</span>
+  <span class="tag">&lt;mvc:message-converters</span> <span class="attribute-name">register-defaults</span>=<span class="string"><span class="delimiter">&quot;</span><span class="content">false</span><span class="delimiter">&quot;</span></span><span class="tag">&gt;</span>
+    <span class="tag">&lt;ref</span> <span class="attribute-name">bean</span>=<span class="string"><span class="delimiter">&quot;</span><span class="content">jsonMessageConverter</span><span class="delimiter">&quot;</span></span><span class="tag">/&gt;</span>
+  <span class="tag">&lt;/mvc:message-converters&gt;</span>
+<span class="tag">&lt;/mvc:annotation-driven&gt;</span>
+
+<span class="tag">&lt;mvc:default-servlet-handler</span><span class="tag">/&gt;</span>
+
+<span class="comment">&lt;!-- (2) --&gt;</span>
+<span class="tag">&lt;context:component-scan</span> <span class="attribute-name">base-package</span>=<span class="string"><span class="delimiter">&quot;</span><span class="content">org.terasoluna.batch.sample.app.api</span><span class="delimiter">&quot;</span></span><span class="tag">/&gt;</span>
+
+<span class="comment">&lt;!-- (3) --&gt;</span>
+<span class="tag">&lt;bean</span> <span class="attribute-name">class</span>=<span class="string"><span class="delimiter">&quot;</span><span class="content">org.springframework.batch.core.configuration.support.AutomaticJobRegistrar</span><span class="delimiter">&quot;</span></span><span class="tag">&gt;</span>
+    <span class="tag">&lt;property</span> <span class="attribute-name">name</span>=<span class="string"><span class="delimiter">&quot;</span><span class="content">applicationContextFactories</span><span class="delimiter">&quot;</span></span><span class="tag">&gt;</span>
+        <span class="tag">&lt;bean</span> <span class="attribute-name">class</span>=<span class="string"><span class="delimiter">&quot;</span><span class="content">org.springframework.batch.core.configuration.support.ClasspathXmlApplicationContextsFactoryBean</span><span class="delimiter">&quot;</span></span><span class="tag">&gt;</span>
+            <span class="tag">&lt;property</span> <span class="attribute-name">name</span>=<span class="string"><span class="delimiter">&quot;</span><span class="content">resources</span><span class="delimiter">&quot;</span></span><span class="tag">&gt;</span>
+                <span class="tag">&lt;list&gt;</span>
+                  <span class="tag">&lt;value&gt;</span>classpath:/META-INF/jobs/**/*.xml<span class="tag">&lt;/value&gt;</span>
+                <span class="tag">&lt;/list&gt;</span>
+            <span class="tag">&lt;/property&gt;</span>
+        <span class="tag">&lt;/bean&gt;</span>
+    <span class="tag">&lt;/property&gt;</span>
+    <span class="tag">&lt;property</span> <span class="attribute-name">name</span>=<span class="string"><span class="delimiter">&quot;</span><span class="content">jobLoader</span><span class="delimiter">&quot;</span></span><span class="tag">&gt;</span>
+        <span class="tag">&lt;bean</span> <span class="attribute-name">class</span>=<span class="string"><span class="delimiter">&quot;</span><span class="content">org.springframework.batch.core.configuration.support.DefaultJobLoader</span><span class="delimiter">&quot;</span></span>
+              <span class="attribute-name">p:jobRegistry-ref</span>=<span class="string"><span class="delimiter">&quot;</span><span class="content">jobRegistry</span><span class="delimiter">&quot;</span></span><span class="tag">/&gt;</span>
+    <span class="tag">&lt;/property&gt;</span>
+<span class="tag">&lt;/bean&gt;</span>
+
+<span class="comment">&lt;!-- (4) --&gt;</span>
+<span class="tag">&lt;task:executor</span> <span class="attribute-name">id</span>=<span class="string"><span class="delimiter">&quot;</span><span class="content">taskExecutor</span><span class="delimiter">&quot;</span></span> <span class="attribute-name">pool-size</span>=<span class="string"><span class="delimiter">&quot;</span><span class="content">3</span><span class="delimiter">&quot;</span></span> <span class="attribute-name">queue-capacity</span>=<span class="string"><span class="delimiter">&quot;</span><span class="content">10</span><span class="delimiter">&quot;</span></span><span class="tag">/&gt;</span>
+
+<span class="comment">&lt;!-- (5) --&gt;</span>
+<span class="tag">&lt;bean</span> <span class="attribute-name">id</span>=<span class="string"><span class="delimiter">&quot;</span><span class="content">jobLauncher</span><span class="delimiter">&quot;</span></span> <span class="attribute-name">class</span>=<span class="string"><span class="delimiter">&quot;</span><span class="content">org.springframework.batch.core.launch.support.SimpleJobLauncher</span><span class="delimiter">&quot;</span></span>
+      <span class="attribute-name">p:jobRepository-ref</span>=<span class="string"><span class="delimiter">&quot;</span><span class="content">jobRepository</span><span class="delimiter">&quot;</span></span>
+      <span class="attribute-name">p:taskExecutor-ref</span>=<span class="string"><span class="delimiter">&quot;</span><span class="content">taskExecutor</span><span class="delimiter">&quot;</span></span><span class="tag">/&gt;</span>
+<span class="comment">&lt;!-- omitted --&gt;</span></code></pre>
+</div>
+</div>
+<div class="listingblock">
+<div class="title">Description example of asyncapp/asyncapp-web/src/main/webapp/WEB-INF/web.xml</div>
+<div class="content">
+<pre class="CodeRay highlight"><code data-lang="xml"><span class="comment">&lt;!-- omitted --&gt;</span>
+<span class="tag">&lt;servlet&gt;</span>
+    <span class="tag">&lt;servlet-name&gt;</span>restApiServlet<span class="tag">&lt;/servlet-name&gt;</span>
+    <span class="tag">&lt;servlet-class&gt;</span>org.springframework.web.servlet.DispatcherServlet<span class="tag">&lt;/servlet-class&gt;</span>
+    <span class="tag">&lt;init-param&gt;</span>
+        <span class="tag">&lt;param-name&gt;</span>contextConfigLocation<span class="tag">&lt;/param-name&gt;</span>
+        <span class="comment">&lt;!-- (6) --&gt;</span>
+        <span class="tag">&lt;param-value&gt;</span>classpath*:META-INF/spring/spring-mvc-rest.xml<span class="tag">&lt;/param-value&gt;</span>
+    <span class="tag">&lt;/init-param&gt;</span>
+    <span class="comment">&lt;!-- (7) --&gt;</span>
+    <span class="tag">&lt;init-param&gt;</span>
+        <span class="tag">&lt;param-name&gt;</span>spring.profiles.active<span class="tag">&lt;/param-name&gt;</span>
+        <span class="tag">&lt;param-value&gt;</span>async<span class="tag">&lt;/param-value&gt;</span>
+    <span class="tag">&lt;/init-param&gt;</span>
+    <span class="tag">&lt;load-on-startup&gt;</span>1<span class="tag">&lt;/load-on-startup&gt;</span>
+<span class="tag">&lt;/servlet&gt;</span>
+
+<span class="tag">&lt;servlet-mapping&gt;</span>
+    <span class="tag">&lt;servlet-name&gt;</span>restApiServlet<span class="tag">&lt;/servlet-name&gt;</span>
+    <span class="tag">&lt;url-pattern&gt;</span>/api/v1/*<span class="tag">&lt;/url-pattern&gt;</span>
+<span class="tag">&lt;/servlet-mapping&gt;</span>
+<span class="comment">&lt;!-- omitted --&gt;</span></code></pre>
+</div>
+</div>
+<table class="tableblock frame-all grid-all spread">
+<caption class="title">RESTful Web Service validation example</caption>
+<colgroup>
+<col style="width: 10%;">
+<col style="width: 90%;">
+</colgroup>
+<thead>
+<tr>
+<th class="tableblock halign-left valign-top">Sr. No.</th>
+<th class="tableblock halign-left valign-top">Description</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td class="tableblock halign-left valign-top"><p class="tableblock">(1)</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">Import <code>launch-context.xml</code> which is in the batch application and incorporate required Bean definition.</p></td>
+</tr>
+<tr>
+<td class="tableblock halign-left valign-top"><p class="tableblock">(2)</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">Describe package for dynamically scanning the controller.</p></td>
+</tr>
+<tr>
+<td class="tableblock halign-left valign-top"><p class="tableblock">(3)</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">Describe a Bean definition of <code>AutomaticJobRegistrar</code> which dynamically loads as a child or sub context by modularizing each Bean definition file.</p></td>
+</tr>
+<tr>
+<td class="tableblock halign-left valign-top"><p class="tableblock">(4)</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">Define <code>TaskExecutor</code> which executes the job asynchronously.<br>
+Asynchronous execution can be performed by setting <code>AsyncTaskExecutor</code> implementation class in <code>TaskExecutor</code> of JobLauncher.
+Use <code>ThreadPoolTaskExecutor</code> which is one of the components of <code>AsyncTaskExecutor</code> implementation class.</p>
+<p class="tableblock">Further, multiplicity of threads which can be operated in parallel can be specified.<br>
+In this example, 3 threads are assigned to the job execution and requests exceeding this number are queued upto 10.
+Queued job is in "not started" state, however REST request is considered to be successful.
+In addition, <code>org.springframework.core.task.TaskRejectedException</code> occurs when request for a job exceeds the upper limit of queuing
+and the job start request is rejected.</p></td>
+</tr>
+<tr>
+<td class="tableblock halign-left valign-top"><p class="tableblock">(5)</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">Override <code>jobLauncher</code> defined in <code>launch-context.xml</code> to enable <code>taskExecutor</code> of (4).</p></td>
+</tr>
+<tr>
+<td class="tableblock halign-left valign-top"><p class="tableblock">(6)</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">Specify <code>spring-mvc-rest.xml</code> described above as a Bean definition<br>
+read by <code>DispatcherServlet</code>.</p></td>
+</tr>
+<tr>
+<td class="tableblock halign-left valign-top"><p class="tableblock">(7)</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">Specify <code>async</code> which shows an asynchronous batch, as a profile of Spring Framework.</p></td>
+</tr>
+</tbody>
+</table>
+<div class="admonitionblock warning">
+<table>
+<tr>
+<td class="icon">
+<i class="fa icon-warning" title="Warning"></i>
+</td>
+<td class="content">
+<div class="title">When async profile is not specified</div>
+<div class="paragraph">
+<p>In this case, a Bean defined in <code>launch-context.xml</code> which should be shared across Web applications is duplicated for each job.<br>
+Even in case of duplication, since the operation takes place at the functional level, it is difficult to notice an error and it may result in unexpected resource exhaustion and performance degradation.
+Must be specified.</p>
+</div>
+</td>
+</tr>
+</table>
+</div>
+<div class="admonitionblock caution">
+<table>
+<tr>
+<td class="icon">
+<i class="fa icon-caution" title="Caution"></i>
+</td>
+<td class="content">
+<div class="title">Thread pool sizing</div>
+<div class="paragraph">
+<p>When the upper limit of thread pool is in excess, an enormous amount of jobs run in parallel resulting
+in deterioration of entire thread pool.
+Sizing should be done and appropriate upper value must be determined.<br>
+Besides thread pool of asynchronous execution, request thread of Web container and
+other applications working in the same enclosure must also be considered.</p>
+</div>
+<div class="paragraph">
+<p>Further, a separate request must be sent from Web client for checking occurrence of <code>TaskRejectException</code> due to
+thread pool exhaustion and its re-execution.
+Hence, <code>queue-capacity</code> which waits for job to start must be set at the time of thread pool exhaustion.</p>
+</div>
+</td>
+</tr>
+</table>
+</div>
+<div class="paragraph">
+<div class="title">Implementation of RESTful Web Service API</div>
+<p>Here, "Running a job" and "Job status check" are defined as 2 examples of requests used in REST API.</p>
+</div>
+<table class="tableblock frame-all grid-all spread">
+<caption class="title">REST API Definition example</caption>
+<colgroup>
+<col style="width: 5%;">
+<col style="width: 15%;">
+<col style="width: 25%;">
+<col style="width: 10%;">
+<col style="width: 15%;">
+<col style="width: 10%;">
+<col style="width: 20%;">
+</colgroup>
+<thead>
+<tr>
+<th class="tableblock halign-left valign-top">Sr.No.</th>
+<th class="tableblock halign-left valign-top">API</th>
+<th class="tableblock halign-left valign-top">Path</th>
+<th class="tableblock halign-left valign-top">HTTP method</th>
+<th class="tableblock halign-left valign-top">Request/Response</th>
+<th class="tableblock halign-left valign-top">Message format</th>
+<th class="tableblock halign-left valign-top">Message details</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td class="tableblock halign-left valign-top" rowspan="2"><p class="tableblock">(1)</p></td>
+<td class="tableblock halign-left valign-top" rowspan="2"><p class="tableblock">Running a job</p></td>
+<td class="tableblock halign-left valign-top" rowspan="2"><p class="tableblock">/api/v1/job/<em>Job name</em></p></td>
+<td class="tableblock halign-left valign-top" rowspan="2"><p class="tableblock">POST</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">Request</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">JSON</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">Job parameter</p></td>
+</tr>
+<tr>
+<td class="tableblock halign-left valign-top"><p class="tableblock">Response</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">JSON</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">Job execution ID<br>
+Job name<br>
+Message</p></td>
+</tr>
+<tr>
+<td class="tableblock halign-left valign-top" rowspan="2"><p class="tableblock">(2)</p></td>
+<td class="tableblock halign-left valign-top" rowspan="2"><p class="tableblock">Job execution status check</p></td>
+<td class="tableblock halign-left valign-top" rowspan="2"><p class="tableblock">/api/v1/job/<em>Job execution ID</em></p></td>
+<td class="tableblock halign-left valign-top" rowspan="2"><p class="tableblock">GET</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">Request</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">N/A</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">N/A</p></td>
+</tr>
+<tr>
+<td class="tableblock halign-left valign-top"><p class="tableblock">Response</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">JSON</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">Job execution ID<br>
+Job name<br>
+Job execution status<br>
+Job exit code<br>
+Step execution ID<br>
+Step name<br>
+Step exit code</p></td>
+</tr>
+</tbody>
+</table>
+</div>
+<div class="sect3">
+<h4 id="Ch04_AsyncJobWithWeb_HowToUse_WebApp_JavaBeans"><a class="anchor" href="#Ch04_AsyncJobWithWeb_HowToUse_WebApp_JavaBeans"></a>Implementation of JavaBeans used in Controller</h4>
+<div class="paragraph">
+<p>Create following 3 classes that are returned to REST client as JSON message.</p>
+</div>
+<div class="ulist">
+<ul>
+<li>
+<p>Job run operation <code><code>JobOperationResource</code></code></p>
+</li>
+<li>
+<p>Job execution status <code><code>JobExecutionResource</code></code></p>
+</li>
+<li>
+<p>Step execution status <code>StepExecutionResource</code></p>
+</li>
+</ul>
+</div>
+<div class="paragraph">
+<p>These classes are implementations for reference except for job execution ID  (<code>job execution id</code>) of <code>JobOperationResource</code> and implementation of field is optional.</p>
+</div>
+<div class="listingblock">
+<div class="title">Implementation example of job run operation information</div>
+<div class="content">
+<pre class="CodeRay highlight"><code data-lang="java"><span class="comment">// asyncapp/asyncapp-web/src/main/java/org/terasoluna/batch/sample/app/api/jobinfo/JobOperationResource.java</span>
+<span class="keyword">package</span> <span class="namespace">org.terasoluna.batch.sample.app.api.jobinfo</span>;
+
+<span class="directive">public</span> <span class="type">class</span> <span class="class">JobOperationResource</span> {
+
+    <span class="directive">private</span> <span class="predefined-type">String</span> jobName = <span class="predefined-constant">null</span>;
+
+    <span class="directive">private</span> <span class="predefined-type">String</span> jobParams = <span class="predefined-constant">null</span>;
+
+    <span class="directive">private</span> <span class="predefined-type">Long</span> jobExecutionId = <span class="predefined-constant">null</span>;
+
+    <span class="directive">private</span> <span class="predefined-type">String</span> errorMessage = <span class="predefined-constant">null</span>;
+
+    <span class="directive">private</span> <span class="exception">Exception</span> error = <span class="predefined-constant">null</span>;
+
+    <span class="comment">// Getter and setter are omitted.</span>
+}</code></pre>
+</div>
+</div>
+<div class="listingblock">
+<div class="title">Implementation example of job execution information</div>
+<div class="content">
+<pre class="CodeRay highlight"><code data-lang="java"><span class="comment">// asyncapp/asyncapp-web/src/main/java/org/terasoluna/batch/sample/app/api/jobinfo/JobExecutionResource.java</span>
+<span class="keyword">package</span> <span class="namespace">org.terasoluna.batch.sample.app.api.jobinfo</span>;
+
+<span class="comment">// omitted.</span>
+
+<span class="directive">public</span> <span class="type">class</span> <span class="class">JobExecutionResource</span> {
+
+    <span class="directive">private</span> <span class="predefined-type">Long</span> jobExecutionId = <span class="predefined-constant">null</span>;
+
+    <span class="directive">private</span> <span class="predefined-type">String</span> jobName = <span class="predefined-constant">null</span>;
+
+    <span class="directive">private</span> <span class="predefined-type">Long</span> stepExecutionId = <span class="predefined-constant">null</span>;
+
+    <span class="directive">private</span> <span class="predefined-type">String</span> stepName = <span class="predefined-constant">null</span>;
+
+    <span class="directive">private</span> <span class="predefined-type">List</span>&lt;StepExecutionResource&gt; stepExecutions = <span class="keyword">new</span> <span class="predefined-type">ArrayList</span>&lt;&gt;();
+
+    <span class="directive">private</span> <span class="predefined-type">String</span> status = <span class="predefined-constant">null</span>;
+
+    <span class="directive">private</span> <span class="predefined-type">String</span> exitStatus = <span class="predefined-constant">null</span>;
+
+    <span class="directive">private</span> <span class="predefined-type">String</span> errorMessage;
+
+    <span class="directive">private</span> <span class="predefined-type">List</span>&lt;<span class="predefined-type">String</span>&gt; failureExceptions = <span class="keyword">new</span> <span class="predefined-type">ArrayList</span>&lt;&gt;();
+
+    <span class="comment">// Getter and setter are omitted.</span>
+}</code></pre>
+</div>
+</div>
+<div class="listingblock">
+<div class="title">Implementation example of step execution information</div>
+<div class="content">
+<pre class="CodeRay highlight"><code data-lang="java"><span class="comment">// asyncapp/asyncapp-web/src/main/java/org/terasoluna/batch/sample/app/api/jobinfo/StepExecutionResource.java</span>
+<span class="keyword">package</span> <span class="namespace">org.terasoluna.batch.sample.app.api.jobinfo</span>;
+
+<span class="directive">public</span> <span class="type">class</span> <span class="class">StepExecutionResource</span> {
+
+  <span class="directive">private</span> <span class="predefined-type">Long</span> stepExecutionId = <span class="predefined-constant">null</span>;
+
+  <span class="directive">private</span> <span class="predefined-type">String</span> stepName = <span class="predefined-constant">null</span>;
+
+  <span class="directive">private</span> <span class="predefined-type">String</span> status = <span class="predefined-constant">null</span>;
+
+  <span class="directive">private</span> <span class="predefined-type">List</span>&lt;<span class="predefined-type">String</span>&gt; failureExceptions = <span class="keyword">new</span> <span class="predefined-type">ArrayList</span>&lt;&gt;();
+
+    <span class="comment">// Getter and setter are omitted.</span>
+}</code></pre>
+</div>
+</div>
+</div>
+<div class="sect3">
+<h4 id="Ch04_AsyncJobWithWeb_HowToUse_WebApp_Controller"><a class="anchor" href="#Ch04_AsyncJobWithWeb_HowToUse_WebApp_Controller"></a>Implementation of controller</h4>
+<div class="paragraph">
+<p>A controller of RESTful Web Service is implemented by using <code>@RestController</code>.<br>
+In order to simplify, <code>JobOperator</code> is injected in the controller and the jobs are run and execution statuses are fetched.
+Of course, <code>JobOperator</code> can also be started by using Service from the controller in accordance with TERASOLUNA Server 5.x.</p>
+</div>
+<div class="admonitionblock tip">
+<table>
+<tr>
+<td class="icon">
+<i class="fa icon-tip" title="Tip"></i>
+</td>
+<td class="content">
+<div class="title">About job parameters that are passed at the time of running a job</div>
+<div class="paragraph">
+<p>The job parameter passed in the second argument of <code>JobOperator#start()</code> at running a job is <code>String</code>.
+When there are multiple job parameters, they should be separated by using a comma unlike <code>CommandLineJobRunner</code> of synchronous execution.
+Basically the format is as below.<br>
+<code>{Job parameter 1}={Value 1},{Job parameter 2}={Value 2},&#8230;&#8203;</code></p>
+</div>
+<div class="paragraph">
+<p>This is same as the method of specifying job parameters in <a href="Ch04_AsyncJobWithDB.html#Ch04_AsyncJobWithDB">"Asynchronous execution (DB polling)"</a>.</p>
+</div>
+</td>
+</tr>
+</table>
+</div>
+<div class="listingblock">
+<div class="title">Example of implementing a controller</div>
+<div class="content">
+<pre class="CodeRay highlight"><code data-lang="java"><span class="comment">// asyncapp/asyncapp-web/src/main/java/org/terasoluna/batch/sample/app/api/JobController.java</span>
+<span class="keyword">package</span> <span class="namespace">org.terasoluna.batch.sample.app.api</span>;
+
+<span class="comment">// omitted.</span>
+
+<span class="comment">// (1)</span>
+<span class="annotation">@RequestMapping</span>(<span class="string"><span class="delimiter">&quot;</span><span class="content">job</span><span class="delimiter">&quot;</span></span>)
+<span class="annotation">@RestController</span>
+<span class="directive">public</span> <span class="type">class</span> <span class="class">JobController</span> {
+
+    <span class="comment">// (2)</span>
+    <span class="annotation">@Inject</span>
+    JobOperator jobOperator;
+
+    <span class="comment">// (2)</span>
+    <span class="annotation">@Inject</span>
+    JobExplorer jobExplorer;
+
+    <span class="annotation">@RequestMapping</span>(value = <span class="string"><span class="delimiter">&quot;</span><span class="content">{jobName}</span><span class="delimiter">&quot;</span></span>, method = RequestMethod.POST)
+    <span class="directive">public</span> ResponseEntity&lt;JobOperationResource&gt; launch(<span class="annotation">@PathVariable</span>(<span class="string"><span class="delimiter">&quot;</span><span class="content">jobName</span><span class="delimiter">&quot;</span></span>) <span class="predefined-type">String</span> jobName,
+            <span class="annotation">@RequestBody</span> JobOperationResource requestResource) {
+
+        JobOperationResource responseResource = <span class="keyword">new</span> JobOperationResource();
+        responseResource.setJobName(jobName);
+        <span class="keyword">try</span> {
+            <span class="comment">// (3)</span>
+            <span class="predefined-type">Long</span> jobExecutionId = jobOperator.start(jobName, requestResource.getJobParams());
+            responseResource.setJobExecutionId(jobExecutionId);
+            <span class="keyword">return</span> ResponseEntity.ok().body(responseResource);
+        } <span class="keyword">catch</span> (NoSuchJobException | JobInstanceAlreadyExistsException | JobParametersInvalidException e) {
+            responseResource.setError(e);
+            <span class="keyword">return</span> ResponseEntity.badRequest().body(responseResource);
+        }
+    }
+
+    <span class="annotation">@RequestMapping</span>(value = <span class="string"><span class="delimiter">&quot;</span><span class="content">{jobExecutionId}</span><span class="delimiter">&quot;</span></span>, method = RequestMethod.GET)
+    <span class="annotation">@ResponseStatus</span>(HttpStatus.OK)
+    <span class="directive">public</span> JobExecutionResource getJob(<span class="annotation">@PathVariable</span>(<span class="string"><span class="delimiter">&quot;</span><span class="content">jobExecutionId</span><span class="delimiter">&quot;</span></span>) <span class="predefined-type">Long</span> jobExecutionId) {
+
+        JobExecutionResource responseResource = <span class="keyword">new</span> JobExecutionResource();
+        responseResource.setJobExecutionId(jobExecutionId);
+
+        <span class="comment">// (4)</span>
+        JobExecution jobExecution = jobExplorer.getJobExecution(jobExecutionId);
+
+        <span class="keyword">if</span> (jobExecution == <span class="predefined-constant">null</span>) {
+            responseResource.setErrorMessage(<span class="string"><span class="delimiter">&quot;</span><span class="content">Job execution not found.</span><span class="delimiter">&quot;</span></span>);
+        } <span class="keyword">else</span> {
+            mappingExecutionInfo(jobExecution, responseResource);
+        }
+
+        <span class="keyword">return</span> responseResource;
+    }
+
+    <span class="directive">private</span> <span class="type">void</span> mappingExecutionInfo(JobExecution src, JobExecutionResource dest) {
+      dest.setJobName(src.getJobInstance().getJobName());
+      <span class="keyword">for</span> (StepExecution se : src.getStepExecutions()) {
+          StepExecutionResource ser = <span class="keyword">new</span> StepExecutionResource();
+          ser.setStepExecutionId(se.getId());
+          ser.setStepName(se.getStepName());
+          ser.setStatus(se.getStatus().toString());
+          <span class="keyword">for</span> (<span class="predefined-type">Throwable</span> th : se.getFailureExceptions()) {
+              ser.getFailureExceptions().add(th.toString());
+          }
+          dest.getStepExecutions().add(ser);
+      }
+      dest.setStatus(src.getStatus().toString());
+      dest.setExitStatus(src.getExitStatus().toString());
+    }
+}</code></pre>
+</div>
+</div>
+<table class="tableblock frame-all grid-all spread">
+<caption class="title">Implementation of controller</caption>
+<colgroup>
+<col style="width: 10%;">
+<col style="width: 90%;">
+</colgroup>
+<thead>
+<tr>
+<th class="tableblock halign-left valign-top">Sr. No.</th>
+<th class="tableblock halign-left valign-top">Description</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td class="tableblock halign-left valign-top"><p class="tableblock">(1)</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">Specify <code>@RestController</code>.
+Further, when servlet mapping of <code>web.xml</code> is done by using <code>@RequestMapping("job")</code>,
+base path of REST API is <code><em>contextName</em>/api/v1/job/</code>.</p></td>
+</tr>
+<tr>
+<td class="tableblock halign-left valign-top"><p class="tableblock">(2)</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">Describe field injections of <code>JobOperator</code> and <code>JobExplorer</code>.</p></td>
+</tr>
+<tr>
+<td class="tableblock halign-left valign-top"><p class="tableblock">(3)</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">Use <code>JobOperator</code> and start a new asynchronous job.<br>
+Receive job execution ID as a return value and return to REST client.</p></td>
+</tr>
+<tr>
+<td class="tableblock halign-left valign-top"><p class="tableblock">(4)</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">Use <code>JobExplorer</code> and fetch job execution status (<code>JobExecution</code>) based on job execution ID.<br>
+Return it to REST client after converting it to a pre-designed message.</p></td>
+</tr>
+</tbody>
+</table>
+</div>
+<div class="sect3">
+<h4 id="Ch04_AsyncJobWithWeb_HowToUse_WebApp_IntegrationConfig"><a class="anchor" href="#Ch04_AsyncJobWithWeb_HowToUse_WebApp_IntegrationConfig"></a>Integration of Web/batch application module setting</h4>
+<div class="paragraph">
+<p>Batch application module (<code>asyncbatch</code>) operates as a stand-alone application.
+Hence, batch application module (<code>asyncbatch</code>) consists of settings which are in conflict and overlapping with settings of Web application module (<code>asyncapp-web</code>).
+These settings must be integrated as required.</p>
+</div>
+<div class="olist arabic">
+<ol class="arabic">
+<li>
+<p>Integration of log configuration file <code>logback.xml</code><br>
+When multiple Logback definition files are defined in Web/batch, they do not work appropriately.<br>
+The contents of <code>asyncbatch/src/main/resources/logback.xml</code> are integrated into same file in <code>asyncapp-env/src/main/resources/</code> and then the file is deleted.</p>
+</li>
+<li>
+<p>Data source and MyBatis configuration file are not integrated<br>
+Definitions of data source and MyBatis configuration file are not integrated between Web/batch since the definition of application context is independent due to following relation.</p>
+<div class="ulist">
+<ul>
+<li>
+<p><code>asyncbatch</code> module of the batch is defined in the servlet as a closed context.</p>
+</li>
+<li>
+<p><code>asyncapp-domain</code> and <code>asyncapp-env</code> modules of Web are defined as contexts used by entire application.</p>
+</li>
+</ul>
+</div>
+</li>
+</ol>
+</div>
+<div class="admonitionblock caution">
+<table>
+<tr>
+<td class="icon">
+<i class="fa icon-caution" title="Caution"></i>
+</td>
+<td class="content">
+<div class="title">Cross-reference of data source and MyBatis settings by Web and batch modules</div>
+<div class="paragraph">
+<p>Since the scope of context for Web and batch modules is different,
+data source, MyBatis settings and Mapper interface cannot be referred especially from Web module.<br>
+Since initialization of RDBMS schema is also carried out independently based on the different settings of respective
+modules, adequate care must be taken not to perform unintended initialization due to mutual interference.</p>
+</div>
+</td>
+</tr>
+</table>
+</div>
+<div class="admonitionblock important">
+<table>
+<tr>
+<td class="icon">
+<i class="fa icon-important" title="Important"></i>
+</td>
+<td class="content">
+<div class="title">CSRF countermeasures specific to REST controller</div>
+<div class="paragraph">
+<p>When a request is sent for REST controller in the initialization settings of Web blank project, it results in a CSRF
+error and execution of job is rejected.
+Hence, explanation is given here assuming that CSRF countermeasures are disabled by the following method.</p>
+</div>
+<div class="paragraph">
+<p><a href="http://terasolunaorg.github.io/guideline/5.3.0.RELEASE/en/ArchitectureInDetail/WebServiceDetail/REST.html#csrf">CSRF countermeasures</a></p>
+</div>
+<div class="paragraph">
+<p>Web application created here is not published on the internet and CSRF countermeasures are disabled on the premise that
+REST request is not sent from a third party who can exploit CSRF as a means of attack.
+Please note that necessity may differ in the actual Web application depending on the operating environment.</p>
+</div>
+</td>
+</tr>
+</table>
+</div>
+</div>
+<div class="sect3">
+<h4 id="Ch04_AsyncJobWithWeb_HowToUse_WebApp_Build"><a class="anchor" href="#Ch04_AsyncJobWithWeb_HowToUse_WebApp_Build"></a>Build</h4>
+<div class="paragraph">
+<p>Build Maven command and create a war file.</p>
+</div>
+<div class="listingblock">
+<div class="content">
+<pre class="CodeRay highlight"><code data-lang="console">$ cd asyncapp
+$ ls
+asyncbatch/  asyncapp-web/  pom.xml
+$ mvn clean package
+[INFO] Scanning for projects...
+[INFO] ------------------------------------------------------------------------
+[INFO] Reactor Build Order:
+[INFO]
+[INFO] TERASOLUNA Server Framework for Java (5.x) Web Blank Multi Project (MyBatis3)
+[INFO] TERASOLUNA Batch Framework for Java (5.x) Blank Project
+[INFO] asyncapp-web
+[INFO]
+[INFO] ------------------------------------------------------------------------
+[INFO] Building TERASOLUNA Server Framework for Java (5.x) Web Blank Multi Project (MyBatis3) 1.0-SNAPSHOT
+[INFO] ------------------------------------------------------------------------
+
+(omitted)
+
+[INFO] ------------------------------------------------------------------------
+[INFO] Reactor Summary:
+[INFO]
+[INFO] TERASOLUNA Server Framework for Java (5.x) Web Blank Multi Project (MyBatis3) SUCCESS [  0.226 s]
+[INFO] TERASOLUNA Batch Framework for Java (5.x) Blank Project SUCCESS [  6.481s]
+[INFO] asyncapp-web ....................................... SUCCESS [  5.400 s]
+[INFO] ------------------------------------------------------------------------
+[INFO] BUILD SUCCESS
+[INFO] ------------------------------------------------------------------------
+[INFO] Total time: 12.597 s
+[INFO] Finished at: 2017-02-10T22:32:43+09:00
+[INFO] Final Memory: 38M/250M
+[INFO] ------------------------------------------------------------------------
+$</code></pre>
+</div>
+</div>
+</div>
+<div class="sect3">
+<h4 id="Ch04_AsyncJobWithWeb_HowToUse_WebApp_Deploy"><a class="anchor" href="#Ch04_AsyncJobWithWeb_HowToUse_WebApp_Deploy"></a>Deploy</h4>
+<div class="paragraph">
+<p>Start a Web container like Tomcat and deploy <code>war</code> file generated in the build.
+Detailed process is omitted.</p>
+</div>
+</div>
+</div>
+<div class="sect2">
+<h3 id="Ch04_AsyncJobWithWeb_HowToUse_Run"><a class="anchor" href="#Ch04_AsyncJobWithWeb_HowToUse_Run"></a>Job start and confirmation of execution results using REST Client</h3>
+<div class="paragraph">
+<p>Here, curl command is used as a REST client and an asynchronous job is started.</p>
+</div>
+<div class="listingblock">
+<div class="content">
+<pre class="CodeRay highlight"><code data-lang="console">$ curl -v \
+  -H &quot;Accept: application/json&quot; -H &quot;Content-type: application/json&quot; \
+  -d '{&quot;jobParams&quot;: &quot;param1=value1&quot;}' \
+  http://localhost:8080/asyncapp-web/api/v1/job/job01
+* timeout on name lookup is not supported
+*   Trying 127.0.0.1...
+* TCP_NODELAY set
+* Connected to localhost (127.0.0.1) port 8088 (#0)
+&gt; POST /asyncapp-web/api/v1/job/job01 HTTP/1.1
+&gt; Host: localhost:8088
+&gt; User-Agent: curl/7.51.0
+&gt; Accept: application/json
+&gt; Content-type: application/json
+&gt; Content-Length: 30
+&gt;
+* upload completely sent off: 30 out of 30 bytes
+&lt; HTTP/1.1 200
+&lt; X-Track: 0267db93977b4552880a4704cf3e4565
+&lt; Content-Type: application/json;charset=UTF-8
+&lt; Transfer-Encoding: chunked
+&lt; Date: Fri, 10 Feb 2017 13:55:46 GMT
+&lt;
+{&quot;jobName&quot;:&quot;job01&quot;,&quot;jobParams&quot;:null,&quot;jobExecutionId&quot;:3,&quot;error&quot;:null,&quot;errorMessag
+e&quot;:null}* Curl_http_done: called premature == 0
+* Connection #0 to host localhost left intact
+$</code></pre>
+</div>
+</div>
+<div class="paragraph">
+<p>From the above, it can be confirmed that job is executed with a job execution ID <code>jobExecutionId = 3</code>.<br>
+Subsequently, job execution results are fetched by using job execution ID.</p>
+</div>
+<div class="listingblock">
+<div class="content">
+<pre class="CodeRay highlight"><code data-lang="console">$ curl -v http://localhost:8080/asyncapp-web/api/v1/job/3
+* timeout on name lookup is not supported
+*   Trying 127.0.0.1...
+* TCP_NODELAY set
+* Connected to localhost (127.0.0.1) port 8088 (#0)
+&gt; GET /asyncapp-web/api/v1/job/3 HTTP/1.1
+&gt; Host: localhost:8088
+&gt; User-Agent: curl/7.51.0
+&gt; Accept: */*
+&gt;
+&lt; HTTP/1.1 200
+&lt; X-Track: 7d94bf4d383745efb20cbf37cb6a8e13
+&lt; Content-Type: application/json;charset=UTF-8
+&lt; Transfer-Encoding: chunked
+&lt; Date: Fri, 10 Feb 2017 14:07:44 GMT
+&lt;
+{&quot;jobExecutionId&quot;:3,&quot;jobName&quot;:&quot;job01&quot;,&quot;stepExecutions&quot;:[{&quot;stepExecutionId&quot;:5,&quot;st
+epName&quot;:&quot;job01.step01&quot;,&quot;status&quot;:&quot;COMPLETED&quot;,&quot;failureExceptions&quot;:[]}],&quot;status&quot;:&quot;C
+OMPLETED&quot;,&quot;exitStatus&quot;:&quot;exitCode=COMPLETED;exitDescription=&quot;,&quot;errorMessage&quot;:null
+}* Curl_http_done: called premature == 0
+* Connection #0 to host localhost left intact
+$</code></pre>
+</div>
+</div>
+<div class="paragraph">
+<p>Since <code>exitCode=COMPLETED</code>, it can be confirmed that the job is completed successfully.</p>
+</div>
+<div class="admonitionblock tip">
+<table>
+<tr>
+<td class="icon">
+<i class="fa icon-tip" title="Tip"></i>
+</td>
+<td class="content">
+<div class="title">When execution results of curl are to be determined by a shell script etc</div>
+<div class="paragraph">
+<p>In the example above, it is displayed upto the response message using REST API.
+When only HTTP status is to be confirmed by curl command, HTTP status can be displayed in standard output by considering <code>curl -s URL -o /dev/null -w "%{http_code}\n"</code>.<br>
+However, since job execution ID need to analyse JSON of response body part, REST
+client application must be created as required.</p>
+</div>
+</td>
+</tr>
+</table>
+</div>
+</div>
+</div>
+</div>
+<div class="sect1">
+<h2 id="Ch04_AsyncJobWithWeb_HowToExtend"><a class="anchor" href="#Ch04_AsyncJobWithWeb_HowToExtend"></a>How to extend</h2>
+<div class="sectionbody">
+<div class="sect2">
+<h3 id="Ch04_AsyncJobWithWeb_HowToExtend_StopAndRestart"><a class="anchor" href="#Ch04_AsyncJobWithWeb_HowToExtend_StopAndRestart"></a>Stopping and restarting jobs</h3>
+<div class="paragraph">
+<p>It is necessary to stop and restart asynchronous jobs from the multiple jobs that are being executed.
+Further, when jobs of identical names are running in parallel, it is necessary to target only those jobs with the issues.
+Hence, job execution to be targeted must be identified and the status of the job must be confirmed.<br>
+When this premise is met, an implementation for stopping and restarting asynchronous executions is explained here.</p>
+</div>
+<div class="paragraph">
+<p>Further, a method to add job stopping (stop) and restarting (restart) is explained
+for <code>JobController</code> of <a href="#Ch04_AsyncJobWithWeb_HowToUse_WebApp_Controller">Implementation of controller</a>.</p>
+</div>
+<div class="admonitionblock note">
+<table>
+<tr>
+<td class="icon">
+<i class="fa icon-note" title="Note"></i>
+</td>
+<td class="content">
+Job stopping and restarting can also be implemented without using <code>JobOperator</code>.<br>
+For details, refer <a href="Ch07_JobManagement.html#Ch07_JobManagement">Job management</a> and identify a method suitable for this objective.
+</td>
+</tr>
+</table>
+</div>
+<div class="listingblock">
+<div class="title">Implementation example of stop and restart</div>
+<div class="content">
+<pre class="CodeRay highlight"><code data-lang="java"><span class="comment">// asyncapp/asyncapp-web/src/main/java/org/terasoluna/batch/sample/app/api/JobController.java</span>
+<span class="keyword">package</span> <span class="namespace">org.terasoluna.batch.sample.app.api</span>;
+
+<span class="comment">// omitted.</span>
+
+<span class="annotation">@RequestMapping</span>(<span class="string"><span class="delimiter">&quot;</span><span class="content">job</span><span class="delimiter">&quot;</span></span>)
+<span class="annotation">@RestController</span>
+<span class="directive">public</span> <span class="type">class</span> <span class="class">JobController</span> {
+
+    <span class="comment">// omitted.</span>
+
+    <span class="annotation">@RequestMapping</span>(value = <span class="string"><span class="delimiter">&quot;</span><span class="content">stop/{jobExecutionId}</span><span class="delimiter">&quot;</span></span>, method = RequestMethod.PUT)
+    <span class="annotation">@Deprecated</span>
+    <span class="directive">public</span> ResponseEntity&lt;JobOperationResource&gt; stop(
+            <span class="annotation">@PathVariable</span>(<span class="string"><span class="delimiter">&quot;</span><span class="content">jobExecutionId</span><span class="delimiter">&quot;</span></span>) <span class="predefined-type">Long</span> jobExecutionId) {
+
+      JobOperationResource responseResource = <span class="keyword">new</span> JobOperationResource();
+      responseResource.setJobExecutionId(jobExecutionId);
+      <span class="type">boolean</span> result = <span class="predefined-constant">false</span>;
+      <span class="keyword">try</span> {
+          <span class="comment">// (1)</span>
+          result = jobOperator.stop(jobExecutionId);
+          <span class="keyword">if</span> (!result) {
+              responseResource.setErrorMessage(<span class="string"><span class="delimiter">&quot;</span><span class="content">stop failed.</span><span class="delimiter">&quot;</span></span>);
+              <span class="keyword">return</span> ResponseEntity.badRequest().body(responseResource);
+          }
+          <span class="keyword">return</span> ResponseEntity.ok().body(responseResource);
+      } <span class="keyword">catch</span> (NoSuchJobExecutionException | JobExecutionNotRunningException e) {
+          responseResource.setError(e);
+          <span class="keyword">return</span> ResponseEntity.badRequest().body(responseResource);
+      }
+    }
+
+    <span class="annotation">@RequestMapping</span>(value = <span class="string"><span class="delimiter">&quot;</span><span class="content">restart/{jobExecutionId}</span><span class="delimiter">&quot;</span></span>,
+                    method = RequestMethod.PUT)
+    <span class="annotation">@Deprecated</span>
+    <span class="directive">public</span> ResponseEntity&lt;JobOperationResource&gt; restart(
+            <span class="annotation">@PathVariable</span>(<span class="string"><span class="delimiter">&quot;</span><span class="content">jobExecutionId</span><span class="delimiter">&quot;</span></span>) <span class="predefined-type">Long</span> jobExecutionId) {
+
+        JobOperationResource responseResource = <span class="keyword">new</span> JobOperationResource();
+        responseResource.setJobExecutionId(jobExecutionId);
+        <span class="keyword">try</span> {
+            <span class="comment">// (2)</span>
+            <span class="predefined-type">Long</span> id = jobOperator.restart(jobExecutionId);
+            responseResource.setJobExecutionId(id);
+            <span class="keyword">return</span> ResponseEntity.ok().body(responseResource);
+        } <span class="keyword">catch</span> (JobInstanceAlreadyCompleteException |
+                  NoSuchJobExecutionException | NoSuchJobException |
+                  JobRestartException | JobParametersInvalidException e) {
+            responseResource.setErrorMessage(e.getMessage());
+            <span class="keyword">return</span> ResponseEntity.badRequest().body(responseResource);
+        }
+    }
+
+    <span class="comment">// omitted.</span>
+}</code></pre>
+</div>
+</div>
+<table class="tableblock frame-all grid-all spread">
+<caption class="title">Implementation example of stop / restart using controller</caption>
+<colgroup>
+<col style="width: 10%;">
+<col style="width: 90%;">
+</colgroup>
+<thead>
+<tr>
+<th class="tableblock halign-left valign-top">Sr. No.</th>
+<th class="tableblock halign-left valign-top">Description</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td class="tableblock halign-left valign-top"><p class="tableblock">(1)</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">Specify "stop" for job being executed by calling <code>JobOperator#stop()</code>.</p></td>
+</tr>
+<tr>
+<td class="tableblock halign-left valign-top"><p class="tableblock">(2)</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">Re-execute from the step where the job has terminated abnormally or stopped by calling <code>JobOperator#restart()</code>.</p></td>
+</tr>
+</tbody>
+</table>
+</div>
+<div class="sect2">
+<h3 id="Ch04_AsyncJobWithWeb_HowToExtend_MultipleLaunch"><a class="anchor" href="#Ch04_AsyncJobWithWeb_HowToExtend_MultipleLaunch"></a>Multiple running</h3>
+<div class="paragraph">
+<p>Multiple running signify that a Web container is started for multiple times and waits for respective job requests.</p>
+</div>
+<div class="paragraph">
+<p>Execution of asynchronous jobs is controlled by external RDBMS so as to connect to each application.
+By sharing an external RDBMS, it is possible to wait for an asynchronous job to be started across the same enclosure or another enclosure.</p>
+</div>
+<div class="paragraph">
+<p>Applications include load balancing and redundancy for specific jobs.
+However, as described in <a href="#Ch04_AsyncJobWithWeb_HowToUse_WebApp">Implementation of Web application</a>,
+these effects cannot be obtained easily just by starting multiple Web containers or enhancing parallel operations.
+Sometimes measures similar to a general Web application need to be taken in order to obtain the effect.
+An example is given below.</p>
+</div>
+<div class="ulist">
+<ul>
+<li>
+<p>One request processing operates in a stateless manner according to the characteristics of web application, however,
+asynchronous execution of batch is likely to have a reduced failure tolerance if it is not designed in combination with job start and confirmation of results.<br>
+For example, even when Web container for starting a job is made redundant, it is difficult to confirm the progress
+and results of the job when the job execution ID  is lost after starting a job due to failure on the client side.</p>
+</li>
+<li>
+<p>A function to distribute request destinations on the client side must be implemented and a load balancer must be
+introduced in order to distribute the load on multiple Web containers.</p>
+</li>
+</ul>
+</div>
+<div class="paragraph">
+<p>In this way, adequacy of multiple starts cannot be necessarily determined.
+Hence, using load balancer and reviewing a control method to send requests by Web client should be considered based on the purpose and use.
+A design which does not degrade the performance and fault tolerance of the asynchronous execution application is required.</p>
+</div>
+</div>
+</div>
+</div>
+</div>
+<div class="container">
+
+  <div class="common-bg">
+    <div class="information">
+      TERASOLUNA Batch Framework for Java (5.x) Development Guideline - version 5.1.1.RELEASE, 2018-3-16
+    </div>
+    <div class="index">
+      <a href="index.html">&gt; INDEX</a>
+    </div>
+  </div>
+
+  <div class="footer-bg">
+    <div class="copyright">
+      &copy; Copyright 2019 NTT DATA Corporation. &copy; Copyright 2019 NTT Corporation.
+    </div>
+  </div>
+
+</div>
+</body>
+</html>

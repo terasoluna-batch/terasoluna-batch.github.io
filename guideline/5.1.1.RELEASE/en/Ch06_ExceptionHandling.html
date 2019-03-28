@@ -1,0 +1,2394 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<!--[if IE]><meta http-equiv="X-UA-Compatible" content="IE=edge"><![endif]-->
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<meta name="generator" content="Asciidoctor 1.5.6.1">
+<title>Exception handling</title>
+<link rel="stylesheet" href="./theme/css/readthedocs.css">
+<link rel="stylesheet" href="./theme/css/font-awesome.min.css">
+<link rel="stylesheet" href="./theme/css/coderay-asciidoctor.css">
+<link rel="stylesheet" href="./theme/css/header-footer.css">
+<title>TERASOLUNA Batch Framework for Java (5.x) Development Guideline</title>
+
+<div class="common-bg">
+  <div class="information">
+    TERASOLUNA Batch Framework for Java (5.x) Development Guideline - version 5.1.1.RELEASE, 2018-3-16
+  </div>
+  <div class="index">
+    <a href="index.html">&gt; INDEX</a>
+  </div>
+</div>
+</head>
+<body id="Ch06_ExceptionHandling" class="book toc2 toc-left">
+<div id="header">
+<h1>Exception handling</h1>
+<div id="toc" class="toc2">
+<div id="toctitle">Table of Contents</div>
+<ul class="sectlevel1">
+<li><a href="#Ch06_ExceptionHandling_Overview">Overview</a>
+<ul class="sectlevel2">
+<li><a href="#Ch06_ExceptionHandling_Overview_Classification">Classification of exception</a></li>
+<li><a href="#Ch06_ExceptionHandling_Overview_Type">Exception type</a>
+<ul class="sectlevel3">
+<li><a href="#Ch06_ExceptionHandling_Overview_Type_BusinessEx">Business exception</a></li>
+<li><a href="#Ch06_ExceptionHandling_Overview_Type_LibraryEx">Library exception occurring during normal operation</a></li>
+<li><a href="#Ch06_ExceptionHandling_Overview_Type_SystemEx">System exception</a></li>
+<li><a href="#Ch06_ExceptionHandling_Overview_Type_UnexpectedSystemEx">Unexpected system exception</a></li>
+<li><a href="#Ch06_ExceptionHandling_Overview_Type_FatalErrors">Fatal error</a></li>
+<li><a href="#Ch06_ExceptionHandling_Overview_Type_IllegalRequest">Invalid job request error</a></li>
+</ul>
+</li>
+<li><a href="#Ch06_ExceptionHandling_Overview_Deal">How to handle exceptions</a>
+<ul class="sectlevel3">
+<li><a href="#Ch06_ExceptionHandling_Overview_Deal_Skip">Skip</a></li>
+<li><a href="#Ch06_ExceptionHandling_Overview_Deal_Retry">Retry</a></li>
+<li><a href="#Ch06_ExceptionHandling_Overview_Deal_Interruption">Process interruption</a></li>
+</ul>
+</li>
+</ul>
+</li>
+<li><a href="#Ch06_ExceptionHandling_HowToUse">How to use</a>
+<ul class="sectlevel2">
+<li><a href="#Ch06_ExceptionHandling_HowToUse_StepExceptionHandling">Step unit exception handling</a>
+<ul class="sectlevel3">
+<li><a href="#Ch06_ExceptionHandling_HowToUse_StepExceptionHandling_ChunkListener">Exception handling with ChunkListener interface</a></li>
+<li><a href="#Ch06_ExceptionHandling_HowToUse_StepExceptionHandling_Chunk">Exception handling in chunk model</a></li>
+<li><a href="#Ch06_ExceptionHandling_HowToUse_StepExceptionHandling_Tasklet">Exception handling in tasklet model</a></li>
+</ul>
+</li>
+<li><a href="#Ch06_ExceptionHandling_HowToUse_JobExceptionHandling">Job-level exception handling</a></li>
+<li><a href="#Ch06_ExceptionHandling_HowToUse_ContinuationPropriety">Determination as to whether processing can be continued</a>
+<ul class="sectlevel3">
+<li><a href="#Ch06_ExceptionHandling_HowToUse_ContinuationPropriety_Skip">Skip</a></li>
+<li><a href="#Ch06_ExceptionHandling_HowToUse_ContinuationPropriety_Retry">Retry</a></li>
+<li><a href="#Ch06_ExceptionHandling_HowToUse_ContinuationPropriety_Interruption">Process interruption</a></li>
+</ul>
+</li>
+</ul>
+</li>
+<li><a href="#Ch06_ExceptionHandling_Appendix">Appendix</a>
+<ul class="sectlevel2">
+<li><a href="#Ch06_ExceptionHandling_Appendix_SkippableExceptionClasses">About reason why &lt;skippable-exception-classes&gt; is not used</a></li>
+</ul>
+</li>
+</ul>
+</div>
+</div>
+<div id="content">
+<div class="sect1">
+<h2 id="Ch06_ExceptionHandling_Overview"><a class="anchor" href="#Ch06_ExceptionHandling_Overview"></a>Overview</h2>
+<div class="sectionbody">
+<div class="paragraph">
+<p>How to handle exception generated at the time of job execution is explained.</p>
+</div>
+<div class="paragraph">
+<p>Since this function has different usage for chunk model and tasklet model, each will be explained.</p>
+</div>
+<div class="paragraph">
+<p>First, classification of exceptions is explained, and handling method according to the type of exception is explained.</p>
+</div>
+<div class="sect2">
+<h3 id="Ch06_ExceptionHandling_Overview_Classification"><a class="anchor" href="#Ch06_ExceptionHandling_Overview_Classification"></a>Classification of exception</h3>
+<div class="paragraph">
+<p>The exception generated at the time of job execution are classified into 3 types as below.</p>
+</div>
+<table class="tableblock frame-all grid-all spread">
+<caption class="title">Classification list of exceptions</caption>
+<colgroup>
+<col style="width: 5%;">
+<col style="width: 30%;">
+<col style="width: 35%;">
+<col style="width: 30%;">
+</colgroup>
+<tbody>
+<tr>
+<td class="tableblock halign-left valign-top"><p class="tableblock">Sr.No.</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">Classification</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">Description</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><a href="#Ch06_ExceptionHandling_Overview_Type">Exception type</a></p></td>
+</tr>
+<tr>
+<td class="tableblock halign-left valign-top"><p class="tableblock">(1)</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">Exception wherein the cause can be resolved by re-execution of the job (change / modification of parameter, input data etc).</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">For the exception wherein the cause can be resolved by re-execution of a job, exception is handled in the application code and exception handling is performed.</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><a href="#Ch06_ExceptionHandling_Overview_Type_BusinessEx">Business exception</a><br>
+<a href="#Ch06_ExceptionHandling_Overview_Type_LibraryEx">Library exception occurring during normal operation</a></p></td>
+</tr>
+<tr>
+<td class="tableblock halign-left valign-top"><p class="tableblock">(2)</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">Exception that cannot be resolved by job re-execution.</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">Exceptions that can be resolved by job re-execution are handled with the following pattern.</p>
+<p class="tableblock">1. If the exception can be captured in <a href="Ch04_Listener.html#Ch04_Listener_Overview_Types_StepListener">StepListener</a>,
+exception is handled in the application code.<br></p>
+<p class="tableblock">2. If the exception cannot be captured in <a href="Ch04_Listener.html#Ch04_Listener_Overview_Types_StepListener">StepListener</a>,
+exception is handled in the framework.</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><a href="#Ch06_ExceptionHandling_Overview_Type_SystemEx">System exception</a><br>
+<a href="#Ch06_ExceptionHandling_Overview_Type_UnexpectedSystemEx">Unexpected system exception</a><br>
+<a href="#Ch06_ExceptionHandling_Overview_Type_FatalErrors">Fatal error</a></p></td>
+</tr>
+<tr>
+<td class="tableblock halign-left valign-top"><p class="tableblock">(3)</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">(During asynchronous execution)Exception caused by illegal request for job request</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">Exception caused by illegal request of job request is handled in the framework and performs exception handling.</p>
+<p class="tableblock"><span class="icon"><i class="fa fa-warning"></i></span> In case of <a href="Ch04_AsyncJobWithDB.html#Ch04_AsyncJobWithDB">Asynchronous execution (DB polling)</a>
+in the polling process, the validity of the job request is not verified.Therefore, it is desirable that the input check for the request is made in advance by the application that registers the job request.</p>
+<p class="tableblock"><span class="icon"><i class="fa fa-warning"></i></span> In case of <a href="Ch04_AsyncJobWithWebContainer.html#Ch04_AsyncJobWithWeb">Asynchronous execution (Web container)</a>,
+it is assumed that the input check for the request is made in advance, by the Web application.</p>
+<p class="tableblock">Therefore, exception handling is performed in an application that accepts requests or job requests.</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><a href="#Ch06_ExceptionHandling_Overview_Type_IllegalRequest">Invalid job request error</a></p></td>
+</tr>
+</tbody>
+</table>
+<div class="admonitionblock warning">
+<table>
+<tr>
+<td class="icon">
+<i class="fa icon-warning" title="Warning"></i>
+</td>
+<td class="content">
+<div class="title">Avoid a transaction processing within the exception processing</div>
+<div class="paragraph">
+<p>If transactional processing such as writing to a database is performed in exception processing,
+a secondary exception is likely to occur.
+Exception processing should be based on output log analysis and end code setting.</p>
+</div>
+</td>
+</tr>
+</table>
+</div>
+</div>
+<div class="sect2">
+<h3 id="Ch06_ExceptionHandling_Overview_Type"><a class="anchor" href="#Ch06_ExceptionHandling_Overview_Type"></a>Exception type</h3>
+<div class="paragraph">
+<p>Types of exceptions are explained.</p>
+</div>
+<div class="sect3">
+<h4 id="Ch06_ExceptionHandling_Overview_Type_BusinessEx"><a class="anchor" href="#Ch06_ExceptionHandling_Overview_Type_BusinessEx"></a>Business exception</h4>
+<div class="paragraph">
+<p>A business exception is <strong>an exception notifying that a violation of a business rule has been detected</strong>.<br>
+This exception is generated within the logic of the step.<br>
+Since it is assumed to be an application state, handling by system operator is not required.</p>
+</div>
+<div class="ulist">
+<div class="title">Business exception example</div>
+<ul>
+<li>
+<p>When "out-of-stock" at the time of inventory allocation</p>
+</li>
+<li>
+<p>When the number of days exceeds the scheduled date</p>
+</li>
+<li>
+<p>etc &#8230;&#8203;</p>
+</li>
+</ul>
+</div>
+<div class="admonitionblock note">
+<table>
+<tr>
+<td class="icon">
+<i class="fa icon-note" title="Note"></i>
+</td>
+<td class="content">
+<div class="title">Applicable exception class</div>
+<div class="ulist">
+<ul>
+<li>
+<p><code>java.lang.RuntimeException</code> and its subclass</p>
+<div class="ulist">
+<ul>
+<li>
+<p>It is recommended to create business exception classes by the user.</p>
+</li>
+</ul>
+</div>
+</li>
+</ul>
+</div>
+</td>
+</tr>
+</table>
+</div>
+</div>
+<div class="sect3">
+<h4 id="Ch06_ExceptionHandling_Overview_Type_LibraryEx"><a class="anchor" href="#Ch06_ExceptionHandling_Overview_Type_LibraryEx"></a>Library exception occurring during normal operation</h4>
+<div class="paragraph">
+<p>A library exception that occurs during normal operation refers to <strong>an exception that may occur when the system is operating normally</strong>, among the exceptions generated in the framework and library.<br>
+Exceptions raised in the framework and library are exception classes that occur in the Spring Framework and other libraries.<br>
+Since it is assumed to be an application state, it is not necessary to deal with the system operator.</p>
+</div>
+<div class="ulist">
+<div class="title">Example of library exception that occurs during normal operation</div>
+<ul>
+<li>
+<p>Optimistic lock exception which occurs in <a href="Ch05_ExclusiveControl.html#Ch05_ExclusiveControl">exclusive control</a> with online processing.</p>
+</li>
+<li>
+<p>Unique constraint exception that occurs when registering the same data at the same time from multiple jobs or online processing.</p>
+</li>
+<li>
+<p>etc &#8230;&#8203;</p>
+</li>
+</ul>
+</div>
+<div class="admonitionblock note">
+<table>
+<tr>
+<td class="icon">
+<i class="fa icon-note" title="Note"></i>
+</td>
+<td class="content">
+<div class="title">Applicable exception class</div>
+<div class="ulist">
+<ul>
+<li>
+<p><code>org.springframework.dao.EmptyResultDataAccessException</code> (Exception that occurs when optimistic locking is done, when data update count is 0)</p>
+</li>
+<li>
+<p><code>org.springframework.dao.DuplicateKeyException</code> (Exception that occurs when a unique constraint violation occurs)</p>
+</li>
+<li>
+<p>etc &#8230;&#8203;</p>
+</li>
+</ul>
+</div>
+</td>
+</tr>
+</table>
+</div>
+</div>
+<div class="sect3">
+<h4 id="Ch06_ExceptionHandling_Overview_Type_SystemEx"><a class="anchor" href="#Ch06_ExceptionHandling_Overview_Type_SystemEx"></a>System exception</h4>
+<div class="paragraph">
+<p>A system exception is <strong>an exception  to notify that a state that should not occur is detected when the system is operating normally</strong>.<br>
+This exception is generated within the logic of the step.<br>
+The action of the system operator is required.</p>
+</div>
+<div class="ulist">
+<div class="title">Example of a system exception</div>
+<ul>
+<li>
+<p>When master data, directory, file, etc which should exist in advance, do not exist.</p>
+</li>
+<li>
+<p>When an exception classified as system abnormality is captured (IOException at file operation, etc.) from the checked exceptions occurring in the framework or library.</p>
+</li>
+<li>
+<p>etc&#8230;&#8203;</p>
+</li>
+</ul>
+</div>
+<div class="admonitionblock note">
+<table>
+<tr>
+<td class="icon">
+<i class="fa icon-note" title="Note"></i>
+</td>
+<td class="content">
+<div class="title">Applicable exception class</div>
+<div class="ulist">
+<ul>
+<li>
+<p><code>java.lang.RuntimeException</code> or its subclass</p>
+<div class="ulist">
+<ul>
+<li>
+<p>Creating a system exception class is recommended.</p>
+</li>
+</ul>
+</div>
+</li>
+</ul>
+</div>
+</td>
+</tr>
+</table>
+</div>
+</div>
+<div class="sect3">
+<h4 id="Ch06_ExceptionHandling_Overview_Type_UnexpectedSystemEx"><a class="anchor" href="#Ch06_ExceptionHandling_Overview_Type_UnexpectedSystemEx"></a>Unexpected system exception</h4>
+<div class="paragraph">
+<p>Unexpected system exceptions are <strong>non-inspection exceptions that do not occur when the system is operating normally</strong>.<br>
+It is necessary for the system operator to deal with it or to analyze it by the system developer.</p>
+</div>
+<div class="paragraph">
+<p>Unexpected system exceptions will not be handled except by doing the following processing.
+If handled, throw the exception again.</p>
+</div>
+<div class="ulist">
+<ul>
+<li>
+<p>Log capture exception for analysis and set the corresponding exit code.</p>
+</li>
+</ul>
+</div>
+<div class="ulist">
+<div class="title">Unexpected system exception example</div>
+<ul>
+<li>
+<p>Bugs are hidden in applications, frameworks, and libraries.</p>
+</li>
+<li>
+<p>When the database server is down.</p>
+</li>
+<li>
+<p>etc&#8230;&#8203;</p>
+</li>
+</ul>
+</div>
+<div class="admonitionblock note">
+<table>
+<tr>
+<td class="icon">
+<i class="fa icon-note" title="Note"></i>
+</td>
+<td class="content">
+<div class="title">Applicable exception class</div>
+<div class="ulist">
+<ul>
+<li>
+<p><code>java.lang.NullPointerException</code> (Exception caused by a bug)</p>
+</li>
+<li>
+<p><code>org.springframework.dao.DataAccessResourceFailureException</code>(Exception raised when the database server is down)</p>
+</li>
+<li>
+<p>etc &#8230;&#8203;</p>
+</li>
+</ul>
+</div>
+</td>
+</tr>
+</table>
+</div>
+</div>
+<div class="sect3">
+<h4 id="Ch06_ExceptionHandling_Overview_Type_FatalErrors"><a class="anchor" href="#Ch06_ExceptionHandling_Overview_Type_FatalErrors"></a>Fatal error</h4>
+<div class="paragraph">
+<p>A fatal error is an error <strong>that notifies that a fatal problem has occurred that affects the entire system (application)</strong>.<br>
+It is necessary for system operator or system developer to cope with it and recover.</p>
+</div>
+<div class="paragraph">
+<p>Fatal errors are not handled except for the following processing.If handled, throw the exception again.</p>
+</div>
+<div class="ulist">
+<ul>
+<li>
+<p>Log capture exception for analysis and set the corresponding exit code.</p>
+</li>
+</ul>
+</div>
+<div class="ulist">
+<div class="title">Fatal error example</div>
+<ul>
+<li>
+<p>When memory available for Java virtual machine is insufficient.</p>
+</li>
+<li>
+<p>etc&#8230;&#8203;</p>
+</li>
+</ul>
+</div>
+<div class="admonitionblock note">
+<table>
+<tr>
+<td class="icon">
+<i class="fa icon-note" title="Note"></i>
+</td>
+<td class="content">
+<div class="title">Applicable exception class</div>
+<div class="ulist">
+<ul>
+<li>
+<p>Classes that inherit<code>java.lang.Error</code>.</p>
+<div class="ulist">
+<ul>
+<li>
+<p>java.lang.OutOfMemoryError (Error occurred when memory is insufficient)etc</p>
+</li>
+</ul>
+</div>
+</li>
+<li>
+<p>etc &#8230;&#8203;</p>
+</li>
+</ul>
+</div>
+</td>
+</tr>
+</table>
+</div>
+</div>
+<div class="sect3">
+<h4 id="Ch06_ExceptionHandling_Overview_Type_IllegalRequest"><a class="anchor" href="#Ch06_ExceptionHandling_Overview_Type_IllegalRequest"></a>Invalid job request error</h4>
+<div class="paragraph">
+<p>The invalid job request error is an error <strong>to notify that a problem has occurred in the request for job request during asynchronous execution</strong>.<br>
+It is necessary for the system operator to cope with and recover from it.</p>
+</div>
+<div class="paragraph">
+<p>The invalid job request error is an error based on exception handling in the application which processes job requests,
+and hence it is not explained in this guideline.</p>
+</div>
+</div>
+</div>
+<div class="sect2">
+<h3 id="Ch06_ExceptionHandling_Overview_Deal"><a class="anchor" href="#Ch06_ExceptionHandling_Overview_Deal"></a>How to handle exceptions</h3>
+<div class="paragraph">
+<p>How to handle exceptions is explained.</p>
+</div>
+<div class="paragraph">
+<p>The exception handling pattern is as follows.</p>
+</div>
+<div class="olist arabic">
+<ol class="arabic">
+<li>
+<p>Decide whether to continue the job when an exception occurs (3 types)</p>
+</li>
+<li>
+<p>Decide how to re-execute the suspended job (2 types)</p>
+</li>
+</ol>
+</div>
+<table class="tableblock frame-all grid-all spread">
+<caption class="title">How to decide whether to continue the job</caption>
+<colgroup>
+<col style="width: 10%;">
+<col style="width: 25%;">
+<col style="width: 65%;">
+</colgroup>
+<thead>
+<tr>
+<th class="tableblock halign-left valign-top">Sr.No.</th>
+<th class="tableblock halign-left valign-top">How to handle exceptions</th>
+<th class="tableblock halign-left valign-top">Description</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td class="tableblock halign-left valign-top"><p class="tableblock">(1)</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><a href="#Ch06_ExceptionHandling_Overview_Deal_Skip">Skip</a></p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">Skip error record and continue processing.</p></td>
+</tr>
+<tr>
+<td class="tableblock halign-left valign-top"><p class="tableblock">(2)</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><a href="#Ch06_ExceptionHandling_Overview_Deal_Retry">Retry</a></p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">Reprocess the error record until the specified condition (number of times, time etc.) is reached.</p></td>
+</tr>
+<tr>
+<td class="tableblock halign-left valign-top"><p class="tableblock">(3)</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><a href="#Ch06_ExceptionHandling_Overview_Deal_Interruption">Process interruption</a></p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">Processing is interrupted.</p></td>
+</tr>
+</tbody>
+</table>
+<div class="admonitionblock note">
+<table>
+<tr>
+<td class="icon">
+<i class="fa icon-note" title="Note"></i>
+</td>
+<td class="content">
+<div class="paragraph">
+<p>Even if an exception has not occurred, the job may stop while processing because the job has exceeded the expected processing time.<br>
+In this case, please refer <a href="Ch07_JobManagement.html#Ch07_JobManagement_HowToUse_JobStatusManagement_JobStop">Stopping a job</a>.</p>
+</div>
+</td>
+</tr>
+</table>
+</div>
+<table class="tableblock frame-all grid-all spread">
+<caption class="title">How to re-execute the suspended job</caption>
+<colgroup>
+<col style="width: 10%;">
+<col style="width: 25%;">
+<col style="width: 65%;">
+</colgroup>
+<thead>
+<tr>
+<th class="tableblock halign-left valign-top">Sr.No.</th>
+<th class="tableblock halign-left valign-top">How to handle exceptions</th>
+<th class="tableblock halign-left valign-top">Description</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td class="tableblock halign-left valign-top"><p class="tableblock">(1)</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><a href="Ch06_ReProcessing.html#Ch06_RerunRestart_HowToUse_Rerun">Job rerun</a></p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">Re-executes the suspended job from the beginning.</p></td>
+</tr>
+<tr>
+<td class="tableblock halign-left valign-top"><p class="tableblock">(2)</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><a href="Ch06_ReProcessing.html#Ch06_RerunRestart_HowToUse_Restart">Job restart</a></p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">Re-executes the interrupted job from the point where it was interrupted.</p></td>
+</tr>
+</tbody>
+</table>
+<div class="paragraph">
+<p>For details, please refer how to re-execute the suspended job <a href="Ch06_ReProcessing.html#Ch06_RerunRestart">Rerun processing</a>.</p>
+</div>
+<div class="sect3">
+<h4 id="Ch06_ExceptionHandling_Overview_Deal_Skip"><a class="anchor" href="#Ch06_ExceptionHandling_Overview_Deal_Skip"></a>Skip</h4>
+<div class="paragraph">
+<p>Skipping is a method of skipping error data without stopping batch processing and continuing processing.</p>
+</div>
+<div class="ulist">
+<div class="title">Skipping example</div>
+<ul>
+<li>
+<p>Invalid record exists in input data</p>
+</li>
+<li>
+<p>When a business exception occurs</p>
+</li>
+<li>
+<p>etc &#8230;&#8203;</p>
+</li>
+</ul>
+</div>
+<div class="admonitionblock important">
+<table>
+<tr>
+<td class="icon">
+<i class="fa icon-important" title="Important"></i>
+</td>
+<td class="content">
+<div class="title">Reprocess skipped record</div>
+<div class="paragraph">
+<p>When skipping the records, design how to deal with skipped invalid records.
+Methods like extracting and reprocessing invalid records, processing the records by including those at the time of subsequent execution can be considered.</p>
+</div>
+</td>
+</tr>
+</table>
+</div>
+</div>
+<div class="sect3">
+<h4 id="Ch06_ExceptionHandling_Overview_Deal_Retry"><a class="anchor" href="#Ch06_ExceptionHandling_Overview_Deal_Retry"></a>Retry</h4>
+<div class="paragraph">
+<p>Retrying is a method of repeatedly attempting until a specified number of times or time is reached for a record that failed a specific process.<br>
+It is used only when the cause of processing failure depends on the execution environment and it is expected to be resolved over time.</p>
+</div>
+<div class="ulist">
+<div class="title">Example of retrying</div>
+<ul>
+<li>
+<p>When the record to be processed is locked by exclusive control</p>
+</li>
+<li>
+<p>When message transmission fails due to instantaneous interruption of network</p>
+</li>
+<li>
+<p>etc &#8230;&#8203;</p>
+</li>
+</ul>
+</div>
+<div class="admonitionblock important">
+<table>
+<tr>
+<td class="icon">
+<i class="fa icon-important" title="Important"></i>
+</td>
+<td class="content">
+<div class="title">Application of retry</div>
+<div class="paragraph">
+<p>If the retry is applied in every scene, the processing time unnecessarily increases at the time of occurrence of an abnormality resulting in risk of delayed detection of the abnormality.<br>
+Therefore, it is desirable to apply the retry to only a part of the process
+and it is advisable to limit it to the processes like linking with external systems which are less reliable.</p>
+</div>
+</td>
+</tr>
+</table>
+</div>
+</div>
+<div class="sect3">
+<h4 id="Ch06_ExceptionHandling_Overview_Deal_Interruption"><a class="anchor" href="#Ch06_ExceptionHandling_Overview_Deal_Interruption"></a>Process interruption</h4>
+<div class="paragraph">
+<p>Process interruption is literally a method of interrupting processing midway.<br>
+It is used when processing cannot be continued on detecting an erroneous content or when there is requirement which does not allow skipping of records.</p>
+</div>
+<div class="ulist">
+<div class="title">Examples of processing interruption</div>
+<ul>
+<li>
+<p>Invalid record exists in input data</p>
+</li>
+<li>
+<p>When a business exception occurs</p>
+</li>
+<li>
+<p>etc &#8230;&#8203;</p>
+</li>
+</ul>
+</div>
+</div>
+</div>
+</div>
+</div>
+<div class="sect1">
+<h2 id="Ch06_ExceptionHandling_HowToUse"><a class="anchor" href="#Ch06_ExceptionHandling_HowToUse"></a>How to use</h2>
+<div class="sectionbody">
+<div class="paragraph">
+<p>Implementation of exception handling is explained.</p>
+</div>
+<div class="paragraph">
+<p>A log is the main user interface for batch application operation.Therefore, monitoring of exception occurred will also be done through the log.</p>
+</div>
+<div class="paragraph">
+<p>In Spring Batch, if an exception occurs during step execution, the log is output and process is abnormally terminated, so the requirement can be satisfied without additional implementation by the user.
+The following explanation should be implemented pinpoint only when it is necessary for the user to output logs according to the system.
+Basically, all the processes are not required to be implemented.</p>
+</div>
+<div class="paragraph">
+<p>For common log setting of exception handling, please refer <a href="Ch07_JobManagement.html#Ch07_JobManagement_HowToUse_Logging">Logging</a>.</p>
+</div>
+<div class="sect2">
+<h3 id="Ch06_ExceptionHandling_HowToUse_StepExceptionHandling"><a class="anchor" href="#Ch06_ExceptionHandling_HowToUse_StepExceptionHandling"></a>Step unit exception handling</h3>
+<div class="paragraph">
+<p>Explain how to handle exceptions in step units.</p>
+</div>
+<div class="dlist">
+<dl>
+<dt class="hdlist1"><a href="#Ch06_ExceptionHandling_HowToUse_StepExceptionHandling_ChunkListener">Exception handling with ChunkListener interface</a></dt>
+<dd>
+<p>If you want to handle exceptions uniquely regardless of the processing model,
+use <a href="Ch04_Listener.html#Ch04_Listener_Overview_Types_ChunkListener">ChunkListener</a> interface.<br>
+Although it can be implemented by using a step or job listener which is wider in scope than chunk,
+adopt <code>ChunkListener</code> and put an emphasis on carrying out the handling immediately after the occurrence.</p>
+</dd>
+</dl>
+</div>
+<div class="paragraph">
+<p>The exception handling method for each processing model is as follows.</p>
+</div>
+<div class="dlist">
+<dl>
+<dt class="hdlist1"><a href="#Ch06_ExceptionHandling_HowToUse_StepExceptionHandling_Chunk">Exception handling in chunk model</a></dt>
+<dd>
+<p>Implement the function using various Listener interfaces provided by Spring Batch.</p>
+</dd>
+<dt class="hdlist1"><a href="#Ch06_ExceptionHandling_HowToUse_StepExceptionHandling_Tasklet">Exception handling in tasklet model</a></dt>
+<dd>
+<p>Implement exception handling independently within tasklet implementation.</p>
+</dd>
+</dl>
+</div>
+<div class="admonitionblock important">
+<table>
+<tr>
+<td class="icon">
+<i class="fa icon-important" title="Important"></i>
+</td>
+<td class="content">
+<div class="title">Why unified handling possible with ChunkListener.</div>
+<div class="paragraph">
+<p>A sense of incompatibility might be felt with <code>ChunkListener</code> being able to handle exceptions occurring within tasklet implementation.
+This is because in Spring Batch, execution of business logic is considered based on chunk,
+since one tasklet execution is handled as one chunk processing.</p>
+</div>
+<div class="paragraph">
+<p>This point also appears in <code>org.springframework.batch.core.step.tasklet.Tasklet</code> interface.</p>
+</div>
+<div class="listingblock">
+<div class="content">
+<pre class="CodeRay highlight"><code data-lang="java"><span class="directive">public</span> <span class="type">interface</span> <span class="class">Tasklet</span> {
+  RepeatStatus execute(StepContribution contribution,
+          ChunkContext chunkContext) <span class="directive">throws</span> <span class="exception">Exception</span>;
+}</code></pre>
+</div>
+</div>
+</td>
+</tr>
+</table>
+</div>
+<div class="sect3">
+<h4 id="Ch06_ExceptionHandling_HowToUse_StepExceptionHandling_ChunkListener"><a class="anchor" href="#Ch06_ExceptionHandling_HowToUse_StepExceptionHandling_ChunkListener"></a>Exception handling with ChunkListener interface</h4>
+<div class="paragraph">
+<p>Implement <code>afterChunkError</code> method of <a href="Ch04_Listener.html#Ch04_Listener_Overview_Types_ChunkListener">ChunkListener</a> interface.<br>
+Get error information from <code>ChunkContext</code> argument of <code>afterChunkError</code> method  using <code>ChunkListener.ROLLBACK_EXCEPTION_KEY</code>as a key.</p>
+</div>
+<div class="paragraph">
+<p>For details on how to set the listener,please refer <a href="Ch04_Listener.html#Ch04_Listener_HowToUse_Configuration">Listerner setting</a>.</p>
+</div>
+<div class="listingblock">
+<div class="title">Implementation example of ChunkListener</div>
+<div class="content">
+<pre class="CodeRay highlight"><code data-lang="java"><span class="annotation">@Component</span>
+<span class="directive">public</span> <span class="type">class</span> <span class="class">ChunkAroundListener</span> <span class="directive">implements</span> ChunkListener {
+
+    <span class="directive">private</span> <span class="directive">static</span> <span class="directive">final</span> <span class="predefined-type">Logger</span> logger =
+            LoggerFactory.getLogger(ChunkAroundListener.class);
+
+    <span class="annotation">@Override</span>
+    <span class="directive">public</span> <span class="type">void</span> beforeChunk(ChunkContext context) {
+        logger.info(<span class="string"><span class="delimiter">&quot;</span><span class="content">before chunk. [context:{}]</span><span class="delimiter">&quot;</span></span>, context);
+    }
+
+    <span class="annotation">@Override</span>
+    <span class="directive">public</span> <span class="type">void</span> afterChunk(ChunkContext context) {
+        logger.info(<span class="string"><span class="delimiter">&quot;</span><span class="content">after chunk. [context:{}]</span><span class="delimiter">&quot;</span></span>, context);
+    }
+
+    <span class="comment">// (1)</span>
+    <span class="annotation">@Override</span>
+    <span class="directive">public</span> <span class="type">void</span> afterChunkError(ChunkContext context) {
+        logger.error(<span class="string"><span class="delimiter">&quot;</span><span class="content">Exception occurred while chunk. [context:{}]</span><span class="delimiter">&quot;</span></span>, context,
+                context.getAttribute(ChunkListener.ROLLBACK_EXCEPTION_KEY)); <span class="comment">// (2)</span>
+    }
+}</code></pre>
+</div>
+</div>
+<table class="tableblock frame-all grid-all spread">
+<caption class="title">Description</caption>
+<colgroup>
+<col style="width: 10%;">
+<col style="width: 90%;">
+</colgroup>
+<thead>
+<tr>
+<th class="tableblock halign-left valign-top">Sr.No.</th>
+<th class="tableblock halign-left valign-top">Description</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td class="tableblock halign-left valign-top"><p class="tableblock">(1)</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">Implement <code>afterChunkError</code> method.</p></td>
+</tr>
+<tr>
+<td class="tableblock halign-left valign-top"><p class="tableblock">(2)</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">Get error information from <code>ChunkContext</code> using <code>ChunkListener.ROLLBACK_EXCEPTION_KEY</code> as a key.<br>
+In this example, the stack trace of the acquired exception is logged.</p></td>
+</tr>
+</tbody>
+</table>
+<div class="admonitionblock warning">
+<table>
+<tr>
+<td class="icon">
+<i class="fa icon-warning" title="Warning"></i>
+</td>
+<td class="content">
+<div class="title">Difference in behavior of ChunkListener due to difference in processing model</div>
+<div class="paragraph">
+<p>In the chunk model, handling is not performed by the afterChunkError method because exceptions caused by opening / closing resources are outside the scope captured by the ChunkListener interface.
+A schematic diagram is shown below.</p>
+</div>
+<div class="imageblock">
+<div class="content">
+<img src="./images/Ch06_ExceptionHandling_DiffTimingOpenResourceByChunkModel.png" alt="Difference in resource open timing by chunk model">
+</div>
+<div class="title">Schematic diagram of exception handling in chunk model</div>
+</div>
+<div class="paragraph">
+<p>In the tasklet model, exceptions caused by opening and closing resources are handled by the afterChunkError method because they are within the scope captured by the ChunkListener interface.
+A schematic diagram is shown below.</p>
+</div>
+<div class="imageblock">
+<div class="content">
+<img src="./images/Ch06_ExceptionHandling_DiffTimingOpenResourceByTaskletModel.png" alt="Difference in resource open timing by tasklet model">
+</div>
+<div class="title">Schematic diagram of exception handling in the tasklet model</div>
+</div>
+<div class="paragraph">
+<p>If you wish to handle exceptions unifiedly by absorbing this behavior difference,
+it can be implemented by checking the occurrence of an exception in the <a href="Ch04_Listener.html#Ch04_Listener_Overview_Types_StepExecutionListener">StepExecutionListener</a> interface.
+However, the implementation is slightly more complicated than <code>ChunkListener</code>.</p>
+</div>
+<div class="listingblock">
+<div class="title">Example of StepExecutionListener implementation.</div>
+<div class="content">
+<pre class="CodeRay highlight"><code data-lang="java"><span class="annotation">@Component</span>
+<span class="directive">public</span> <span class="type">class</span> <span class="class">StepErrorLoggingListener</span> <span class="directive">implements</span> StepExecutionListener {
+
+    <span class="directive">private</span> <span class="directive">static</span> <span class="directive">final</span> <span class="predefined-type">Logger</span> logger =
+            LoggerFactory.getLogger(StepErrorLoggingListener.class);
+
+    <span class="annotation">@Override</span>
+    <span class="directive">public</span> <span class="type">void</span> beforeStep(StepExecution stepExecution) {
+        <span class="comment">// do nothing.</span>
+    }
+
+    <span class="comment">// (1)</span>
+    <span class="annotation">@Override</span>
+    <span class="directive">public</span> ExitStatus afterStep(StepExecution stepExecution) {
+        <span class="comment">// (2)</span>
+        <span class="predefined-type">List</span>&lt;<span class="predefined-type">Throwable</span>&gt; exceptions = stepExecution.getFailureExceptions();
+        <span class="comment">// (3)</span>
+        <span class="keyword">if</span> (exceptions.isEmpty()) {
+            <span class="keyword">return</span> ExitStatus.COMPLETED;
+        }
+
+        <span class="comment">// (4)</span>
+        logger.info(<span class="string"><span class="delimiter">&quot;</span><span class="content">This step has occurred some exceptions as follow. </span><span class="delimiter">&quot;</span></span> +
+                <span class="string"><span class="delimiter">&quot;</span><span class="content">[step-name:{}] [size:{}]</span><span class="delimiter">&quot;</span></span>,
+                stepExecution.getStepName(), exceptions.size());
+        <span class="keyword">for</span> (<span class="predefined-type">Throwable</span> th : exceptions) {
+            logger.error(<span class="string"><span class="delimiter">&quot;</span><span class="content">exception has occurred in job.</span><span class="delimiter">&quot;</span></span>, th);
+        }
+        <span class="keyword">return</span> ExitStatus.FAILED;
+    }</code></pre>
+</div>
+</div>
+<table class="tableblock frame-all grid-all spread">
+<caption class="title">Description</caption>
+<colgroup>
+<col style="width: 10%;">
+<col style="width: 90%;">
+</colgroup>
+<thead>
+<tr>
+<th class="tableblock halign-left valign-top">Sr.No.</th>
+<th class="tableblock halign-left valign-top">Description</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td class="tableblock halign-left valign-top"><p class="tableblock">(1)</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">Implement <code>afterStep</code> method.</p></td>
+</tr>
+<tr>
+<td class="tableblock halign-left valign-top"><p class="tableblock">(2)</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">Get error information from the <code>stepExecution</code> argument.Be aware that you need to handle multiple exceptions together.</p></td>
+</tr>
+<tr>
+<td class="tableblock halign-left valign-top"><p class="tableblock">(3)</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">When the error information does not exist, it is determined as normal termination.</p></td>
+</tr>
+<tr>
+<td class="tableblock halign-left valign-top"><p class="tableblock">(4)</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">When the error information exists, exception handling is performed.<br>
+In this example, log output with stack trace is done for all exceptions that has occurred.</p></td>
+</tr>
+</tbody>
+</table>
+</td>
+</tr>
+</table>
+</div>
+</div>
+<div class="sect3">
+<h4 id="Ch06_ExceptionHandling_HowToUse_StepExceptionHandling_Chunk"><a class="anchor" href="#Ch06_ExceptionHandling_HowToUse_StepExceptionHandling_Chunk"></a>Exception handling in chunk model</h4>
+<div class="paragraph">
+<p>In the chunk model,
+exception handling is done with an inherited Listener <a href="Ch04_Listener.html#Ch04_Listener_Overview_Types_StepListener">StepListener</a>.</p>
+</div>
+<div class="paragraph">
+<p>For details on how to set listener, please refer <a href="Ch04_Listener.html#Ch04_Listener_HowToUse_Configuration">Listener setting</a>.</p>
+</div>
+<div class="sect4">
+<h5 id="Ch06_ExceptionHandling_HowToUse_StepExceptionHandling_Chunk_ItemReader"><a class="anchor" href="#Ch06_ExceptionHandling_HowToUse_StepExceptionHandling_Chunk_ItemReader"></a>Coding point(ItemReader)</h5>
+<div class="paragraph">
+<p>By implementing <code>onReadError</code> method of <a href="Ch04_Listener.html#Ch04_Listener_Overview_Types_ItemReadListener">ItemReadListener</a> interface,
+exceptions raised within ItemReader are handled.</p>
+</div>
+<div class="listingblock">
+<div class="title">Implementation example of ItemReadListener#onReadError</div>
+<div class="content">
+<pre class="CodeRay highlight"><code data-lang="java"><span class="annotation">@Component</span>
+<span class="directive">public</span> <span class="type">class</span> <span class="class">CommonItemReadListener</span> <span class="directive">implements</span> ItemReadListener&lt;<span class="predefined-type">Object</span>&gt; {
+
+    <span class="directive">private</span> <span class="directive">static</span> <span class="directive">final</span> <span class="predefined-type">Logger</span> logger =
+            LoggerFactory.getLogger(CommonItemReadListener.class);
+
+    <span class="comment">// omitted.</span>
+
+    <span class="comment">// (1)</span>
+    <span class="annotation">@Override</span>
+    <span class="directive">public</span> <span class="type">void</span> onReadError(<span class="exception">Exception</span> ex) {
+        logger.error(<span class="string"><span class="delimiter">&quot;</span><span class="content">Exception occurred while reading.</span><span class="delimiter">&quot;</span></span>, ex);  <span class="comment">// (2)</span>
+    }
+
+    <span class="comment">// omitted.</span>
+}</code></pre>
+</div>
+</div>
+<table class="tableblock frame-all grid-all spread">
+<caption class="title">Description</caption>
+<colgroup>
+<col style="width: 10%;">
+<col style="width: 90%;">
+</colgroup>
+<thead>
+<tr>
+<th class="tableblock halign-left valign-top">Sr.No.</th>
+<th class="tableblock halign-left valign-top">Description</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td class="tableblock halign-left valign-top"><p class="tableblock">(1)</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">Implement <code>onReadError</code> method.</p></td>
+</tr>
+<tr>
+<td class="tableblock halign-left valign-top"><p class="tableblock">(2)</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">Implement exception handling. <br>
+In this example, the stack trace of the exception acquired from the argument is logged.</p></td>
+</tr>
+</tbody>
+</table>
+</div>
+<div class="sect4">
+<h5 id="Ch06_ExceptionHandling_HowToUse_StepExceptionHandling_Chunk_ItemProcessor"><a class="anchor" href="#Ch06_ExceptionHandling_HowToUse_StepExceptionHandling_Chunk_ItemProcessor"></a>Coding point (ItemProcessor)</h5>
+<div class="paragraph">
+<p>There are two ways to handle exception in ItemProcessor, and use it according to requirements.</p>
+</div>
+<div class="olist arabic">
+<ol class="arabic">
+<li>
+<p>How to try ~ catch in ItemProcessor</p>
+</li>
+<li>
+<p>Using <a href="Ch04_Listener.html#Ch04_Listener_Overview_Types_ItemProcessListener">ItemProcessListener</a> interface.</p>
+</li>
+</ol>
+</div>
+<div class="paragraph">
+<p>Why they are used properly is explained.<br>
+The argument of the <code>onProcessError</code> method executed when an exception occurs in ItemProcessor processing consists of two items - items to be processed and exceptions to be processed.<br>
+Depending on the requirements of the system, when handling exceptions such as log output in the <code>ItemProcessListener</code> interface, these two arguments may not satisfy the requirement.
+In that case, it is recommended to catch the exception with try ~ catch in ItemProcessor and perform exception handling processing.<br>
+Note that implementing try ~ catch in ItemProcessor and implementing the <code>ItemProcessListener</code> interface may result in double processing, so care must be taken.<br>
+If fine-grained exception handling is to be done, then adopt a method to try ~ catch in ItemProcessor.</p>
+</div>
+<div class="paragraph">
+<p>Each method is explained below.</p>
+</div>
+<div id="Ch06_ExceptionHandling_HowToUse_StepExceptionHandling_Chunk_ItemProcessor_TryCatchExample" class="dlist">
+<dl>
+<dt class="hdlist1">How to try ~ catch in ItemProcessor</dt>
+<dd>
+<p>This is used to do fine-grained exception handling.<br>
+As explained in the skip section below,it will be used when doing error record of <a href="#Ch06_ExceptionHandling_HowToUse_ContinuationPropriety_Skip">Skip</a>.</p>
+</dd>
+</dl>
+</div>
+<div class="listingblock">
+<div class="title">Implementation example of try ~ catch in ItemProcessor</div>
+<div class="content">
+<pre class="CodeRay highlight"><code data-lang="java"><span class="annotation">@Component</span>
+<span class="directive">public</span> <span class="type">class</span> <span class="class">AmountCheckProcessor</span> <span class="directive">implements</span>
+        ItemProcessor&lt;SalesPerformanceDetail, SalesPerformanceDetail&gt; {
+
+    <span class="comment">// omitted.</span>
+
+    <span class="annotation">@Override</span>
+    <span class="directive">public</span> SalesPerformanceDetail process(SalesPerformanceDetail item)
+            <span class="directive">throws</span> <span class="exception">Exception</span> {
+        <span class="comment">// (1)</span>
+        <span class="keyword">try</span> {
+            checkAmount(item.getAmount(), amountLimit);
+        } <span class="keyword">catch</span> (<span class="exception">ArithmeticException</span> ae) {
+            <span class="comment">// (2)</span>
+            logger.error(
+                <span class="string"><span class="delimiter">&quot;</span><span class="content">Exception occurred while processing. [item:{}]</span><span class="delimiter">&quot;</span></span>, item, ae);
+            <span class="comment">// (3)</span>
+            <span class="keyword">throw</span> <span class="keyword">new</span> <span class="exception">IllegalStateException</span>(<span class="string"><span class="delimiter">&quot;</span><span class="content">check error at processor.</span><span class="delimiter">&quot;</span></span>, ae);
+        }
+        <span class="keyword">return</span> item;
+    }
+}</code></pre>
+</div>
+</div>
+<table class="tableblock frame-all grid-all spread">
+<caption class="title">Description</caption>
+<colgroup>
+<col style="width: 10%;">
+<col style="width: 90%;">
+</colgroup>
+<thead>
+<tr>
+<th class="tableblock halign-left valign-top">Sr.No.</th>
+<th class="tableblock halign-left valign-top">Description</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td class="tableblock halign-left valign-top"><p class="tableblock">(1)</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">Implement <code>try ~ catch</code>. Here special handling is only for certain exceptions (<code>ArithmeticException</code>).</p></td>
+</tr>
+<tr>
+<td class="tableblock halign-left valign-top"><p class="tableblock">(2)</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">Implement exception handling.<br>
+In this example, the stack trace of the exception acquired from the argument is logged.</p></td>
+</tr>
+<tr>
+<td class="tableblock halign-left valign-top"><p class="tableblock">(3)</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">Throw a transaction rollback exception.<br>
+This exception throw also allows common exception handling with <code>ItemProcessListener</code>.</p></td>
+</tr>
+</tbody>
+</table>
+<div class="dlist">
+<dl>
+<dt class="hdlist1">How to use the <code>ItemProcessListener</code> interface</dt>
+<dd>
+<p>Use this,if business exceptions can be handled in the same way.</p>
+</dd>
+</dl>
+</div>
+<div class="listingblock">
+<div class="title">Implemenation example of ItemProcessListener#onProcessError</div>
+<div class="content">
+<pre class="CodeRay highlight"><code data-lang="java"><span class="annotation">@Component</span>
+<span class="directive">public</span> <span class="type">class</span> <span class="class">CommonItemProcessListener</span> <span class="directive">implements</span> ItemProcessListener&lt;<span class="predefined-type">Object</span>, <span class="predefined-type">Object</span>&gt; {
+
+    <span class="directive">private</span> <span class="directive">static</span> <span class="directive">final</span> <span class="predefined-type">Logger</span> logger =
+            LoggerFactory.getLogger(CommonItemProcessListener.class);
+
+    <span class="comment">// omitted.</span>
+
+    <span class="comment">// (1)</span>
+    <span class="annotation">@Override</span>
+    <span class="directive">public</span> <span class="type">void</span> onProcessError(<span class="predefined-type">Object</span> item, <span class="exception">Exception</span> e) {
+        <span class="comment">// (2)</span>
+        logger.error(<span class="string"><span class="delimiter">&quot;</span><span class="content">Exception occurred while processing. [item:{}]</span><span class="delimiter">&quot;</span></span>, item, e);
+    }
+
+    <span class="comment">// omitted.</span>
+}</code></pre>
+</div>
+</div>
+<table class="tableblock frame-all grid-all spread">
+<caption class="title">Description</caption>
+<colgroup>
+<col style="width: 10%;">
+<col style="width: 90%;">
+</colgroup>
+<thead>
+<tr>
+<th class="tableblock halign-left valign-top">Sr.No.</th>
+<th class="tableblock halign-left valign-top">Description</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td class="tableblock halign-left valign-top"><p class="tableblock">(1)</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">Implement <code>onProcessError</code> method.</p></td>
+</tr>
+<tr>
+<td class="tableblock halign-left valign-top"><p class="tableblock">(2)</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">Implement exception handling.<br>
+In this example, the processing target data acquired from the arguments and the stack trace of the exception are logged.</p></td>
+</tr>
+</tbody>
+</table>
+</div>
+<div class="sect4">
+<h5 id="Ch06_ExceptionHandling_HowToUse_StepExceptionHandling_Chunk_ItemWriter"><a class="anchor" href="#Ch06_ExceptionHandling_HowToUse_StepExceptionHandling_Chunk_ItemWriter"></a>Coding point(ItemWriter)</h5>
+<div class="paragraph">
+<p>By implementing the <code>onWriteError</code> method of <a href="Ch04_Listener.html#Ch04_Listener_Overview_Types_ItemWriteListener">ItemWriteListener</a> interface
+exceptions raised within ItemWriter are handled.</p>
+</div>
+<div class="listingblock">
+<div class="title">Implementation example of ItemWriteListener#onWriteError</div>
+<div class="content">
+<pre class="CodeRay highlight"><code data-lang="java"><span class="annotation">@Component</span>
+<span class="directive">public</span> <span class="type">class</span> <span class="class">CommonItemWriteListener</span> <span class="directive">implements</span> ItemWriteListener&lt;<span class="predefined-type">Object</span>&gt; {
+
+    <span class="directive">private</span> <span class="directive">static</span> <span class="directive">final</span> <span class="predefined-type">Logger</span> logger =
+            LoggerFactory.getLogger(CommonItemWriteListener.class);
+
+    <span class="comment">// omitted.</span>
+
+    <span class="comment">// (1)</span>
+    <span class="annotation">@Override</span>
+    <span class="directive">public</span> <span class="type">void</span> onWriteError(<span class="exception">Exception</span> ex, <span class="predefined-type">List</span> item) {
+        <span class="comment">// (2)</span>
+        logger.error(<span class="string"><span class="delimiter">&quot;</span><span class="content">Exception occurred while processing. [items:{}]</span><span class="delimiter">&quot;</span></span>, item, ex);
+    }
+
+    <span class="comment">// omitted.</span>
+}</code></pre>
+</div>
+</div>
+<table class="tableblock frame-all grid-all spread">
+<caption class="title">Description</caption>
+<colgroup>
+<col style="width: 10%;">
+<col style="width: 90%;">
+</colgroup>
+<thead>
+<tr>
+<th class="tableblock halign-left valign-top">Sr.No.</th>
+<th class="tableblock halign-left valign-top">Description</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td class="tableblock halign-left valign-top"><p class="tableblock">(1)</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">Implement <code>onWriteError</code> method.</p></td>
+</tr>
+<tr>
+<td class="tableblock halign-left valign-top"><p class="tableblock">(2)</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">Implement exception handling.<br>
+In this example, the chunk of the output target obtained from the argument and the stack trace of the exception are logged.</p></td>
+</tr>
+</tbody>
+</table>
+</div>
+</div>
+<div class="sect3">
+<h4 id="Ch06_ExceptionHandling_HowToUse_StepExceptionHandling_Tasklet"><a class="anchor" href="#Ch06_ExceptionHandling_HowToUse_StepExceptionHandling_Tasklet"></a>Exception handling in tasklet model</h4>
+<div class="paragraph">
+<p>Implement exception handling of tasklet model on its own in tasklet.</p>
+</div>
+<div class="paragraph">
+<p>When performing transaction processing, be sure to throw the exception again in order to roll back.</p>
+</div>
+<div id="Ch06_ExceptionHandling_HowToUse_StepExceptionHandling_Tasklet_TaskletExample" class="listingblock">
+<div class="title">Exception handling implementation example in tasklet model</div>
+<div class="content">
+<pre class="CodeRay highlight"><code data-lang="java"><span class="annotation">@Component</span>
+<span class="directive">public</span> <span class="type">class</span> <span class="class">SalesPerformanceTasklet</span> <span class="directive">implements</span> Tasklet {
+
+    <span class="directive">private</span> <span class="directive">static</span> <span class="directive">final</span> <span class="predefined-type">Logger</span> logger =
+            LoggerFactory.getLogger(SalesPerformanceTasklet.class);
+
+    <span class="comment">// omitted.</span>
+
+    <span class="annotation">@Override</span>
+    <span class="directive">public</span> RepeatStatus execute(StepContribution contribution,
+            ChunkContext chunkContext) <span class="directive">throws</span> <span class="exception">Exception</span> {
+
+        <span class="comment">// (1)</span>
+        <span class="keyword">try</span> {
+            reader.open(chunkContext.getStepContext().getStepExecution()
+                    .getExecutionContext());
+
+            <span class="predefined-type">List</span>&lt;SalesPerformanceDetail&gt; items = <span class="keyword">new</span> <span class="predefined-type">ArrayList</span>&lt;&gt;(<span class="integer">10</span>);
+            SalesPerformanceDetail item = <span class="predefined-constant">null</span>;
+            <span class="keyword">do</span> {
+                <span class="comment">// Pseudo operation of ItemReader</span>
+                <span class="comment">// omitted.</span>
+
+                <span class="comment">// Pseudo operation of ItemProcessor</span>
+                checkAmount(item.getAmount(), amountLimit);
+
+
+                <span class="comment">// Pseudo operation of ItemWriter</span>
+                <span class="comment">// omitted.</span>
+
+            } <span class="keyword">while</span> (item != <span class="predefined-constant">null</span>);
+        } <span class="keyword">catch</span> (<span class="exception">Exception</span> e) {
+            logger.error(<span class="string"><span class="delimiter">&quot;</span><span class="content">exception in tasklet.</span><span class="delimiter">&quot;</span></span>, e);   <span class="comment">// (2)</span>
+            <span class="keyword">throw</span> e;    <span class="comment">// (3)</span>
+        } <span class="keyword">finally</span> {
+            <span class="keyword">try</span> {
+                reader.close();
+            } <span class="keyword">catch</span> (<span class="exception">Exception</span> e) {
+                <span class="comment">// do nothing.</span>
+            }
+        }
+
+        <span class="keyword">return</span> RepeatStatus.FINISHED;
+    }
+}</code></pre>
+</div>
+</div>
+<table class="tableblock frame-all grid-all spread">
+<caption class="title">Description</caption>
+<colgroup>
+<col style="width: 10%;">
+<col style="width: 90%;">
+</colgroup>
+<thead>
+<tr>
+<th class="tableblock halign-left valign-top">Sr.No.</th>
+<th class="tableblock halign-left valign-top">Description</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td class="tableblock halign-left valign-top"><p class="tableblock">(1)</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">Implement <code>try-catch</code></p></td>
+</tr>
+<tr>
+<td class="tableblock halign-left valign-top"><p class="tableblock">(2)</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">Implement exception handling.<br>
+In this example, the stack trace of the exception that occurred is logged.</p></td>
+</tr>
+<tr>
+<td class="tableblock halign-left valign-top"><p class="tableblock">(3)</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">Throw the exception again to roll back the transaction.</p></td>
+</tr>
+</tbody>
+</table>
+</div>
+</div>
+<div class="sect2">
+<h3 id="Ch06_ExceptionHandling_HowToUse_JobExceptionHandling"><a class="anchor" href="#Ch06_ExceptionHandling_HowToUse_JobExceptionHandling"></a>Job-level exception handling</h3>
+<div class="paragraph">
+<p>Exception handling method on a job level is explained.<br>
+It is a common handling method for chunk model and tasklet model.</p>
+</div>
+<div class="paragraph">
+<p>Implement errors such as system exception and fatal error etc. in job level
+<a href="Ch04_Listener.html#Ch04_Listener_Overview_Types_JobExecutionListener">JobExecutionListener</a> interface.</p>
+</div>
+<div class="paragraph">
+<p>In order to collectively define exception handling processing, handling is performed on a job level without defining handling processing for each step.<br>
+In the exception handling here, do output log and setting ExitCode, do not implement transaction processing.</p>
+</div>
+<div class="admonitionblock caution">
+<table>
+<tr>
+<td class="icon">
+<i class="fa icon-caution" title="Caution"></i>
+</td>
+<td class="content">
+<div class="title">Prohibition of transaction processing</div>
+<div class="paragraph">
+<p>The processing performed by <code>JobExecutionListener</code> is out of the scope of business transaction management.
+Therefore, it is prohibited to execute transaction processing in exception handling on a job level.</p>
+</div>
+</td>
+</tr>
+</table>
+</div>
+<div class="paragraph">
+<p>Here, an example of handling an exception when occurs in ItemProcessor is shown.
+For details on how to set the listener,please refer <a href="Ch04_Listener.html#Ch04_Listener_HowToUse_Configuration">Listener setting</a>.</p>
+</div>
+<div class="listingblock">
+<div class="title">Implementation example of ItemProcessor</div>
+<div class="content">
+<pre class="CodeRay highlight"><code data-lang="java"><span class="annotation">@Component</span>
+<span class="directive">public</span> <span class="type">class</span> <span class="class">AmountCheckProcessor</span> <span class="directive">implements</span>
+        ItemProcessor&lt;SalesPerformanceDetail, SalesPerformanceDetail&gt; {
+
+    <span class="comment">// omitted.</span>
+
+    <span class="directive">private</span> StepExecution stepExecution;
+
+    <span class="comment">// (1)</span>
+    <span class="annotation">@BeforeStep</span>
+    <span class="directive">public</span> <span class="type">void</span> beforeStep(StepExecution stepExecution) {
+        <span class="local-variable">this</span>.stepExecution = stepExecution;
+    }
+
+    <span class="annotation">@Override</span>
+    <span class="directive">public</span> SalesPerformanceDetail process(SalesPerformanceDetail item)
+            <span class="directive">throws</span> <span class="exception">Exception</span> {
+        <span class="comment">// (2)</span>
+        <span class="keyword">try</span> {
+            checkAmount(item.getAmount(), amountLimit);
+        } <span class="keyword">catch</span> (<span class="exception">ArithmeticException</span> ae) {
+            <span class="comment">// (3)</span>
+            stepExecution.getExecutionContext().put(<span class="string"><span class="delimiter">&quot;</span><span class="content">ERROR_ITEM</span><span class="delimiter">&quot;</span></span>, item);
+            <span class="comment">// (4)</span>
+            <span class="keyword">throw</span> <span class="keyword">new</span> <span class="exception">IllegalStateException</span>(<span class="string"><span class="delimiter">&quot;</span><span class="content">check error at processor.</span><span class="delimiter">&quot;</span></span>, ae);
+        }
+        <span class="keyword">return</span> item;
+    }
+}</code></pre>
+</div>
+</div>
+<div class="listingblock">
+<div class="title">Exception handling implementation in JobExecutionListener</div>
+<div class="content">
+<pre class="CodeRay highlight"><code data-lang="java"><span class="annotation">@Component</span>
+<span class="directive">public</span> <span class="type">class</span> <span class="class">JobErrorLoggingListener</span> <span class="directive">implements</span> JobExecutionListener {
+
+    <span class="directive">private</span> <span class="directive">static</span> <span class="directive">final</span> <span class="predefined-type">Logger</span> logger =
+            LoggerFactory.getLogger(JobErrorLoggingListener.class);
+
+    <span class="annotation">@Override</span>
+    <span class="directive">public</span> <span class="type">void</span> beforeJob(JobExecution jobExecution) {
+        <span class="comment">// do nothing.</span>
+    }
+
+    <span class="comment">// (5)</span>
+    <span class="annotation">@Override</span>
+    <span class="directive">public</span> <span class="type">void</span> afterJob(JobExecution jobExecution) {
+
+        <span class="comment">// whole job execution</span>
+        <span class="predefined-type">List</span>&lt;<span class="predefined-type">Throwable</span>&gt; exceptions = jobExecution.getAllFailureExceptions(); <span class="comment">// (6)</span>
+        <span class="comment">// (7)</span>
+        <span class="keyword">if</span> (exceptions.isEmpty()) {
+            <span class="keyword">return</span>;
+        }
+        <span class="comment">// (8)</span>
+        logger.info(<span class="string"><span class="delimiter">&quot;</span><span class="content">This job has occurred some exceptions as follow. </span><span class="delimiter">&quot;</span></span> +
+                <span class="string"><span class="delimiter">&quot;</span><span class="content">[job-name:{}] [size:{}]</span><span class="delimiter">&quot;</span></span>,
+                jobExecution.getJobInstance().getJobName(), exceptions.size());
+        <span class="keyword">for</span> (<span class="predefined-type">Throwable</span> th : exceptions) {
+            logger.error(<span class="string"><span class="delimiter">&quot;</span><span class="content">exception has occurred in job.</span><span class="delimiter">&quot;</span></span>, th);
+        }
+        <span class="comment">// (9)</span>
+        <span class="keyword">for</span> (StepExecution stepExecution : jobExecution.getStepExecutions()) {
+            <span class="predefined-type">Object</span> errorItem = stepExecution.getExecutionContext()
+                    .get(<span class="string"><span class="delimiter">&quot;</span><span class="content">ERROR_ITEM</span><span class="delimiter">&quot;</span></span>); <span class="comment">// (10)</span>
+            <span class="keyword">if</span> (errorItem != <span class="predefined-constant">null</span>) {
+                logger.error(<span class="string"><span class="delimiter">&quot;</span><span class="content">detected error on this item processing. </span><span class="delimiter">&quot;</span></span> +
+                        <span class="string"><span class="delimiter">&quot;</span><span class="content">[step:{}] [item:{}]</span><span class="delimiter">&quot;</span></span>, stepExecution.getStepName(),
+                        errorItem);
+            }
+        }
+
+    }
+}</code></pre>
+</div>
+</div>
+<table class="tableblock frame-all grid-all spread">
+<caption class="title">Description</caption>
+<colgroup>
+<col style="width: 10%;">
+<col style="width: 90%;">
+</colgroup>
+<thead>
+<tr>
+<th class="tableblock halign-left valign-top">Sr.No.</th>
+<th class="tableblock halign-left valign-top">Description</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td class="tableblock halign-left valign-top"><p class="tableblock">(1)</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">In order to output error data with <code>JobExecutionListener</code>, get the <code>StepExecution</code> instance before step execution.</p></td>
+</tr>
+<tr>
+<td class="tableblock halign-left valign-top"><p class="tableblock">(2)</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">Implement <code>try-catch</code>.</p></td>
+</tr>
+<tr>
+<td class="tableblock halign-left valign-top"><p class="tableblock">(3)</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">Implement exception handling.<br>
+In this example, error data is stored in the context of the <code>StepExecution</code> instance with the key <code>ERROR_ITEM</code>.</p></td>
+</tr>
+<tr>
+<td class="tableblock halign-left valign-top"><p class="tableblock">(4)</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">Throw an exception to do exception handling with <code>JobExecutionListener</code>.</p></td>
+</tr>
+<tr>
+<td class="tableblock halign-left valign-top"><p class="tableblock">(5)</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">Implement exception handling in <code>afterJob</code> method.</p></td>
+</tr>
+<tr>
+<td class="tableblock halign-left valign-top"><p class="tableblock">(6)</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">Fetch error information which have occurred in all the jobs, from the argument of <code>jobExecution</code>.</p></td>
+</tr>
+<tr>
+<td class="tableblock halign-left valign-top"><p class="tableblock">(7)</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">If there is no error information, it is determined as normal termination.</p></td>
+</tr>
+<tr>
+<td class="tableblock halign-left valign-top"><p class="tableblock">(8)</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">If there is error information, exception handling is performed.<br>
+In this example, log output with stack trace is done for all exceptions that occurred.</p></td>
+</tr>
+<tr>
+<td class="tableblock halign-left valign-top"><p class="tableblock">(9)</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">In this example, log output is performed when error data exists.<br>
+Get the <code>StepExecution</code> instance from all the steps defined in the job and check whether the error data is stored with the key <code>ERROR_ITEM</code>.
+If it is stored, it is logged as error data.</p></td>
+</tr>
+</tbody>
+</table>
+<div class="admonitionblock warning">
+<table>
+<tr>
+<td class="icon">
+<i class="fa icon-warning" title="Warning"></i>
+</td>
+<td class="content">
+<div class="title">Object to be stored in ExecutionContext</div>
+<div class="paragraph">
+<p>The object to be stored in <code>ExecutionContext</code> must be a class that implements <code>java.io.Serializable</code>.
+This is because <code>ExecutionContext</code> is stored in <code>JobRepository</code>.</p>
+</div>
+</td>
+</tr>
+</table>
+</div>
+</div>
+<div class="sect2">
+<h3 id="Ch06_ExceptionHandling_HowToUse_ContinuationPropriety"><a class="anchor" href="#Ch06_ExceptionHandling_HowToUse_ContinuationPropriety"></a>Determination as to whether processing can be continued</h3>
+<div class="paragraph">
+<p>How to decide whether or not to continue processing jobs when an exception occurs is explained.</p>
+</div>
+<div class="ulist">
+<div class="title">Process continuation propriety method list</div>
+<ul>
+<li>
+<p><a href="#Ch06_ExceptionHandling_HowToUse_ContinuationPropriety_Skip">Skip</a></p>
+</li>
+<li>
+<p><a href="#Ch06_ExceptionHandling_HowToUse_ContinuationPropriety_Retry">Retry</a></p>
+</li>
+<li>
+<p><a href="#Ch06_ExceptionHandling_HowToUse_ContinuationPropriety_Interruption">Process interruption</a></p>
+</li>
+</ul>
+</div>
+<div class="sect3">
+<h4 id="Ch06_ExceptionHandling_HowToUse_ContinuationPropriety_Skip"><a class="anchor" href="#Ch06_ExceptionHandling_HowToUse_ContinuationPropriety_Skip"></a>Skip</h4>
+<div class="paragraph">
+<p>A method of skipping an erroneous record and continuing processing is described.</p>
+</div>
+<div class="sect4">
+<h5 id="Ch06_ExceptionHandling_HowToUse_ContinuationPropriety_Skip_Chunk"><a class="anchor" href="#Ch06_ExceptionHandling_HowToUse_ContinuationPropriety_Skip_Chunk"></a>Chunk model</h5>
+<div class="paragraph">
+<p>In the chunk model, the implementation method differs for components of each processing</p>
+</div>
+<div class="admonitionblock important">
+<table>
+<tr>
+<td class="icon">
+<i class="fa icon-important" title="Important"></i>
+</td>
+<td class="content">
+<div class="paragraph">
+<p>Always read <a href="#Ch06_ExceptionHandling_Appendix_SkippableExceptionClasses">About reason why &lt;skippable-exception-classes&gt; is not used</a> before applying the contents described here.</p>
+</div>
+</td>
+</tr>
+</table>
+</div>
+<div class="ulist">
+<ul>
+<li>
+<p><a href="#Ch06_ExceptionHandling_HowToUse_ContinuationPropriety_Skip_Chunk_ItemReader">Skip with ItemReader</a></p>
+</li>
+<li>
+<p><a href="#Ch06_ExceptionHandling_HowToUse_ContinuationPropriety_Skip_Chunk_ItemProcessor">Skip with ItemProcessor</a></p>
+</li>
+<li>
+<p><a href="#Ch06_ExceptionHandling_HowToUse_ContinuationPropriety_Skip_Chunk_ItemWriter">Skip with ItemWriter</a></p>
+</li>
+</ul>
+</div>
+<div id="Ch06_ExceptionHandling_HowToUse_ContinuationPropriety_Skip_Chunk_ItemReader" class="dlist">
+<dl>
+<dt class="hdlist1">Skip with ItemReader</dt>
+<dd>
+<p>Specify the skip method in <code>skip-policy</code> attribute of <code>&lt;batch:chunk&gt;</code>.
+In <code>&lt;batch:skippable-exception-classes&gt;</code>, specify the exception class to be skipped which occurs in the ItemReader.<br>
+For the <code>skip-policy</code> attribute, use one of the following classes provided by Spring Batch.</p>
+</dd>
+</dl>
+</div>
+<table class="tableblock frame-all grid-all spread">
+<caption class="title">skip-policy list</caption>
+<colgroup>
+<col style="width: 40%;">
+<col style="width: 60%;">
+</colgroup>
+<thead>
+<tr>
+<th class="tableblock halign-left valign-top">Class name</th>
+<th class="tableblock halign-left valign-top">Description</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><a href="#Ch06_ExceptionHandling_HowToUse_ContinuationPropriety_Skip_Chunk_AlwaysSkipItemSkipPolicy">AlwaysSkipItemSkipPolicy</a></p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">Always skip.</p></td>
+</tr>
+<tr>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><a href="#Ch06_ExceptionHandling_HowToUse_ContinuationPropriety_Skip_Chunk_NeverSkipItemSkipPolicy">NeverSkipItemSkipPolicy</a></p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">Do not skip.</p></td>
+</tr>
+<tr>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><a href="#Ch06_ExceptionHandling_HowToUse_ContinuationPropriety_Skip_Chunk_LimitCheckingItemSkipPolicy">LimitCheckingItemSkipPolicy</a></p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">Skip until the upper limit of the specified number of skips is reached.<br>
+When the upper limit value is reached, the following exception occurs.<br>
+<code>org.springframework.batch.core.step.skip.SkipLimitExceededException</code></p>
+<p class="tableblock">This is the skipping method used by default when <code>skip-policy</code> is omitted.</p></td>
+</tr>
+<tr>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><a href="#Ch06_ExceptionHandling_HowToUse_ContinuationPropriety_Skip_Chunk_ExceptionClassifierSkipPolicy">ExceptionClassifierSkipPolicy</a></p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">Use this when you want to change <code>skip-policy</code> which applies to each exception.</p></td>
+</tr>
+</tbody>
+</table>
+<div class="paragraph">
+<p>Implementation example of skipping is explained.</p>
+</div>
+<div class="paragraph">
+<p>Handle case where an incorrect record exists when reading a CSV file with <code>FlatFileItemReader</code>.<br>
+The following exceptions occur at this time.</p>
+</div>
+<div class="ulist">
+<ul>
+<li>
+<p><code>org.springframework.batch.item.ItemReaderException</code>(Base exception class)</p>
+<div class="ulist">
+<ul>
+<li>
+<p><code>org.springframework.batch.item.file.FlatFileParseException</code> (Exception occured class)</p>
+</li>
+</ul>
+</div>
+</li>
+</ul>
+</div>
+<div class="paragraph">
+<p><code>skip-policy</code> shows how to define it separately.</p>
+</div>
+<div class="listingblock">
+<div class="title">Definition of ItemReader as a prerequisite</div>
+<div class="content">
+<pre class="CodeRay highlight"><code data-lang="xml"><span class="tag">&lt;bean</span> <span class="attribute-name">id</span>=<span class="string"><span class="delimiter">&quot;</span><span class="content">detailCSVReader</span><span class="delimiter">&quot;</span></span>
+      <span class="attribute-name">class</span>=<span class="string"><span class="delimiter">&quot;</span><span class="content">org.springframework.batch.item.file.FlatFileItemReader</span><span class="delimiter">&quot;</span></span> <span class="attribute-name">scope</span>=<span class="string"><span class="delimiter">&quot;</span><span class="content">step</span><span class="delimiter">&quot;</span></span><span class="tag">&gt;</span>
+    <span class="tag">&lt;property</span> <span class="attribute-name">name</span>=<span class="string"><span class="delimiter">&quot;</span><span class="content">resource</span><span class="delimiter">&quot;</span></span> <span class="attribute-name">value</span>=<span class="string"><span class="delimiter">&quot;</span><span class="content">file:#{jobParameters['inputFile']}</span><span class="delimiter">&quot;</span></span><span class="tag">/&gt;</span>
+    <span class="tag">&lt;property</span> <span class="attribute-name">name</span>=<span class="string"><span class="delimiter">&quot;</span><span class="content">lineMapper</span><span class="delimiter">&quot;</span></span><span class="tag">&gt;</span>
+        <span class="tag">&lt;bean</span> <span class="attribute-name">class</span>=<span class="string"><span class="delimiter">&quot;</span><span class="content">org.springframework.batch.item.file.mapping.DefaultLineMapper</span><span class="delimiter">&quot;</span></span><span class="tag">&gt;</span>
+            <span class="tag">&lt;property</span> <span class="attribute-name">name</span>=<span class="string"><span class="delimiter">&quot;</span><span class="content">lineTokenizer</span><span class="delimiter">&quot;</span></span><span class="tag">&gt;</span>
+                <span class="tag">&lt;bean</span> <span class="attribute-name">class</span>=<span class="string"><span class="delimiter">&quot;</span><span class="content">org.springframework.batch.item.file.transform.DelimitedLineTokenizer</span><span class="delimiter">&quot;</span></span>
+                      <span class="attribute-name">p:names</span>=<span class="string"><span class="delimiter">&quot;</span><span class="content">branchId,year,month,customerId,amount</span><span class="delimiter">&quot;</span></span><span class="tag">/&gt;</span>
+            <span class="tag">&lt;/property&gt;</span>
+            <span class="tag">&lt;property</span> <span class="attribute-name">name</span>=<span class="string"><span class="delimiter">&quot;</span><span class="content">fieldSetMapper</span><span class="delimiter">&quot;</span></span><span class="tag">&gt;</span>
+                <span class="tag">&lt;bean</span> <span class="attribute-name">class</span>=<span class="string"><span class="delimiter">&quot;</span><span class="content">org.springframework.batch.item.file.mapping.BeanWrapperFieldSetMapper</span><span class="delimiter">&quot;</span></span>
+                      <span class="attribute-name">p:targetType</span>=<span class="string"><span class="delimiter">&quot;</span><span class="content">org.terasoluna.batch.functionaltest.app.model.performance.SalesPerformanceDetail</span><span class="delimiter">&quot;</span></span><span class="tag">/&gt;</span>
+            <span class="tag">&lt;/property&gt;</span>
+        <span class="tag">&lt;/bean&gt;</span>
+    <span class="tag">&lt;/property&gt;</span>
+<span class="tag">&lt;/bean&gt;</span></code></pre>
+</div>
+</div>
+<div id="Ch06_ExceptionHandling_HowToUse_ContinuationPropriety_Skip_Chunk_AlwaysSkipItemSkipPolicy" class="dlist">
+<dl>
+<dt class="hdlist1">AlwaysSkipItemSkipPolicy</dt>
+</dl>
+</div>
+<div class="listingblock">
+<div class="title">Specification example of AlwaysSkipItemSkipPolicy</div>
+<div class="content">
+<pre class="CodeRay highlight"><code data-lang="xml"><span class="comment">&lt;!-- (1) --&gt;</span>
+<span class="tag">&lt;bean</span> <span class="attribute-name">id</span>=<span class="string"><span class="delimiter">&quot;</span><span class="content">skipPolicy</span><span class="delimiter">&quot;</span></span>
+      <span class="attribute-name">class</span>=<span class="string"><span class="delimiter">&quot;</span><span class="content">org.springframework.batch.core.step.skip.AlwaysSkipItemSkipPolicy</span><span class="delimiter">&quot;</span></span><span class="tag">/&gt;</span>
+
+<span class="tag">&lt;batch:job</span> <span class="attribute-name">id</span>=<span class="string"><span class="delimiter">&quot;</span><span class="content">jobSalesPerfAtSkipAllReadError</span><span class="delimiter">&quot;</span></span> <span class="attribute-name">job-repository</span>=<span class="string"><span class="delimiter">&quot;</span><span class="content">jobRepository</span><span class="delimiter">&quot;</span></span><span class="tag">&gt;</span>
+    <span class="tag">&lt;batch:step</span> <span class="attribute-name">id</span>=<span class="string"><span class="delimiter">&quot;</span><span class="content">jobSalesPerfAtSkipAllReadError.step01</span><span class="delimiter">&quot;</span></span><span class="tag">&gt;</span>
+        <span class="tag">&lt;batch:tasklet</span> <span class="attribute-name">transaction-manager</span>=<span class="string"><span class="delimiter">&quot;</span><span class="content">jobTransactionManager</span><span class="delimiter">&quot;</span></span><span class="tag">&gt;</span>
+            <span class="tag">&lt;batch:chunk</span> <span class="attribute-name">reader</span>=<span class="string"><span class="delimiter">&quot;</span><span class="content">detailCSVReader</span><span class="delimiter">&quot;</span></span>
+                         <span class="attribute-name">processor</span>=<span class="string"><span class="delimiter">&quot;</span><span class="content">amountCheckProcessor</span><span class="delimiter">&quot;</span></span>
+                         <span class="attribute-name">writer</span>=<span class="string"><span class="delimiter">&quot;</span><span class="content">detailWriter</span><span class="delimiter">&quot;</span></span> <span class="attribute-name">commit-interval</span>=<span class="string"><span class="delimiter">&quot;</span><span class="content">10</span><span class="delimiter">&quot;</span></span>
+                         <span class="attribute-name">skip-policy</span>=<span class="string"><span class="delimiter">&quot;</span><span class="content">skipPolicy</span><span class="delimiter">&quot;</span></span><span class="tag">&gt;</span> <span class="comment">&lt;!-- (2) --&gt;</span>
+            <span class="tag">&lt;/batch:chunk&gt;</span>
+        <span class="tag">&lt;/batch:tasklet&gt;</span>
+    <span class="tag">&lt;/batch:step&gt;</span>
+<span class="tag">&lt;/batch:job&gt;</span></code></pre>
+</div>
+</div>
+<table class="tableblock frame-all grid-all spread">
+<caption class="title">Description</caption>
+<colgroup>
+<col style="width: 10%;">
+<col style="width: 90%;">
+</colgroup>
+<thead>
+<tr>
+<th class="tableblock halign-left valign-top">Sr.No.</th>
+<th class="tableblock halign-left valign-top">Description</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td class="tableblock halign-left valign-top"><p class="tableblock">(1)</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">Define <code>AlwaysSkipItemSkipPolicy</code> as a bean.</p></td>
+</tr>
+<tr>
+<td class="tableblock halign-left valign-top"><p class="tableblock">(2)</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">Set the bean defined in (1) to the <code>skip-policy</code> attribute of <code>&lt;batch:chunk&gt;</code></p></td>
+</tr>
+</tbody>
+</table>
+<div id="Ch06_ExceptionHandling_HowToUse_ContinuationPropriety_Skip_Chunk_NeverSkipItemSkipPolicy" class="dlist">
+<dl>
+<dt class="hdlist1">NeverSkipItemSkipPolicy</dt>
+</dl>
+</div>
+<div class="listingblock">
+<div class="title">Specification example of NeverSkipItemSkipPolicy</div>
+<div class="content">
+<pre class="CodeRay highlight"><code data-lang="xml"><span class="comment">&lt;!-- (1) --&gt;</span>
+<span class="tag">&lt;bean</span> <span class="attribute-name">id</span>=<span class="string"><span class="delimiter">&quot;</span><span class="content">skipPolicy</span><span class="delimiter">&quot;</span></span>
+      <span class="attribute-name">class</span>=<span class="string"><span class="delimiter">&quot;</span><span class="content">org.springframework.batch.core.step.skip.NeverSkipItemSkipPolicy</span><span class="delimiter">&quot;</span></span><span class="tag">/&gt;</span>
+
+<span class="tag">&lt;batch:job</span> <span class="attribute-name">id</span>=<span class="string"><span class="delimiter">&quot;</span><span class="content">jobSalesPerfAtSkipNeverReadError</span><span class="delimiter">&quot;</span></span> <span class="attribute-name">job-repository</span>=<span class="string"><span class="delimiter">&quot;</span><span class="content">jobRepository</span><span class="delimiter">&quot;</span></span><span class="tag">&gt;</span>
+    <span class="tag">&lt;batch:step</span> <span class="attribute-name">id</span>=<span class="string"><span class="delimiter">&quot;</span><span class="content">jobSalesPerfAtSkipNeverReadError.step01</span><span class="delimiter">&quot;</span></span><span class="tag">&gt;</span>
+        <span class="tag">&lt;batch:tasklet</span> <span class="attribute-name">transaction-manager</span>=<span class="string"><span class="delimiter">&quot;</span><span class="content">jobTransactionManager</span><span class="delimiter">&quot;</span></span><span class="tag">&gt;</span>
+            <span class="tag">&lt;batch:chunk</span> <span class="attribute-name">reader</span>=<span class="string"><span class="delimiter">&quot;</span><span class="content">detailCSVReader</span><span class="delimiter">&quot;</span></span>
+                         <span class="attribute-name">processor</span>=<span class="string"><span class="delimiter">&quot;</span><span class="content">amountCheckProcessor</span><span class="delimiter">&quot;</span></span>
+                         <span class="attribute-name">writer</span>=<span class="string"><span class="delimiter">&quot;</span><span class="content">detailWriter</span><span class="delimiter">&quot;</span></span> <span class="attribute-name">commit-interval</span>=<span class="string"><span class="delimiter">&quot;</span><span class="content">10</span><span class="delimiter">&quot;</span></span>
+                         <span class="attribute-name">skip-policy</span>=<span class="string"><span class="delimiter">&quot;</span><span class="content">skipPolicy</span><span class="delimiter">&quot;</span></span><span class="tag">&gt;</span> <span class="comment">&lt;!-- (2) --&gt;</span>
+            <span class="tag">&lt;/batch:chunk&gt;</span>
+        <span class="tag">&lt;/batch:tasklet&gt;</span>
+    <span class="tag">&lt;/batch:step&gt;</span>
+<span class="tag">&lt;/batch:job&gt;</span></code></pre>
+</div>
+</div>
+<table class="tableblock frame-all grid-all spread">
+<caption class="title">Description</caption>
+<colgroup>
+<col style="width: 10%;">
+<col style="width: 90%;">
+</colgroup>
+<thead>
+<tr>
+<th class="tableblock halign-left valign-top">Sr.No.</th>
+<th class="tableblock halign-left valign-top">Description</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td class="tableblock halign-left valign-top"><p class="tableblock">(1)</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">Define <code>NeverSkipItemSkipPolicy</code>as a bean.</p></td>
+</tr>
+<tr>
+<td class="tableblock halign-left valign-top"><p class="tableblock">(2)</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">Set the bean defined in (1) to the <code>skip-policy</code> attribute of <code>&lt;batch:chunk&gt;</code>.</p></td>
+</tr>
+</tbody>
+</table>
+<div id="Ch06_ExceptionHandling_HowToUse_ContinuationPropriety_Skip_Chunk_LimitCheckingItemSkipPolicy" class="dlist">
+<dl>
+<dt class="hdlist1">LimitCheckingItemSkipPolicy</dt>
+</dl>
+</div>
+<div class="listingblock">
+<div class="title">Specification example of LimitCheckingItemSkipPolicy</div>
+<div class="content">
+<pre class="CodeRay highlight"><code data-lang="xml">(1)
+<span class="comment">&lt;!--
+&lt;bean id=&quot;skipPolicy&quot;
+      class=&quot;org.springframework.batch.core.step.skip.LimitCheckingItemSkipPolicy&quot;/&gt;
+--&gt;</span>
+
+<span class="tag">&lt;batch:job</span> <span class="attribute-name">id</span>=<span class="string"><span class="delimiter">&quot;</span><span class="content">jobSalesPerfAtValidSkipReadError</span><span class="delimiter">&quot;</span></span> <span class="attribute-name">job-repository</span>=<span class="string"><span class="delimiter">&quot;</span><span class="content">jobRepository</span><span class="delimiter">&quot;</span></span><span class="tag">&gt;</span>
+    <span class="tag">&lt;batch:step</span> <span class="attribute-name">id</span>=<span class="string"><span class="delimiter">&quot;</span><span class="content">jobSalesPerfAtValidSkipReadError.step01</span><span class="delimiter">&quot;</span></span><span class="tag">&gt;</span>
+        <span class="tag">&lt;batch:tasklet</span> <span class="attribute-name">transaction-manager</span>=<span class="string"><span class="delimiter">&quot;</span><span class="content">jobTransactionManager</span><span class="delimiter">&quot;</span></span><span class="tag">&gt;</span>
+            <span class="tag">&lt;batch:chunk</span> <span class="attribute-name">reader</span>=<span class="string"><span class="delimiter">&quot;</span><span class="content">detailCSVReader</span><span class="delimiter">&quot;</span></span>
+                         <span class="attribute-name">processor</span>=<span class="string"><span class="delimiter">&quot;</span><span class="content">amountCheckProcessor</span><span class="delimiter">&quot;</span></span>
+                         <span class="attribute-name">writer</span>=<span class="string"><span class="delimiter">&quot;</span><span class="content">detailWriter</span><span class="delimiter">&quot;</span></span> <span class="attribute-name">commit-interval</span>=<span class="string"><span class="delimiter">&quot;</span><span class="content">10</span><span class="delimiter">&quot;</span></span>
+                         <span class="attribute-name">skip-limit</span>=<span class="string"><span class="delimiter">&quot;</span><span class="content">2</span><span class="delimiter">&quot;</span></span><span class="tag">&gt;</span>  <span class="comment">&lt;!-- (2) --&gt;</span>
+                <span class="comment">&lt;!-- (3) --&gt;</span>
+                <span class="tag">&lt;batch:skippable-exception-classes&gt;</span>
+                    <span class="comment">&lt;!-- (4) --&gt;</span>
+                    <span class="tag">&lt;batch:include</span>
+                        <span class="attribute-name">class</span>=<span class="string"><span class="delimiter">&quot;</span><span class="content">org.springframework.batch.item.ItemReaderException</span><span class="delimiter">&quot;</span></span><span class="tag">/&gt;</span>
+                <span class="tag">&lt;/batch:skippable-exception-classes&gt;</span>
+            <span class="tag">&lt;/batch:chunk&gt;</span>
+        <span class="tag">&lt;/batch:tasklet&gt;</span>
+    <span class="tag">&lt;/batch:step&gt;</span>
+<span class="tag">&lt;/batch:job&gt;</span></code></pre>
+</div>
+</div>
+<table class="tableblock frame-all grid-all spread">
+<caption class="title">Description</caption>
+<colgroup>
+<col style="width: 10%;">
+<col style="width: 90%;">
+</colgroup>
+<thead>
+<tr>
+<th class="tableblock halign-left valign-top">Sr.No.</th>
+<th class="tableblock halign-left valign-top">Description</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td class="tableblock halign-left valign-top"><p class="tableblock">(1)</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">Define <code>LimitCheckingItemSkipPolicy</code> as a bean.<br>
+The <code>skip-policy</code> attribute is omitted by default, so it does not have to be defined.</p></td>
+</tr>
+<tr>
+<td class="tableblock halign-left valign-top"><p class="tableblock">(2)</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">Set the upper limit value of skip count in the <code>skip-limit</code> attribute of <code>&lt;batch:chunk&gt;</code>.<br>
+The <code>skip-policy</code> attribute is omitted by default.</p></td>
+</tr>
+<tr>
+<td class="tableblock halign-left valign-top"><p class="tableblock">(3)</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">Define <code>&lt;batch:skippable-exception-classes&gt;</code> and set the targetted exception in the tag.</p></td>
+</tr>
+<tr>
+<td class="tableblock halign-left valign-top"><p class="tableblock">(4)</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">Set <code>ItemReaderException</code> as a skip target class.</p></td>
+</tr>
+</tbody>
+</table>
+<div id="Ch06_ExceptionHandling_HowToUse_ContinuationPropriety_Skip_Chunk_ExceptionClassifierSkipPolicy" class="dlist">
+<dl>
+<dt class="hdlist1">ExceptionClassifierSkipPolicy</dt>
+</dl>
+</div>
+<div class="listingblock">
+<div class="title">ExceptionClassifierSkipPolicy specification example</div>
+<div class="content">
+<pre class="CodeRay highlight"><code data-lang="xml"><span class="comment">&lt;!-- (1) --&gt;</span>
+<span class="tag">&lt;bean</span> <span class="attribute-name">id</span>=<span class="string"><span class="delimiter">&quot;</span><span class="content">skipPolicy</span><span class="delimiter">&quot;</span></span>
+      <span class="attribute-name">class</span>=<span class="string"><span class="delimiter">&quot;</span><span class="content">org.springframework.batch.core.step.skip.ExceptionClassifierSkipPolicy</span><span class="delimiter">&quot;</span></span><span class="tag">&gt;</span>
+    <span class="tag">&lt;property</span> <span class="attribute-name">name</span>=<span class="string"><span class="delimiter">&quot;</span><span class="content">policyMap</span><span class="delimiter">&quot;</span></span><span class="tag">&gt;</span>
+        <span class="tag">&lt;map&gt;</span>
+            <span class="comment">&lt;!-- (2) --&gt;</span>
+            <span class="tag">&lt;entry</span> <span class="attribute-name">key</span>=<span class="string"><span class="delimiter">&quot;</span><span class="content">org.springframework.batch.item.ItemReaderException</span><span class="delimiter">&quot;</span></span>
+                   <span class="attribute-name">value-ref</span>=<span class="string"><span class="delimiter">&quot;</span><span class="content">alwaysSkip</span><span class="delimiter">&quot;</span></span><span class="tag">/&gt;</span>
+        <span class="tag">&lt;/map&gt;</span>
+    <span class="tag">&lt;/property&gt;</span>
+<span class="tag">&lt;/bean&gt;</span>
+<span class="comment">&lt;!-- (3) --&gt;</span>
+<span class="tag">&lt;bean</span> <span class="attribute-name">id</span>=<span class="string"><span class="delimiter">&quot;</span><span class="content">alwaysSkip</span><span class="delimiter">&quot;</span></span>
+      <span class="attribute-name">class</span>=<span class="string"><span class="delimiter">&quot;</span><span class="content">org.springframework.batch.core.step.skip.AlwaysSkipItemSkipPolicy</span><span class="delimiter">&quot;</span></span><span class="tag">/&gt;</span>
+
+<span class="tag">&lt;batch:job</span> <span class="attribute-name">id</span>=<span class="string"><span class="delimiter">&quot;</span><span class="content">jobSalesPerfAtValidNolimitSkipReadError</span><span class="delimiter">&quot;</span></span>
+           <span class="attribute-name">job-repository</span>=<span class="string"><span class="delimiter">&quot;</span><span class="content">jobRepository</span><span class="delimiter">&quot;</span></span><span class="tag">&gt;</span>
+    <span class="tag">&lt;batch:step</span> <span class="attribute-name">id</span>=<span class="string"><span class="delimiter">&quot;</span><span class="content">jobSalesPerfAtValidNolimitSkipReadError.step01</span><span class="delimiter">&quot;</span></span><span class="tag">&gt;</span>
+        <span class="tag">&lt;batch:tasklet</span> <span class="attribute-name">transaction-manager</span>=<span class="string"><span class="delimiter">&quot;</span><span class="content">jobTransactionManager</span><span class="delimiter">&quot;</span></span><span class="tag">&gt;</span>
+            <span class="comment">&lt;!-- skip-limit value is dummy. --&gt;</span>
+            <span class="tag">&lt;batch:chunk</span> <span class="attribute-name">reader</span>=<span class="string"><span class="delimiter">&quot;</span><span class="content">detailCSVReader</span><span class="delimiter">&quot;</span></span>
+                         <span class="attribute-name">processor</span>=<span class="string"><span class="delimiter">&quot;</span><span class="content">amountCheckProcessor</span><span class="delimiter">&quot;</span></span>
+                         <span class="attribute-name">writer</span>=<span class="string"><span class="delimiter">&quot;</span><span class="content">detailWriter</span><span class="delimiter">&quot;</span></span> <span class="attribute-name">commit-interval</span>=<span class="string"><span class="delimiter">&quot;</span><span class="content">10</span><span class="delimiter">&quot;</span></span>
+                         <span class="attribute-name">skip-policy</span>=<span class="string"><span class="delimiter">&quot;</span><span class="content">skipPolicy</span><span class="delimiter">&quot;</span></span><span class="tag">&gt;</span> <span class="comment">&lt;!-- (4) --&gt;</span>
+            <span class="tag">&lt;/batch:chunk&gt;</span>
+        <span class="tag">&lt;/batch:tasklet&gt;</span>
+    <span class="tag">&lt;/batch:step&gt;</span>
+<span class="tag">&lt;/batch:job&gt;</span></code></pre>
+</div>
+</div>
+<table class="tableblock frame-all grid-all spread">
+<caption class="title">Description</caption>
+<colgroup>
+<col style="width: 10%;">
+<col style="width: 90%;">
+</colgroup>
+<thead>
+<tr>
+<th class="tableblock halign-left valign-top">Sr.No.</th>
+<th class="tableblock halign-left valign-top">Description</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td class="tableblock halign-left valign-top"><p class="tableblock">(1)</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">Define <code>ExceptionClassifierSkipPolicy</code> as a bean.</p></td>
+</tr>
+<tr>
+<td class="tableblock halign-left valign-top"><p class="tableblock">(2)</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">Set the <code>policyMap</code> property to a map whose key is an exception class and whose value is skipped.<br>
+In this example, when <code>ItemReaderException</code> occurs, it is set to be the skip method defined in (3).</p></td>
+</tr>
+<tr>
+<td class="tableblock halign-left valign-top"><p class="tableblock">(3)</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">Define the skipping method you want to execute by exception.<br>
+In this example, <code>AlwaysSkipItemSkipPolicy</code> is defined.</p></td>
+</tr>
+<tr>
+<td class="tableblock halign-left valign-top"><p class="tableblock">(4)</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">Set the bean defined in (1) to the <code>skip-policy</code> attribute of <code>&lt;batch:chunk&gt;</code>.</p></td>
+</tr>
+</tbody>
+</table>
+<div id="Ch06_ExceptionHandling_HowToUse_ContinuationPropriety_Skip_Chunk_ItemProcessor" class="dlist">
+<dl>
+<dt class="hdlist1">Skip on ItemProcessor</dt>
+<dd>
+<p>Try ~ catch in ItemProcessor and return null.<br>
+Skip with <code>skip-policy</code> is not used because reprocessing occurs in ItemProcessor.
+For details, please refer <a href="#Ch06_ExceptionHandling_Appendix_SkippableExceptionClasses">About reason why &lt;skippable-exception-classes&gt; is not used</a>.</p>
+</dd>
+</dl>
+</div>
+<div class="admonitionblock important">
+<table>
+<tr>
+<td class="icon">
+<i class="fa icon-important" title="Important"></i>
+</td>
+<td class="content">
+<div class="title">Restrictions on exception handling in ItemProcessor</div>
+<div class="paragraph">
+<p>As in <a href="#Ch06_ExceptionHandling_Appendix_SkippableExceptionClasses">About reason why &lt;skippable-exception-classes&gt; is not used</a>,
+In ItemProcessor, skipping using <code>&lt;batch:skippable-exception-classes&gt;</code> is forbidden.
+Therefore,cannot skip applying "How to use the <a href="Ch04_Listener.html#Ch04_Listener_Overview_Types_ItemProcessListener">ItemProcessListener</a> interface."  explained in
+<a href="#Ch06_ExceptionHandling_HowToUse_StepExceptionHandling_Chunk_ItemProcessor">Coding point (ItemProcessor)</a>.</p>
+</div>
+</td>
+</tr>
+</table>
+</div>
+<div class="paragraph">
+<p>Implementation example of skip.</p>
+</div>
+<div class="paragraph">
+<p><a href="#Ch06_ExceptionHandling_HowToUse_StepExceptionHandling_Chunk_ItemProcessor_TryCatchExample">Implementation example of try~catch in ItemProcessor</a> of
+<a href="#Ch06_ExceptionHandling_HowToUse_StepExceptionHandling_Chunk_ItemProcessor">Coding point (ItemProcessor)</a>
+correspond to skip.</p>
+</div>
+<div class="listingblock">
+<div class="title">try~catch example in ItemProcessor</div>
+<div class="content">
+<pre class="CodeRay highlight"><code data-lang="java"><span class="annotation">@Component</span>
+<span class="directive">public</span> <span class="type">class</span> <span class="class">AmountCheckProcessor</span> <span class="directive">implements</span>
+        ItemProcessor&lt;SalesPerformanceDetail, SalesPerformanceDetail&gt; {
+
+    <span class="comment">// omitted.</span>
+
+    <span class="annotation">@Override</span>
+    <span class="directive">public</span> SalesPerformanceDetail process(SalesPerformanceDetail item) <span class="directive">throws</span> <span class="exception">Exception</span> {
+        <span class="comment">// (1)</span>
+        <span class="keyword">try</span> {
+            checkAmount(item.getAmount(), amountLimit);
+        } <span class="keyword">catch</span> (<span class="exception">ArithmeticException</span> ae) {
+            logger.warn(<span class="string"><span class="delimiter">&quot;</span><span class="content">Exception occurred while processing. Skipped. [item:{}]</span><span class="delimiter">&quot;</span></span>,
+                    item, ae); <span class="comment">// (2)</span>
+            <span class="keyword">return</span> <span class="predefined-constant">null</span>; <span class="comment">// (3)</span>
+        }
+        <span class="keyword">return</span> item;
+    }
+}</code></pre>
+</div>
+</div>
+<table class="tableblock frame-all grid-all spread">
+<caption class="title">Description</caption>
+<colgroup>
+<col style="width: 10%;">
+<col style="width: 90%;">
+</colgroup>
+<thead>
+<tr>
+<th class="tableblock halign-left valign-top">Sr.No.</th>
+<th class="tableblock halign-left valign-top">Description</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td class="tableblock halign-left valign-top"><p class="tableblock">(1)</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">Implement <code>try~catch</code></p></td>
+</tr>
+<tr>
+<td class="tableblock halign-left valign-top"><p class="tableblock">(2)</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">Implement exception handling<br>
+In this example, the stack trace of the exception acquired from the argument is logged.</p></td>
+</tr>
+<tr>
+<td class="tableblock halign-left valign-top"><p class="tableblock">(3)</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">Skip error data by returning null.</p></td>
+</tr>
+</tbody>
+</table>
+<div id="Ch06_ExceptionHandling_HowToUse_ContinuationPropriety_Skip_Chunk_ItemWriter" class="dlist">
+<dl>
+<dt class="hdlist1">Skip with ItemWriter</dt>
+<dd>
+<p>In ItemWriter skip processing is not done generally.<br>
+Even when skipping is necessary, skipping by <code>skip-policy</code> will not be used as the chunk size will change.
+For details, please refer <a href="#Ch06_ExceptionHandling_Appendix_SkippableExceptionClasses">About reason why &lt;skippable-exception-classes&gt; is not used</a>.</p>
+</dd>
+</dl>
+</div>
+</div>
+<div class="sect4">
+<h5 id="Ch06_ExceptionHandling_HowToUse_ContinuationPropriety_Skip_Tasklet"><a class="anchor" href="#Ch06_ExceptionHandling_HowToUse_ContinuationPropriety_Skip_Tasklet"></a>Tasket model</h5>
+<div class="paragraph">
+<p>Handle exceptions in business logic and implement processing to skip error records independently.</p>
+</div>
+<div class="paragraph">
+<p><a href="#Ch06_ExceptionHandling_HowToUse_StepExceptionHandling_Tasklet_TaskletExample">Implementation example</a> of
+<a href="#Ch06_ExceptionHandling_HowToUse_StepExceptionHandling_Tasklet">Exception handling in tasklet model</a>
+corresponds to skip.</p>
+</div>
+<div class="listingblock">
+<div class="title">Implementation example with tasklet model</div>
+<div class="content">
+<pre class="CodeRay highlight"><code data-lang="java"><span class="annotation">@Component</span>
+<span class="directive">public</span> <span class="type">class</span> <span class="class">SalesPerformanceTasklet</span> <span class="directive">implements</span> Tasklet {
+
+    <span class="directive">private</span> <span class="directive">static</span> <span class="directive">final</span> <span class="predefined-type">Logger</span> logger =
+            LoggerFactory.getLogger(SalesPerformanceTasklet.class);
+
+    <span class="comment">// omitted.</span>
+
+    <span class="annotation">@Override</span>
+    <span class="directive">public</span> RepeatStatus execute(StepContribution contribution,
+            ChunkContext chunkContext) <span class="directive">throws</span> <span class="exception">Exception</span> {
+
+        <span class="comment">// (1)</span>
+        <span class="keyword">try</span> {
+            reader.open(chunkContext.getStepContext().getStepExecution()
+                    .getExecutionContext());
+
+            <span class="predefined-type">List</span>&lt;SalesPerformanceDetail&gt; items = <span class="keyword">new</span> <span class="predefined-type">ArrayList</span>&lt;&gt;(<span class="integer">10</span>);
+            SalesPerformanceDetail item = <span class="predefined-constant">null</span>;
+            <span class="keyword">do</span> {
+                <span class="comment">// Pseudo operation of ItemReader</span>
+                <span class="comment">// omitted.</span>
+
+                <span class="comment">// Pseudo operation of ItemProcessor</span>
+                checkAmount(item.getAmount(), amountLimit);
+
+
+                <span class="comment">// Pseudo operation of ItemWriter</span>
+                <span class="comment">// omitted.</span>
+
+            } <span class="keyword">while</span> (item != <span class="predefined-constant">null</span>);
+        } <span class="keyword">catch</span> (<span class="exception">Exception</span> e) {
+            logger.warn(<span class="string"><span class="delimiter">&quot;</span><span class="content">exception in tasklet. Skipped.</span><span class="delimiter">&quot;</span></span>, e);   <span class="comment">// (2)</span>
+            <span class="keyword">continue</span>;    <span class="comment">// (3)</span>
+        } <span class="keyword">finally</span> {
+            <span class="keyword">try</span> {
+                reader.close();
+            } <span class="keyword">catch</span> (<span class="exception">Exception</span> e) {
+                <span class="comment">// do nothing.</span>
+            }
+        }
+
+        <span class="keyword">return</span> RepeatStatus.FINISHED;
+    }
+}</code></pre>
+</div>
+</div>
+<table class="tableblock frame-all grid-all spread">
+<caption class="title">Description</caption>
+<colgroup>
+<col style="width: 10%;">
+<col style="width: 90%;">
+</colgroup>
+<thead>
+<tr>
+<th class="tableblock halign-left valign-top">Sr.No.</th>
+<th class="tableblock halign-left valign-top">Description</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td class="tableblock halign-left valign-top"><p class="tableblock">(1)</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">Implement <code>try-catch</code></p></td>
+</tr>
+<tr>
+<td class="tableblock halign-left valign-top"><p class="tableblock">(2)</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">Implement exception handling.<br>
+In this example, the stack trace of the exception that occurred is logged.</p></td>
+</tr>
+<tr>
+<td class="tableblock halign-left valign-top"><p class="tableblock">(3)</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">Processing of error data is skipped by continue.</p></td>
+</tr>
+</tbody>
+</table>
+</div>
+</div>
+<div class="sect3">
+<h4 id="Ch06_ExceptionHandling_HowToUse_ContinuationPropriety_Retry"><a class="anchor" href="#Ch06_ExceptionHandling_HowToUse_ContinuationPropriety_Retry"></a>Retry</h4>
+<div class="paragraph">
+<p>When an exception is detected, a method of reprocessing until the specified number of times is reached is described.</p>
+</div>
+<div class="paragraph">
+<p>For retry, it is necessary to consider various factors such as the presence or absence of state management and the situation where retry occurs,
+there is no reliable method, and retrying it unnecessarily deteriorates the situation.</p>
+</div>
+<div class="paragraph">
+<p>Therefore, this guideline explains how to use <code>org.springframework.retry.support.RetryTemplate</code> which implements a local retry.</p>
+</div>
+<div class="admonitionblock warning">
+<table>
+<tr>
+<td class="icon">
+<i class="fa icon-warning" title="Warning"></i>
+</td>
+<td class="content">
+<div class="paragraph">
+<p>As with skipping method, a method which specifies the target exception class with <code>&lt;retryable-exception-classes&gt;</code> can also be listed.
+However, as with <a href="#Ch06_ExceptionHandling_Appendix_SkippableExceptionClasses">About reason why &lt;skippable-exception-classes&gt; is not used</a>
+There is a side effect that causes performance degradation, so TERASOLUNA Batch 5.x does not use it.</p>
+</div>
+</td>
+</tr>
+</table>
+</div>
+<div class="listingblock">
+<div class="title">RetryTemplate Implementation code</div>
+<div class="content">
+<pre class="CodeRay highlight"><code data-lang="java"><span class="directive">public</span> <span class="type">class</span> <span class="class">RetryableAmountCheckProcessor</span> <span class="directive">implements</span>
+        ItemProcessor&lt;SalesPerformanceDetail, SalesPerformanceDetail&gt; {
+
+    <span class="comment">// omitted.</span>
+
+    <span class="comment">// (1)</span>
+    <span class="directive">private</span> RetryPolicy retryPolicy;
+
+    <span class="annotation">@Override</span>
+    <span class="directive">public</span> SalesPerformanceDetail process(SalesPerformanceDetail item)
+            <span class="directive">throws</span> <span class="exception">Exception</span> {
+
+        <span class="comment">// (2)</span>
+        RetryTemplate rt = <span class="keyword">new</span> RetryTemplate();
+        <span class="keyword">if</span> (retryPolicy != <span class="predefined-constant">null</span>) {
+            rt.setRetryPolicy(retryPolicy);
+        }
+
+        <span class="keyword">try</span> {
+            <span class="comment">// (3)</span>
+            rt.execute(<span class="keyword">new</span> RetryCallback&lt;SalesPerformanceDetail, <span class="exception">Exception</span>&gt;() {
+                <span class="annotation">@Override</span>
+                <span class="directive">public</span> SalesPerformanceDetail doWithRetry(RetryContext context) <span class="directive">throws</span> <span class="exception">Exception</span> {
+                    logger.info(<span class="string"><span class="delimiter">&quot;</span><span class="content">execute with retry. [retry-count:{}]</span><span class="delimiter">&quot;</span></span>, context.getRetryCount());
+                    <span class="comment">// retry mocking</span>
+                    <span class="keyword">if</span> (context.getRetryCount() == adjustTimes) {
+                        item.setAmount(item.getAmount().divide(<span class="keyword">new</span> <span class="predefined-type">BigDecimal</span>(<span class="integer">10</span>)));
+                    }
+                    checkAmount(item.getAmount(), amountLimit);
+                    <span class="keyword">return</span> <span class="predefined-constant">null</span>;
+                }
+            });
+        } <span class="keyword">catch</span> (<span class="exception">ArithmeticException</span> ae) {
+            <span class="comment">// (4)</span>
+            <span class="keyword">throw</span> <span class="keyword">new</span> <span class="exception">IllegalStateException</span>(<span class="string"><span class="delimiter">&quot;</span><span class="content">check error at processor.</span><span class="delimiter">&quot;</span></span>, ae);
+        }
+        <span class="keyword">return</span> item;
+    }
+
+    <span class="directive">public</span> <span class="type">void</span> setRetryPolicy(RetryPolicy retryPolicy) {
+        <span class="local-variable">this</span>.retryPolicy = retryPolicy;
+    }
+}</code></pre>
+</div>
+</div>
+<div class="listingblock">
+<div class="title">Bean definition</div>
+<div class="content">
+<pre class="CodeRay highlight"><code data-lang="xml"><span class="comment">&lt;!-- omitted --&gt;</span>
+
+<span class="tag">&lt;bean</span> <span class="attribute-name">id</span>=<span class="string"><span class="delimiter">&quot;</span><span class="content">amountCheckProcessor</span><span class="delimiter">&quot;</span></span>
+      <span class="attribute-name">class</span>=<span class="string"><span class="delimiter">&quot;</span><span class="content">org.terasoluna.batch.functionaltest.ch06.exceptionhandling.RetryableAmountCheckProcessor</span><span class="delimiter">&quot;</span></span>
+      <span class="attribute-name">scope</span>=<span class="string"><span class="delimiter">&quot;</span><span class="content">step</span><span class="delimiter">&quot;</span></span>
+      <span class="attribute-name">p:retryPolicy-ref</span>=<span class="string"><span class="delimiter">&quot;</span><span class="content">retryPolicy</span><span class="delimiter">&quot;</span></span><span class="tag">/&gt;</span> <span class="comment">&lt;!-- (5) --&gt;</span>
+
+<span class="comment">&lt;!-- (6) (7) (8)--&gt;</span>
+<span class="tag">&lt;bean</span> <span class="attribute-name">id</span>=<span class="string"><span class="delimiter">&quot;</span><span class="content">retryPolicy</span><span class="delimiter">&quot;</span></span> <span class="attribute-name">class</span>=<span class="string"><span class="delimiter">&quot;</span><span class="content">org.springframework.retry.policy.SimpleRetryPolicy</span><span class="delimiter">&quot;</span></span>
+      <span class="attribute-name">c:maxAttempts</span>=<span class="string"><span class="delimiter">&quot;</span><span class="content">3</span><span class="delimiter">&quot;</span></span>
+      <span class="attribute-name">c:retryableExceptions-ref</span>=<span class="string"><span class="delimiter">&quot;</span><span class="content">exceptionMap</span><span class="delimiter">&quot;</span></span><span class="tag">/&gt;</span>
+
+<span class="comment">&lt;!-- (9) --&gt;</span>
+<span class="tag">&lt;util:map</span> <span class="attribute-name">id</span>=<span class="string"><span class="delimiter">&quot;</span><span class="content">exceptionMap</span><span class="delimiter">&quot;</span></span><span class="tag">&gt;</span>
+    <span class="tag">&lt;entry</span> <span class="attribute-name">key</span>=<span class="string"><span class="delimiter">&quot;</span><span class="content">java.lang.ArithmeticException</span><span class="delimiter">&quot;</span></span> <span class="attribute-name">value</span>=<span class="string"><span class="delimiter">&quot;</span><span class="content">true</span><span class="delimiter">&quot;</span></span><span class="tag">/&gt;</span>
+<span class="tag">&lt;/util:map&gt;</span>
+
+<span class="tag">&lt;batch:job</span> <span class="attribute-name">id</span>=<span class="string"><span class="delimiter">&quot;</span><span class="content">jobSalesPerfWithRetryPolicy</span><span class="delimiter">&quot;</span></span> <span class="attribute-name">job-repository</span>=<span class="string"><span class="delimiter">&quot;</span><span class="content">jobRepository</span><span class="delimiter">&quot;</span></span><span class="tag">&gt;</span>
+    <span class="tag">&lt;batch:step</span> <span class="attribute-name">id</span>=<span class="string"><span class="delimiter">&quot;</span><span class="content">jobSalesPerfWithRetryPolicy.step01</span><span class="delimiter">&quot;</span></span><span class="tag">&gt;</span>
+        <span class="tag">&lt;batch:tasklet</span> <span class="attribute-name">transaction-manager</span>=<span class="string"><span class="delimiter">&quot;</span><span class="content">jobTransactionManager</span><span class="delimiter">&quot;</span></span><span class="tag">&gt;</span>
+            <span class="tag">&lt;batch:chunk</span> <span class="attribute-name">reader</span>=<span class="string"><span class="delimiter">&quot;</span><span class="content">detailCSVReader</span><span class="delimiter">&quot;</span></span>
+                         <span class="attribute-name">processor</span>=<span class="string"><span class="delimiter">&quot;</span><span class="content">amountCheckProcessor</span><span class="delimiter">&quot;</span></span>
+                         <span class="attribute-name">writer</span>=<span class="string"><span class="delimiter">&quot;</span><span class="content">detailWriter</span><span class="delimiter">&quot;</span></span> <span class="attribute-name">commit-interval</span>=<span class="string"><span class="delimiter">&quot;</span><span class="content">10</span><span class="delimiter">&quot;</span></span><span class="tag">/&gt;</span>
+        <span class="tag">&lt;/batch:tasklet&gt;</span>
+    <span class="tag">&lt;/batch:step&gt;</span>
+<span class="tag">&lt;/batch:job&gt;</span></code></pre>
+</div>
+</div>
+<table class="tableblock frame-all grid-all spread">
+<caption class="title">Description</caption>
+<colgroup>
+<col style="width: 10%;">
+<col style="width: 90%;">
+</colgroup>
+<thead>
+<tr>
+<th class="tableblock halign-left valign-top">Sr.No.</th>
+<th class="tableblock halign-left valign-top">Description</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td class="tableblock halign-left valign-top"><p class="tableblock">(1)</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">Store the retry condition.</p></td>
+</tr>
+<tr>
+<td class="tableblock halign-left valign-top"><p class="tableblock">(2)</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">Create an instance of RetryTemplate.<br>
+The default retry count = 3, all exceptions are subject to retry.</p></td>
+</tr>
+<tr>
+<td class="tableblock halign-left valign-top"><p class="tableblock">(3)</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">Use the <code>RetryTemplate#execute</code> method to execute the business logic you wish to retry.<br>
+Execute only the part that you want to retry with the <code>RetryTemplate#execute</code> method, not the entire business logic.</p></td>
+</tr>
+<tr>
+<td class="tableblock halign-left valign-top"><p class="tableblock">(4)</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">Exception handling when the number of retries exceeds the specified number of times<br>
+The exception that occurs in the business logic is thrown as it is.</p></td>
+</tr>
+<tr>
+<td class="tableblock halign-left valign-top"><p class="tableblock">(5)</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">Specify the retry condition defined in (6).</p></td>
+</tr>
+<tr>
+<td class="tableblock halign-left valign-top"><p class="tableblock">(6)</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">Define the retry condition in the class that implements <code>org.springframework.retry.RetryPolicy</code>.<br>
+In this example, we use <code>SimpleRetryPolicy</code> which is provided by Spring Batch.</p></td>
+</tr>
+<tr>
+<td class="tableblock halign-left valign-top"><p class="tableblock">(7)</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">Specify the number of retries in the <code>maxAttempts</code> constructor argument.</p></td>
+</tr>
+<tr>
+<td class="tableblock halign-left valign-top"><p class="tableblock">(8)</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">Specify the map that defines the target exception to be retried defined in (9) in <code>retryableExceptions</code> of the constructor argument.</p></td>
+</tr>
+<tr>
+<td class="tableblock halign-left valign-top"><p class="tableblock">(9)</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">Define a map wherein exception class to be retried is set in key and truth value is set in value.<br>
+If the boolean value is <code>true</code>, target exception is retried.</p></td>
+</tr>
+</tbody>
+</table>
+</div>
+<div class="sect3">
+<h4 id="Ch06_ExceptionHandling_HowToUse_ContinuationPropriety_Interruption"><a class="anchor" href="#Ch06_ExceptionHandling_HowToUse_ContinuationPropriety_Interruption"></a>Process interruption</h4>
+<div class="paragraph">
+<p>If you want to abort step execution, throw RuntimeException or its subclass other than skip / retry object.</p>
+</div>
+<div class="paragraph">
+<p>Implementation example of skip is shown based on <a href="#Ch06_ExceptionHandling_HowToUse_ContinuationPropriety_Skip_Chunk_LimitCheckingItemSkipPolicy">[Ch06_ExceptionHandling_HowToUse_ContinuationPropriety_Skip_Chunk_LimitCheckingItemSkipPolicy]</a></p>
+</div>
+<div class="listingblock">
+<div class="title">Bean definition</div>
+<div class="content">
+<pre class="CodeRay highlight"><code data-lang="xml"><span class="tag">&lt;batch:job</span> <span class="attribute-name">id</span>=<span class="string"><span class="delimiter">&quot;</span><span class="content">jobSalesPerfAtValidSkipReadError</span><span class="delimiter">&quot;</span></span> <span class="attribute-name">job-repository</span>=<span class="string"><span class="delimiter">&quot;</span><span class="content">jobRepository</span><span class="delimiter">&quot;</span></span><span class="tag">&gt;</span>
+    <span class="tag">&lt;batch:step</span> <span class="attribute-name">id</span>=<span class="string"><span class="delimiter">&quot;</span><span class="content">jobSalesPerfAtValidSkipReadError.step01</span><span class="delimiter">&quot;</span></span><span class="tag">&gt;</span>
+        <span class="tag">&lt;batch:tasklet</span> <span class="attribute-name">transaction-manager</span>=<span class="string"><span class="delimiter">&quot;</span><span class="content">jobTransactionManager</span><span class="delimiter">&quot;</span></span><span class="tag">&gt;</span>
+            <span class="tag">&lt;batch:chunk</span> <span class="attribute-name">reader</span>=<span class="string"><span class="delimiter">&quot;</span><span class="content">detailCSVReader</span><span class="delimiter">&quot;</span></span>
+                         <span class="attribute-name">processor</span>=<span class="string"><span class="delimiter">&quot;</span><span class="content">amountCheckProcessor</span><span class="delimiter">&quot;</span></span>
+                         <span class="attribute-name">writer</span>=<span class="string"><span class="delimiter">&quot;</span><span class="content">detailWriter</span><span class="delimiter">&quot;</span></span> <span class="attribute-name">commit-interval</span>=<span class="string"><span class="delimiter">&quot;</span><span class="content">10</span><span class="delimiter">&quot;</span></span>
+                         <span class="attribute-name">skip-limit</span>=<span class="string"><span class="delimiter">&quot;</span><span class="content">2</span><span class="delimiter">&quot;</span></span><span class="tag">&gt;</span>
+                <span class="tag">&lt;batch:skippable-exception-classes&gt;</span>
+                    <span class="comment">&lt;!-- (1) --&gt;</span>
+                    <span class="tag">&lt;batch:include</span> <span class="attribute-name">class</span>=<span class="string"><span class="delimiter">&quot;</span><span class="content">org.springframework.batch.item.validator.ValidationException</span><span class="delimiter">&quot;</span></span><span class="tag">/&gt;</span>
+                <span class="tag">&lt;/batch:skippable-exception-classes&gt;</span>
+            <span class="tag">&lt;/batch:chunk&gt;</span>
+        <span class="tag">&lt;/batch:tasklet&gt;</span>
+    <span class="tag">&lt;/batch:step&gt;</span>
+<span class="tag">&lt;/batch:job&gt;</span></code></pre>
+</div>
+</div>
+<table class="tableblock frame-all grid-all spread">
+<caption class="title">Description</caption>
+<colgroup>
+<col style="width: 10%;">
+<col style="width: 90%;">
+</colgroup>
+<thead>
+<tr>
+<th class="tableblock halign-left valign-top">Sr.No.</th>
+<th class="tableblock halign-left valign-top">Description</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td class="tableblock halign-left valign-top"><p class="tableblock">(1)</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">If an exception other than <code>ValidationException</code> occurs, processing is interrupted.</p></td>
+</tr>
+</tbody>
+</table>
+<div class="paragraph">
+<p>An implementation example of retry is shown based on  <a href="#Ch06_ExceptionHandling_HowToUse_ContinuationPropriety_Retry">Retry</a>.</p>
+</div>
+<div class="listingblock">
+<div class="title">Bean definition</div>
+<div class="content">
+<pre class="CodeRay highlight"><code data-lang="xml"><span class="comment">&lt;!-- omitted --&gt;</span>
+
+<span class="tag">&lt;bean</span> <span class="attribute-name">id</span>=<span class="string"><span class="delimiter">&quot;</span><span class="content">retryPolicy</span><span class="delimiter">&quot;</span></span> <span class="attribute-name">class</span>=<span class="string"><span class="delimiter">&quot;</span><span class="content">org.springframework.retry.policy.SimpleRetryPolicy</span><span class="delimiter">&quot;</span></span>
+      <span class="attribute-name">c:maxAttempts</span>=<span class="string"><span class="delimiter">&quot;</span><span class="content">3</span><span class="delimiter">&quot;</span></span>
+      <span class="attribute-name">c:retryableExceptions-ref</span>=<span class="string"><span class="delimiter">&quot;</span><span class="content">exceptionMap</span><span class="delimiter">&quot;</span></span><span class="tag">/&gt;</span>
+
+<span class="tag">&lt;util:map</span> <span class="attribute-name">id</span>=<span class="string"><span class="delimiter">&quot;</span><span class="content">exceptionMap</span><span class="delimiter">&quot;</span></span><span class="tag">&gt;</span>
+    <span class="comment">&lt;!-- (1) --&gt;</span>
+    <span class="tag">&lt;entry</span> <span class="attribute-name">key</span>=<span class="string"><span class="delimiter">&quot;</span><span class="content">java.lang.UnsupportedOperationException</span><span class="delimiter">&quot;</span></span> <span class="attribute-name">value</span>=<span class="string"><span class="delimiter">&quot;</span><span class="content">true</span><span class="delimiter">&quot;</span></span><span class="tag">/&gt;</span>
+<span class="tag">&lt;/util:map&gt;</span>
+
+<span class="tag">&lt;batch:job</span> <span class="attribute-name">id</span>=<span class="string"><span class="delimiter">&quot;</span><span class="content">jobSalesPerfWithRetryPolicy</span><span class="delimiter">&quot;</span></span> <span class="attribute-name">job-repository</span>=<span class="string"><span class="delimiter">&quot;</span><span class="content">jobRepository</span><span class="delimiter">&quot;</span></span><span class="tag">&gt;</span>
+    <span class="tag">&lt;batch:step</span> <span class="attribute-name">id</span>=<span class="string"><span class="delimiter">&quot;</span><span class="content">jobSalesPerfWithRetryPolicy.step01</span><span class="delimiter">&quot;</span></span><span class="tag">&gt;</span>
+        <span class="tag">&lt;batch:tasklet</span> <span class="attribute-name">transaction-manager</span>=<span class="string"><span class="delimiter">&quot;</span><span class="content">jobTransactionManager</span><span class="delimiter">&quot;</span></span><span class="tag">&gt;</span>
+            <span class="tag">&lt;batch:chunk</span> <span class="attribute-name">reader</span>=<span class="string"><span class="delimiter">&quot;</span><span class="content">detailCSVReader</span><span class="delimiter">&quot;</span></span>
+                         <span class="attribute-name">processor</span>=<span class="string"><span class="delimiter">&quot;</span><span class="content">amountCheckProcessor</span><span class="delimiter">&quot;</span></span>
+                         <span class="attribute-name">writer</span>=<span class="string"><span class="delimiter">&quot;</span><span class="content">detailWriter</span><span class="delimiter">&quot;</span></span> <span class="attribute-name">commit-interval</span>=<span class="string"><span class="delimiter">&quot;</span><span class="content">10</span><span class="delimiter">&quot;</span></span><span class="tag">/&gt;</span>
+        <span class="tag">&lt;/batch:tasklet&gt;</span>
+    <span class="tag">&lt;/batch:step&gt;</span>
+<span class="tag">&lt;/batch:job&gt;</span></code></pre>
+</div>
+</div>
+<table class="tableblock frame-all grid-all spread">
+<caption class="title">Description</caption>
+<colgroup>
+<col style="width: 10%;">
+<col style="width: 90%;">
+</colgroup>
+<thead>
+<tr>
+<th class="tableblock halign-left valign-top">Sr.No.</th>
+<th class="tableblock halign-left valign-top">Description</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td class="tableblock halign-left valign-top"><p class="tableblock">(1)</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">If an exception other than <code>UnsupportedOperationException</code> occurs, processing is interrupted.</p></td>
+</tr>
+</tbody>
+</table>
+</div>
+</div>
+</div>
+</div>
+<div class="sect1">
+<h2 id="Ch06_ExceptionHandling_Appendix"><a class="anchor" href="#Ch06_ExceptionHandling_Appendix"></a>Appendix</h2>
+<div class="sectionbody">
+<div class="sect2">
+<h3 id="Ch06_ExceptionHandling_Appendix_SkippableExceptionClasses"><a class="anchor" href="#Ch06_ExceptionHandling_Appendix_SkippableExceptionClasses"></a>About reason why &lt;skippable-exception-classes&gt; is not used</h3>
+<div class="paragraph">
+<p>Spring Batch provides a function to specify an exception to be skipped for the entire job, skip processing the item where the exception occurred, and continue the processing.</p>
+</div>
+<div class="paragraph">
+<p>It implements the function by setting the <code>&lt;skippable-exception-classes&gt;</code> tag under the <code>&lt;chunk&gt;</code> tag and specifying the exception to be skipped as follows.</p>
+</div>
+<div class="listingblock">
+<div class="title">Usage example of &lt;skippable-exception-classes&gt;</div>
+<div class="content">
+<pre class="CodeRay highlight"><code data-lang="xml"><span class="tag">&lt;job</span> <span class="attribute-name">id</span>=<span class="string"><span class="delimiter">&quot;</span><span class="content">flowJob</span><span class="delimiter">&quot;</span></span><span class="tag">&gt;</span>
+    <span class="tag">&lt;step</span> <span class="attribute-name">id</span>=<span class="string"><span class="delimiter">&quot;</span><span class="content">retryStep</span><span class="delimiter">&quot;</span></span><span class="tag">&gt;</span>
+        <span class="tag">&lt;tasklet&gt;</span>
+            <span class="tag">&lt;chunk</span> <span class="attribute-name">reader</span>=<span class="string"><span class="delimiter">&quot;</span><span class="content">itemReader</span><span class="delimiter">&quot;</span></span> <span class="attribute-name">writer</span>=<span class="string"><span class="delimiter">&quot;</span><span class="content">itemWriter</span><span class="delimiter">&quot;</span></span>
+                   <span class="attribute-name">processor</span>=<span class="string"><span class="delimiter">&quot;</span><span class="content">itemProcessor</span><span class="delimiter">&quot;</span></span> <span class="attribute-name">commit-interval</span>=<span class="string"><span class="delimiter">&quot;</span><span class="content">20</span><span class="delimiter">&quot;</span></span>
+                   <span class="attribute-name">skip-limit</span>=<span class="string"><span class="delimiter">&quot;</span><span class="content">10</span><span class="delimiter">&quot;</span></span><span class="tag">&gt;</span>
+                <span class="tag">&lt;skippable-exception-classes&gt;</span>
+                    <span class="comment">&lt;!-- specify exceptions to the skipped --&gt;</span>
+                    <span class="tag">&lt;include</span> <span class="attribute-name">class</span>=<span class="string"><span class="delimiter">&quot;</span><span class="content">java.lang.Exception</span><span class="delimiter">&quot;</span></span><span class="tag">/&gt;</span>
+                    <span class="tag">&lt;exclude</span> <span class="attribute-name">class</span>=<span class="string"><span class="delimiter">&quot;</span><span class="content">java.lang.NullPointerException</span><span class="delimiter">&quot;</span></span><span class="tag">/&gt;</span>
+                <span class="tag">&lt;/skippable-exception-classes&gt;</span>
+            <span class="tag">&lt;/chunk&gt;</span>
+        <span class="tag">&lt;/tasklet&gt;</span>
+    <span class="tag">&lt;/step&gt;</span>
+<span class="tag">&lt;/job&gt;</span></code></pre>
+</div>
+</div>
+<div class="paragraph">
+<p>By using this function, it is possible to skip the record where the input check error has occurred and continue processing the subsequent data.
+For TERASOLUNA Batch 5.x, it is not used for the following reasons.</p>
+</div>
+<div class="ulist">
+<ul>
+<li>
+<p>If an exception is skipped using the  <code>&lt;skippable-exception-classes&gt;</code> tag,
+since the number of data items included in one chunk varies, performance deterioration may occur.</p>
+<div class="ulist">
+<ul>
+<li>
+<p>This depends on where the exception occurred (<code> ItemReader</code> / <code> ItemProcessor</code> / <code> ItemWriter</code>). Details are described later.</p>
+</li>
+</ul>
+</div>
+</li>
+</ul>
+</div>
+<div class="admonitionblock important">
+<table>
+<tr>
+<td class="icon">
+<i class="fa icon-important" title="Important"></i>
+</td>
+<td class="content">
+<div class="title">Avoid using SkipPolicy without defining &lt;skippable-exception-classes&gt;</div>
+<div class="paragraph">
+<p>All exceptions are implicitly registered, and the possibility of performance degradation increases dramatically.</p>
+</div>
+</td>
+</tr>
+</table>
+</div>
+<div class="paragraph">
+<p>The behavior of each exception occurrence (<code> ItemReader</code> / <code> ItemProcessor</code> / <code> ItemWriter</code>) is explained respectively.<br>
+The transaction operation is not processed regardless of where the exception occurred, but if an exception occurs, it is always rolled back and then processed again.</p>
+</div>
+<div class="dlist">
+<dl>
+<dt class="hdlist1">When an exception occurs in ItemReader</dt>
+<dd>
+<div class="ulist">
+<ul>
+<li>
+<p>When an exception occurs in the process of <code>ItemReader</code>, the processing object moves to the next item.</p>
+</li>
+<li>
+<p>There are no side effects.</p>
+</li>
+</ul>
+</div>
+</dd>
+<dt class="hdlist1">When an exception occurs in ItemProcessor</dt>
+<dd>
+<div class="ulist">
+<ul>
+<li>
+<p>If an exception occurs within the processing of <code> ItemProcessor</code>, return to the beginning of the chunk and reprocess from the first.</p>
+</li>
+<li>
+<p>Items to be skipped for reprocessing are not included.</p>
+</li>
+<li>
+<p>The chunk size at the first processing and reprocessing does not change.</p>
+</li>
+</ul>
+</div>
+</dd>
+<dt class="hdlist1">When an exception occurs in ItemWriter</dt>
+<dd>
+<div class="ulist">
+<ul>
+<li>
+<p>If an exception occurs within the processing of <code>ItemWriter</code>, return to the beginning of the chunk and reprocess from the first.</p>
+</li>
+<li>
+<p>Reprocessing is fixed to <code>ChunkSize=1</code> and executed one by one.</p>
+</li>
+<li>
+<p>Items to be skipped for reprocessing are also included.</p>
+</li>
+</ul>
+</div>
+</dd>
+</dl>
+</div>
+<div class="paragraph">
+<p>If an exception occurs in <code>ItemProcessor</code>, considering the case of <code>ChunkSize=1000</code> as an example,
+when an exception occurs on the 1000th case, reprocessing is done from the 1st and total of 1999 processes are executed.</p>
+</div>
+<div class="paragraph">
+<p>If an exception occurs in <code>ItemWriter</code>, <code>ChunkSize=1</code> is fixed and reprocessed.
+Considering the case of <code> ChunkSize = 1000</code> as an example,
+it is divided into 1000 transactions regardless of originally 1 transaction and processed.</p>
+</div>
+<div class="paragraph">
+<p>This means that the processing time of the entire job is prolonged, and the situation is highly likely to deteriorate at the time of abnormality.
+In addition, the double treatment can become a problem, and additional considerations must be employed for design manufacturing.</p>
+</div>
+<div class="paragraph">
+<p>Therefore, we do not recommend using <code>&lt;skippable-exception-classes&gt;</code>.
+Skipping data that failed in <code>ItemReader</code> does not cause these problems,
+in order to prevent accidents, basically avoid it and apply it only when it is absolutely necessary.</p>
+</div>
+</div>
+</div>
+</div>
+</div>
+<div class="container">
+
+  <div class="common-bg">
+    <div class="information">
+      TERASOLUNA Batch Framework for Java (5.x) Development Guideline - version 5.1.1.RELEASE, 2018-3-16
+    </div>
+    <div class="index">
+      <a href="index.html">&gt; INDEX</a>
+    </div>
+  </div>
+
+  <div class="footer-bg">
+    <div class="copyright">
+      &copy; Copyright 2019 NTT DATA Corporation. &copy; Copyright 2019 NTT Corporation.
+    </div>
+  </div>
+
+</div>
+</body>
+</html>

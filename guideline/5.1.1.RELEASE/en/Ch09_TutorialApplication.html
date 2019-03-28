@@ -1,0 +1,394 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<!--[if IE]><meta http-equiv="X-UA-Compatible" content="IE=edge"><![endif]-->
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<meta name="generator" content="Asciidoctor 1.5.6.1">
+<title>Description of the application to be created</title>
+<link rel="stylesheet" href="./theme/css/readthedocs.css">
+<link rel="stylesheet" href="./theme/css/font-awesome.min.css">
+<link rel="stylesheet" href="./theme/css/coderay-asciidoctor.css">
+<link rel="stylesheet" href="./theme/css/header-footer.css">
+<title>TERASOLUNA Batch Framework for Java (5.x) Development Guideline</title>
+
+<div class="common-bg">
+  <div class="information">
+    TERASOLUNA Batch Framework for Java (5.x) Development Guideline - version 5.1.1.RELEASE, 2018-3-16
+  </div>
+  <div class="index">
+    <a href="index.html">&gt; INDEX</a>
+  </div>
+</div>
+</head>
+<body id="Ch09_TutorialApplication" class="book toc2 toc-left">
+<div id="header">
+<h1>Description of the application to be created</h1>
+<div id="toc" class="toc2">
+<div id="toctitle">Table of Contents</div>
+<ul class="sectlevel1">
+<li><a href="#Ch09_Application_Overview">Background</a></li>
+<li><a href="#Ch09_Application_ProcessingOverview">Process overview</a></li>
+<li><a href="#Ch09_Application_BusinessRequirements">Business specifications</a></li>
+<li><a href="#Ch09_Application_ImplementationMethod">Learning contents</a></li>
+</ul>
+</div>
+</div>
+<div id="content">
+<div class="sect1">
+<h2 id="Ch09_Application_Overview"><a class="anchor" href="#Ch09_Application_Overview"></a>Background</h2>
+<div class="sectionbody">
+<div class="paragraph">
+<p>Some mass retail stores issue point cards for members.<br>
+Membership types include "Gold member", "Normal member" and the services are provided based on the membership types.<br>
+As a part of the service, 100 points are added for "gold members" and 10 points are added for "normal members" at the end of the month, for the members who have purchased a product during that month.</p>
+</div>
+</div>
+</div>
+<div class="sect1">
+<h2 id="Ch09_Application_ProcessingOverview"><a class="anchor" href="#Ch09_Application_ProcessingOverview"></a>Process overview</h2>
+<div class="sectionbody">
+<div class="paragraph">
+<p>TERASOLUNA Batch 5.x will be using an application as a monthly batch process which adds points based on membership type.</p>
+</div>
+</div>
+</div>
+<div class="sect1">
+<h2 id="Ch09_Application_BusinessRequirements"><a class="anchor" href="#Ch09_Application_BusinessRequirements"></a>Business specifications</h2>
+<div class="sectionbody">
+<div class="paragraph">
+<p>Business specifications are as shown below.</p>
+</div>
+<div class="ulist">
+<ul>
+<li>
+<p>"Members who have purchased a product within the month" are indicated by "product purchasing" flag</p>
+<div class="ulist">
+<ul>
+<li>
+<p>Product purchasing flag "0" indicates initial state whereas "1" indicates processing target</p>
+</li>
+</ul>
+</div>
+</li>
+<li>
+<p>When Product purchasing flag is "1"(processing target), points are added according to membership type</p>
+<div class="ulist">
+<ul>
+<li>
+<p>Add 100 points when membership type is "G"(gold member) and add 10 points when membership type is "N"(Normal member)</p>
+</li>
+</ul>
+</div>
+</li>
+<li>
+<p>Product purchasing flag is updated to "0" (initial state) after adding points</p>
+</li>
+<li>
+<p>Upper limit for the points is 1,000,000 points</p>
+</li>
+<li>
+<p>If the points exceed 1,000,000 points after adding the points, they are adjusted to 1,000,000 points</p>
+</li>
+</ul>
+</div>
+</div>
+</div>
+<div class="sect1">
+<h2 id="Ch09_Application_ImplementationMethod"><a class="anchor" href="#Ch09_Application_ImplementationMethod"></a>Learning contents</h2>
+<div class="sectionbody">
+<div class="paragraph">
+<p>We will learn about various functions and processing methods related to jobs by creating applications (jobs) for simple business specifications.<br>
+Note that jobs implement tasklet model and chunk model respectively.<br>
+The main learning in each job is the functions and processing methods used in the job are shown below.</p>
+</div>
+<table class="tableblock frame-all grid-all spread">
+<caption class="title">Jobs created in this tutorial</caption>
+<colgroup>
+<col style="width: 5%;">
+<col style="width: 30%;">
+<col style="width: 65%;">
+</colgroup>
+<thead>
+<tr>
+<th class="tableblock halign-left valign-top">Sr. No.</th>
+<th class="tableblock halign-left valign-top">Jobs</th>
+<th class="tableblock halign-left valign-top">Contents learnt</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td class="tableblock halign-left valign-top"><p class="tableblock">A</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><a href="Ch09_DBAccessJob.html#Ch09_Impl_DBAccessJob">A job that inputs/outputs data by accessing a database</a></p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">Learn about database access method which use ItemReader and ItemWriter for MyBatis.</p></td>
+</tr>
+<tr>
+<td class="tableblock halign-left valign-top"><p class="tableblock">B</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><a href="Ch09_FileAccessJob.html#Ch09_Impl_FileAccessJob">A job that inputs/outputs data by accessing a file</a></p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">Learn about file access method which use ItemReader and ItemWriter for input and output of a flat file.</p></td>
+</tr>
+<tr>
+<td class="tableblock halign-left valign-top"><p class="tableblock">C</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><a href="Ch09_ValidationJob.html#Ch09_Impl_ValidationJob">A job that validates input data</a></p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">Learn input check methods using Bean Validation.</p></td>
+</tr>
+<tr>
+<td class="tableblock halign-left valign-top"><p class="tableblock">D</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><a href="Ch09_ExceptionHandlingWithListenerJob.html#Ch09_Impl_ExceptionHandlingWithListenerJob">A job that performs exception handling by ChunkListener</a></p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">Learn exception handling methods which use ChunkListener as a listener.</p></td>
+</tr>
+<tr>
+<td class="tableblock halign-left valign-top"><p class="tableblock">E</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><a href="Ch09_ExceptionHandlingWithTryCatchJob.html#Ch09_Impl_ExceptionHandlingWithTryCatchJob">A job which performs exception handling by try-catch</a></p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">Learn exception handling which use try-catch, and a method which outputs customised exit codes.</p></td>
+</tr>
+<tr>
+<td class="tableblock halign-left valign-top"><p class="tableblock">F</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><a href="Ch09_AsyncExecutionJob.html#Ch09_Impl_AsyncExecutionJob">Asynchronous execution type job</a></p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">Learn the methods of asynchronous execution which use DB polling function provided by TERASOLUNA Batch 5.x.</p></td>
+</tr>
+</tbody>
+</table>
+<div class="paragraph">
+<p>Correspondence table for functions and processing methods used in A~F jobs, and explanation of TERASOLUNA Batch 5.x Development guideline is shown below.</p>
+</div>
+<table class="tableblock frame-all grid-all spread">
+<caption class="title">Correspondence table for A~F jobs and TERASOLUNA Batch 5.x Development guideline explanation</caption>
+<colgroup>
+<col style="width: 5%;">
+<col style="width: 41%;">
+<col style="width: 9%;">
+<col style="width: 9%;">
+<col style="width: 9%;">
+<col style="width: 9%;">
+<col style="width: 9%;">
+<col style="width: 9%;">
+</colgroup>
+<thead>
+<tr>
+<th class="tableblock halign-left valign-top">Sr. No.</th>
+<th class="tableblock halign-left valign-top">Functions</th>
+<th class="tableblock halign-left valign-top">A</th>
+<th class="tableblock halign-left valign-top">B</th>
+<th class="tableblock halign-left valign-top">C</th>
+<th class="tableblock halign-left valign-top">D</th>
+<th class="tableblock halign-left valign-top">E</th>
+<th class="tableblock halign-left valign-top">F</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td class="tableblock halign-left valign-top"><p class="tableblock">1</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">Start job &gt; Activation method &gt; <a href="Ch04_SyncJob.html#Ch04_SyncJob">Synchronous execution</a></p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><span class="red">Chunk</span> <span class="blue">Tasklet</span></p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><span class="red">Chunk</span> <span class="blue">Tasklet</span></p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><span class="red">Chunk</span> <span class="blue">Tasklet</span></p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><span class="red">Chunk</span> <span class="blue">Tasklet</span></p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><span class="red">Chunk</span> <span class="blue">Tasklet</span></p></td>
+<td class="tableblock halign-left valign-top"></td>
+</tr>
+<tr>
+<td class="tableblock halign-left valign-top"><p class="tableblock">2</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">Start job &gt; Activation method &gt; <a href="Ch04_AsyncJobWithDB.html#Ch04_AsyncJobWithDB">Asynchronous execution (DB polling)</a></p></td>
+<td class="tableblock halign-left valign-top"></td>
+<td class="tableblock halign-left valign-top"></td>
+<td class="tableblock halign-left valign-top"></td>
+<td class="tableblock halign-left valign-top"></td>
+<td class="tableblock halign-left valign-top"></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><span class="red">Chunk</span> <span class="blue">Tasklet</span></p></td>
+</tr>
+<tr>
+<td class="tableblock halign-left valign-top"><p class="tableblock">3</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">Start job &gt; Start-up parameters of job &gt; <a href="Ch04_JobParameter.html#Ch04_JobParameter_HowToUse_CLIArgs">Assign from command line argument</a></p></td>
+<td class="tableblock halign-left valign-top"></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><span class="red">Chunk</span> <span class="blue">Tasklet</span></p></td>
+<td class="tableblock halign-left valign-top"></td>
+<td class="tableblock halign-left valign-top"></td>
+<td class="tableblock halign-left valign-top"></td>
+<td class="tableblock halign-left valign-top"></td>
+</tr>
+<tr>
+<td class="tableblock halign-left valign-top"><p class="tableblock">4</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">Start job &gt; <a href="Ch04_Listener.html#Ch04_Listener">Listener</a></p></td>
+<td class="tableblock halign-left valign-top"></td>
+<td class="tableblock halign-left valign-top"></td>
+<td class="tableblock halign-left valign-top"></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><span class="red">Chunk</span> <span class="blue">Tasklet</span></p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><span class="red">Chunk</span> <span class="blue">Tasklet</span></p></td>
+<td class="tableblock halign-left valign-top"></td>
+</tr>
+<tr>
+<td class="tableblock halign-left valign-top"><p class="tableblock">5</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">Data input/output &gt; Transaction control &gt; <a href="Ch05_Transaction.html#Ch05_Transaction_Arch_UnderSpringBatch">Transaction control in Spring Batch</a></p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><span class="red">Chunk</span> <span class="blue">Tasklet</span></p></td>
+<td class="tableblock halign-left valign-top"></td>
+<td class="tableblock halign-left valign-top"></td>
+<td class="tableblock halign-left valign-top"></td>
+<td class="tableblock halign-left valign-top"></td>
+<td class="tableblock halign-left valign-top"></td>
+</tr>
+<tr>
+<td class="tableblock halign-left valign-top"><p class="tableblock">6</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">Data input/output &gt; Transaction control &gt; In case of single data source &gt; <a href="Ch05_Transaction.html#Ch05_Transaction_HowToUse_SingleDataSource_Tx">Implementation of transaction control</a></p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><span class="red">Chunk</span> <span class="blue">Tasklet</span></p></td>
+<td class="tableblock halign-left valign-top"></td>
+<td class="tableblock halign-left valign-top"></td>
+<td class="tableblock halign-left valign-top"></td>
+<td class="tableblock halign-left valign-top"></td>
+<td class="tableblock halign-left valign-top"></td>
+</tr>
+<tr>
+<td class="tableblock halign-left valign-top"><p class="tableblock">7</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">Data input/output &gt; Database access &gt; <a href="Ch05_DBAccess.html#Ch05_DBAccess_HowToUse_Input">Input</a></p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><span class="red">Chunk</span> <span class="blue">Tasklet</span></p></td>
+<td class="tableblock halign-left valign-top"></td>
+<td class="tableblock halign-left valign-top"></td>
+<td class="tableblock halign-left valign-top"></td>
+<td class="tableblock halign-left valign-top"></td>
+<td class="tableblock halign-left valign-top"></td>
+</tr>
+<tr>
+<td class="tableblock halign-left valign-top"><p class="tableblock">8</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">Data input/output &gt; Database access &gt; <a href="Ch05_DBAccess.html#Ch05_DBAccess_HowToUse_Output">Output</a></p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><span class="red">Chunk</span> <span class="blue">Tasklet</span></p></td>
+<td class="tableblock halign-left valign-top"></td>
+<td class="tableblock halign-left valign-top"></td>
+<td class="tableblock halign-left valign-top"></td>
+<td class="tableblock halign-left valign-top"></td>
+<td class="tableblock halign-left valign-top"></td>
+</tr>
+<tr>
+<td class="tableblock halign-left valign-top"><p class="tableblock">9</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">Data input/output &gt; File access &gt; Variable length record &gt; <a href="Ch05_FileAccess.html#Ch05_FileAccess_HowToUse_FixedLength_Input">Input</a></p></td>
+<td class="tableblock halign-left valign-top"></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><span class="red">Chunk</span> <span class="blue">Tasklet</span></p></td>
+<td class="tableblock halign-left valign-top"></td>
+<td class="tableblock halign-left valign-top"></td>
+<td class="tableblock halign-left valign-top"></td>
+<td class="tableblock halign-left valign-top"></td>
+</tr>
+<tr>
+<td class="tableblock halign-left valign-top"><p class="tableblock">10</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">Data input/output &gt; File access &gt; Variable length record &gt; <a href="Ch05_FileAccess.html#Ch05_FileAccess_HowToUse_FixedLength_Output">Output</a></p></td>
+<td class="tableblock halign-left valign-top"></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><span class="red">Chunk</span> <span class="blue">Tasklet</span></p></td>
+<td class="tableblock halign-left valign-top"></td>
+<td class="tableblock halign-left valign-top"></td>
+<td class="tableblock halign-left valign-top"></td>
+<td class="tableblock halign-left valign-top"></td>
+</tr>
+<tr>
+<td class="tableblock halign-left valign-top"><p class="tableblock">11</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">Handling abnormalities &gt; <a href="Ch06_InputValidation.html#Ch06_InputValidation">Input check</a></p></td>
+<td class="tableblock halign-left valign-top"></td>
+<td class="tableblock halign-left valign-top"></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><span class="red">Chunk</span> <span class="blue">Tasklet</span></p></td>
+<td class="tableblock halign-left valign-top"></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><span class="red">Chunk</span> <span class="blue">Tasklet</span></p></td>
+<td class="tableblock halign-left valign-top"></td>
+</tr>
+<tr>
+<td class="tableblock halign-left valign-top"><p class="tableblock">12</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">Handling abnormalities &gt; Exception handling &gt; Exception handling in step unit &gt; <a href="Ch06_ExceptionHandling.html#Ch06_ExceptionHandling_HowToUse_StepExceptionHandling_ChunkListener">Exception handling by ChunkListener interface</a></p></td>
+<td class="tableblock halign-left valign-top"></td>
+<td class="tableblock halign-left valign-top"></td>
+<td class="tableblock halign-left valign-top"></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><span class="red">Chunk</span> <span class="blue">Tasklet</span></p></td>
+<td class="tableblock halign-left valign-top"></td>
+<td class="tableblock halign-left valign-top"></td>
+</tr>
+<tr>
+<td class="tableblock halign-left valign-top"><p class="tableblock">13</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">Handling abnormalities &gt; Exception handling &gt; Exception handling in step unit &gt; <a href="Ch06_ExceptionHandling.html#Ch06_ExceptionHandling_HowToUse_StepExceptionHandling_Chunk">Exception handling in chunk model</a></p></td>
+<td class="tableblock halign-left valign-top"></td>
+<td class="tableblock halign-left valign-top"></td>
+<td class="tableblock halign-left valign-top"></td>
+<td class="tableblock halign-left valign-top"></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><span class="red">Chunk</span></p></td>
+<td class="tableblock halign-left valign-top"></td>
+</tr>
+<tr>
+<td class="tableblock halign-left valign-top"><p class="tableblock">14</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">Handling abnormalities &gt; Exception handling &gt; Exception handling in step unit &gt; <a href="Ch06_ExceptionHandling.html#Ch06_ExceptionHandling_HowToUse_StepExceptionHandling_Tasklet">Exception handling in tasklet model</a></p></td>
+<td class="tableblock halign-left valign-top"></td>
+<td class="tableblock halign-left valign-top"></td>
+<td class="tableblock halign-left valign-top"></td>
+<td class="tableblock halign-left valign-top"></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><span class="blue">Tasklet</span></p></td>
+<td class="tableblock halign-left valign-top"></td>
+</tr>
+<tr>
+<td class="tableblock halign-left valign-top"><p class="tableblock">15</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">Handling abnormalities &gt; Exception handling &gt; Decide whether to continue the process &gt; <a href="Ch06_ExceptionHandling.html#Ch06_ExceptionHandling_Overview_Deal_Skip">Skip</a></p></td>
+<td class="tableblock halign-left valign-top"></td>
+<td class="tableblock halign-left valign-top"></td>
+<td class="tableblock halign-left valign-top"></td>
+<td class="tableblock halign-left valign-top"></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><span class="red">Chunk</span> <span class="blue">Tasklet</span></p></td>
+<td class="tableblock halign-left valign-top"></td>
+</tr>
+<tr>
+<td class="tableblock halign-left valign-top"><p class="tableblock">16</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">Job management &gt; Job status management &gt; <a href="Ch07_JobManagement.html#Ch07_JobManagement_HowToUse_JobStatusManagement_Retrieve">Verify job status and execution results</a></p></td>
+<td class="tableblock halign-left valign-top"></td>
+<td class="tableblock halign-left valign-top"></td>
+<td class="tableblock halign-left valign-top"></td>
+<td class="tableblock halign-left valign-top"></td>
+<td class="tableblock halign-left valign-top"></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><span class="red">Chunk</span> <span class="blue">Tasklet</span></p></td>
+</tr>
+<tr>
+<td class="tableblock halign-left valign-top"><p class="tableblock">17</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">Job management &gt; <a href="Ch07_JobManagement.html#Ch07_JobManagement_HowToUse_ExitCode">Customize exit code</a></p></td>
+<td class="tableblock halign-left valign-top"></td>
+<td class="tableblock halign-left valign-top"></td>
+<td class="tableblock halign-left valign-top"></td>
+<td class="tableblock halign-left valign-top"></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><span class="red">Chunk</span> <span class="blue">Tasklet</span></p></td>
+<td class="tableblock halign-left valign-top"></td>
+</tr>
+<tr>
+<td class="tableblock halign-left valign-top"><p class="tableblock">18</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">Job management &gt; <a href="Ch07_JobManagement.html#Ch07_JobManagement_HowToUse_Logging">Logging</a></p></td>
+<td class="tableblock halign-left valign-top"></td>
+<td class="tableblock halign-left valign-top"></td>
+<td class="tableblock halign-left valign-top"></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><span class="red">Chunk</span> <span class="blue">Tasklet</span></p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><span class="red">Chunk</span> <span class="blue">Tasklet</span></p></td>
+<td class="tableblock halign-left valign-top"></td>
+</tr>
+<tr>
+<td class="tableblock halign-left valign-top"><p class="tableblock">19</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">Job management &gt; <a href="Ch07_JobManagement.html#Ch07_JobManagement_HowToUse_MessageManagement">Message management</a></p></td>
+<td class="tableblock halign-left valign-top"></td>
+<td class="tableblock halign-left valign-top"></td>
+<td class="tableblock halign-left valign-top"></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><span class="red">Chunk</span> <span class="blue">Tasklet</span></p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><span class="red">Chunk</span> <span class="blue">Tasklet</span></p></td>
+<td class="tableblock halign-left valign-top"></td>
+</tr>
+</tbody>
+</table>
+</div>
+</div>
+</div>
+<div class="container">
+
+  <div class="common-bg">
+    <div class="information">
+      TERASOLUNA Batch Framework for Java (5.x) Development Guideline - version 5.1.1.RELEASE, 2018-3-16
+    </div>
+    <div class="index">
+      <a href="index.html">&gt; INDEX</a>
+    </div>
+  </div>
+
+  <div class="footer-bg">
+    <div class="copyright">
+      &copy; Copyright 2019 NTT DATA Corporation. &copy; Copyright 2019 NTT Corporation.
+    </div>
+  </div>
+
+</div>
+</body>
+</html>

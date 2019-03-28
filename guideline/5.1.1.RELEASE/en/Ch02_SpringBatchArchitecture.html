@@ -1,0 +1,1190 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<!--[if IE]><meta http-equiv="X-UA-Compatible" content="IE=edge"><![endif]-->
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<meta name="generator" content="Asciidoctor 1.5.6.1">
+<title>Spring Batch Architecture</title>
+<link rel="stylesheet" href="./theme/css/readthedocs.css">
+<link rel="stylesheet" href="./theme/css/font-awesome.min.css">
+<link rel="stylesheet" href="./theme/css/coderay-asciidoctor.css">
+<link rel="stylesheet" href="./theme/css/header-footer.css">
+<title>TERASOLUNA Batch Framework for Java (5.x) Development Guideline</title>
+
+<div class="common-bg">
+  <div class="information">
+    TERASOLUNA Batch Framework for Java (5.x) Development Guideline - version 5.1.1.RELEASE, 2018-3-16
+  </div>
+  <div class="index">
+    <a href="index.html">&gt; INDEX</a>
+  </div>
+</div>
+</head>
+<body id="Ch02_SpringBatchArch" class="book toc2 toc-left">
+<div id="header">
+<h1>Spring Batch Architecture</h1>
+<div id="toc" class="toc2">
+<div id="toctitle">Table of Contents</div>
+<ul class="sectlevel1">
+<li><a href="#Ch02_SpringBatchArch_Overview">Overview</a>
+<ul class="sectlevel2">
+<li><a href="#Ch02_SpringBatchArch_Overview_SpringBatch">What is Spring Batch</a></li>
+<li><a href="#Ch02_SpringBatchArch_Overview_HelloWorld">Hello, Spring Batch！</a></li>
+<li><a href="#Ch02_SpringBatchArch_Overview_BasicStructure">Basic structure of Spring Batch</a></li>
+</ul>
+</li>
+<li><a href="#Ch02_SpringBatchArch_Arch">Architecture</a>
+<ul class="sectlevel2">
+<li><a href="#Ch02_SpringBatchArch_Arch_ProcessFlow">Overall process flow</a></li>
+<li><a href="#Ch02_SpringBatchArch_Arch_ExecutionOfJob">Running a Job</a></li>
+<li><a href="#Ch02_SpringBatchArch_Arch_BusinessLogic">Execution of business logic</a>
+<ul class="sectlevel3">
+<li><a href="#Ch02_SpringBatchArch_Arch_BusinessLogic_Chunk">Chunk model</a></li>
+<li><a href="#Ch02_SpringBatchArch_Arch_BusinessLogic_Tasklet">Tasket model</a></li>
+</ul>
+</li>
+<li><a href="#Ch02_SpringBatchArch_Arch_MetadataSchema">Metadata schema of JobRepository</a>
+<ul class="sectlevel3">
+<li><a href="#Ch02_SpringBatchArch_Arch_MetadataSchema_Version">Version</a></li>
+<li><a href="#Ch02_SpringBatchArch_Arch_MetadataSchema_SequenceID">ID (Sequence) definition</a></li>
+<li><a href="#Ch02_SpringBatchArch_Arch_MetadataSchema_TableDefinition">Table definition</a></li>
+<li><a href="#Ch02_SpringBatchArch_Arch_MetadataSchema_DDL">DDL script</a></li>
+</ul>
+</li>
+<li><a href="#Ch02_SpringBatchArch_Arch_Performance">Typical performance tuning points</a></li>
+</ul>
+</li>
+</ul>
+</div>
+</div>
+<div id="content">
+<div class="sect1">
+<h2 id="Ch02_SpringBatchArch_Overview"><a class="anchor" href="#Ch02_SpringBatchArch_Overview"></a>Overview</h2>
+<div class="sectionbody">
+<div class="paragraph">
+<p>Spring Batch architecture acting as a base for TERASOLUNA Server Framework for Java (5.x) is explained.</p>
+</div>
+<div class="sect2">
+<h3 id="Ch02_SpringBatchArch_Overview_SpringBatch"><a class="anchor" href="#Ch02_SpringBatchArch_Overview_SpringBatch"></a>What is Spring Batch</h3>
+<div class="paragraph">
+<p>Spring Batch, as the name implies is a batch application framework.
+Following functions are offered based on DI container of Spring, AOP and transaction control function.</p>
+</div>
+<div class="dlist">
+<dl>
+<dt class="hdlist1">Functions to standardize process flow</dt>
+<dd>
+<div class="dlist">
+<dl>
+<dt class="hdlist1">Tasket model</dt>
+<dd>
+<div class="dlist">
+<dl>
+<dt class="hdlist1">Simple process</dt>
+<dd>
+<p>It is a method to freely describe a process. It is used in a simple cases like issuing SQL once, issuing a command etc  and the complex cases like performing processing while accessing multiple database or files, which are difficult to standardize.</p>
+</dd>
+</dl>
+</div>
+</dd>
+<dt class="hdlist1">Chunk model</dt>
+<dd>
+<div class="dlist">
+<dl>
+<dt class="hdlist1">Efficient processing of large amount of data</dt>
+<dd>
+<p>A method to collectively input/process/output a fixed amount of data. Job can be implemented simply by standardizing
+the flow of processing such as input / processing / output of data and implementing a part.</p>
+</dd>
+</dl>
+</div>
+</dd>
+</dl>
+</div>
+</dd>
+<dt class="hdlist1">Various activation methods</dt>
+<dd>
+<p>Execution is achieved by various triggers like command line execution, execution on Servlet and other triggers.</p>
+</dd>
+<dt class="hdlist1">I/O of various data formats</dt>
+<dd>
+<p>Input and output for various data resources like file, database, message queue etc can be performed easily.</p>
+</dd>
+<dt class="hdlist1">Efficient processing</dt>
+<dd>
+<p>Multiple execution, parallel execution, conditional branching are done based on the settings.</p>
+</dd>
+<dt class="hdlist1">Job execution control</dt>
+<dd>
+<p>Permanence of execution status, restart based on the number of data items, and so on can be possible.</p>
+</dd>
+</dl>
+</div>
+</div>
+<div class="sect2">
+<h3 id="Ch02_SpringBatchArch_Overview_HelloWorld"><a class="anchor" href="#Ch02_SpringBatchArch_Overview_HelloWorld"></a>Hello, Spring Batch！</h3>
+<div class="paragraph">
+<p>If Spring Batch is not covered in understanding of Spring Batch architecture so far,
+the official documentation given below should be read.
+We would like you to get used to Spring Batch through creating simple application.</p>
+</div>
+<div class="paragraph">
+<p><a href="https://spring.io/guides/gs/batch-processing/">Creating a Batch Service</a></p>
+</div>
+</div>
+<div class="sect2">
+<h3 id="Ch02_SpringBatchArch_Overview_BasicStructure"><a class="anchor" href="#Ch02_SpringBatchArch_Overview_BasicStructure"></a>Basic structure of Spring Batch</h3>
+<div class="paragraph">
+<p>Basic structure of Spring Batch is explained.</p>
+</div>
+<div class="paragraph">
+<p>Spring Batch defines structure of batch process. It is recommended to perform development after understanding the structure.</p>
+</div>
+<div class="imageblock">
+<div class="content">
+<img src="./images/Ch02_SpringBatchArchitecture_Overview_MainComponents.png" alt="Spring Batch Main Components">
+</div>
+<div class="title">Primary components appearing in Spring Batch</div>
+</div>
+<table class="tableblock frame-all grid-all spread">
+<caption class="title">Primary components appearing in Spring Batch</caption>
+<colgroup>
+<col style="width: 20%;">
+<col style="width: 80%;">
+</colgroup>
+<thead>
+<tr>
+<th class="tableblock halign-left valign-middle">Components</th>
+<th class="tableblock halign-left valign-top">Roles</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td class="tableblock halign-left valign-middle"><p class="tableblock">Job</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">A single execution unit that summarises a series of processes for batch application in Spring Batch.</p></td>
+</tr>
+<tr>
+<td class="tableblock halign-left valign-middle"><p class="tableblock">Step</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">A unit of processing which constitutes Job. 1 job can contain 1~N steps<br>
+Reusing a process, parallelization, conditional branching can be performed by dividing 1 job process in multiple steps.
+Step is implemented by either chunk model or tasket model(will be described later).</p></td>
+</tr>
+<tr>
+<td class="tableblock halign-left valign-middle"><p class="tableblock">JobLauncher</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">An interface for running a Job.<br>
+JobLauncher can be directly used by the user, however, a batch process can be started simply<br>
+by starting <code>CommandLineJobRunner</code> from java command.
+<code>CommandLineJobRunner</code> undertakes various processes for starting JobLauncher.</p></td>
+</tr>
+<tr>
+<td class="tableblock halign-left valign-middle"><p class="tableblock">ItemReader<br>
+ItemProcessor<br>
+ItemWriter</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">When implementing the chunk model, it is an interface for dividing it into three pieces of data input / processing / output.<br>
+Batch application consists of processing of these 3 patterns and in Spring Batch, implementation of these interfaces
+is utilized primarily in chunk model.<br>
+User describes business logic by dividing it according to respective roles.<br>
+Since ItemReader and ItemWriter responsible for data input and output are often the processes that perform conversion of database and files to Java objects and vice versa, a standard implementation is provided by Spring Batch.
+In general batch applications which perform input and output of data from file and database, conditions
+can be satisfied just by using standard implementation of Spring Batch as it is.<br>
+ItemProcessor which is responsible for processing data implements input check and business logic.</p>
+<p class="tableblock">In Tasket model, ItemReader/ItemProcessor/ItemWriter substitutes a single Tasklet interface implementation. Input-Output, Input check and business logic all must be implemented in Tasklet.</p></td>
+</tr>
+<tr>
+<td class="tableblock halign-left valign-middle"><p class="tableblock">JobRepository</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">A mechanism for managing the status of Job and Step. The management information is persisted on the database based on the table schema specified by Spring Batch.</p></td>
+</tr>
+</tbody>
+</table>
+</div>
+</div>
+</div>
+<div class="sect1">
+<h2 id="Ch02_SpringBatchArch_Arch"><a class="anchor" href="#Ch02_SpringBatchArch_Arch"></a>Architecture</h2>
+<div class="sectionbody">
+<div class="paragraph">
+<p>Basic structure of Spring Batch is briefly explained in <a href="#Ch02_SpringBatchArch_Overview">Overview</a>.</p>
+</div>
+<div class="paragraph">
+<p>Following points are explained on this basis.</p>
+</div>
+<div class="ulist">
+<ul>
+<li>
+<p><a href="#Ch02_SpringBatchArch_Arch_ProcessFlow">Overall process flow</a></p>
+</li>
+<li>
+<p><a href="#Ch02_SpringBatchArch_Arch_ExecutionOfJob">Running a Job</a></p>
+</li>
+<li>
+<p><a href="#Ch02_SpringBatchArch_Arch_BusinessLogic">Execution of business logic</a></p>
+</li>
+<li>
+<p><a href="#Ch02_SpringBatchArch_Arch_MetadataSchema">Metadata schema of JobRepository</a></p>
+</li>
+</ul>
+</div>
+<div class="paragraph">
+<p>In the end, performance tuning points of batch application which use Spring Batch are explained.</p>
+</div>
+<div class="ulist">
+<ul>
+<li>
+<p><a href="#Ch02_SpringBatchArch_Arch_Performance">Typical performance tuning points</a></p>
+</li>
+</ul>
+</div>
+<div class="sect2">
+<h3 id="Ch02_SpringBatchArch_Arch_ProcessFlow"><a class="anchor" href="#Ch02_SpringBatchArch_Arch_ProcessFlow"></a>Overall process flow</h3>
+<div class="paragraph">
+<p>Primary components of Spring Batch and overall process flow is explained.
+Further, explanation is also given about how to manage meta data of execution status of jobs.</p>
+</div>
+<div class="paragraph">
+<p>Primary components of Spring Batch and overall process flow (chunk model) are shown in the figure below.</p>
+</div>
+<div class="imageblock">
+<div class="content">
+<img src="./images/ch02/SpringBatchArchitecture/Ch02_SpringBatchArchitecture_Architecture_ProcessFlow.png" alt="Spring Batch Process Flow">
+</div>
+<div class="title">Primary components of Spring Batch and overall process flow</div>
+</div>
+<div class="paragraph">
+<p>Main processing flow (black line) and the flow which persists job information (red line) are explained.</p>
+</div>
+<div class="olist arabic">
+<div class="title">Main processing flow</div>
+<ol class="arabic">
+<li>
+<p>JobLauncher is initiated from the job scheduler.</p>
+</li>
+<li>
+<p>Job is executed from JobLauncher.</p>
+</li>
+<li>
+<p>Step is executed from Job.</p>
+</li>
+<li>
+<p>Step fetches input data by using ItemReader.</p>
+</li>
+<li>
+<p>Step processes input data by using ItemProcessor.</p>
+</li>
+<li>
+<p>Step outputs processed data by using ItemWriter.</p>
+</li>
+</ol>
+</div>
+<div class="olist arabic">
+<div class="title">Flow for persisting job information</div>
+<ol class="arabic">
+<li>
+<p>JobLauncher registers JobInstance in Database through JobRepository.</p>
+</li>
+<li>
+<p>JobLauncher registers that Job execution has started in Database through JobRepository.</p>
+</li>
+<li>
+<p>JobStep updates miscellaneous information like counts of I/O records and status in Database through JobRepository.</p>
+</li>
+<li>
+<p>JobLauncher registers that Job execution has completed in Database through JobRepository.</p>
+</li>
+</ol>
+</div>
+<div class="paragraph">
+<p>Description of JobRepository focusing on components and persistence is shown as follows.</p>
+</div>
+<table class="tableblock frame-all grid-all spread">
+<caption class="title">Components related to persistence</caption>
+<colgroup>
+<col style="width: 20%;">
+<col style="width: 80%;">
+</colgroup>
+<thead>
+<tr>
+<th class="tableblock halign-left valign-middle">Components</th>
+<th class="tableblock halign-left valign-top">Roles</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td class="tableblock halign-left valign-middle"><p class="tableblock">JobInstance</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">Spring Batch indicates "logical" execution of a Job. JobInstance is identified by Job name and arguments.
+In other words, execution with identical Job name and argument is identified as execution of identical JobInstance and Job is executed as a continuation from previous activation.<br>
+When the target Job supports re-execution and the process was suspended in between due to error in the previous execution, the job is executed from the middle of the process.
+On the other hand, when the target job does not support re-execution or when the target JobInstance has already been successfully processed, exception is thrown and Java process is terminated abnormally.
+For example, JobInstanceAlreadyCompleteException is thrown when the process has already been completed successfully.</p></td>
+</tr>
+<tr>
+<td class="tableblock halign-left valign-middle"><p class="tableblock">JobExecution<br>
+ExecutionContext</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">JobExecution indicates "physical" execution of Job. Unlike JobInstance, it is termed as another JobExecution even while re-executing identical Job. As a result, JobInstance and JobExecution shows one-to-many relationship.<br>
+ExecutionContext is considered as an area for sharing metadata such as progress of a process in identical JobExecution.
+ExecutionContext is primarily used for enabling Spring Batch to record framework status, however, means to access ExecutionContext by the application is also provided.<br>
+The object stored in the JobExecutionContext must be a class which implements <code>java.io.Serializable</code>.</p></td>
+</tr>
+<tr>
+<td class="tableblock halign-left valign-middle"><p class="tableblock">StepExecution<br>
+ExecutionContext</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">StepExecution indicates "physical" execution of Step. JobExecution and StepExecution shows one-to-many relationship.<br>
+Similar to JobExecution, ExecutionContext is an area for sharing data in Step. From the viewpoint of localization of data, information which is not required to be shared by multiple steps should use ExecutionContext of target step
+instead of using ExecutionContext of Job.<br>
+The object stored in StepExecutionContext must be a class which implements <code>java.io.Serializable</code>.</p></td>
+</tr>
+<tr>
+<td class="tableblock halign-left valign-middle"><p class="tableblock">JobRepository</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">A function to manage and persist data for managing execution results and status of batch application like JobExecution or StepExecution is provided.<br>
+In general batch applications, the process is started by starting a Java process and in many cases, the Java process is also terminated at the end of processing.
+Hence, since the data is likely to be referred across Java process, it is stored in volatile memory as well as permanent layers like database.
+When data is to be stored in the database, database objects like table or sequence are required for storing JobExecution or StepExecution.<br>
+It is necessary to generate a database object based on schema information provided by Spring Batch.</p></td>
+</tr>
+</tbody>
+</table>
+<div class="paragraph">
+<p>The reason why Spring Batch is heavily managing metadata is to realize re-execution.
+In order to make batch processing re-executable, it is necessary to keep the snapshot at the last execution, the metadata and JobRepository are the basis for that.</p>
+</div>
+</div>
+<div class="sect2">
+<h3 id="Ch02_SpringBatchArch_Arch_ExecutionOfJob"><a class="anchor" href="#Ch02_SpringBatchArch_Arch_ExecutionOfJob"></a>Running a Job</h3>
+<div class="paragraph">
+<p>How to run a Job is explained.</p>
+</div>
+<div class="paragraph">
+<p>A scenario is considered wherein a batch process is started immediately after starting Java process and Java process is terminated after batch processing is completed.
+Figure below shows a process flow from starting a Java process till starting a batch process.</p>
+</div>
+<div class="imageblock">
+<div class="content">
+<img src="./images/ch02/SpringBatchArchitecture/Ch02_SpringBatchArchitecture_Architecture_LaunchFlow.png" alt="Job Launch Flow">
+</div>
+<div class="title">Process flow from starting a Java process till starting a batch process</div>
+</div>
+<div class="paragraph">
+<div class="title">Starting a Java process and starting a Job</div>
+<p>At the same time as the Java process is started, it is common to describe shell script that starts Java to start the Job defined on Spring Batch.
+When CommandLineJobRunner offered by Spring Batch is used, Job on Spring Batch defined by the user can be easily started.</p>
+</div>
+<div class="paragraph">
+<p>The start command of the job which uses CommandLineJobRunner is shown as below.</p>
+</div>
+<div class="listingblock">
+<div class="title">Start command when a Bean is defined by using XML</div>
+<div class="content">
+<pre class="CodeRay highlight"><code data-lang="sh">java -cp ${CLASSPATH} org.springframework.batch.core.launch.support.CommandLineJobRunner &lt;jobPath&gt; &lt;jobName&gt; &lt;JobArgumentName1&gt;=&lt;value1&gt; &lt;JobArgumentName2&gt;=&lt;value2&gt; ...</code></pre>
+</div>
+</div>
+<div class="paragraph">
+<div class="title">Specifying a Job parameter</div>
+<p>CommandLineJobRunner can pass arguments (job parameters) as well along with Job name to be started.
+Arguments are specified in <code>&lt;Job argument name&gt;=&lt;Value&gt;</code> format as per the example described earlier.
+All arguments are interpreted and checked by CommandLineJobRunner or JobLauncher, stored in JobExecution after conversion to JobParameters.
+For details, refer to <a href="Ch04_JobParameter.html#Ch04_JobParameter">startup parameters of Job</a>.</p>
+</div>
+<div class="paragraph">
+<div class="title">Register and restore JobInstance</div>
+<p>JobLauncher fetches Job name from JobRepository and JobInstance matching with the argument from the database.</p>
+</div>
+<div class="ulist">
+<ul>
+<li>
+<p>When corresponding JobInstance does not exist, JobInstance is registered as new.</p>
+</li>
+<li>
+<p>When corresponding JobInstance exists, the associated JobExecution is restored.<br></p>
+<div class="ulist">
+<ul>
+<li>
+<p>Spring Batch has adopted a method of adding arguments for JobInstance only to make it unique, for the jobs that may run repeatedly, such as daily execution.
+For example, adding system date or random number to arguments are listed.<br>
+For the method recommended in this guideline, refer <a href="Ch04_JobParameter.html#Ch04_JobParameter_HowToUse_Converter">parameter conversion class</a>.</p>
+</li>
+</ul>
+</div>
+</li>
+</ul>
+</div>
+</div>
+<div class="sect2">
+<h3 id="Ch02_SpringBatchArch_Arch_BusinessLogic"><a class="anchor" href="#Ch02_SpringBatchArch_Arch_BusinessLogic"></a>Execution of business logic</h3>
+<div class="paragraph">
+<p>Job is divided into smaller units called steps in Spring Batch.
+When Job is started, Job activates already registered steps and generates StepExecution.
+Step is a framework for dividing the process till the end and execution of business logic is delegated to Tasket called from Step.</p>
+</div>
+<div class="paragraph">
+<p>Flow from Step to Tasklet is shown below.</p>
+</div>
+<div class="imageblock">
+<div class="content">
+<img src="./images/ch02/SpringBatchArchitecture/Ch02_SpringBatchArchitecture_Architecture_StepTaskletFlow.png" alt="Step-Tasklet Flow">
+</div>
+<div class="title">Process flow from Step to Tasklet</div>
+</div>
+<div class="paragraph">
+<p>A couple of methods can be listed as the implementation methods of Tasklet - "Chunk model" and "Tasket model".
+Since the overview has already been explained, the structure will be now explained here.</p>
+</div>
+<div class="sect3">
+<h4 id="Ch02_SpringBatchArch_Arch_BusinessLogic_Chunk"><a class="anchor" href="#Ch02_SpringBatchArch_Arch_BusinessLogic_Chunk"></a>Chunk model</h4>
+<div class="paragraph">
+<p>As described above, chunk model is a method wherein the processing is performed in a certain number of units (chunks) rather than processing the data to be processed one by one unit.
+ChunkOrientedTasklet acts as a concrete class of Tasklet which supports the chunk processing.
+Maximum records of data to be included in the chunk (hereafter referred as "chunk size") can be adjusted by using setup value called commit-interval of this class.
+ItemReader, ItemProcessor and ItemWriter are all the interfaces based on chunk processing.</p>
+</div>
+<div class="paragraph">
+<p>Next, explanation is given about how ChunkOrientedTasklet calls the ItemReader, ItemProcessor and ItemWriter.</p>
+</div>
+<div class="paragraph">
+<p>A sequence diagram wherein ChunkOrientedTasklet processes one chunk is shown below.</p>
+</div>
+<div class="imageblock">
+<div class="content">
+<img src="./images/Ch02_SpringBatchArchitecture_Architecture_Sequence_ChunkOrientedTasklet.png" alt="Sequence of Chunk processing with ChunkOrientedTasklet">
+</div>
+<div class="title">Chunk processing by using ChunkOrientedTasklet</div>
+</div>
+<div class="paragraph">
+<p>ChunkOrientedTasklet repeatedly executes ItemReader and ItemProcessor by the chunk size, in other words, reading and processing of data.
+After completing reading all the data of chunks, data writing process of ItemWriter is called only once and all the processed data in the chunks is passed.
+Data update processing is designed to be called once for chunks to enable easy organising like addBatch and executeBatch of JDBC.</p>
+</div>
+<div class="paragraph">
+<p>Next, ItemReader, ItemProcessor and ItemWriter which are responsible for actual processing in chunk processing are introduced.
+Although it is assumed that the user handles his own implementation for each interface, it can also be covered by a generic concrete class provided by Spring Batch.</p>
+</div>
+<div class="paragraph">
+<p>Especially, since ItemProcessor describes the business logic itself, the concrete classes are hardly provided by Spring Batch.
+ItemProcessor interface is implemented while describing the business logic.
+ItemProcessor is designed to allow types of objects used in I/O to be specified in respective type argument so that typesafe programming is enabled.</p>
+</div>
+<div class="paragraph">
+<p>An implementation example of a simple ItemProcessor is shown below.</p>
+</div>
+<div class="listingblock">
+<div class="title">Implementation example of ItemProcessor</div>
+<div class="content">
+<pre class="CodeRay highlight"><code data-lang="java"><span class="directive">public</span> <span class="type">class</span> <span class="class">MyItemProcessor</span> <span class="directive">implements</span>
+      ItemProcessor&lt;MyInputObject, MyOutputObject&gt; {  <span class="comment">// (1)</span>
+  <span class="annotation">@Override</span>
+    <span class="directive">public</span> MyOutputObject process(MyInputObject item) <span class="directive">throws</span> <span class="exception">Exception</span> {  <span class="comment">// (2)</span>
+
+        MyOutputObject processedObject = <span class="keyword">new</span> MyOutputObject();  <span class="comment">// (3)</span>
+
+        <span class="comment">// Coding business logic for item of input data</span>
+
+    <span class="keyword">return</span> processedObject; <span class="comment">// (4)</span>
+  }
+}</code></pre>
+</div>
+</div>
+<table class="tableblock frame-all grid-all spread">
+<colgroup>
+<col style="width: 10%;">
+<col style="width: 90%;">
+</colgroup>
+<thead>
+<tr>
+<th class="tableblock halign-left valign-top">Sr. No.</th>
+<th class="tableblock halign-left valign-top">Description</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td class="tableblock halign-left valign-top"><p class="tableblock">(1)</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">Implement ItemProcessor interface which specifies the types of objects used for input and output in respective type argument.</p></td>
+</tr>
+<tr>
+<td class="tableblock halign-left valign-top"><p class="tableblock">(2)</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">Implement <code>process</code> method. Argument item is input data.</p></td>
+</tr>
+<tr>
+<td class="tableblock halign-left valign-top"><p class="tableblock">(3)</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">Create output object and store business logic results processed for the input data item.</p></td>
+</tr>
+<tr>
+<td class="tableblock halign-left valign-top"><p class="tableblock">(4)</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">Return output object.</p></td>
+</tr>
+</tbody>
+</table>
+<div class="paragraph">
+<p>Various concrete classes are offered by Spring Batch for ItemReader or ItemWriter and these are used quite frequently.
+However, when a file of specific format is to be input or output, a concrete class which implements individual ItemReader or ItemWriter can be created and used.</p>
+</div>
+<div class="paragraph">
+<p>For implementation of business logic while developing actual application, refer <a href="Ch03_index.html#Ch03">application development flow</a>.</p>
+</div>
+<div class="paragraph">
+<p>Representative concrete classes of ItemReader, ItemProcessor and ItemWriter offered by Spring Batch are shown in the end.</p>
+</div>
+<table class="tableblock frame-all grid-all spread">
+<caption class="title">Representative concrete classes of ItemReader, ItemProcessor and ItemReader offered by Spring Batch</caption>
+<colgroup>
+<col style="width: 15%;">
+<col style="width: 25%;">
+<col style="width: 60%;">
+</colgroup>
+<thead>
+<tr>
+<th class="tableblock halign-left valign-middle">Interface</th>
+<th class="tableblock halign-left valign-top">Concrete class name</th>
+<th class="tableblock halign-left valign-top">Overview</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td class="tableblock halign-left valign-middle" rowspan="5"><p class="tableblock">ItemReader</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">FlatFileItemReader</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">Read flat files (non-structural files) like CSV file. Mapping rules for delimiters and objects can be customised by using Resource object as input.</p></td>
+</tr>
+<tr>
+<td class="tableblock halign-left valign-middle"><p class="tableblock">StaxEventItemReader</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">Read XML file. As the name implies, it is an implementation which reads a XML file based on StAX.</p></td>
+</tr>
+<tr>
+<td class="tableblock halign-left valign-middle"><p class="tableblock">JdbcPagingItemReader<br>
+JdbcCursorItemReader</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">Execute SQL by using JDBC and read records on the database. When a large amount of data is to be processed on the database, it is necessary to avoid reading all the records on memory, and to read and discard only the data necessary for one processing.<br>
+JdbcPagingItemReader is implemented by dividing SELECT SQL for each page by using JdbcTemplate and then issuing the same. On the other hand, JdbcCursorItemReader is implemented by issuing one SELECT SQL by using JDBC cursor.<br>
+<span class="icon"><i class="fa fa-warning"></i></span> Using MyBatis is considered as a base in TERASOLUNA Batch 5.x.</p></td>
+</tr>
+<tr>
+<td class="tableblock halign-left valign-middle"><p class="tableblock">MyBatisCursorItemReader<br>
+MyBatisPagingItemReader</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">Read records on the database in coordination with MyBatis. Spring coordination library offered by MyBatis is provided by MyBatis-Spring. For the difference between Paging and Cursor, it is same as JdbcXXXItemReader except for using MyBatis for implementation.
+In addition, JpaPagingItemReader, HibernatePagingItemReader and HibernateCursor are provided which read records on the database by coordinating with ItemReaderJPA implementation or Hibernate.</p>
+<p class="tableblock"><span class="icon"><i class="fa fa-warning"></i></span> Using <code>MyBatisCursorItemReader</code> is considered as a base in TERASOLUNA Batch 5.x.</p></td>
+</tr>
+<tr>
+<td class="tableblock halign-left valign-middle"><p class="tableblock">JmsItemReader<br>
+AmqpItemReader</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">Receive messages from JMS or AMQP and read the data contained within it.</p></td>
+</tr>
+<tr>
+<td class="tableblock halign-left valign-middle" rowspan="3"><p class="tableblock">ItemProcessor</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">PassThroughItemProcessor</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">No operation is performed. It is used when processing and modification of input data is not required.</p></td>
+</tr>
+<tr>
+<td class="tableblock halign-left valign-middle"><p class="tableblock">ValidatingItemProcessor</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">Performs input check. It is necessary to implement Spring Batch specific org.springframework.batch.item.validator.Validator for the implementation of input check rules.<br>
+However, SpringValidator which is an adaptor to the general purpose org.springframework.validation.Validator by Spring is provided
+and the rule of org.springframework.validation.Validator can be used.<br>
+<span class="icon"><i class="fa fa-warning"></i></span> Use of ValidatingItemProcessor is prohibited in TERASOLUNA Batch 5.x.<br>
+For details, refer <a href="Ch06_InputValidation.html#Ch06_InputValidation">Input check</a>.</p></td>
+</tr>
+<tr>
+<td class="tableblock halign-left valign-middle"><p class="tableblock">CompositeItemProcessor</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">Sequentially execute multiple ItemProcessor for identical input data. It is enabled when business logic is to be executed after performing input check using ValidatingItemProcessor.</p></td>
+</tr>
+<tr>
+<td class="tableblock halign-left valign-middle" rowspan="5"><p class="tableblock">ItemWriter</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">FlatFileItemWriter</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">Write processed Java object as a flat file like CSV file. Mapping rules for file lines can be customised from delimiters and objects.</p></td>
+</tr>
+<tr>
+<td class="tableblock halign-left valign-middle"><p class="tableblock">StaxEventItemWriter</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">Write processed Java object as a XML file.</p></td>
+</tr>
+<tr>
+<td class="tableblock halign-left valign-middle"><p class="tableblock">JdbcBatchItemWriter</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">Execute SQL by using JDBC and output processed Java object to database. Internally JdbcTemplate is used.</p></td>
+</tr>
+<tr>
+<td class="tableblock halign-left valign-middle"><p class="tableblock">MyBatisBatchItemWriter</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">Coordinate with MyBatis and output processed Java object to the database. It is provided by Spring coordination library MyBatis-Spring offered by MyBatis.<br>
+<span class="icon"><i class="fa fa-warning"></i></span> JPA implementation or JpaItemWriter and HibernateItemWriter for Hibernate is not used in TERASOLUNA Batch 5.x.</p></td>
+</tr>
+<tr>
+<td class="tableblock halign-left valign-middle"><p class="tableblock">JmsItemWriter<br>
+AmqpItemWriter</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">Send a message of a processed Java object with JMS or AMQP.</p></td>
+</tr>
+</tbody>
+</table>
+<div class="admonitionblock note">
+<table>
+<tr>
+<td class="icon">
+<i class="fa icon-note" title="Note"></i>
+</td>
+<td class="content">
+<div class="title">PassThroughItemProcessor omitted</div>
+<div class="paragraph">
+<p>When a job is defined in XML, ItemProcessor setting can be omitted.
+When it is omitted, input data is passed to ItemWriter without performing any operation similar to PassThroughItemProcessor.</p>
+</div>
+<div class="listingblock">
+<div class="title">ItemProcessor omitted</div>
+<div class="content">
+<pre class="CodeRay highlight"><code data-lang="xml"><span class="tag">&lt;batch:job</span> <span class="attribute-name">id</span>=<span class="string"><span class="delimiter">&quot;</span><span class="content">exampleJob</span><span class="delimiter">&quot;</span></span><span class="tag">&gt;</span>
+    <span class="tag">&lt;batch:step</span> <span class="attribute-name">id</span>=<span class="string"><span class="delimiter">&quot;</span><span class="content">exampleStep</span><span class="delimiter">&quot;</span></span><span class="tag">&gt;</span>
+        <span class="tag">&lt;batch:tasklet&gt;</span>
+            <span class="tag">&lt;batch:chunk</span> <span class="attribute-name">reader</span>=<span class="string"><span class="delimiter">&quot;</span><span class="content">reader</span><span class="delimiter">&quot;</span></span> <span class="attribute-name">writer</span>=<span class="string"><span class="delimiter">&quot;</span><span class="content">writer</span><span class="delimiter">&quot;</span></span> <span class="attribute-name">commit-interval</span>=<span class="string"><span class="delimiter">&quot;</span><span class="content">10</span><span class="delimiter">&quot;</span></span> <span class="tag">/&gt;</span>
+        <span class="tag">&lt;/batch:tasklet&gt;</span>
+    <span class="tag">&lt;/batch:step&gt;</span>
+<span class="tag">&lt;/batch:job&gt;</span></code></pre>
+</div>
+</div>
+</td>
+</tr>
+</table>
+</div>
+</div>
+<div class="sect3">
+<h4 id="Ch02_SpringBatchArch_Arch_BusinessLogic_Tasklet"><a class="anchor" href="#Ch02_SpringBatchArch_Arch_BusinessLogic_Tasklet"></a>Tasket model</h4>
+<div class="paragraph">
+<p>Chunk model is a framework suitable for batch applications that read multiple input data one by one and perform a series of processing.
+However, a process which does not fit with the type of chunk processing is also implemented.
+For example, when system command is to be executed, when only one record in control table is to be updated etc.</p>
+</div>
+<div class="paragraph">
+<p>In such a case, merits of efficiency obtained by chunk processing are very less
+and demerits owing to difficult design and implementation are significant. Hence, it is rational to use tasket model.</p>
+</div>
+<div class="paragraph">
+<p>It is necessary for the user to implement Tasket interface provided by Spring Batch while using a Tasket model.
+Further, following concrete class is provided in Spring Batch, subsequent description is not given in TERASOLUNA Batch 5.x.</p>
+</div>
+<table class="tableblock frame-all grid-all spread">
+<caption class="title">Concrete class of Tasket offered by Spring Batch</caption>
+<colgroup>
+<col style="width: 30%;">
+<col style="width: 70%;">
+</colgroup>
+<thead>
+<tr>
+<th class="tableblock halign-left valign-middle">Class name</th>
+<th class="tableblock halign-left valign-top">Overview</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td class="tableblock halign-left valign-middle"><p class="tableblock">SystemCommandTasklet</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">Tasket to execute system commands asynchronously. Command to be specified in the command property is specified.<br>
+Since the system command is executed by a thread different from the thread for calling, it is possible to set a timeout and cancel the execution thread of the system command during the process.</p></td>
+</tr>
+<tr>
+<td class="tableblock halign-left valign-middle"><p class="tableblock">MethodInvokingTaskletAdapter</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">Tasket for executing specific methods of POJO class. Specify Bean of target class in targetObject property and name of the method to be executed in targetMethod property.<br>
+POJO class can return batch process termination status as a return value of the method, however then the ExitStatus described later must be set as a return value.
+When a value of another type is returned, the status is considered as "normal termination (ExistStatus: COMPLETED) regardless of the return value.</p></td>
+</tr>
+</tbody>
+</table>
+</div>
+</div>
+<div class="sect2">
+<h3 id="Ch02_SpringBatchArch_Arch_MetadataSchema"><a class="anchor" href="#Ch02_SpringBatchArch_Arch_MetadataSchema"></a>Metadata schema of JobRepository</h3>
+<div class="paragraph">
+<p>Metadata schema of JobRepository is explained.</p>
+</div>
+<div class="paragraph">
+<p>Note that, overall picture is explained including the contents explained in Spring Batch reference
+<a href="http://docs.spring.io/spring-batch/trunk/reference/html/metaDataSchema.html">Appendix B. Meta-Data Schema</a></p>
+</div>
+<div class="paragraph">
+<p>Spring Batch metadata table corresponds to a domain object (Entity object) which are represented by Java.</p>
+</div>
+<table class="tableblock frame-all grid-all spread">
+<caption class="title">Correspondence list</caption>
+<colgroup>
+<col style="width: 30%;">
+<col style="width: 30%;">
+<col style="width: 40%;">
+</colgroup>
+<tbody>
+<tr>
+<td class="tableblock halign-left valign-top"><p class="tableblock">Table</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">Entity object</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">Overview</p></td>
+</tr>
+<tr>
+<td class="tableblock halign-left valign-top"><p class="tableblock">BATCH_JOB_INSTANCE</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">JobInstance</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">Retains the string which serialises job name and job parameter.</p></td>
+</tr>
+<tr>
+<td class="tableblock halign-left valign-top"><p class="tableblock">BATCH_JOB_EXECUTION</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">JobExecution</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">Retains job status and execution results.</p></td>
+</tr>
+<tr>
+<td class="tableblock halign-left valign-top"><p class="tableblock">BATCH_JOB_EXECUTION_PARAMS</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">JobExecutionParams</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">Retains job parameters assigned at the startup.</p></td>
+</tr>
+<tr>
+<td class="tableblock halign-left valign-top"><p class="tableblock">BATCH_JOB_EXECUTION_CONTEXT</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">JobExecutionContext</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">Retains the context inside the job.</p></td>
+</tr>
+<tr>
+<td class="tableblock halign-left valign-top"><p class="tableblock">BATCH_STEP_EXECUTION</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">StepExecution</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">Retains status and execution results of step, number of commits and rollbacks.</p></td>
+</tr>
+<tr>
+<td class="tableblock halign-left valign-top"><p class="tableblock">BATCH_STEP_EXECUTION_CONTEXT</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">StepExecutionContext</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">Retains context inside the step.</p></td>
+</tr>
+</tbody>
+</table>
+<div class="paragraph">
+<p>JobRepository is responsible for accurately storing the contents stored in each Java object, in the table.</p>
+</div>
+<div class="admonitionblock important">
+<table>
+<tr>
+<td class="icon">
+<i class="fa icon-important" title="Important"></i>
+</td>
+<td class="content">
+<div class="title">Regarding the character string stored in the meta data table</div>
+<div class="paragraph">
+<p>Character string stored in the meta data table allows only a restricted number of characters and when this limit is exceeded, character string is truncated.<br>
+Note that, multibyte characters are not taken into consideration in Spring Batch and an error is likely to occur in DDL of meta data table offered by Spring Batch even if character string to be stored is within the character limit.
+It is necessary to extend the size by encoding using a column of meta data table, and to set the character data type in character count definition, in order to store multibyte characters.</p>
+</div>
+<div class="paragraph">
+<p><code>Oracle Schema</code> provided by Spring Batch offers a DDL for Oracle in TERASOLUNA Batch 5.x that explicitly sets character data type in character count definition
+since character data type of database is defined by default number of bytes.<br>
+DDL to be offered is included in the org.terasoluna.batch package which is included in jar of TERASOLUNA Batch 5.x.</p>
+</div>
+</td>
+</tr>
+</table>
+</div>
+<div class="paragraph">
+<p>6 ERD models of all the tables and interrelations are shown below.</p>
+</div>
+<div class="imageblock">
+<div class="content">
+<img src="./images/Ch02_SpringBatchArchitecture_Architecture_ER.png" alt="ER Diagram">
+</div>
+<div class="title">ER diagram</div>
+</div>
+<div class="sect3">
+<h4 id="Ch02_SpringBatchArch_Arch_MetadataSchema_Version"><a class="anchor" href="#Ch02_SpringBatchArch_Arch_MetadataSchema_Version"></a>Version</h4>
+<div class="paragraph">
+<p>Majority of database tables contain version columns.
+This column is important since Spring Batch adopts an optimistic locking strategy to handle updates to database.
+This record signifies that it is updated when the value of the version is incremented.
+When JobRepository updates the value and the version number is changed, an OptimisticLockingFailureException which indicates an occurrence of simultaneous access error is thrown.
+Other batch jobs may be running on different machines, however, all the jobs use the same database, hence this check is required.</p>
+</div>
+</div>
+<div class="sect3">
+<h4 id="Ch02_SpringBatchArch_Arch_MetadataSchema_SequenceID"><a class="anchor" href="#Ch02_SpringBatchArch_Arch_MetadataSchema_SequenceID"></a>ID (Sequence) definition</h4>
+<div class="paragraph">
+<p>BATCH_JOB_INSTANCE, BATCH_JOB_EXECUTION and BATCH_STEP_EXECUTION all contain column ending with _ID.
+These fields act as a primary key for respective tables.
+However, these keys are not generated in the database but are rather generated in a separate sequence.
+After inserting one of the domain objects in the database, the keys which assign the domain objects should be set in the actual objects so that they can be uniquely identified in Java.<br>
+Sequences may not be supported depending on the database. In this case, a table is used instead of each sequence.</p>
+</div>
+</div>
+<div class="sect3">
+<h4 id="Ch02_SpringBatchArch_Arch_MetadataSchema_TableDefinition"><a class="anchor" href="#Ch02_SpringBatchArch_Arch_MetadataSchema_TableDefinition"></a>Table definition</h4>
+<div class="paragraph">
+<p>Explanation is given for each table item.</p>
+</div>
+<div class="sect4">
+<h5 id="Ch02_SpringBatchArch_Arch_MetadataSchema_TableDefinition_JobInstance"><a class="anchor" href="#Ch02_SpringBatchArch_Arch_MetadataSchema_TableDefinition_JobInstance"></a>BATCH_JOB_INSTANCE</h5>
+<div class="paragraph">
+<p>BATCH_JOB_INSTANCE table retains all the information related to JobInstance and is at top level of the overall hierarchy.</p>
+</div>
+<table class="tableblock frame-all grid-all spread">
+<caption class="title">BATCH_JOB_INSTANCE definition</caption>
+<colgroup>
+<col style="width: 30%;">
+<col style="width: 70%;">
+</colgroup>
+<thead>
+<tr>
+<th class="tableblock halign-left valign-top">Column name</th>
+<th class="tableblock halign-left valign-top">Description</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td class="tableblock halign-left valign-top"><p class="tableblock">JOB_INSTANCE_ID</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">A primary key which is a unique ID identifying an instance.</p></td>
+</tr>
+<tr>
+<td class="tableblock halign-left valign-top"><p class="tableblock">VERSION</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">Refer <a href="#Ch02_SpringBatchArch_Arch_MetadataSchema_Version">Version</a>.</p></td>
+</tr>
+<tr>
+<td class="tableblock halign-left valign-top"><p class="tableblock">JOB_NAME</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">Job name. A non-null value since it is necessary for identifying an instance.</p></td>
+</tr>
+<tr>
+<td class="tableblock halign-left valign-top"><p class="tableblock">JOB_KEY</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">JobParameters which are serialised for uniquely identifying same job as a different instance.<br>
+JobInstances with the same job name must contain different JobParameters (in other words, varying JOB_KEY values).</p></td>
+</tr>
+</tbody>
+</table>
+</div>
+<div class="sect4">
+<h5 id="Ch02_SpringBatchArch_Arch_MetadataSchema_TableDefinition_JobExecution"><a class="anchor" href="#Ch02_SpringBatchArch_Arch_MetadataSchema_TableDefinition_JobExecution"></a>BATCH_JOB_EXECUTION</h5>
+<div class="paragraph">
+<p>BATCH_JOB_EXECUTION table retains all the information related to JobExecution object.
+When a job is executed, new rows are always registered in the table with new JobExecution.</p>
+</div>
+<table class="tableblock frame-all grid-all spread">
+<caption class="title">BATCH_JOB_EXECUTION definition</caption>
+<colgroup>
+<col style="width: 30%;">
+<col style="width: 70%;">
+</colgroup>
+<thead>
+<tr>
+<th class="tableblock halign-left valign-top">Column name</th>
+<th class="tableblock halign-left valign-top">Description</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td class="tableblock halign-left valign-top"><p class="tableblock">JOB_EXECUTION_ID</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">Primary key that uniquely identifies this job execution.</p></td>
+</tr>
+<tr>
+<td class="tableblock halign-left valign-top"><p class="tableblock">VERSION</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">Refer <a href="#Ch02_SpringBatchArch_Arch_MetadataSchema_Version">Version</a>.</p></td>
+</tr>
+<tr>
+<td class="tableblock halign-left valign-top"><p class="tableblock">JOB_INSTANCE_ID</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">Foreign key from BATCH_JOB_INSTANCE table which shows an instance wherein the job execution belongs.
+Multiple executions are likely to exist for each instance.</p></td>
+</tr>
+<tr>
+<td class="tableblock halign-left valign-top"><p class="tableblock">CREATE_TIME</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">Time when the job execution was created.</p></td>
+</tr>
+<tr>
+<td class="tableblock halign-left valign-top"><p class="tableblock">START_TIME</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">Time when the job execution was started.</p></td>
+</tr>
+<tr>
+<td class="tableblock halign-left valign-top"><p class="tableblock">END_TIME</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">Indicates the time when the job execution was terminated regardless of whether it was successful or failed.<br>
+Even though the job is not running currently, the column value is empty which indicates there are several error types and the framework was unable to perform last save operation.</p></td>
+</tr>
+<tr>
+<td class="tableblock halign-left valign-top"><p class="tableblock">STATUS</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">A character string which indicates job execution status. It is a character string output by BatchStatus enumeration object.</p></td>
+</tr>
+<tr>
+<td class="tableblock halign-left valign-top"><p class="tableblock">EXIT_CODE</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">A character string which indicates an exit code of job execution. When it is activated by CommandLineJobRunner, it can be converted to a numeric value.</p></td>
+</tr>
+<tr>
+<td class="tableblock halign-left valign-top"><p class="tableblock">EXIT_MESSAGE</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">A character string which explains job termination status in detail.
+When a failure occurs, a character string that includes as many as stack traces as possible is likely.</p></td>
+</tr>
+<tr>
+<td class="tableblock halign-left valign-top"><p class="tableblock">LAST_UPDATED</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">Time when job execution of the record was last updated.</p></td>
+</tr>
+</tbody>
+</table>
+</div>
+<div class="sect4">
+<h5 id="Ch02_SpringBatchArch_Arch_MetadataSchema_TableDefinition_JobExecutionParams"><a class="anchor" href="#Ch02_SpringBatchArch_Arch_MetadataSchema_TableDefinition_JobExecutionParams"></a>BATCH_JOB_EXECUTION_PARAMS</h5>
+<div class="paragraph">
+<p>BATCH_JOB_EXECUTION_PARAMS table retains all the information related to JobParameters object.
+It contains a pair of 0 or more keys passed to the job and the value and records the parameters by which the job was executed.</p>
+</div>
+<table class="tableblock frame-all grid-all spread">
+<caption class="title">BATCH_JOB_EXECUTION_PARAMS definition</caption>
+<colgroup>
+<col style="width: 30%;">
+<col style="width: 70%;">
+</colgroup>
+<thead>
+<tr>
+<th class="tableblock halign-left valign-top">Column name</th>
+<th class="tableblock halign-left valign-top">Description</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td class="tableblock halign-left valign-top"><p class="tableblock">JOB_EXECUTION_ID</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">Foreign key from  BATCH_JOB_EXECUTION table which executes this job wherein the job parameter belongs.</p></td>
+</tr>
+<tr>
+<td class="tableblock halign-left valign-top"><p class="tableblock">TYPE_CD</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">A character string which indicates that the data type is string, date, long or double.</p></td>
+</tr>
+<tr>
+<td class="tableblock halign-left valign-top"><p class="tableblock">KEY_NAME</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">Parameter key.</p></td>
+</tr>
+<tr>
+<td class="tableblock halign-left valign-top"><p class="tableblock">STRING_VAL</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">Parameter value when data type is string.</p></td>
+</tr>
+<tr>
+<td class="tableblock halign-left valign-top"><p class="tableblock">DATE_VAL</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">Parameter value when data type is date.</p></td>
+</tr>
+<tr>
+<td class="tableblock halign-left valign-top"><p class="tableblock">LONG_VAL</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">Parameter value when data type is an integer.</p></td>
+</tr>
+<tr>
+<td class="tableblock halign-left valign-top"><p class="tableblock">DOUBLE_VAL</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">Parameter value when data type is a real number.</p></td>
+</tr>
+<tr>
+<td class="tableblock halign-left valign-top"><p class="tableblock">IDENTIFYING</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">A flag which indicates that the parameter is a value to identify that the job instance is unique.</p></td>
+</tr>
+</tbody>
+</table>
+</div>
+<div class="sect4">
+<h5 id="Ch02_SpringBatchArch_Arch_MetadataSchema_TableDefinition_JobExecutionContext"><a class="anchor" href="#Ch02_SpringBatchArch_Arch_MetadataSchema_TableDefinition_JobExecutionContext"></a>BATCH_JOB_EXECUTION_CONTEXT</h5>
+<div class="paragraph">
+<p>BATCH_JOB_EXECUTION_CONTEXT table retains all the information related to ExecutionContext of Job.
+It contains all the job level data required for execution of specific jobs.
+The data indicates the status that must be fetched when the process is to be executed again after a job failure and enables the failed job to start from the point where processing has stopped.</p>
+</div>
+<table class="tableblock frame-all grid-all spread">
+<caption class="title">BATCH_JOB_EXECUTION_CONTEXT definition</caption>
+<colgroup>
+<col style="width: 30%;">
+<col style="width: 70%;">
+</colgroup>
+<thead>
+<tr>
+<th class="tableblock halign-left valign-top">Column name</th>
+<th class="tableblock halign-left valign-top">Description</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td class="tableblock halign-left valign-top"><p class="tableblock">JOB_EXECUTION_ID</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">A foreign key from BATCH_JOB_EXECUTION table which indicates job execution wherein ExecutionContext of Job belongs.</p></td>
+</tr>
+<tr>
+<td class="tableblock halign-left valign-top"><p class="tableblock">SHORT_CONTEXT</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">A string representation of SERIALIZED_CONTEXT.</p></td>
+</tr>
+<tr>
+<td class="tableblock halign-left valign-top"><p class="tableblock">SERIALIZED_CONTEXT</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">Overall serialised context.</p></td>
+</tr>
+</tbody>
+</table>
+</div>
+<div class="sect4">
+<h5 id="Ch02_SpringBatchArch_Arch_MetadataSchema_TableDefinition_StepExecution"><a class="anchor" href="#Ch02_SpringBatchArch_Arch_MetadataSchema_TableDefinition_StepExecution"></a>BATCH_STEP_EXECUTION</h5>
+<div class="paragraph">
+<p>BATCH_STEP_EXECUTION table retains all the information related to StepExecution object.
+This table is very similar to BATCH_JOB_EXECUTION table in many ways. When each JobExecution is created, at least one entry exists for each Step.</p>
+</div>
+<table class="tableblock frame-all grid-all spread">
+<caption class="title">BATCH_STEP_EXECUTION definition</caption>
+<colgroup>
+<col style="width: 30%;">
+<col style="width: 70%;">
+</colgroup>
+<thead>
+<tr>
+<th class="tableblock halign-left valign-top">Column name</th>
+<th class="tableblock halign-left valign-top">Description</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td class="tableblock halign-left valign-top"><p class="tableblock">STEP_EXECUTION_ID</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">Primary key that uniquely identifies the step execution.</p></td>
+</tr>
+<tr>
+<td class="tableblock halign-left valign-top"><p class="tableblock">VERSION</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">Refer <a href="#Ch02_SpringBatchArch_Arch_MetadataSchema_Version">Version</a>.</p></td>
+</tr>
+<tr>
+<td class="tableblock halign-left valign-top"><p class="tableblock">STEP_NAME</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">Step name.</p></td>
+</tr>
+<tr>
+<td class="tableblock halign-left valign-top"><p class="tableblock">JOB_EXECUTION_ID</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">Foreign key from  BATCH_JOB_EXECUTION table which indicates JobExecution wherein StepExecution belongs</p></td>
+</tr>
+<tr>
+<td class="tableblock halign-left valign-top"><p class="tableblock">START_TIME</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">Time when step execution was started.</p></td>
+</tr>
+<tr>
+<td class="tableblock halign-left valign-top"><p class="tableblock">END_TIME</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">Indicates time when step execution ends regardless of whether it is successful or failed.<br>
+Even though the job is not running currently, the column value is empty which indicates there are several error types and the framework was unable to perform last save operation.</p></td>
+</tr>
+<tr>
+<td class="tableblock halign-left valign-top"><p class="tableblock">STATUS</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">A character string that represents status of step execution. It is a string which outputs BatchStatus enumeration object.</p></td>
+</tr>
+<tr>
+<td class="tableblock halign-left valign-top"><p class="tableblock">COMMIT_COUNT</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">Number of times a transaction is committed.</p></td>
+</tr>
+<tr>
+<td class="tableblock halign-left valign-top"><p class="tableblock">READ_COUNT</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">Data records read by ItemReader.</p></td>
+</tr>
+<tr>
+<td class="tableblock halign-left valign-top"><p class="tableblock">FILTER_COUNT</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">Data records filtered by ItemProcessor.</p></td>
+</tr>
+<tr>
+<td class="tableblock halign-left valign-top"><p class="tableblock">WRITE_COUNT</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">Data records written by ItemWriter.</p></td>
+</tr>
+<tr>
+<td class="tableblock halign-left valign-top"><p class="tableblock">READ_SKIP_COUNT</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">Data records skipped by ItemReader.</p></td>
+</tr>
+<tr>
+<td class="tableblock halign-left valign-top"><p class="tableblock">WRITE_SKIP_COUNT</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">Data records skipped by ItemWriter.</p></td>
+</tr>
+<tr>
+<td class="tableblock halign-left valign-top"><p class="tableblock">PROCESS_SKIP_COUNT</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">Data records skipped by ItemProcessor.</p></td>
+</tr>
+<tr>
+<td class="tableblock halign-left valign-top"><p class="tableblock">ROLLBACK_COUNT</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">Number of times a transaction is rolled back.</p></td>
+</tr>
+<tr>
+<td class="tableblock halign-left valign-top"><p class="tableblock">EXIT_CODE</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">A character string which indicates exit code for step execution. When it is activated by using CommandLineJobRunner, it can be changed to a numeric value.</p></td>
+</tr>
+<tr>
+<td class="tableblock halign-left valign-top"><p class="tableblock">EXIT_MESSAGE</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">A character string which explains step termination status in detail.
+When a failure occurs, a character string that includes as many as stack traces as possible is likely.</p></td>
+</tr>
+<tr>
+<td class="tableblock halign-left valign-top"><p class="tableblock">LAST_UPDATED</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">Time when the step execution of the record was last updated.</p></td>
+</tr>
+</tbody>
+</table>
+</div>
+<div class="sect4">
+<h5 id="Ch02_SpringBatchArch_Arch_MetadataSchema_TableDefinition_StepExecutionContext"><a class="anchor" href="#Ch02_SpringBatchArch_Arch_MetadataSchema_TableDefinition_StepExecutionContext"></a>BATCH_STEP_EXECUTION_CONTEXT</h5>
+<div class="paragraph">
+<p>BATCH_STEP_EXECUTION_CONTEXT table retains all the information related to ExecutionContext of Step.
+It contains all the step level data required for execution of specific steps.
+The data indicates the status that must be fetched when the process is to be executed again after a job failure and enables the failed job to start from the point where processing has stopped.</p>
+</div>
+<table class="tableblock frame-all grid-all spread">
+<caption class="title">BATCH_STEP_EXECUTION_CONTEXT definition</caption>
+<colgroup>
+<col style="width: 30%;">
+<col style="width: 70%;">
+</colgroup>
+<thead>
+<tr>
+<th class="tableblock halign-left valign-top">Column name</th>
+<th class="tableblock halign-left valign-top">Description</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td class="tableblock halign-left valign-top"><p class="tableblock">STEP_EXECUTION_ID</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">Foreign key from  BATCH_STEP_EXECUTION table which indicates job execution wherein ExecutionContext of Step belongs.</p></td>
+</tr>
+<tr>
+<td class="tableblock halign-left valign-top"><p class="tableblock">SHORT_CONTEXT</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">String representation of SERIALIZED_CONTEXT.</p></td>
+</tr>
+<tr>
+<td class="tableblock halign-left valign-top"><p class="tableblock">SERIALIZED_CONTEXT</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">Overall serialized context.</p></td>
+</tr>
+</tbody>
+</table>
+</div>
+</div>
+<div class="sect3">
+<h4 id="Ch02_SpringBatchArch_Arch_MetadataSchema_DDL"><a class="anchor" href="#Ch02_SpringBatchArch_Arch_MetadataSchema_DDL"></a>DDL script</h4>
+<div class="paragraph">
+<p>JAR file of Spring Batch Core contains a sample script which creates a relational table corresponding to several database platforms.
+These scripts can be used as it is or additional index or constraints can be changed as required.<br>
+The script is included in the package of org.springframework.batch.core and the file name is configured by <code>schema-*.sql</code>.
+"*" is the short name for Target Database Platform..</p>
+</div>
+</div>
+</div>
+<div class="sect2">
+<h3 id="Ch02_SpringBatchArch_Arch_Performance"><a class="anchor" href="#Ch02_SpringBatchArch_Arch_Performance"></a>Typical performance tuning points</h3>
+<div class="paragraph">
+<p>Typical performance tuning points in Spring Batch are explained.</p>
+</div>
+<div class="dlist">
+<dl>
+<dt class="hdlist1">Adjustment of chunk size</dt>
+<dd>
+<p>Chunk size is increased to reduce overhead occurring due to resource output.<br>
+However, if chunk size is too large, it increases load on the resources resulting in deterioration in the performance. Hence, chunk size must be adjusted to a moderate value.</p>
+</dd>
+<dt class="hdlist1">Adjustment of fetch size</dt>
+<dd>
+<p>Fetch size (buffer size) for the resource is increased to reduce overhead occurring due to input from resources.</p>
+</dd>
+<dt class="hdlist1">Reading of a file efficiently</dt>
+<dd>
+<p>When BeanWrapperFieldSetMapper is used, a record can be mapped to the Bean only by sequentially specifying Bean class and property name.
+However, it takes time to perform complex operations internally. Processing time can be reduced by using  dedicated FieldSetMapper interface implementation which performs mapping.<br>
+For file I/O details, refer <a href="Ch05_FileAccess.html#Ch05_FileAccess">"File access"</a>.</p>
+</dd>
+<dt class="hdlist1">Parallel processing, Multiple processing</dt>
+<dd>
+<p>Spring Batch supports parallel processing of Step execution and multiple processing by using data distribution. Parallel processing or multiple processing can be performed and the performance can be improved by running the processes in parallel.
+However, if number of parallel processes and multiple processes is too large, load on the resources increases resulting in deterioration of performance. Hence, size must be adjusted to a moderate value.<br>
+For details of parallel and multiple processing, refer <a href="Ch08_ParallelAndMultiple.html#Ch08_ParallelAndMultiple">parallel processing and multiple processing</a>.</p>
+</dd>
+<dt class="hdlist1">Reviewing distributed processing</dt>
+<dd>
+<p>Spring Batch also supports distributed processing across multiple machines. Guidelines are same as parallel and multiple processing.<br>
+Distributed processing will not be explained in this guideline since the basic design and operational design are complex.</p>
+</dd>
+</dl>
+</div>
+</div>
+</div>
+</div>
+</div>
+<div class="container">
+
+  <div class="common-bg">
+    <div class="information">
+      TERASOLUNA Batch Framework for Java (5.x) Development Guideline - version 5.1.1.RELEASE, 2018-3-16
+    </div>
+    <div class="index">
+      <a href="index.html">&gt; INDEX</a>
+    </div>
+  </div>
+
+  <div class="footer-bg">
+    <div class="copyright">
+      &copy; Copyright 2019 NTT DATA Corporation. &copy; Copyright 2019 NTT Corporation.
+    </div>
+  </div>
+
+</div>
+</body>
+</html>
