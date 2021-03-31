@@ -14,7 +14,7 @@
 
 <div class="common-bg">
   <div class="information">
-    TERASOLUNA Batch Framework for Java (5.x) Development Guideline - version 5.3.0.RELEASE, 2020-6-30
+    TERASOLUNA Batch Framework for Java (5.x) Development Guideline - version 5.4.0.RELEASE, 2021-3-31, commit-id:96f569d
   </div>
   <div class="index">
     <a href="index.html">&gt; INDEX</a>
@@ -332,9 +332,7 @@
 <div class="listingblock">
 <div class="title">Bean定義</div>
 <div class="content">
-<pre class="CodeRay highlight"><code data-lang="xml"><span class="tag">&lt;bean</span> <span class="attribute-name">id</span>=<span class="string"><span class="delimiter">&quot;</span><span class="content">sequentialFlowTasklet</span><span class="delimiter">&quot;</span></span>
-    <span class="attribute-name">class</span>=<span class="string"><span class="delimiter">&quot;</span><span class="content">org.terasoluna.batch.functionaltest.ch08.flowcontrol.SequentialFlowTasklet</span><span class="delimiter">&quot;</span></span>
-        <span class="attribute-name">p:failExecutionStep</span>=<span class="string"><span class="delimiter">&quot;</span><span class="content">#{jobParameters['failExecutionStep']}</span><span class="delimiter">&quot;</span></span> <span class="attribute-name">scope</span>=<span class="string"><span class="delimiter">&quot;</span><span class="content">step</span><span class="delimiter">&quot;</span></span><span class="tag">/&gt;</span>
+<pre class="CodeRay highlight"><code data-lang="xml"><span class="comment">&lt;!-- tasklet definition is omitted. --&gt;</span>
 
 <span class="tag">&lt;batch:step</span> <span class="attribute-name">id</span>=<span class="string"><span class="delimiter">&quot;</span><span class="content">parentStep</span><span class="delimiter">&quot;</span></span><span class="tag">&gt;</span>
     <span class="tag">&lt;batch:tasklet</span> <span class="attribute-name">ref</span>=<span class="string"><span class="delimiter">&quot;</span><span class="content">sequentialFlowTasklet</span><span class="delimiter">&quot;</span></span>
@@ -995,7 +993,7 @@
 
   <div class="common-bg">
     <div class="information">
-      TERASOLUNA Batch Framework for Java (5.x) Development Guideline - version 5.3.0.RELEASE, 2020-6-30
+      TERASOLUNA Batch Framework for Java (5.x) Development Guideline - version 5.4.0.RELEASE, 2021-3-31, commit-id:96f569d
     </div>
     <div class="index">
       <a href="index.html">&gt; INDEX</a>

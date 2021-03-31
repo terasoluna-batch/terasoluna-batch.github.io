@@ -14,7 +14,7 @@
 
 <div class="common-bg">
   <div class="information">
-    TERASOLUNA Batch Framework for Java (5.x) Development Guideline - version 5.3.0.RELEASE, 2020-6-30
+    TERASOLUNA Batch Framework for Java (5.x) Development Guideline - version 5.4.0.RELEASE, 2021-3-31, commit-id:96f569d
   </div>
   <div class="index">
     <a href="index.html">&gt; INDEX</a>
@@ -82,10 +82,10 @@ MyBatisによるデータベースアクセスの基本的な利用方法は、T
 <div class="ulist">
 <ul>
 <li>
-<p><a href="http://terasolunaorg.github.io/guideline/5.6.0.RELEASE/ja/ArchitectureInDetail/DataAccessDetail/DataAccessCommon.html">データベースアクセス(共通編)</a></p>
+<p><a href="http://terasolunaorg.github.io/guideline/5.6.1.RELEASE/ja/ArchitectureInDetail/DataAccessDetail/DataAccessCommon.html">データベースアクセス(共通編)</a></p>
 </li>
 <li>
-<p><a href="http://terasolunaorg.github.io/guideline/5.6.0.RELEASE/ja/ArchitectureInDetail/DataAccessDetail/DataAccessMyBatis3.html">データベースアクセス(MyBatis3編)</a></p>
+<p><a href="http://terasolunaorg.github.io/guideline/5.6.1.RELEASE/ja/ArchitectureInDetail/DataAccessDetail/DataAccessMyBatis3.html">データベースアクセス(MyBatis3編)</a></p>
 </li>
 </ul>
 </div>
@@ -505,7 +505,7 @@ JDBCドライバに適切な<code>fetchSize</code>を指定することが必須
 <h4 id="Ch05_DBAccess_HowToUse_Config_MapperXML"><a class="anchor" href="#Ch05_DBAccess_HowToUse_Config_MapperXML"></a>Mapper XMLの定義</h4>
 <div class="paragraph">
 <p>TERASOLUNA Batch 5.x特有の説明事項はないので、TERASOLUNA Server 5.x 開発ガイドラインの
-<a href="http://terasolunaorg.github.io/guideline/5.6.0.RELEASE/ja/ArchitectureInDetail/DataAccessDetail/DataAccessMyBatis3.html#dataaccessmybatis3howtodababaseaccess">データベースアクセス処理の実装</a>を参照。</p>
+<a href="http://terasolunaorg.github.io/guideline/5.6.1.RELEASE/ja/ArchitectureInDetail/DataAccessDetail/DataAccessMyBatis3.html#dataaccessmybatis3howtodababaseaccess">データベースアクセス処理の実装</a>を参照。</p>
 </div>
 </div>
 <div class="sect3">
@@ -541,6 +541,18 @@ JDBCドライバに適切な<code>fetchSize</code>を指定することが必須
 </ol>
 </div>
 <div class="paragraph">
+<p>基本的な設定方法については、TERASOLUNA Server 5.x 開発ガイドラインの
+<a href="http://terasolunaorg.github.io/guideline/5.6.1.RELEASE/ja/ArchitectureInDetail/DataAccessDetail/DataAccessMyBatis3.html#dataaccessmybatis3howtousesettingsmybatis-spring">MyBatis-Springの設定</a>を参照。</p>
+</div>
+<div class="admonitionblock warning">
+<table>
+<tr>
+<td class="icon">
+<i class="fa icon-warning" title="Warning"></i>
+</td>
+<td class="content">
+<div class="title">共通設定をした場合の性能面での弊害</div>
+<div class="paragraph">
 <p>共通設定をしてしまうと、同期実行をする際に実行するジョブのMapper XMLだけでなく、その他のジョブが使用するMapper XMLも読み込んでしまうために以下に示す弊害が生じる。</p>
 </div>
 <div class="ulist">
@@ -554,11 +566,12 @@ JDBCドライバに適切な<code>fetchSize</code>を指定することが必須
 </ul>
 </div>
 <div class="paragraph">
-<p>これを回避するために、TERASOLUNA Batch 5.xでは、個別設定として、個々のジョブ定義でそのジョブが必要とするMapper XMLだけを指定する設定方法を採用する。</p>
+<p>これを回避するために、TERASOLUNA Batch 5.xでは、個別設定として、個々のジョブ定義でそのジョブが必要とするMapper XMLだけを指定する設定方法を採用する。
+この方法においては、<code>&lt;mybatis:scan&gt;</code>によるスキャン範囲を最小限にするため、ジョブごとに必要となるMapper XMLを分けて格納するパッケージ構成であることが望ましい。</p>
 </div>
-<div class="paragraph">
-<p>基本的な設定方法については、TERASOLUNA Server 5.x 開発ガイドラインの
-<a href="http://terasolunaorg.github.io/guideline/5.6.0.RELEASE/ja/ArchitectureInDetail/DataAccessDetail/DataAccessMyBatis3.html#dataaccessmybatis3howtousesettingsmybatis-spring">MyBatis-Springの設定</a>を参照。</p>
+</td>
+</tr>
+</table>
 </div>
 <div class="paragraph">
 <p>TERASOLUNA Batch 5.xでは、複数の<code>SqlSessionFactory</code>および<code>SqlSessionTemplate</code>が定義されているため、
@@ -569,11 +582,11 @@ JDBCドライバに適切な<code>fetchSize</code>を指定することが必須
 <p>以下に設定例を示す。</p>
 </div>
 <div class="listingblock">
-<div class="title">META-INF/jobs/common/jobCustomerList01.xml</div>
+<div class="title">jobSalesPlan01.xml</div>
 <div class="content">
 <pre class="CodeRay highlight"><code data-lang="xml"><span class="comment">&lt;!-- (1) --&gt;</span>
 <span class="tag">&lt;mybatis:scan</span>
-    <span class="attribute-name">base-package</span>=<span class="string"><span class="delimiter">&quot;</span><span class="content">org.terasoluna.batch.functionaltest.app.repository.mst</span><span class="delimiter">&quot;</span></span>
+    <span class="attribute-name">base-package</span>=<span class="string"><span class="delimiter">&quot;</span><span class="content">org.terasoluna.batch.functionaltest.app.repository.plan</span><span class="delimiter">&quot;</span></span>
     <span class="attribute-name">factory-ref</span>=<span class="string"><span class="delimiter">&quot;</span><span class="content">jobSqlSessionFactory</span><span class="delimiter">&quot;</span></span><span class="tag">/&gt;</span></code></pre>
 </div>
 </div>
@@ -592,7 +605,9 @@ JDBCドライバに適切な<code>fetchSize</code>を指定することが必須
 <tbody>
 <tr>
 <td class="tableblock halign-left valign-top"><p class="tableblock">(1)</p></td>
-<td class="tableblock halign-left valign-top"><p class="tableblock"><code>&lt;mybatis:scan&gt;</code>の<code>factory-ref</code>属性に<code>jobSqlSessionFactory</code>を設定する。</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><code>&lt;mybatis:scan&gt;</code>の<code>base-package</code>属性にMapper XMLをスキャンするパッケージを設定する。
+指定するのはこのジョブが必要とするMapper XMLが直下に格納されているパッケージである。<br>
+<code>factory-ref</code>属性には<code>jobSqlSessionFactory</code>を設定する。</p></td>
 </tr>
 </tbody>
 </table>
@@ -668,7 +683,7 @@ MyBatis-Springが提供する<code>MyBatisCursorItemReader</code>によるデー
 </div>
 <div class="paragraph">
 <p><code>MyBatisPagingItemReader</code>は、TERASOLUNA Server 5.x 開発ガイドラインの
-<a href="http://terasolunaorg.github.io/guideline/5.6.0.RELEASE/ja/ArchitectureInDetail/DataAccessDetail/DataAccessMyBatis3.html#entity-sql">Entityのページネーション検索(SQL絞り込み方式)</a>で
+<a href="http://terasolunaorg.github.io/guideline/5.6.1.RELEASE/ja/ArchitectureInDetail/DataAccessDetail/DataAccessMyBatis3.html#entity-sql">Entityのページネーション検索(SQL絞り込み方式)</a>で
 説明している仕組みを利用したItemReaderである。<br>
 一定件数を取得した後に再度SQLを発行するため、データの一貫性が保たれない可能性がある。
 そのため、バッチ処理で利用するには危険であることから、TERASOLUNA Batch 5.xでは原則使用しない。<br>
@@ -679,7 +694,7 @@ TERASOLUNA Batch 5.xではMyBatisと連携して、Cursorを利用し取得デ�
 <code>mybatis:scan</code>によって動的にMapper XMLを登録する方法を採用している。
 そのため、Mapper XMLに対応するインタフェースを用意する必要がある。
 詳細については、TERASOLUNA Server 5.x 開発ガイドラインの
-<a href="http://terasolunaorg.github.io/guideline/5.6.0.RELEASE/ja/ArchitectureInDetail/DataAccessDetail/DataAccessMyBatis3.html#dataaccessmybatis3howtodababaseaccess">データベースアクセス処理の実装</a>を参照。</p>
+<a href="http://terasolunaorg.github.io/guideline/5.6.1.RELEASE/ja/ArchitectureInDetail/DataAccessDetail/DataAccessMyBatis3.html#dataaccessmybatis3howtodababaseaccess">データベースアクセス処理の実装</a>を参照。</p>
 </div>
 <div class="admonitionblock warning">
 <table>
@@ -1301,7 +1316,7 @@ ItemProcessorでのデータベースアクセスは<code>BATCH</code>となる�
 TERASOLUNA Batch 5.xでは、タスクレットモデルでMapperインタフェースを利用してデータベースアクセスする場合はCursorを利用することを基本とする。<br>
 Cursor同様に大量データを処理するうえで、ResultHandlerを利用することも有効である。
 ResultHandlerについては、TERASOLUNA Server 5.x 開発ガイドラインの
-<a href="http://terasolunaorg.github.io/guideline/5.6.0.RELEASE/ja/ArchitectureInDetail/DataAccessDetail/DataAccessMyBatis3.html#resulthandler">ResultHandlerの実装</a>を参照。</p>
+<a href="http://terasolunaorg.github.io/guideline/5.6.1.RELEASE/ja/ArchitectureInDetail/DataAccessDetail/DataAccessMyBatis3.html#resulthandler">ResultHandlerの実装</a>を参照。</p>
 </dd>
 </dl>
 </div>
@@ -1310,16 +1325,14 @@ ResultHandlerについては、TERASOLUNA Server 5.x 開発ガイドラインの
 <div class="content">
 <pre class="CodeRay highlight"><code data-lang="xml"><span class="comment">&lt;!-- (1) --&gt;</span>
 <span class="tag">&lt;mybatis:scan</span>
-        <span class="attribute-name">base-package</span>=<span class="string"><span class="delimiter">&quot;</span><span class="content">org.terasoluna.batch.functionaltest.ch05.exclusivecontrol.repository</span><span class="delimiter">&quot;</span></span>
-        <span class="attribute-name">factory-ref</span>=<span class="string"><span class="delimiter">&quot;</span><span class="content">jobSqlSessionFactory</span><span class="delimiter">&quot;</span></span><span class="tag">/&gt;</span>
+            <span class="attribute-name">base-package</span>=<span class="string"><span class="delimiter">&quot;</span><span class="content">org.terasoluna.batch.functionaltest.ch05.dbaccess.repository;org.terasoluna.batch.functionaltest.app.repository</span><span class="delimiter">&quot;</span></span>
+            <span class="attribute-name">factory-ref</span>=<span class="string"><span class="delimiter">&quot;</span><span class="content">jobSqlSessionFactory</span><span class="delimiter">&quot;</span></span><span class="tag">/&gt;</span>
 
-<span class="tag">&lt;batch:job</span> <span class="attribute-name">id</span>=<span class="string"><span class="delimiter">&quot;</span><span class="content">taskletOptimisticLockCheckJob</span><span class="delimiter">&quot;</span></span> <span class="attribute-name">job-repository</span>=<span class="string"><span class="delimiter">&quot;</span><span class="content">jobRepository</span><span class="delimiter">&quot;</span></span><span class="tag">&gt;</span>
-    <span class="tag">&lt;batch:step</span> <span class="attribute-name">id</span>=<span class="string"><span class="delimiter">&quot;</span><span class="content">taskletOptimisticLockCheckJob.step01</span><span class="delimiter">&quot;</span></span><span class="tag">&gt;</span>
-        <span class="tag">&lt;batch:tasklet</span> <span class="attribute-name">transaction-manager</span>=<span class="string"><span class="delimiter">&quot;</span><span class="content">jobTransactionManager</span><span class="delimiter">&quot;</span></span>
-                       <span class="attribute-name">ref</span>=<span class="string"><span class="delimiter">&quot;</span><span class="content">optimisticLockTasklet</span><span class="delimiter">&quot;</span></span><span class="tag">&gt;</span>
-        <span class="tag">&lt;/batch:tasklet&gt;</span>
-    <span class="tag">&lt;/batch:step&gt;</span>
-<span class="tag">&lt;/batch:job&gt;</span></code></pre>
+    <span class="tag">&lt;batch:job</span> <span class="attribute-name">id</span>=<span class="string"><span class="delimiter">&quot;</span><span class="content">jobSalesPlanCursorTasklet</span><span class="delimiter">&quot;</span></span> <span class="attribute-name">job-repository</span>=<span class="string"><span class="delimiter">&quot;</span><span class="content">jobRepository</span><span class="delimiter">&quot;</span></span><span class="tag">&gt;</span>
+        <span class="tag">&lt;batch:step</span> <span class="attribute-name">id</span>=<span class="string"><span class="delimiter">&quot;</span><span class="content">jobSalesPlanCursorTasklet.step01</span><span class="delimiter">&quot;</span></span><span class="tag">&gt;</span>
+            <span class="tag">&lt;batch:tasklet</span> <span class="attribute-name">transaction-manager</span>=<span class="string"><span class="delimiter">&quot;</span><span class="content">jobTransactionManager</span><span class="delimiter">&quot;</span></span> <span class="attribute-name">ref</span>=<span class="string"><span class="delimiter">&quot;</span><span class="content">salesPlanCursorTasklet</span><span class="delimiter">&quot;</span></span><span class="tag">/&gt;</span>
+        <span class="tag">&lt;/batch:step&gt;</span>
+    <span class="tag">&lt;/batch:job&gt;</span></code></pre>
 </div>
 </div>
 <div class="listingblock">
@@ -1558,19 +1571,24 @@ MyBatis-Springが提供する<code>MyBatisBatchItemWriter</code>によるデー�
 <div class="title">Mapper XML</div>
 <div class="content">
 <pre class="CodeRay highlight"><code data-lang="xml"><span class="comment">&lt;!-- (6) --&gt;</span>
-<span class="tag">&lt;mapper</span> <span class="attribute-name">namespace</span>=<span class="string"><span class="delimiter">&quot;</span><span class="content">org.terasoluna.batch.functionaltest.app.repository.plan.SalesPlanDetailRepository</span><span class="delimiter">&quot;</span></span><span class="tag">&gt;</span>
+<span class="tag">&lt;mapper</span> <span class="attribute-name">namespace</span>=<span class="string"><span class="delimiter">&quot;</span><span class="content">org.terasoluna.batch.functionaltest.ch05.exclusivecontrol.repository.ExclusiveControlRepository</span><span class="delimiter">&quot;</span></span><span class="tag">&gt;</span>
 
     <span class="comment">&lt;!-- (7) --&gt;</span>
-    <span class="tag">&lt;insert</span> <span class="attribute-name">id</span>=<span class="string"><span class="delimiter">&quot;</span><span class="content">create</span><span class="delimiter">&quot;</span></span>
-            <span class="attribute-name">parameterType</span>=<span class="string"><span class="delimiter">&quot;</span><span class="content">org.terasoluna.batch.functionaltest.app.model.plan.SalesPlanDetail</span><span class="delimiter">&quot;</span></span><span class="tag">&gt;</span>
+    <span class="tag">&lt;update</span> <span class="attribute-name">id</span>=<span class="string"><span class="delimiter">&quot;</span><span class="content">branchExclusiveUpdate</span><span class="delimiter">&quot;</span></span> <span class="attribute-name">parameterType</span>=<span class="string"><span class="delimiter">&quot;</span><span class="content">org.terasoluna.batch.functionaltest.ch05.exclusivecontrol.model.ExclusiveBranch</span><span class="delimiter">&quot;</span></span><span class="tag">&gt;</span>
         <span class="inline-delimiter">&lt;![CDATA[</span>
-        INSERT INTO
-            sales_plan_detail(branch_id, year, month, customer_id, amount)
-        VALUES (
-            #{branchId}, #{year}, #{month}, #{customerId}, #{amount}
-        )
+        UPDATE
+            branch_mst
+        SET
+            branch_name = #{branchName,jdbcType=VARCHAR},
+            branch_address = #{branchAddress,jdbcType=VARCHAR},
+            branch_tel = #{branchTel,jdbcType=VARCHAR},
+            update_date = #{updateDate,jdbcType=TIMESTAMP}
+        WHERE
+            branch_id = #{branchId}
+        AND
+            branch_name = #{oldBranchName}
         <span class="inline-delimiter">]]&gt;</span>
-    <span class="tag">&lt;/insert&gt;</span>
+    <span class="tag">&lt;/update&gt;</span>
 
     <span class="comment">&lt;!-- omitted --&gt;</span>
 <span class="tag">&lt;/mapper&gt;</span></code></pre>
@@ -1579,10 +1597,10 @@ MyBatis-Springが提供する<code>MyBatisBatchItemWriter</code>によるデー�
 <div class="listingblock">
 <div class="title">Mapperインタフェース</div>
 <div class="content">
-<pre class="CodeRay highlight"><code data-lang="java"><span class="directive">public</span> <span class="type">interface</span> <span class="class">SalesPlanDetailRepository</span> {
+<pre class="CodeRay highlight"><code data-lang="java"><span class="directive">public</span> <span class="type">interface</span> <span class="class">ExclusiveControlRepository</span> {
 
     <span class="comment">// (8)</span>
-    <span class="type">void</span> create(SalesPlanDetail salesPlanDetail);
+    <span class="type">int</span> branchExclusiveUpdate(ExclusiveBranch branch);
 
     <span class="comment">// omitted.</span>
 }</code></pre>
@@ -1852,14 +1870,13 @@ MyBatis-Springが提供する<code>MyBatisBatchItemWriter</code>によるデー�
 </dd>
 <dt class="hdlist1">ItemProcessorでの制約</dt>
 <dd>
-<p>MyBatisには、同一トランザクション内において、2つ以上の<code>ExecutorType</code>で実行してはいけないという制約がある。<br>
-「ItemWriterに<code>MyBatisBatchItemWriter</code>を使用する」と「ItemProcessorでMapperインタフェースを使用し参照更新をする」を
-同時に満たす場合は、この制約に抵触する。<br>
-制約を回避するには、ItemProcessorでは<code>ExecutorType</code>が<code>BATCH</code>のMapperインタフェースによって
-データベースアクセスすることになる。<br>
-加えて、<code>MyBatisBatchItemWriter</code>ではSQL実行後のステータスチェックにより、自身が発行したSQLかどうかチェックしているのだが、
-当然ItemProcessorによるSQL実行は管理できないためエラーが発生してしまう。<br>
-よって、<code>MyBatisBatchItemWriter</code>を利用している場合は、Mapperインタフェースによる更新はできなくなり、参照のみとなる。</p>
+<p>ItemWriterに<code>MyBatisBatchItemWriter</code>を利用する場合、ItemProcessorではMapperインタフェースを利用してデータベースの更新処理を行うことができないという制約がある。<br>
+これは、<code>MyBatisBatchItemWriter</code>がSQL実行後に自身が発行したSQLによる更新処理が行われたかをチェックしており、
+その際に同一トランザクション内での他の更新処理を検知するとエラーを発生させることによるものである。<br>
+よって、ItemProcessorでMapperインタフェースを利用したデータベースの更新はできず、参照のみが可能となる。<br>
+ItemProcessor内で更新処理を行いたいケースとして、「特定の条件に当てはまる入力データについて、
+ItemWriterとは異なる更新処理をするためにItemProcessorで個別に更新処理を行う」などが考えられるが、上記の制約によりこのような利用はできない。<br>
+代替手段として、後述のタスクレットモデルによる実装、もしくはItemProcessor、ItemWriterでの更新をステップやジョブで分離したバッチ処理の設計を検討されたい。</p>
 </dd>
 </dl>
 </div>
@@ -1887,107 +1904,6 @@ MyBatis-Springが提供する<code>MyBatisBatchItemWriter</code>によるデー�
 </dd>
 </dl>
 </div>
-<div id="Ch05_DBAccess_HowToUse_Output_MapperInterface_Chunk" class="dlist">
-<dl>
-<dt class="hdlist1">チャンクモデルにおける利用方法</dt>
-<dd>
-<p>チャンクモデルでMapperインタフェースを利用してデータベースを更新(登録)する実装例を以下に示す。</p>
-</dd>
-</dl>
-</div>
-<div class="listingblock">
-<div class="title">ItemProcessorでの実装例</div>
-<div class="content">
-<pre class="CodeRay highlight"><code data-lang="java"><span class="annotation">@Component</span>
-<span class="directive">public</span> <span class="type">class</span> <span class="class">UpdateCustomerItemProcessor</span> <span class="directive">implements</span> ItemProcessor&lt;Customer, Customer&gt; {
-
-    <span class="comment">// omitted.</span>
-
-    <span class="comment">// (1)</span>
-    <span class="annotation">@Inject</span>
-    DBAccessCustomerRepository customerRepository;
-
-    <span class="annotation">@Override</span>
-    <span class="directive">public</span> Customer process(Customer item) <span class="directive">throws</span> <span class="exception">Exception</span> {
-        item.setCustomerName(<span class="predefined-type">String</span>.format(<span class="string"><span class="delimiter">&quot;</span><span class="content">%s updated by mapper if</span><span class="delimiter">&quot;</span></span>, item.getCustomerName()));
-        item.setCustomerAddress(<span class="predefined-type">String</span>.format(<span class="string"><span class="delimiter">&quot;</span><span class="content">%s updated by item writer</span><span class="delimiter">&quot;</span></span>, item.getCustomerAddress()));
-        item.setUpdateDate(<span class="keyword">new</span> <span class="predefined-type">Timestamp</span>(clock.millis()));
-
-        <span class="comment">// (2)</span>
-        <span class="type">long</span> cnt = customerRepository.updateName(item);
-
-        <span class="comment">// omitted.</span>
-
-        <span class="keyword">return</span> item;
-    }
-}</code></pre>
-</div>
-</div>
-<div class="listingblock">
-<div class="title">Bean定義</div>
-<div class="content">
-<pre class="CodeRay highlight"><code data-lang="xml"><span class="comment">&lt;!-- (3) --&gt;</span>
-<span class="tag">&lt;mybatis:scan</span>
-        <span class="attribute-name">base-package</span>=<span class="string"><span class="delimiter">&quot;</span><span class="content">org.terasoluna.batch.functionaltest.ch05.dbaccess.repository;org.terasoluna.batch.functionaltest.app.repository</span><span class="delimiter">&quot;</span></span>
-        <span class="attribute-name">template-ref</span>=<span class="string"><span class="delimiter">&quot;</span><span class="content">batchModeSqlSessionTemplate</span><span class="delimiter">&quot;</span></span><span class="tag">/&gt;</span>
-
-<span class="comment">&lt;!-- (4) --&gt;</span>
-<span class="tag">&lt;bean</span> <span class="attribute-name">id</span>=<span class="string"><span class="delimiter">&quot;</span><span class="content">writer</span><span class="delimiter">&quot;</span></span> <span class="attribute-name">class</span>=<span class="string"><span class="delimiter">&quot;</span><span class="content">org.mybatis.spring.batch.MyBatisBatchItemWriter</span><span class="delimiter">&quot;</span></span>
-      <span class="attribute-name">p:statementId</span>=<span class="string"><span class="delimiter">&quot;</span><span class="content">org.terasoluna.batch.functionaltest.app.repository.plan.SalesPlanDetailRepository.create</span><span class="delimiter">&quot;</span></span>
-      <span class="attribute-name">p:sqlSessionTemplate-ref</span>=<span class="string"><span class="delimiter">&quot;</span><span class="content">batchModeSqlSessionTemplate</span><span class="delimiter">&quot;</span></span><span class="tag">/&gt;</span>
-
-    <span class="tag">&lt;batch:job</span> <span class="attribute-name">id</span>=<span class="string"><span class="delimiter">&quot;</span><span class="content">updateMapperAndItemWriterBatchModeJob</span><span class="delimiter">&quot;</span></span> <span class="attribute-name">job-repository</span>=<span class="string"><span class="delimiter">&quot;</span><span class="content">jobRepository</span><span class="delimiter">&quot;</span></span><span class="tag">&gt;</span>
-        <span class="tag">&lt;batch:step</span> <span class="attribute-name">id</span>=<span class="string"><span class="delimiter">&quot;</span><span class="content">updateMapperAndItemWriterBatchModeJob.step01</span><span class="delimiter">&quot;</span></span><span class="tag">&gt;</span>
-            <span class="tag">&lt;batch:tasklet</span> <span class="attribute-name">transaction-manager</span>=<span class="string"><span class="delimiter">&quot;</span><span class="content">jobTransactionManager</span><span class="delimiter">&quot;</span></span><span class="tag">&gt;</span>
-            <span class="tag">&lt;batch:chunk</span> <span class="attribute-name">reader</span>=<span class="string"><span class="delimiter">&quot;</span><span class="content">reader</span><span class="delimiter">&quot;</span></span>
-                         <span class="attribute-name">processor</span>=<span class="string"><span class="delimiter">&quot;</span><span class="content">updateCustomerItemProcessor</span><span class="delimiter">&quot;</span></span>
-                         <span class="attribute-name">writer</span>=<span class="string"><span class="delimiter">&quot;</span><span class="content">writer</span><span class="delimiter">&quot;</span></span> <span class="attribute-name">commit-interval</span>=<span class="string"><span class="delimiter">&quot;</span><span class="content">10</span><span class="delimiter">&quot;</span></span><span class="tag">/&gt;</span> <span class="comment">&lt;!-- (5) --&gt;</span>
-        <span class="tag">&lt;/batch:tasklet&gt;</span>
-    <span class="tag">&lt;/batch:step&gt;</span>
-    <span class="comment">&lt;!-- omitted --&gt;</span>
-<span class="tag">&lt;/batch:job&gt;</span></code></pre>
-</div>
-</div>
-<div class="paragraph">
-<p>MapperインタフェースとMapper XMLについては<a href="#Ch05_DBAccess_HowToUse_Output_MyBatisItemWriter">MyBatisBatchItemWriter</a>
-で説明している内容以外に特筆すべきことがないため省略する。</p>
-</div>
-<table class="tableblock frame-all grid-all stretch">
-<caption class="title">表 13. 説明</caption>
-<colgroup>
-<col style="width: 10%;">
-<col style="width: 90%;">
-</colgroup>
-<tbody>
-<tr>
-<td class="tableblock halign-left valign-top"><p class="tableblock">項番</p></td>
-<td class="tableblock halign-left valign-top"><p class="tableblock">説明</p></td>
-</tr>
-<tr>
-<td class="tableblock halign-left valign-top"><p class="tableblock">(1)</p></td>
-<td class="tableblock halign-left valign-top"><p class="tableblock">MapperインタフェースをInjectする。</p></td>
-</tr>
-<tr>
-<td class="tableblock halign-left valign-top"><p class="tableblock">(2)</p></td>
-<td class="tableblock halign-left valign-top"><p class="tableblock">DTOオブジェクトを生成して更新データを設定し、DTOオブジェクトを返却することでデータベースの更新を行う。</p></td>
-</tr>
-<tr>
-<td class="tableblock halign-left valign-top"><p class="tableblock">(3)</p></td>
-<td class="tableblock halign-left valign-top"><p class="tableblock">Mapper XMLの登録を行う。<br>
-<code>template-ref</code>属性に<code>BATCH</code>設定されている<code>batchModeSqlSessionTemplate</code>を指定することで、ItemProcessorでのデータベースアクセスは<code>BATCH</code>となる。
-ここで、<code>factory-ref="jobSqlSessionFactory"</code>としてしまうと、前述の制約に抵触し、<code>MyBatisBatchItemWriter</code>実行時に例外が発生してしまう。</p></td>
-</tr>
-<tr>
-<td class="tableblock halign-left valign-top"><p class="tableblock">(4)</p></td>
-<td class="tableblock halign-left valign-top"><p class="tableblock"><code>MyBatisBatchItemWriter</code>を定義する。<br>
-<code>sqlSessionTemplate-ref</code>属性に<code>BATCH</code>設定されている<code>batchModeSqlSessionTemplate</code>を指定する。</p></td>
-</tr>
-<tr>
-<td class="tableblock halign-left valign-top"><p class="tableblock">(5)</p></td>
-<td class="tableblock halign-left valign-top"><p class="tableblock">(4)で定義した<code>MyBatisBatchItemWriter</code>を<code>writer</code>属性に指定する。</p></td>
-</tr>
-</tbody>
-</table>
 <div id="Ch05_DBAccess_HowToUse_Output_MapperInterface_Tasklet" class="dlist">
 <dl>
 <dt class="hdlist1">タスクレットモデルにおける利用方法</dt>
@@ -2055,7 +1971,7 @@ MyBatis-Springが提供する<code>MyBatisBatchItemWriter</code>によるデー�
 <p>MapperインタフェースとMapper XMLは省略する。</p>
 </div>
 <table class="tableblock frame-all grid-all stretch">
-<caption class="title">表 14. 説明</caption>
+<caption class="title">表 13. 説明</caption>
 <colgroup>
 <col style="width: 10%;">
 <col style="width: 90%;">
@@ -2237,7 +2153,7 @@ MyBatis-Springが提供する<code>MyBatisBatchItemWriter</code>によるデー�
 </div>
 </div>
 <table class="tableblock frame-all grid-all stretch">
-<caption class="title">表 15. 説明</caption>
+<caption class="title">表 14. 説明</caption>
 <colgroup>
 <col style="width: 10%;">
 <col style="width: 90%;">
@@ -2475,7 +2391,7 @@ MyBatis-Springが提供する<code>MyBatisBatchItemWriter</code>によるデー�
 </div>
 </div>
 <table class="tableblock frame-all grid-all stretch">
-<caption class="title">表 16. 説明</caption>
+<caption class="title">表 15. 説明</caption>
 <colgroup>
 <col style="width: 10%;">
 <col style="width: 90%;">
@@ -2615,7 +2531,7 @@ Bean定義にてMap形式でジョブパラメータから値を取得し、キ�
 </div>
 </div>
 <table class="tableblock frame-all grid-all stretch">
-<caption class="title">表 17. 説明</caption>
+<caption class="title">表 16. 説明</caption>
 <colgroup>
 <col style="width: 10%;">
 <col style="width: 90%;">
@@ -2670,7 +2586,7 @@ SQLの引数が数値型で定義されているため、<code>value-type</code>
 
   <div class="common-bg">
     <div class="information">
-      TERASOLUNA Batch Framework for Java (5.x) Development Guideline - version 5.3.0.RELEASE, 2020-6-30
+      TERASOLUNA Batch Framework for Java (5.x) Development Guideline - version 5.4.0.RELEASE, 2021-3-31, commit-id:96f569d
     </div>
     <div class="index">
       <a href="index.html">&gt; INDEX</a>

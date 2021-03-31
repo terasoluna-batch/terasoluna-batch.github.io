@@ -14,7 +14,7 @@
 
 <div class="common-bg">
   <div class="information">
-    TERASOLUNA Batch Framework for Java (5.x) Development Guideline - version 5.3.0.RELEASE, 2020-6-30
+    TERASOLUNA Batch Framework for Java (5.x) Development Guideline - version 5.4.0.RELEASE, 2021-3-31, commit-id:96f569d
   </div>
   <div class="index">
     <a href="index.html">&gt; INDEX</a>
@@ -78,7 +78,7 @@
 </div>
 <div class="paragraph">
 <p>入力チェックはTERASOLUNA Server 5.xの内容と重複するため、TERASOLUNA Server 5.x 開発ガイドラインの
-<a href="http://terasolunaorg.github.io/guideline/5.6.0.RELEASE/ja/ArchitectureInDetail/WebApplicationDetail/Validation.html">入力チェック</a>も合わせて参照。
+<a href="http://terasolunaorg.github.io/guideline/5.6.1.RELEASE/ja/ArchitectureInDetail/WebApplicationDetail/Validation.html">入力チェック</a>も合わせて参照。
 以下に、主な比較について示す。</p>
 </div>
 <table class="tableblock frame-all grid-all stretch">
@@ -113,7 +113,7 @@
 <tr>
 <td class="tableblock halign-left valign-top"><p class="tableblock">エラーメッセージの設定</p></td>
 <td class="tableblock halign-center valign-top" colspan="2"><p class="tableblock">TERASOLUNA Server 5.x 開発ガイドラインの
-<a href="http://terasolunaorg.github.io/guideline/5.6.0.RELEASE/ja/ArchitectureInDetail/WebApplicationDetail/Validation.html#validation-message-def">エラーメッセージの定義</a>と同様</p></td>
+<a href="http://terasolunaorg.github.io/guideline/5.6.1.RELEASE/ja/ArchitectureInDetail/WebApplicationDetail/Validation.html#validation-message-def">エラーメッセージの定義</a>と同様</p></td>
 </tr>
 <tr>
 <td class="tableblock halign-left valign-top"><p class="tableblock">エラーメッセージの出力先</p></td>
@@ -173,7 +173,7 @@
 </div>
 <div class="paragraph">
 <p>この点は、
-TERASOLUNA Server 5.x 開発ガイドラインの <a href="http://terasolunaorg.github.io/guideline/5.6.0.RELEASE/ja/ArchitectureInDetail/WebApplicationDetail/Validation.html#id3">入力チェックの分類</a>
+TERASOLUNA Server 5.x 開発ガイドラインの <a href="http://terasolunaorg.github.io/guideline/5.6.1.RELEASE/ja/ArchitectureInDetail/WebApplicationDetail/Validation.html#id3">入力チェックの分類</a>
 と同様である。</p>
 </div>
 </div>
@@ -372,7 +372,7 @@ Spring Batchが提供する<code>ValidatingItemProcessor</code>を使用して�
 <div class="paragraph">
 <div class="title">エラーメッセージの設定</div>
 <p>先にも述べたが、エラーメッセージの設定については、
-TERASOLUNA Server 5.x 開発ガイドラインの <a href="http://terasolunaorg.github.io/guideline/5.6.0.RELEASE/ja/ArchitectureInDetail/WebApplicationDetail/Validation.html#validation-message-def">エラーメッセージの定義</a>を参照。</p>
+TERASOLUNA Server 5.x 開発ガイドラインの <a href="http://terasolunaorg.github.io/guideline/5.6.1.RELEASE/ja/ArchitectureInDetail/WebApplicationDetail/Validation.html#validation-message-def">エラーメッセージの定義</a>を参照。</p>
 </div>
 </div>
 <div class="sect2">
@@ -398,7 +398,7 @@ TERASOLUNA Server 5.x 開発ガイドラインの <a href="http://terasolunaorg.
 <div class="ulist">
 <ul>
 <li>
-<p>TERASOLUNA Server 5.x 開発ガイドラインの <a href="http://terasolunaorg.github.io/guideline/5.6.0.RELEASE/ja/ArchitectureInDetail/WebApplicationDetail/Validation.html">入力チェック</a> を参照。</p>
+<p>TERASOLUNA Server 5.x 開発ガイドラインの <a href="http://terasolunaorg.github.io/guideline/5.6.1.RELEASE/ja/ArchitectureInDetail/WebApplicationDetail/Validation.html">入力チェック</a> を参照。</p>
 </li>
 </ul>
 </div>
@@ -602,11 +602,11 @@ TERASOLUNA Server 5.x 開発ガイドラインの <a href="http://terasolunaorg.
 <div class="title">try/catchによるハンドリング例</div>
 <div class="content">
 <pre class="CodeRay highlight"><code data-lang="java"><span class="annotation">@Component</span>
-<span class="directive">public</span> <span class="type">class</span> <span class="class">ValidateAndAbortItemProcessor</span> <span class="directive">implements</span> ItemProcessor&lt;VerificationSalesPlanDetail, SalesPlanDetail&gt; {
+<span class="directive">public</span> <span class="type">class</span> <span class="class">ValidateAndAbortByTryCatchItemProcessor</span> <span class="directive">implements</span> ItemProcessor&lt;VerificationSalesPlanDetail, SalesPlanDetail&gt; {
     <span class="comment">/**
      * Logger.
      */</span>
-    <span class="directive">private</span> <span class="directive">static</span> <span class="directive">final</span> <span class="predefined-type">Logger</span> logger = LoggerFactory.getLogger(ValidateAndAbortItemProcessor.class);
+    <span class="directive">private</span> <span class="directive">static</span> <span class="directive">final</span> <span class="predefined-type">Logger</span> logger = LoggerFactory.getLogger(ValidateAndAbortByTryCatchItemProcessor.class);
 
     <span class="annotation">@Inject</span>
     <span class="predefined-type">Validator</span>&lt;VerificationSalesPlanDetail&gt; validator;
@@ -615,12 +615,15 @@ TERASOLUNA Server 5.x 開発ガイドラインの <a href="http://terasolunaorg.
     <span class="directive">public</span> SalesPlanDetail process(VerificationSalesPlanDetail item) <span class="directive">throws</span> <span class="exception">Exception</span> {
         <span class="keyword">try</span> {  <span class="comment">// (1)</span>
             validator.validate(item);  <span class="comment">// (2)</span>
+            <span class="keyword">return</span> convert(item);
         } <span class="keyword">catch</span> (ValidationException e) {
             <span class="comment">// (3)</span>
             logger.error(<span class="string"><span class="delimiter">&quot;</span><span class="content">Exception occurred in input validation at the {} th item. [message:{}]</span><span class="delimiter">&quot;</span></span>,
                     item.getCount(), e.getMessage());
             <span class="keyword">throw</span> e;  <span class="comment">// (4)</span>
         }
+    }
+    <span class="directive">private</span> SalesPlanDetail convert(VerificationSalesPlanDetail item) {
 
         SalesPlanDetail salesPlanDetail = <span class="keyword">new</span> SalesPlanDetail();
         <span class="comment">// omitted business logic</span>
@@ -849,7 +852,7 @@ onProcessErrorメソッドにて発生した例外の種類を判定して例外
 <div class="paragraph">
 <p>入力チェックエラーが発生した場合にMessageSourceを使用することで、任意のエラーメッセージを出力することができる。
 エラーメッセージの設定については、TERASOLUNA Server 5.x 開発ガイドラインの
-<a href="http://terasolunaorg.github.io/guideline/5.6.0.RELEASE/ja/ArchitectureInDetail/WebApplicationDetail/Validation.html#validation-message-def">エラーメッセージの定義</a>を参照。
+<a href="http://terasolunaorg.github.io/guideline/5.6.1.RELEASE/ja/ArchitectureInDetail/WebApplicationDetail/Validation.html#validation-message-def">エラーメッセージの定義</a>を参照。
 エラーメッセージを出力する場合は以下の要領で実装する。</p>
 </div>
 <div class="paragraph">
@@ -1009,7 +1012,6 @@ onProcessErrorメソッドにて発生した例外の種類を判定して例外
             <span class="comment">// (6)</span>
             <span class="keyword">if</span> (stepExecution.getExecutionContext().containsKey(<span class="string"><span class="delimiter">&quot;</span><span class="content">errorMessageList</span><span class="delimiter">&quot;</span></span>)) {
                 errorMessageList = (<span class="predefined-type">List</span>&lt;<span class="predefined-type">String</span>&gt;) stepExecution.getExecutionContext().get(<span class="string"><span class="delimiter">&quot;</span><span class="content">errorMessageList</span><span class="delimiter">&quot;</span></span>);
-                stepExecution.getExecutionContext().remove(<span class="string"><span class="delimiter">&quot;</span><span class="content">errorMessageList</span><span class="delimiter">&quot;</span></span>);
             }
 
             <span class="comment">// (7)</span>
@@ -1127,7 +1129,7 @@ onProcessErrorメソッドにて発生した例外の種類を判定して例外
 
   <div class="common-bg">
     <div class="information">
-      TERASOLUNA Batch Framework for Java (5.x) Development Guideline - version 5.3.0.RELEASE, 2020-6-30
+      TERASOLUNA Batch Framework for Java (5.x) Development Guideline - version 5.4.0.RELEASE, 2021-3-31, commit-id:96f569d
     </div>
     <div class="index">
       <a href="index.html">&gt; INDEX</a>

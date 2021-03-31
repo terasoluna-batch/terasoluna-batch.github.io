@@ -14,7 +14,7 @@
 
 <div class="common-bg">
   <div class="information">
-    TERASOLUNA Batch Framework for Java (5.x) Development Guideline - version 5.3.0.RELEASE, 2020-6-30
+    TERASOLUNA Batch Framework for Java (5.x) Development Guideline - version 5.4.0.RELEASE, 2021-3-31, commit-id:96f569d
   </div>
   <div class="index">
     <a href="index.html">&gt; INDEX</a>
@@ -51,6 +51,80 @@
 </tr>
 </thead>
 <tbody>
+<tr>
+<td class="tableblock halign-left valign-top"><p class="tableblock">2021-3-31</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">-</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">5.4.0 RELEASE 版公開</p></td>
+</tr>
+<tr>
+<td class="tableblock halign-left valign-top"></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">全般</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">記載内容の修正<br>
+・ガイドラインの誤記(タイプミスや単純な記述ミスなど)や表記揺れの修正<br></p></td>
+</tr>
+<tr>
+<td class="tableblock halign-left valign-top"></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><a href="Ch02_TerasolunaBatchStack.html#Ch02_TerasolunaBatchStack">TERASOLUNA Batch Framework for Java (5.x)のスタック</a></p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">記載内容の修正<br>
+・利用するOSSのバージョン一覧をSpring Boot Dependencies 2.4.1.RELEASEに準じて更新 (管理ID#138)<br>
+・Spring Batchのjavaxコンポーネントからjakartaコンポーネントへのアップグレードに準じて更新 (管理ID#35)<br>
+・MyBatis、MyBatis-Springのバージョンを更新 (管理ID#116)</p></td>
+</tr>
+<tr>
+<td class="tableblock halign-left valign-top"></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><a href="Ch02_SpringBatchArchitecture.html#Ch02_SpringBatchArch">Spring Batchのアーキテクチャ</a></p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">記載内容の追加<br>
+・チャンクモデルの代表的な具象クラスの一覧を更新 (管理ID#33)</p></td>
+</tr>
+<tr>
+<td class="tableblock halign-left valign-top"></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><a href="Ch03_CreateProject.html#Ch03_CreateProject_ProjectStructure">プロジェクトの構成</a></p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">記載内容の追加<br>
+・一部セクション構成を変更(管理ID#31)<br>
+・コンポーネントのスキャン範囲について説明を追記 (管理ID#22)</p></td>
+</tr>
+<tr>
+<td class="tableblock halign-left valign-top"></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><a href="Ch05_DBAccess.html#Ch05_DBAccess_HowToUse_Config_Scan">MyBatis-Springの設定</a></p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">記載内容の修正<br>
+・設定例を一部修正 (管理ID#22)<br>
+記載内容の追加<br>
+・MyBatisのMapper XMLで共通設定をした場合の性能面での弊害についてWarningを追加 (管理ID#22)</p></td>
+</tr>
+<tr>
+<td class="tableblock halign-left valign-top"></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><a href="Ch05_DBAccess.html#Ch05_DBAccess_HowToUse_Output_MapperInterface">Mapperインタフェース(出力)</a></p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">記載内容の修正<br>
+・ItemProcessorでの制約に関する記載を修正 (管理ID#87)<br></p></td>
+</tr>
+<tr>
+<td class="tableblock halign-left valign-top"></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><a href="Ch05_FileAccess.adocCh05_FileAccess.html.html#Ch05_FileAccess_HowToExtend_Xml">XMLファイル</a></p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">記載内容の修正<br>
+・Warning（Spring Batchのバージョンアップに伴うエンコーディングの仕様変更）の記載を一部変更 (管理ID#31)<br>
+記載内容の追加<br>
+・入出力におけるエンコーディングの仕様について注意点を追記 (管理ID#31)<br>
+・StaxEventItemWriterで新たに追加されたstandalone属性の説明を追加 (管理ID#32)</p></td>
+</tr>
+<tr>
+<td class="tableblock halign-left valign-top"></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><a href="Ch07_JobManagement.html#Ch07_JobManagement_Overview_JobExecutionManagement_Function">Spring Batchが提供する機能</a></p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">記載内容の追加<br>
+・Spring Batchのバージョンアップに伴いMap-based JobRepository/JobExplorerが非推奨になったためWarningを追記 (管理ID#105)<br>
+・Spring Batchのバージョンアップに伴うJobRepositoryの性能問題について追記 (管理ID#193)</p></td>
+</tr>
+<tr>
+<td class="tableblock halign-left valign-top"></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><a href="Ch09_DBAccessJob.html#Ch09_Impl_DBAccessJob">データベースアクセスでデータ入出力を行うジョブ</a></p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">記載内容の修正<br>
+・ジョブの動作を説明するシーケンス図の補足説明を修正(管理ID#108)</p></td>
+</tr>
+<tr>
+<td class="tableblock halign-left valign-top"></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><a href="Ch09_EnvironmentConstruction.html#Ch09_EnvironmentConstruction_DBeaver_Connection_Config">DBeaverのデータベース接続設定</a></p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">記載内容の修正<br>
+・チュートリアル動作確認環境と環境構築手順を修正(管理ID#184)</p></td>
+</tr>
 <tr>
 <td class="tableblock halign-left valign-top"><p class="tableblock">2020-6-30</p></td>
 <td class="tableblock halign-left valign-top"><p class="tableblock">-</p></td>
@@ -109,7 +183,7 @@
 <td class="tableblock halign-left valign-top"></td>
 <td class="tableblock halign-left valign-top"><p class="tableblock"><a href="Ch08_ParallelAndMultiple.html#Ch08_ParallelAndMultiple">並列処理と多重処理</a></p></td>
 <td class="tableblock halign-left valign-top"><p class="tableblock">記載内容の修正<br>
-・SpringBatchの多重処理における用語変更（Master/Slave&#8594;Manager/Worker）に対応 (管理ID#1093,管理ID#1121)<br>
+・Spring Batchの多重処理における用語変更（Master/Slave&#8594;Manager/Worker）に対応 (管理ID#1093,管理ID#1121)<br>
 ・MultiResourcePartitionerの実装例を修正 (管理ID#1107)</p></td>
 </tr>
 <tr>
@@ -499,7 +573,7 @@
 
   <div class="common-bg">
     <div class="information">
-      TERASOLUNA Batch Framework for Java (5.x) Development Guideline - version 5.3.0.RELEASE, 2020-6-30
+      TERASOLUNA Batch Framework for Java (5.x) Development Guideline - version 5.4.0.RELEASE, 2021-3-31, commit-id:96f569d
     </div>
     <div class="index">
       <a href="index.html">&gt; INDEX</a>

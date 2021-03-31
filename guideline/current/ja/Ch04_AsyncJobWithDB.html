@@ -14,7 +14,7 @@
 
 <div class="common-bg">
   <div class="information">
-    TERASOLUNA Batch Framework for Java (5.x) Development Guideline - version 5.3.0.RELEASE, 2020-6-30
+    TERASOLUNA Batch Framework for Java (5.x) Development Guideline - version 5.4.0.RELEASE, 2021-3-31, commit-id:96f569d
   </div>
   <div class="index">
     <a href="index.html">&gt; INDEX</a>
@@ -110,11 +110,6 @@
 </li>
 <li><a href="#Ch04_AsyncJobWithDB_HowToExtend_ClockCustomize">タイムスタンプに用いるクロックのカスタマイズ</a></li>
 <li><a href="#Ch04_AsyncJobWithDB_HowToExtend_MultiDaemon">複数起動</a></li>
-</ul>
-</li>
-<li><a href="#Ch04_AsyncJobWithDB_Appendix">Appendix</a>
-<ul class="sectlevel2">
-<li><a href="#Ch04_AsyncJobWithDB_Appendix_Modular">ジョブ定義のモジュール化について</a></li>
 </ul>
 </li>
 </ul>
@@ -765,8 +760,7 @@ Spring Batchから提供されている<code>JobOperator</code>の<code>start</c
 <dt class="hdlist1">ジョブ登録設定</dt>
 <dd>
 <p>非同期実行として実行するジョブは、<code>org.springframework.batch.core.configuration.support.AutomaticJobRegistrar</code>で登録を行う。
-<code>AutomaticJobRegistrar</code>を用いることで、ジョブ単位にコンテキストのモジュール化を行っている。
-モジュール化することにより、ジョブ間で利用するBeanIDが重複していても問題にならないようにしている。</p>
+<code>AutomaticJobRegistrar</code>を用いることで、ジョブ単位にコンテキストのモジュール化を行うことができる。</p>
 </dd>
 </dl>
 </div>
@@ -779,8 +773,26 @@ Spring Batchから提供されている<code>JobOperator</code>の<code>start</c
 <td class="content">
 <div class="title">モジュール化とは</div>
 <div class="paragraph">
-<p>モジュール化とは、「共通定義-各ジョブ定義」の階層構造になっており、各ジョブで定義されたBeanは、ジョブ間で独立したコンテキストに属することである。
-各ジョブ定義で定義されていないBeanへの参照がある場合は、共通定義で定義されたBeanを参照することになる。</p>
+<p>モジュール化とは、DIコンテナのコンテキストを「共通定義-各ジョブ定義」といった階層構造に分離することで、
+各ジョブ定義にあるBeanをコンテキスト間で独立させることである。<br>
+この階層構造により、各ジョブ定義内からのBean参照は、まず同一ジョブのBean定義を参照し、
+ジョブ定義のBean定義にない場合、次いで共通定義で定義されたBeanを参照することになる。</p>
+</div>
+</td>
+</tr>
+</table>
+</div>
+<div class="admonitionblock important">
+<table>
+<tr>
+<td class="icon">
+<i class="fa icon-important" title="Important"></i>
+</td>
+<td class="content">
+<div class="paragraph">
+<p>非同期実行では同期実行と異なり、1つのバッチプロセス上に複数の異なるジョブ定義が準備され、さらに各ジョブのコンテキストは競合することなく並列実行できることが求められる。 <br>
+ジョブ定義によるコンテキストのモジュール化により、各ジョブ定義から生成されるBeanをコンテキストごとに独立させることができる。 <br>
+このため非同期実行では<code>AutomaticJobRegistrar</code>を明示的に使用し、ジョブ定義のモジュール化を行うこと。</p>
 </div>
 </td>
 </tr>
@@ -795,14 +807,15 @@ Spring Batchから提供されている<code>JobOperator</code>の<code>start</c
 <div class="ulist">
 <ul>
 <li>
-<p><code>AutomaticJobRegistrar</code>でジョブを登録する際、ジョブのBeanIDは識別子となるため重複をしてはいけない。</p>
+<p><code>AutomaticJobRegistrar</code>でジョブを登録する際、ジョブのBeanIDはアプリケーションコンテキストのモジュール化によってDIコンテナ全体としては重複が許されるが、
+目的のジョブを起動する際に一意に識別することができなくなるため、ジョブのBeanIDの重複は避けること。</p>
 </li>
 <li>
 <p>ステップのBeanIDも重複しないことが望ましい。</p>
 <div class="ulist">
 <ul>
 <li>
-<p>設計時に、BeanIDの命名規則を<code>{ジョブID}.{ステップID}</code>とすることで、ジョブIDのみ一意に設計すればよい。</p>
+<p>指針として設計時にBeanIDの命名規則を<code>{ジョブID}.{ステップID}</code>とすることで、BeanIDとしての一意性を保つことができる。</p>
 </li>
 </ul>
 </div>
@@ -963,7 +976,7 @@ async-batch-daemon.polling-stop-file-path=/tmp/stop-async-batch-daemon</code></p
 </div>
 <div class="paragraph">
 <p>詳細については、TERASOLUNA Server 5.x 開発ガイドラインの
-<a href="http://terasolunaorg.github.io/guideline/5.6.0.RELEASE/ja/ArchitectureInDetail/GeneralFuncDetail/PropertyManagement.html#technical-details-label">プロパティファイル定義方法について</a>を参照。</p>
+<a href="http://terasolunaorg.github.io/guideline/5.6.1.RELEASE/ja/ArchitectureInDetail/GeneralFuncDetail/PropertyManagement.html#technical-details-label">プロパティファイル定義方法について</a>を参照。</p>
 </div>
 </td>
 </tr>
@@ -1835,7 +1848,7 @@ $ java -cp dependency/* org.terasoluna.batch.async.db.AsyncBatchDaemon</code></p
 <p>下記に日時を固定し、タイムゾーンを変更するための設定例を示す。</p>
 </div>
 <div class="listingblock">
-<div class="title">META-INF/spring/customized-async-batch-daemon.xml</div>
+<div class="title">META-INF/ch04/asyncjobwithdb/async-batch-daemon-clock.xml</div>
 <div class="content">
 <pre class="CodeRay highlight"><code data-lang="xml"><span class="tag">&lt;bean</span> <span class="attribute-name">id</span>=<span class="string"><span class="delimiter">&quot;</span><span class="content">jobRequestPollTask</span><span class="delimiter">&quot;</span></span>
       <span class="attribute-name">class</span>=<span class="string"><span class="delimiter">&quot;</span><span class="content">org.terasoluna.batch.async.db.JobRequestPollTask</span><span class="delimiter">&quot;</span></span>
@@ -1951,191 +1964,13 @@ $ java -cp dependency/* org.terasoluna.batch.async.db.AsyncBatchDaemon</code></p
 </div>
 </div>
 </div>
-<div class="sect1">
-<h2 id="Ch04_AsyncJobWithDB_Appendix"><a class="anchor" href="#Ch04_AsyncJobWithDB_Appendix"></a>Appendix</h2>
-<div class="sectionbody">
-<div class="sect2">
-<h3 id="Ch04_AsyncJobWithDB_Appendix_Modular"><a class="anchor" href="#Ch04_AsyncJobWithDB_Appendix_Modular"></a>ジョブ定義のモジュール化について</h3>
-<div class="paragraph">
-<p><a href="#Ch04_AsyncJobWithDB_Arch_Components_AppCtx">ApplicationContextの構成</a>でも簡単に説明したが、<code>AutomaticJobRegistrar</code>を用いることで以下の事象を回避することができる。</p>
-</div>
-<div class="ulist">
-<ul>
-<li>
-<p>同じBeanID(BeanName)を使用すると、Beanが上書きされてしまい、ジョブが意図しない動作をする。</p>
-<div class="ulist">
-<ul>
-<li>
-<p>その結果、意図しないエラーが発生する可能性が高くなる。</p>
-</li>
-</ul>
-</div>
-</li>
-<li>
-<p>エラーを回避するために、ジョブ全体でBeanすべてのIDが一意になるように命名しなければいけなくなる。</p>
-<div class="ulist">
-<ul>
-<li>
-<p>ジョブ数が増えてくると管理するのが困難になり、不必要なトラブルが発生する可能性が高くなる。</p>
-</li>
-</ul>
-</div>
-</li>
-</ul>
-</div>
-<div class="paragraph">
-<p><code>AutomaticJobRegistrar</code>を使用しない場合に起こる現象について説明をする。
-ここで説明する内容は上記の問題を引き起こすので、非同期実行では使用しないこと。</p>
-</div>
-<div class="listingblock">
-<div class="title">Job1.xml</div>
-<div class="content">
-<pre class="CodeRay highlight"><code data-lang="xml"><span class="comment">&lt;!-- Reader --&gt;</span>
-<span class="comment">&lt;!-- (1) --&gt;</span>
-<span class="tag">&lt;bean</span> <span class="attribute-name">id</span>=<span class="string"><span class="delimiter">&quot;</span><span class="content">reader</span><span class="delimiter">&quot;</span></span> <span class="attribute-name">class</span>=<span class="string"><span class="delimiter">&quot;</span><span class="content">org.mybatis.spring.batch.MyBatisCursorItemReader</span><span class="delimiter">&quot;</span></span>
-      <span class="attribute-name">p:queryId</span>=<span class="string"><span class="delimiter">&quot;</span><span class="content">jp.terasoluna.batch.job.repository.EmployeeRepositoy.findAll</span><span class="delimiter">&quot;</span></span>
-      <span class="attribute-name">p:sqlSessionFactory-ref</span>=<span class="string"><span class="delimiter">&quot;</span><span class="content">jobSqlSessionFactory</span><span class="delimiter">&quot;</span></span><span class="tag">/&gt;</span>
-
-<span class="comment">&lt;!-- Writer --&gt;</span>
-<span class="comment">&lt;!-- (2) --&gt;</span>
-<span class="tag">&lt;bean</span> <span class="attribute-name">id</span>=<span class="string"><span class="delimiter">&quot;</span><span class="content">writer</span><span class="delimiter">&quot;</span></span>
-      <span class="attribute-name">class</span>=<span class="string"><span class="delimiter">&quot;</span><span class="content">org.springframework.batch.item.file.FlatFileItemWriter</span><span class="delimiter">&quot;</span></span> <span class="attribute-name">scope</span>=<span class="string"><span class="delimiter">&quot;</span><span class="content">step</span><span class="delimiter">&quot;</span></span>
-      <span class="attribute-name">p:resource</span>=<span class="string"><span class="delimiter">&quot;</span><span class="content">file:#{jobParameters['basedir']}/input/employee.csv</span><span class="delimiter">&quot;</span></span><span class="tag">&gt;</span>
-  <span class="tag">&lt;property</span> <span class="attribute-name">name</span>=<span class="string"><span class="delimiter">&quot;</span><span class="content">lineAggregator</span><span class="delimiter">&quot;</span></span><span class="tag">&gt;</span>
-    <span class="tag">&lt;bean</span> <span class="attribute-name">class</span>=<span class="string"><span class="delimiter">&quot;</span><span class="content">org.springframework.batch.item.file.transform.DelimitedLineAggregator</span><span class="delimiter">&quot;</span></span><span class="tag">&gt;</span>
-      <span class="tag">&lt;property</span> <span class="attribute-name">name</span>=<span class="string"><span class="delimiter">&quot;</span><span class="content">fieldExtractor</span><span class="delimiter">&quot;</span></span><span class="tag">&gt;</span>
-        <span class="tag">&lt;bean</span> <span class="attribute-name">class</span>=<span class="string"><span class="delimiter">&quot;</span><span class="content">org.springframework.batch.item.file.transform.BeanWrapperFieldExtractor</span><span class="delimiter">&quot;</span></span>
-              <span class="attribute-name">p:names</span>=<span class="string"><span class="delimiter">&quot;</span><span class="content">invoiceNo,salesDate,productId,customerId,quant,price</span><span class="delimiter">&quot;</span></span><span class="tag">/&gt;</span>
-      <span class="tag">&lt;/property&gt;</span>
-    <span class="tag">&lt;/bean&gt;</span>
-  <span class="tag">&lt;/property&gt;</span>
-<span class="tag">&lt;/bean&gt;</span>
-
-
-<span class="comment">&lt;!-- Job --&gt;</span>
-<span class="tag">&lt;batch:job</span> <span class="attribute-name">id</span>=<span class="string"><span class="delimiter">&quot;</span><span class="content">job1</span><span class="delimiter">&quot;</span></span> <span class="attribute-name">job-repository</span>=<span class="string"><span class="delimiter">&quot;</span><span class="content">jobRepository</span><span class="delimiter">&quot;</span></span><span class="tag">&gt;</span>
-  <span class="tag">&lt;batch:step</span> <span class="attribute-name">id</span>=<span class="string"><span class="delimiter">&quot;</span><span class="content">job1.step</span><span class="delimiter">&quot;</span></span><span class="tag">&gt;</span>
-    <span class="tag">&lt;batch:tasklet</span> <span class="attribute-name">transaction-manager</span>=<span class="string"><span class="delimiter">&quot;</span><span class="content">transactionManager</span><span class="delimiter">&quot;</span></span><span class="tag">&gt;</span>
-      <span class="tag">&lt;batch:chunk</span> <span class="attribute-name">reader</span>=<span class="string"><span class="delimiter">&quot;</span><span class="content">reader</span><span class="delimiter">&quot;</span></span> <span class="attribute-name">writer</span>=<span class="string"><span class="delimiter">&quot;</span><span class="content">writer</span><span class="delimiter">&quot;</span></span> <span class="attribute-name">commit-interval</span>=<span class="string"><span class="delimiter">&quot;</span><span class="content">100</span><span class="delimiter">&quot;</span></span> <span class="tag">/&gt;</span>
-    <span class="tag">&lt;/batch:tasklet&gt;</span>
-  <span class="tag">&lt;/batch:step&gt;</span>
-<span class="tag">&lt;/batch:job&gt;</span></code></pre>
-</div>
-</div>
-<div class="listingblock">
-<div class="title">Job2.xml</div>
-<div class="content">
-<pre class="CodeRay highlight"><code data-lang="xml"><span class="comment">&lt;!-- Reader --&gt;</span>
-<span class="comment">&lt;!-- (3) --&gt;</span>
-<span class="tag">&lt;bean</span> <span class="attribute-name">id</span>=<span class="string"><span class="delimiter">&quot;</span><span class="content">reader</span><span class="delimiter">&quot;</span></span>
-      <span class="attribute-name">class</span>=<span class="string"><span class="delimiter">&quot;</span><span class="content">org.springframework.batch.item.file.FlatFileItemReader</span><span class="delimiter">&quot;</span></span> <span class="attribute-name">scope</span>=<span class="string"><span class="delimiter">&quot;</span><span class="content">step</span><span class="delimiter">&quot;</span></span>
-      <span class="attribute-name">p:resource</span>=<span class="string"><span class="delimiter">&quot;</span><span class="content">file:#{jobParameters['basedir']}/input/invoice.csv</span><span class="delimiter">&quot;</span></span><span class="tag">&gt;</span>
-  <span class="tag">&lt;property</span> <span class="attribute-name">name</span>=<span class="string"><span class="delimiter">&quot;</span><span class="content">lineMapper</span><span class="delimiter">&quot;</span></span><span class="tag">&gt;</span>
-    <span class="tag">&lt;bean</span> <span class="attribute-name">class</span>=<span class="string"><span class="delimiter">&quot;</span><span class="content">org.springframework.batch.item.file.mapping.DefaultLineMapper</span><span class="delimiter">&quot;</span></span><span class="tag">&gt;</span>
-      <span class="tag">&lt;property</span> <span class="attribute-name">name</span>=<span class="string"><span class="delimiter">&quot;</span><span class="content">lineTokenizer</span><span class="delimiter">&quot;</span></span><span class="tag">&gt;</span>
-        <span class="tag">&lt;bean</span> <span class="attribute-name">class</span>=<span class="string"><span class="delimiter">&quot;</span><span class="content">org.springframework.batch.item.file.transform.DelimitedLineTokenizer</span><span class="delimiter">&quot;</span></span>
-              <span class="attribute-name">p:names</span>=<span class="string"><span class="delimiter">&quot;</span><span class="content">invoiceNo,salesDate,productId,customerId,quant,price</span><span class="delimiter">&quot;</span></span><span class="tag">/&gt;</span>
-      <span class="tag">&lt;/property&gt;</span>
-      <span class="tag">&lt;property</span> <span class="attribute-name">name</span>=<span class="string"><span class="delimiter">&quot;</span><span class="content">fieldSetMapper</span><span class="delimiter">&quot;</span></span> <span class="attribute-name">ref</span>=<span class="string"><span class="delimiter">&quot;</span><span class="content">invoiceFieldSetMapper</span><span class="delimiter">&quot;</span></span><span class="tag">/&gt;</span>
-    <span class="tag">&lt;/bean&gt;</span>
-  <span class="tag">&lt;/property&gt;</span>
-<span class="tag">&lt;/bean&gt;</span>
-
-<span class="comment">&lt;!-- Writer --&gt;</span>
-<span class="comment">&lt;!-- (4) --&gt;</span>
-<span class="tag">&lt;bean</span> <span class="attribute-name">id</span>=<span class="string"><span class="delimiter">&quot;</span><span class="content">writer</span><span class="delimiter">&quot;</span></span> <span class="attribute-name">class</span>=<span class="string"><span class="delimiter">&quot;</span><span class="content">org.mybatis.spring.batch.MyBatisBatchItemWriter</span><span class="delimiter">&quot;</span></span>
-      <span class="attribute-name">p:statementId</span>=<span class="string"><span class="delimiter">&quot;</span><span class="content">jp.terasoluna.batch.job.repository.InvoiceRepository.create</span><span class="delimiter">&quot;</span></span>
-      <span class="attribute-name">p:sqlSessionFactory-ref</span>=<span class="string"><span class="delimiter">&quot;</span><span class="content">jobSqlSessionFactory</span><span class="delimiter">&quot;</span></span><span class="tag">/&gt;</span>
-
-<span class="comment">&lt;!-- Job --&gt;</span>
-<span class="tag">&lt;batch:job</span> <span class="attribute-name">id</span>=<span class="string"><span class="delimiter">&quot;</span><span class="content">job2</span><span class="delimiter">&quot;</span></span> <span class="attribute-name">job-repository</span>=<span class="string"><span class="delimiter">&quot;</span><span class="content">jobRepository</span><span class="delimiter">&quot;</span></span><span class="tag">&gt;</span>
-  <span class="tag">&lt;batch:step</span> <span class="attribute-name">id</span>=<span class="string"><span class="delimiter">&quot;</span><span class="content">job2.step</span><span class="delimiter">&quot;</span></span><span class="tag">&gt;</span>
-    <span class="tag">&lt;batch:tasklet</span> <span class="attribute-name">transaction-manager</span>=<span class="string"><span class="delimiter">&quot;</span><span class="content">transactionManager</span><span class="delimiter">&quot;</span></span><span class="tag">&gt;</span>
-      <span class="tag">&lt;batch:chunk</span> <span class="attribute-name">reader</span>=<span class="string"><span class="delimiter">&quot;</span><span class="content">reader</span><span class="delimiter">&quot;</span></span> <span class="attribute-name">writer</span>=<span class="string"><span class="delimiter">&quot;</span><span class="content">writer</span><span class="delimiter">&quot;</span></span> <span class="attribute-name">commit-interval</span>=<span class="string"><span class="delimiter">&quot;</span><span class="content">100</span><span class="delimiter">&quot;</span></span> <span class="tag">/&gt;</span>
-    <span class="tag">&lt;/batch:tasklet&gt;</span>
-  <span class="tag">&lt;/batch:step&gt;</span>
-<span class="tag">&lt;/batch:job&gt;</span></code></pre>
-</div>
-</div>
-<div class="listingblock">
-<div class="title">BeanIdが上書きされる定義</div>
-<div class="content">
-<pre class="CodeRay highlight"><code data-lang="xml"><span class="tag">&lt;bean</span> <span class="attribute-name">id</span>=<span class="string"><span class="delimiter">&quot;</span><span class="content">automaticJobRegistrar</span><span class="delimiter">&quot;</span></span>
-      <span class="attribute-name">class</span>=<span class="string"><span class="delimiter">&quot;</span><span class="content">org.springframework.batch.core.configuration.support.AutomaticJobRegistrar</span><span class="delimiter">&quot;</span></span><span class="tag">&gt;</span>
-    <span class="tag">&lt;property</span> <span class="attribute-name">name</span>=<span class="string"><span class="delimiter">&quot;</span><span class="content">applicationContextFactories</span><span class="delimiter">&quot;</span></span><span class="tag">&gt;</span>
-        <span class="tag">&lt;bean</span> <span class="attribute-name">class</span>=<span class="string"><span class="delimiter">&quot;</span><span class="content">org.springframework.batch.core.configuration.support.ClasspathXmlApplicationContextsFactoryBean</span><span class="delimiter">&quot;</span></span><span class="tag">&gt;</span>
-            <span class="tag">&lt;property</span> <span class="attribute-name">name</span>=<span class="string"><span class="delimiter">&quot;</span><span class="content">resources</span><span class="delimiter">&quot;</span></span><span class="tag">&gt;</span>
-                <span class="tag">&lt;list&gt;</span>
-                    <span class="tag">&lt;value&gt;</span>classpath:/META-INF/jobs/other/async/*.xml<span class="tag">&lt;/value&gt;</span>  <span class="comment">&lt;!-- (5) --&gt;</span>
-                <span class="tag">&lt;/list&gt;</span>
-            <span class="tag">&lt;/property&gt;</span>
-        <span class="tag">&lt;/bean&gt;</span>
-    <span class="tag">&lt;/property&gt;</span>
-    <span class="tag">&lt;property</span> <span class="attribute-name">name</span>=<span class="string"><span class="delimiter">&quot;</span><span class="content">jobLoader</span><span class="delimiter">&quot;</span></span><span class="tag">&gt;</span>
-        <span class="tag">&lt;bean</span> <span class="attribute-name">class</span>=<span class="string"><span class="delimiter">&quot;</span><span class="content">org.springframework.batch.core.configuration.support.DefaultJobLoader</span><span class="delimiter">&quot;</span></span>
-              <span class="attribute-name">p:jobRegistry-ref</span>=<span class="string"><span class="delimiter">&quot;</span><span class="content">jobRegistry</span><span class="delimiter">&quot;</span></span><span class="tag">/&gt;</span>
-    <span class="tag">&lt;/property&gt;</span>
-<span class="tag">&lt;/bean&gt;</span>
-
-<span class="tag">&lt;bean</span> <span class="attribute-name">class</span>=<span class="string"><span class="delimiter">&quot;</span><span class="content">org.springframework.batch.core.configuration.support.JobRegistryBeanPostProcessor</span><span class="delimiter">&quot;</span></span>
-    <span class="attribute-name">p:jobRegistry-ref</span>=<span class="string"><span class="delimiter">&quot;</span><span class="content">jobRegistry</span><span class="delimiter">&quot;</span></span> <span class="tag">/&gt;</span>
-
-<span class="tag">&lt;import</span> <span class="attribute-name">resource</span>=<span class="string"><span class="delimiter">&quot;</span><span class="content">classpath:/META-INF/jobs/async/*.xml</span><span class="delimiter">&quot;</span></span> <span class="tag">/&gt;</span>   <span class="comment">&lt;!-- (6) --&gt;</span></code></pre>
-</div>
-</div>
-<table class="tableblock frame-all grid-all stretch">
-<caption class="title">表 14. 設定のポイント一覧</caption>
-<colgroup>
-<col style="width: 10%;">
-<col style="width: 90%;">
-</colgroup>
-<thead>
-<tr>
-<th class="tableblock halign-left valign-top">項番</th>
-<th class="tableblock halign-left valign-top">説明</th>
-</tr>
-</thead>
-<tbody>
-<tr>
-<td class="tableblock halign-left valign-top"><p class="tableblock">(1)</p></td>
-<td class="tableblock halign-left valign-top"><p class="tableblock">Job1ではデータベースから読み込むItemReaderを<code>reader</code>というBeanIDで定義する。</p></td>
-</tr>
-<tr>
-<td class="tableblock halign-left valign-top"><p class="tableblock">(2)</p></td>
-<td class="tableblock halign-left valign-top"><p class="tableblock">Job1ではファイルへ書き込むItemWriterを<code>writer</code>というBeanIDで定義する。</p></td>
-</tr>
-<tr>
-<td class="tableblock halign-left valign-top"><p class="tableblock">(3)</p></td>
-<td class="tableblock halign-left valign-top"><p class="tableblock">Job2ではファイルから読み込むItemReaderを<code>reader</code>というBeanIDで定義する。</p></td>
-</tr>
-<tr>
-<td class="tableblock halign-left valign-top"><p class="tableblock">(4)</p></td>
-<td class="tableblock halign-left valign-top"><p class="tableblock">Job2ではデータベースへ書き込むItemWriterを<code>writer</code>というBeanIDで定義する。</p></td>
-</tr>
-<tr>
-<td class="tableblock halign-left valign-top"><p class="tableblock">(5)</p></td>
-<td class="tableblock halign-left valign-top"><p class="tableblock"><code>AutomaticJobRegistrar</code>は対象となるジョブ以外のジョブ定義を読む込むように設定する。</p></td>
-</tr>
-<tr>
-<td class="tableblock halign-left valign-top"><p class="tableblock">(6)</p></td>
-<td class="tableblock halign-left valign-top"><p class="tableblock">Springのimportを使用して、対象のJob定義を読み込むようにする。</p></td>
-</tr>
-</tbody>
-</table>
-<div class="paragraph">
-<p>この場合、Job1.xml,Job2.xmlの順に読み込まれたとすると、Job1.xmlで定義されたいたreader,writerはJob2.xmlの定義で上書きされる。<br>
-その結果、Job1を実行すると、Job2のreader,writerが使用されて期待した処理が行われなくなる。</p>
-</div>
-</div>
-</div>
-</div>
 </div>
 <link rel="stylesheet" href="./theme/css/coderay-asciidoctor.css">
 <div class="container">
 
   <div class="common-bg">
     <div class="information">
-      TERASOLUNA Batch Framework for Java (5.x) Development Guideline - version 5.3.0.RELEASE, 2020-6-30
+      TERASOLUNA Batch Framework for Java (5.x) Development Guideline - version 5.4.0.RELEASE, 2021-3-31, commit-id:96f569d
     </div>
     <div class="index">
       <a href="index.html">&gt; INDEX</a>

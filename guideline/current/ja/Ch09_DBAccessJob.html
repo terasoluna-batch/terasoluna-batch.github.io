@@ -14,7 +14,7 @@
 
 <div class="common-bg">
   <div class="information">
-    TERASOLUNA Batch Framework for Java (5.x) Development Guideline - version 5.3.0.RELEASE, 2020-6-30
+    TERASOLUNA Batch Framework for Java (5.x) Development Guideline - version 5.4.0.RELEASE, 2021-3-31, commit-id:96f569d
   </div>
   <div class="index">
     <a href="index.html">&gt; INDEX</a>
@@ -299,7 +299,7 @@
 <p>ステップは、リソースをオープンする。</p>
 </li>
 <li>
-<p><code>MyBatisCursorItemReader</code>は、member_infoテーブルから会員情報をすべて取得(select文の発行)する。</p>
+<p><code>MyBatisCursorItemReader</code>は、member_infoテーブルから会員情報を取得するためのselect文を発行する。</p>
 <div class="ulist">
 <ul>
 <li>
@@ -315,7 +315,7 @@
 </div>
 </li>
 <li>
-<p>ステップは、<code>MyBatisCursorItemReader</code>から入力データを1件取得する。</p>
+<p>ステップは、<code>MyBatisCursorItemReader</code>から入力データを1件取得する処理を行う。</p>
 </li>
 <li>
 <p><code>MyBatisCursorItemReader</code>は、member_infoテーブルから入力データを1件取得する。</p>
@@ -348,6 +348,54 @@
 <p>ステップはジョブに終了コード(ここでは正常終了:0)を返却する。</p>
 </li>
 </ol>
+</div>
+<div class="admonitionblock note">
+<table>
+<tr>
+<td class="icon">
+<i class="fa icon-note" title="Note"></i>
+</td>
+<td class="content">
+<div class="title">Cursorについての説明</div>
+<div class="paragraph">
+<p>上記のシーケンス図を読み進める上で必要なCursorについての説明を行う。Cursorとは、検索結果がマッピングされたBeanの代わりにMyBatisCursorItemReaderにより1件ずつデータが返却される仕組みである。以下にCursorを用いた処理の流れについて説明する。</p>
+</div>
+<div class="olist arabic">
+<ol class="arabic">
+<li>
+<p>SELECT文を発行し、Cursorを取得する。</p>
+<div class="ulist">
+<ul>
+<li>
+<p>Cursor自身にはSELECT文結果のレコードが直接含まれておらず、Cursorはレコードを指す位置情報を保持している。</p>
+</li>
+<li>
+<p>2から3までの処理をレコードがなくなるまで繰り返す。</p>
+</li>
+</ul>
+</div>
+</li>
+<li>
+<p>SELECT文結果を取得するためにCursorが指すレコードに対してfetchを行う。</p>
+<div class="ulist">
+<ul>
+<li>
+<p>Cursorの初回fetchはSELECT文結果の先頭行のレコードを指している。</p>
+</li>
+</ul>
+</div>
+</li>
+<li>
+<p>Cursorを次のレコードへと進める。</p>
+</li>
+<li>
+<p>Cursorを閉じる。</p>
+</li>
+</ol>
+</div>
+</td>
+</tr>
+</table>
 </div>
 <div class="dlist">
 <dl>
@@ -391,7 +439,7 @@
 <p><code>PointAddTasklet</code>は、リソースをオープンする。</p>
 </li>
 <li>
-<p><code>MyBatisCursorItemReader</code>は、member_infoテーブルから会員情報をすべて取得(select文の発行)する。</p>
+<p><code>MyBatisCursorItemReader</code>は、member_infoテーブルから会員情報を取得するためのselect文を発行する。</p>
 <div class="ulist">
 <ul>
 <li>
@@ -404,7 +452,7 @@
 </div>
 </li>
 <li>
-<p><code>PointAddTasklet</code>は、<code>MyBatisCursorItemReader</code>から入力データを1件取得する。</p>
+<p><code>PointAddTasklet</code>は、<code>MyBatisCursorItemReader</code>から入力データを1件取得する処理を行う。</p>
 </li>
 <li>
 <p><code>MyBatisCursorItemReader</code>は、member_infoテーブルから入力データを1件取得する。</p>
@@ -2122,7 +2170,7 @@ Taskletの実装例は、<a href="Ch05_DBAccess.html#Ch05_DBAccess_HowToUse_Inpu
 
   <div class="common-bg">
     <div class="information">
-      TERASOLUNA Batch Framework for Java (5.x) Development Guideline - version 5.3.0.RELEASE, 2020-6-30
+      TERASOLUNA Batch Framework for Java (5.x) Development Guideline - version 5.4.0.RELEASE, 2021-3-31, commit-id:96f569d
     </div>
     <div class="index">
       <a href="index.html">&gt; INDEX</a>

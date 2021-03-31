@@ -14,7 +14,7 @@
 
 <div class="common-bg">
   <div class="information">
-    TERASOLUNA Batch Framework for Java (5.x) Development Guideline - version 5.3.0.RELEASE, 2020-6-30
+    TERASOLUNA Batch Framework for Java (5.x) Development Guideline - version 5.4.0.RELEASE, 2021-3-31, commit-id:96f569d
   </div>
   <div class="index">
     <a href="index.html">&gt; INDEX</a>
@@ -356,12 +356,12 @@
 <div class="title">データベースアクセスとトランザクション</div>
 <ul>
 <li>
-<p>「ItemWriterに<code>MyBatisBatchItemWriter</code>を使用する」と「ItemProcessorでMapperインタフェースを使用し参照更新をする」は同時にできない。</p>
+<p>「ItemWriterに<code>MyBatisBatchItemWriter</code>を使用する」と「ItemProcessorでMapperインタフェースを使用し更新処理をする」は同時にできない。</p>
 <div class="ulist">
 <ul>
 <li>
 <p>MyBatisには、同一トランザクション内で2つ以上の<code>ExecutorType</code>で実行してはいけないという制約があるため。
-<a href="Ch05_DBAccess.html#Ch05_DBAccess_HowToUse_Input_MapperInterface">Mapperインタフェース(入力)</a>を参照。</p>
+<a href="Ch05_DBAccess.html#Ch05_DBAccess_HowToUse_Output_MapperInterface">Mapperインタフェース(出力)</a>を参照。</p>
 </li>
 </ul>
 </div>
@@ -521,7 +521,7 @@
 
   <div class="common-bg">
     <div class="information">
-      TERASOLUNA Batch Framework for Java (5.x) Development Guideline - version 5.3.0.RELEASE, 2020-6-30
+      TERASOLUNA Batch Framework for Java (5.x) Development Guideline - version 5.4.0.RELEASE, 2021-3-31, commit-id:96f569d
     </div>
     <div class="index">
       <a href="index.html">&gt; INDEX</a>

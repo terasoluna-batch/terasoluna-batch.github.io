@@ -14,7 +14,7 @@
 
 <div class="common-bg">
   <div class="information">
-    TERASOLUNA Batch Framework for Java (5.x) Development Guideline - version 5.3.0.RELEASE, 2020-6-30
+    TERASOLUNA Batch Framework for Java (5.x) Development Guideline - version 5.4.0.RELEASE, 2021-3-31, commit-id:96f569d
   </div>
   <div class="index">
     <a href="index.html">&gt; INDEX</a>
@@ -93,6 +93,27 @@
 バッチアプリケーションの特性上、起動直後にその結果をユーザインタフェースで確認できることは稀である。
 よって、ジョブスケジューラ/RDBMS/アプリケーションログといった、ジョブの実行とは別に実行状態・結果の記録を行う仕組みが必要となる。</p>
 </div>
+<div class="paragraph">
+<p>本ガイドラインではジョブスケジューラを使用したジョブ管理については説明しないが、ジョブスケジューラを使用するのに適したジョブについては以下に記す。</p>
+</div>
+<div class="dlist">
+<dl>
+<dt class="hdlist1">ジョブスケジューラを使用するのに適したジョブ</dt>
+<dd>
+<p>  TERASOLUNA Batch 5.xの同期型ジョブで<code>JobRepository</code>による状態管理を必要としない(非永続化のRDBMSを使用)<br>
+<code>JobRepository</code>を前提としたリスタート機能を使わないジョブ</p>
+</dd>
+</dl>
+</div>
+<div class="paragraph">
+<p>上記の条件を満たす場合、ジョブの停止・リスタートを含めた、ジョブの実行管理をすべてジョブスケジューラで行うことが適している。</p>
+</div>
+<div class="paragraph">
+<p>ジョブスケジューラを使用したジョブの実行管理については各製品のマニュアルを参照。</p>
+</div>
+<div class="paragraph">
+<p>以降、Spring Batchが提供する機能を利用したジョブの実行管理について説明をする。</p>
+</div>
 <div class="sect3">
 <h4 id="Ch07_JobManagement_Overview_JobExecutionManagement_Function"><a class="anchor" href="#Ch07_JobManagement_Overview_JobExecutionManagement_Function"></a>Spring Batch が提供する機能</h4>
 <div class="paragraph">
@@ -163,14 +184,14 @@ TERASOLUNA Batch 5.xでは、以下のすべてに該当する場合は永続化
 </tr>
 </table>
 </div>
-<div class="admonitionblock note">
+<div class="admonitionblock warning">
 <table>
 <tr>
 <td class="icon">
-<i class="fa icon-note" title="Note"></i>
+<i class="fa icon-warning" title="Warning"></i>
 </td>
 <td class="content">
-<div class="title">インメモリJobRepositoryの選択肢</div>
+<div class="title">インメモリJobRepositoryは非推奨</div>
 <div class="paragraph">
 <p>Spring Batch にはインメモリでジョブの実行管理を行う
 <code>org.springframework.batch.core.repository.support.MapJobRepositoryFactoryBean</code>
@@ -179,7 +200,11 @@ TERASOLUNA Batch 5.xでは、以下のすべてに該当する場合は永続化
 <code>This repository is only really intended for use in testing and rapid prototyping.</code>
 とテスト用であることが示されており、また、
 <code>Not suited for use in multi-threaded jobs with splits</code>
-と並列処理には不適切であると示されているためである。</p>
+と並列処理には不適切であると示されているためである。<br>
+尚、Spring Batch 4.3.0でMap-based JobRepository/JobExplorerは非推奨となった。<br>
+<a href="https://docs.spring.io/spring-batch/docs/current/reference/html/whatsnew.html">Spring Batch4.3/Deprecations</a><br>
+Spring Batchによるこの不具合報告の状況としては以下を参照されたい。<br>
+<a href="https://github.com/spring-projects/spring-batch/issues/3780">Spring Batch/BATCH-3780</a></p>
 </div>
 </td>
 </tr>
@@ -197,7 +222,7 @@ TERASOLUNA Batch 5.xでは、以下のすべてに該当する場合は永続化
 <p>Indexを作成することで、<code>JobRepository</code>の性能改善が期待できる。<br>
 どのSQL文のどの列に対してIndexを作成するかは、実行計画を確認するなどして適切に判断してほしい。
 Spring Batchのリファレンス
-<a href="https://docs.spring.io/spring-batch/docs/4.2.1.RELEASE/reference/html/schema-appendix.html#recommendationsForIndexingMetaDataTables">B.10 Recommendations for Indexing Meta Data Tables</a>
+<a href="https://docs.spring.io/spring-batch/docs/4.3.1/reference/html/schema-appendix.html#recommendationsForIndexingMetaDataTables">B.10 Recommendations for Indexing Meta Data Tables</a>
 では、Spring Batchが提供するDaoの実装によって、WHERE句でどの列が利用されているか、およびそれらの使用頻度を示しているので参考にするとよい。<br></p>
 </div>
 <div class="paragraph">
@@ -207,46 +232,32 @@ Spring Batchのリファレンス
 </tr>
 </table>
 </div>
-<div id="Ch07_JobManagement_Overview_JobExecutionManagement_PerformanceImprovement_ByDao" class="admonitionblock tip">
+<div id="Ch07_JobManagement_Overview_JobExecutionManagement_FixPerformanceProblem" class="admonitionblock tip">
 <table>
 <tr>
 <td class="icon">
 <i class="fa icon-tip" title="Tip"></i>
 </td>
 <td class="content">
-<div class="title">DAOの実装によるJobRepositoryの性能改善</div>
+<div class="title">Spring BatchのバージョンアップによるJobRepositoryの性能問題の修正</div>
 <div class="paragraph">
-<p>Spring Batch 4.2.xから加わった変更により、ジョブの起動時にSpring Batchが発行する<code>JobRepository</code>への<a href="https://github.com/spring-projects/spring-batch/issues/3634">SQLによって、性能劣化</a>が発生する事がある。</p>
+<p>TERASOLUNA Batch 5.3.0では、Spring Batch 4.2.xから加わった変更により、ジョブの起動時にSpring Batchが発行する
+<a href="https://github.com/spring-projects/spring-batch/issues/3634"><code>JobRepository</code>へのSQLによる性能劣化</a>が発生する事がある。
+この問題はSpring Batch側で対処され、Spring Batch 4.2.4および4.3.0で変更が取り込まれた。TERASOLUNA Batchでは5.3.1および5.4.0でこの変更が取り込まれている。</p>
 </div>
 <div class="paragraph">
-<p>本件はSpring Batch側で対処されており、Spring Batch 4.3.0で取り込まれる予定である。一方で、TERASOLUNA Batch 5.3.0.RELEASEが利用するSpring Batch 4.2.1.RELEASEには取り込まれていないため、本バージョンを利用する場合は、本件に起因した性能劣化が発生する可能性がある。</p>
-</div>
-<div class="paragraph">
-<p>TERASOLUNA Batch 5.3.0.RELEASEでは、ショートジョブの大量実行などによって<code>JobRepository</code>に大量のレコードがある状態で本件の影響を顕著に確認した。そのため、類似するバッチジョブを実装している場合、DBの実行計画を取得するなどして本件の影響を確認してほしい。</p>
-</div>
-<div class="paragraph">
-<p>本件の対策としては、以下の対応が考えられる。</p>
-</div>
-<div class="olist arabic">
-<ol class="arabic">
-<li>
-<p>Spring Batchで対処された<a href="https://github.com/spring-projects/spring-batch/pull/3635/files">変更</a>を実装する</p>
-</li>
-<li>
-<p><a href="Ch04_AsyncJobWithDB.html#Ch04_AsyncJobWithDB_HowToUse_CumulativeData"><code>JobRepository</code>に蓄積されるレコードを一定間隔で退避</a>する</p>
-</li>
-</ol>
-</div>
-<div class="paragraph">
-<p>1の方法を選択する場合、<a href="https://github.com/spring-projects/spring-batch/pull/3635#issuecomment-611571008">こちら</a>のコメントを参考に、Spring Batchのクラスをオーバーライドしてほしい。</p>
+<p>本件の対策として、TERASOLUNA Batch 5.3.0では「Spring Batchで対処された<a href="https://github.com/spring-projects/spring-batch/pull/3635/files">変更</a>を実装する」ことを推奨しているが、
+TERASOLUNA Batch 5.4.0.RELEASEではこの問題は発生しないため、対策は不要となる。</p>
 </div>
 </td>
 </tr>
 </table>
 </div>
 <div class="paragraph">
-<p>ジョブスケジューラを使用したジョブの実行管理については各製品のマニュアルを参照。<br>
-本ガイドラインではTERASOLUNA Batch 5.x内部で<code>JobRepository</code>を用いたジョブの状態を管理するうえで関連する、
+<p>ジョブスケジューラを使用したジョブの実行管理については各製品のマニュアルを参照。<br></p>
+</div>
+<div class="paragraph">
+<p>本ガイドラインではTERASOLUNA Batch 5.x内部で<code>JobRepository</code>を用いたジョブの状態を管理するうえで関連する、
 以下の項目について説明する。</p>
 </div>
 <div class="ulist">
@@ -1063,7 +1074,7 @@ javaプロセスの終了コードをカスタマイズするのに必要な作�
 </div>
 <div class="paragraph">
 <p>ログの出力、設定、考慮事項はTERASOLUNA Server 5.xと共通点が多い。まずは、
-<a href="http://terasolunaorg.github.io/guideline/5.6.0.RELEASE/ja/ArchitectureInDetail/GeneralFuncDetail/Logging.html">ロギング</a>を参照。</p>
+<a href="http://terasolunaorg.github.io/guideline/5.6.1.RELEASE/ja/ArchitectureInDetail/GeneralFuncDetail/Logging.html">ロギング</a>を参照。</p>
 </div>
 <div class="paragraph">
 <p>ここでは、TERASOLUNA Batch 5.x特有の考慮点について説明する。</p>
@@ -1234,7 +1245,7 @@ javaプロセスの終了コードをカスタマイズするのに必要な作�
 <div class="ulist">
 <ul>
 <li>
-<p>具体的な設定・実装例については<a href="http://terasolunaorg.github.io/guideline/5.6.0.RELEASE/ja/ArchitectureInDetail/GeneralFuncDetail/Logging.html#id8">ログメッセージの一元管理</a>を参照。</p>
+<p>具体的な設定・実装例については<a href="http://terasolunaorg.github.io/guideline/5.6.1.RELEASE/ja/ArchitectureInDetail/GeneralFuncDetail/Logging.html#id8">ログメッセージの一元管理</a>を参照。</p>
 <div class="ulist">
 <ul>
 <li>
@@ -1272,7 +1283,7 @@ Spring Batchの任意のコンポーネントに読み換えてほしい。</p>
 
   <div class="common-bg">
     <div class="information">
-      TERASOLUNA Batch Framework for Java (5.x) Development Guideline - version 5.3.0.RELEASE, 2020-6-30
+      TERASOLUNA Batch Framework for Java (5.x) Development Guideline - version 5.4.0.RELEASE, 2021-3-31, commit-id:96f569d
     </div>
     <div class="index">
       <a href="index.html">&gt; INDEX</a>

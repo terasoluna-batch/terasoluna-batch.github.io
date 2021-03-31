@@ -14,7 +14,7 @@
 
 <div class="common-bg">
   <div class="information">
-    TERASOLUNA Batch Framework for Java (5.x) Development Guideline - version 5.3.0.RELEASE, 2020-6-30
+    TERASOLUNA Batch Framework for Java (5.x) Development Guideline - version 5.4.0.RELEASE, 2021-3-31, commit-id:96f569d
   </div>
   <div class="index">
     <a href="index.html">&gt; INDEX</a>
@@ -171,7 +171,7 @@
 <pre class="CodeRay highlight"><code data-lang="console">C:\xxx&gt;mvn archetype:generate ^
   -DarchetypeGroupId=org.terasoluna.batch ^
   -DarchetypeArtifactId=terasoluna-batch-archetype ^
-  -DarchetypeVersion=5.3.0.RELEASE</code></pre>
+  -DarchetypeVersion=5.4.0.RELEASE</code></pre>
 </div>
 </div>
 <div class="listingblock">
@@ -180,7 +180,7 @@
 <pre class="CodeRay highlight"><code data-lang="console">$ mvn archetype:generate \
   -DarchetypeGroupId=org.terasoluna.batch \
   -DarchetypeArtifactId=terasoluna-batch-archetype \
-  -DarchetypeVersion=5.3.0.RELEASE</code></pre>
+  -DarchetypeVersion=5.4.0.RELEASE</code></pre>
 </div>
 </div>
 <div class="paragraph">
@@ -242,7 +242,7 @@
 <pre class="CodeRay highlight"><code data-lang="console">C:\xxx&gt;mvn archetype:generate ^
 More? -DarchetypeGroupId=org.terasoluna.batch ^
 More? -DarchetypeArtifactId=terasoluna-batch-archetype ^
-More? -DarchetypeVersion=5.3.0.RELEASE
+More? -DarchetypeVersion=5.4.0.RELEASE
 [INFO] Scanning for projects&#8230;&#8203;
 [INFO]
 [INFO] ------------------------------------------------------------------------
@@ -262,7 +262,7 @@ version: 1.0.0-SNAPSHOT
 package: com.example.batch
  Y: : y
 [INFO] ------------------------------------------------------------------------
-[INFO] Using following parameters for creating project from Archetype: terasolua-batch-archetype:5.3.0.RELEASE
+[INFO] Using following parameters for creating project from Archetype: terasolua-batch-archetype:5.4.0.RELEASE
 [INFO] ------------------------------------------------------------------------
 [INFO] Parameter: groupId, Value: com.example.batch
 [INFO] Parameter: artifactId, Value: batch
@@ -289,7 +289,7 @@ package: com.example.batch
 <pre class="CodeRay highlight"><code data-lang="console">$ mvn archetype:generate \
 &gt; -DarchetypeGroupId=org.terasoluna.batch \
 &gt; -DarchetypeArtifactId=terasoluna-batch-archetype \
-&gt; -DarchetypeVersion=5.3.0.RELEASE
+&gt; -DarchetypeVersion=5.4.0.RELEASE
 [INFO] Scanning for projects&#8230;&#8203;
 [INFO]
 [INFO] ------------------------------------------------------------------------
@@ -309,7 +309,7 @@ version: 1.0.0-SNAPSHOT
 package: com.example.batch
  Y: : y
 [INFO] ----------------------------------------------------------------------------
-[INFO] Using following parameters for creating project from Archetype: terasoluna-batch-archetype:5.3.0.RELEASE
+[INFO] Using following parameters for creating project from Archetype: terasoluna-batch-archetype:5.4.0.RELEASE
 [INFO] ----------------------------------------------------------------------------
 [INFO] Parameter: groupId, Value: com.example.batch
 [INFO] Parameter: artifactId, Value: batch
@@ -474,9 +474,9 @@ $ java -cp 'lib/*:target/*' \
 <td class="tableblock halign-left valign-top"><p class="tableblock">(2)</p></td>
 <td class="tableblock halign-left valign-top"><p class="tableblock">1ジョブに関する各種クラスを格納するパッケージ。<br>
 ここには、DTO、TaskletやProcessorの実装、MyBatis3のMapperインタフェースを格納する。<br>
-本ガイドラインでは格納方法に制約は設けないので、これは一例として参考にしてほしい。</p>
-<p class="tableblock">初期状態を参考にユーザにて自由にカスタムしてよいが、
-ジョブ固有の資材を判断しやすくすることに配慮してほしい。</p></td>
+初期状態を参考にユーザにて自由にカスタムしてよいが、各ジョブで利用する資材をジョブごとにまとめて格納することで、
+<code>&lt;context:component-scan&gt;</code>や<code>&lt;mybatis:scan&gt;</code>によるスキャン範囲を最小限にする構成が望ましい。<br>
+スキャン範囲の影響や設定方法ついては<a href="Ch05_DBAccess.html#Ch05_DBAccess_HowToUse_Config_Scan">MyBatis-Springの設定</a>を参考にすること。</p></td>
 </tr>
 <tr>
 <td class="tableblock halign-left valign-top"><p class="tableblock">(3)</p></td>
@@ -1059,7 +1059,7 @@ fi</code></pre>
 
   <div class="common-bg">
     <div class="information">
-      TERASOLUNA Batch Framework for Java (5.x) Development Guideline - version 5.3.0.RELEASE, 2020-6-30
+      TERASOLUNA Batch Framework for Java (5.x) Development Guideline - version 5.4.0.RELEASE, 2021-3-31, commit-id:96f569d
     </div>
     <div class="index">
       <a href="index.html">&gt; INDEX</a>

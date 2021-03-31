@@ -14,7 +14,7 @@
 
 <div class="common-bg">
   <div class="information">
-    TERASOLUNA Batch Framework for Java (5.x) Development Guideline - version 5.3.0.RELEASE, 2020-6-30
+    TERASOLUNA Batch Framework for Java (5.x) Development Guideline - version 5.4.0.RELEASE, 2021-3-31, commit-id:96f569d
   </div>
   <div class="index">
     <a href="index.html">&gt; INDEX</a>
@@ -897,10 +897,10 @@ Webアプリケーションにより事前にリクエストに対する入力�
 <div class="title">ItemReadListener#onReadErrorの実装例</div>
 <div class="content">
 <pre class="CodeRay highlight"><code data-lang="java"><span class="annotation">@Component</span>
-<span class="directive">public</span> <span class="type">class</span> <span class="class">CommonItemReadListener</span> <span class="directive">implements</span> ItemReadListener&lt;<span class="predefined-type">Object</span>&gt; {
+<span class="directive">public</span> <span class="type">class</span> <span class="class">ChunkComponentListener</span> <span class="directive">implements</span> ItemReadListener&lt;<span class="predefined-type">Object</span>&gt; {
 
     <span class="directive">private</span> <span class="directive">static</span> <span class="directive">final</span> <span class="predefined-type">Logger</span> logger =
-            LoggerFactory.getLogger(CommonItemReadListener.class);
+            LoggerFactory.getLogger(ChunkComponentListener.class);
 
     <span class="comment">// omitted.</span>
 
@@ -1042,10 +1042,10 @@ ItemProcessorの処理内で例外発生時に実行される<code>onProcessErro
 <div class="title">ItemProcessListener#onProcessErrorの実装例</div>
 <div class="content">
 <pre class="CodeRay highlight"><code data-lang="java"><span class="annotation">@Component</span>
-<span class="directive">public</span> <span class="type">class</span> <span class="class">CommonItemProcessListener</span> <span class="directive">implements</span> ItemProcessListener&lt;<span class="predefined-type">Object</span>, <span class="predefined-type">Object</span>&gt; {
+<span class="directive">public</span> <span class="type">class</span> <span class="class">ChunkComponentListener</span> <span class="directive">implements</span> ItemProcessListener&lt;<span class="predefined-type">Object</span>, <span class="predefined-type">Object</span>&gt; {
 
     <span class="directive">private</span> <span class="directive">static</span> <span class="directive">final</span> <span class="predefined-type">Logger</span> logger =
-            LoggerFactory.getLogger(CommonItemProcessListener.class);
+            LoggerFactory.getLogger(ChunkComponentListener.class);
 
     <span class="comment">// omitted.</span>
 
@@ -1095,10 +1095,10 @@ ItemProcessorの処理内で例外発生時に実行される<code>onProcessErro
 <div class="title">ItemWriteListener#onWriteErrorの実装例</div>
 <div class="content">
 <pre class="CodeRay highlight"><code data-lang="java"><span class="annotation">@Component</span>
-<span class="directive">public</span> <span class="type">class</span> <span class="class">CommonItemWriteListener</span> <span class="directive">implements</span> ItemWriteListener&lt;<span class="predefined-type">Object</span>&gt; {
+<span class="directive">public</span> <span class="type">class</span> <span class="class">ChunkComponentListener</span> <span class="directive">implements</span> ItemWriteListener&lt;<span class="predefined-type">Object</span>&gt; {
 
     <span class="directive">private</span> <span class="directive">static</span> <span class="directive">final</span> <span class="predefined-type">Logger</span> logger =
-            LoggerFactory.getLogger(CommonItemWriteListener.class);
+            LoggerFactory.getLogger(ChunkComponentListener.class);
 
     <span class="comment">// omitted.</span>
 
@@ -2387,7 +2387,7 @@ TERASOLUNA Batch 5.xでは以下の理由により使用しない。</p>
 
   <div class="common-bg">
     <div class="information">
-      TERASOLUNA Batch Framework for Java (5.x) Development Guideline - version 5.3.0.RELEASE, 2020-6-30
+      TERASOLUNA Batch Framework for Java (5.x) Development Guideline - version 5.4.0.RELEASE, 2021-3-31, commit-id:96f569d
     </div>
     <div class="index">
       <a href="index.html">&gt; INDEX</a>

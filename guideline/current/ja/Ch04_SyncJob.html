@@ -14,7 +14,7 @@
 
 <div class="common-bg">
   <div class="information">
-    TERASOLUNA Batch Framework for Java (5.x) Development Guideline - version 5.3.0.RELEASE, 2020-6-30
+    TERASOLUNA Batch Framework for Java (5.x) Development Guideline - version 5.4.0.RELEASE, 2021-3-31, commit-id:96f569d
   </div>
   <div class="index">
     <a href="index.html">&gt; INDEX</a>
@@ -36,7 +36,11 @@
 <div id="toc" class="toc2">
 <div id="toctitle">Table of Contents</div>
 <ul class="sectlevel1">
-<li><a href="#Ch04_SyncJob_Overview">Overview</a></li>
+<li><a href="#Ch04_SyncJob_Overview">Overview</a>
+<ul class="sectlevel4">
+<li><a href="#Ch04_SyncJob_Overview_AboutSync_Function_Premise">利用前提</a></li>
+</ul>
+</li>
 <li><a href="#Ch04_SyncJob_HowToUse">How to use</a>
 <ul class="sectlevel2">
 <li><a href="#Ch04_SyncJob_HowToUse_Run">実行方法</a></li>
@@ -68,6 +72,14 @@
 </div>
 <div class="paragraph">
 <p>本機能は、チャンクモデルとタスクレットモデルとで同じ使い方になる。</p>
+</div>
+<div class="sect4">
+<h5 id="Ch04_SyncJob_Overview_AboutSync_Function_Premise"><a class="anchor" href="#Ch04_SyncJob_Overview_AboutSync_Function_Premise"></a>利用前提</h5>
+<div class="paragraph">
+<p>ジョブの実行結果を呼び出しもとに返却するため、<code>JobRepository</code>を前提とした再処理(<a href="Ch06_ReProcessing.html#Ch06_RerunRestart">処理の再実行</a>を参照)を
+利用しない限り<code>JobRepository</code>によるジョブの実行状況および結果の参照は必須ではない。
+そのため、<code>JobRepository</code>に永続化が不要なインメモリデータベースをデフォルトで使用することを前提とする。</p>
+</div>
 </div>
 </div>
 </div>
@@ -278,7 +290,7 @@ TERASOLUNA Batch 5.xでは、このオプションを活用するシーンがな
 
   <div class="common-bg">
     <div class="information">
-      TERASOLUNA Batch Framework for Java (5.x) Development Guideline - version 5.3.0.RELEASE, 2020-6-30
+      TERASOLUNA Batch Framework for Java (5.x) Development Guideline - version 5.4.0.RELEASE, 2021-3-31, commit-id:96f569d
     </div>
     <div class="index">
       <a href="index.html">&gt; INDEX</a>

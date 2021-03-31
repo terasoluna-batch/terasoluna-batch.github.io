@@ -14,7 +14,7 @@
 
 <div class="common-bg">
   <div class="information">
-    TERASOLUNA Batch Framework for Java (5.x) Development Guideline - version 5.3.0.RELEASE, 2020-6-30
+    TERASOLUNA Batch Framework for Java (5.x) Development Guideline - version 5.4.0.RELEASE, 2021-3-31, commit-id:96f569d
   </div>
   <div class="index">
     <a href="index.html">&gt; INDEX</a>
@@ -111,7 +111,7 @@
 <pre class="CodeRay highlight"><code data-lang="console">C:\xxx&gt;mvn archetype:generate ^
   -DarchetypeGroupId=org.terasoluna.batch ^
   -DarchetypeArtifactId=terasoluna-batch-archetype ^
-  -DarchetypeVersion=5.3.0.RELEASE</code></pre>
+  -DarchetypeVersion=5.4.0.RELEASE</code></pre>
 </div>
 </div>
 <div class="paragraph">
@@ -157,7 +157,7 @@
 <pre class="CodeRay highlight"><code data-lang="console">C:\xxx&gt;mvn archetype:generate ^
 More?   -DarchetypeGroupId=org.terasoluna.batch ^
 More?   -DarchetypeArtifactId=terasoluna-batch-archetype ^
-More?   -DarchetypeVersion=5.3.0.RELEASE
+More?   -DarchetypeVersion=5.4.0.RELEASE
 [INFO] Scanning for projects&#8230;&#8203;
 [INFO]
 [INFO] ------------------------------------------------------------------------
@@ -177,7 +177,7 @@ version: 1.0.0-SNAPSHOT
 package: org.terasoluna.batch.tutorial
  Y: : y
 [INFO] ----------------------------------------------------------------------------
-[INFO] Using following parameters for creating project from Archetype: terasoluna-batch-archetype:5.3.0.RELEASE
+[INFO] Using following parameters for creating project from Archetype: terasoluna-batch-archetype:5.4.0.RELEASE
 [INFO] ----------------------------------------------------------------------------
 [INFO] Parameter: groupId, Value: org.terasoluna.batch
 [INFO] Parameter: artifactId, Value: terasoluna-batch-tutorial
@@ -820,16 +820,16 @@ DBeaverでデータベースへ接続するまでの手順は以下のとおり�
 <div class="olist arabic">
 <ol class="arabic" start="4">
 <li>
-<p>[Edit Driver Settings]を押下し、[ドライバーの編集H2 Embedded']ウインドウを開く。</p>
+<p>[ドライバの設定を編集]を押下し、[ドライバーの編集H2 Embedded']ウインドウを開く。</p>
 </li>
 <li>
 <p>[URLテンプレート]フォームに<code>jdbc:h2:~/batch-admin;AUTO_SERVER=TRUE</code>を入力する。</p>
 </li>
 <li>
-<p>[Allow Empty Password]にチェックする。</p>
+<p>[空のパスワードを許可する]にチェックする。</p>
 </li>
 <li>
-<p>[ファイルの追加]から<code>C:\xxx\macchinetta-batch-tutorial\lib\h2-1.4.200.jar</code>を選択し、[開く]を押下する。</p>
+<p>[ライブラリ]タブを開き、[ファイルの追加]から<code>C:\xxx\terasoluna-batch-tutorial\lib\h2-1.4.200.jar</code>を選択し、[開く]を押下する。</p>
 </li>
 <li>
 <p>[クラスを見つける]を押下し、[ドライバクラス]で[org.h2.Driver]を選択する。</p>
@@ -841,6 +841,12 @@ DBeaverでデータベースへ接続するまでの手順は以下のとおり�
 <img src="./images/ch09/EnvironmentConstruction/Ch09_EnvironmentConstruction_DBeaver_Edit_Driver.png" alt="Edit Driver">
 </div>
 <div class="title">図 9. Edit Driver</div>
+</div>
+<div class="imageblock">
+<div class="content">
+<img src="./images/ch09/EnvironmentConstruction/Ch09_EnvironmentConstruction_DBeaver_Edit_Lib.png" alt="Edit Library">
+</div>
+<div class="title">図 10. Edit Library</div>
 </div>
 <div class="admonitionblock note">
 <table>
@@ -867,7 +873,7 @@ DBeaverでデータベースへ接続するまでの手順は以下のとおり�
 <div class="olist arabic">
 <ol class="arabic" start="9">
 <li>
-<p>下表のとおりフォームに値を入力し、[Save password locally]のチェックをはずす。</p>
+<p>下表のとおりフォームに値を入力し、[パスワードをローカルに保存]のチェックをはずす。</p>
 </li>
 </ol>
 </div>
@@ -898,7 +904,7 @@ DBeaverでデータベースへ接続するまでの手順は以下のとおり�
 <div class="content">
 <img src="./images/ch09/EnvironmentConstruction/Ch09_EnvironmentConstruction_DBeaver_Setting_Connection.png" alt="Setting Connection">
 </div>
-<div class="title">図 10. Setting Connection</div>
+<div class="title">図 11. Setting Connection</div>
 </div>
 <div class="olist arabic">
 <ol class="arabic" start="10">
@@ -926,7 +932,7 @@ DBeaverでデータベースへ接続するまでの手順は以下のとおり�
 <div class="content">
 <img src="./images/ch09/EnvironmentConstruction/Ch09_EnvironmentConstruction_DBeaver_Download_Driver.png" alt="Download Driver">
 </div>
-<div class="title">図 11. Download Driver</div>
+<div class="title">図 12. Download Driver</div>
 </div>
 </td>
 </tr>
@@ -943,7 +949,7 @@ DBeaverでデータベースへ接続するまでの手順は以下のとおり�
 <div class="content">
 <img src="./images/ch09/EnvironmentConstruction/Ch09_EnvironmentConstruction_DBeaver_Connection_Test.png" alt="Connection Test">
 </div>
-<div class="title">図 12. Connection Test</div>
+<div class="title">図 13. Connection Test</div>
 </div>
 <div class="paragraph">
 <p>以上でSTSからデータベースを参照する準備が完了した。</p>
@@ -1044,7 +1050,7 @@ DBeaverでデータベースへ接続するまでの手順は以下のとおり�
 <div class="content">
 <img src="./images/ch09/EnvironmentConstruction/Ch09_EnvironmentConstruction_OperationCheck_ExecJob_RunConf_Main.png" alt="Run Configurations Main tab">
 </div>
-<div class="title">図 13. Run Configurations Main tab</div>
+<div class="title">図 14. Run Configurations Main tab</div>
 </div>
 <div class="olist arabic">
 <ol class="arabic" start="3">
@@ -1076,7 +1082,7 @@ DBeaverでデータベースへ接続するまでの手順は以下のとおり�
 <div class="content">
 <img src="./images/ch09/EnvironmentConstruction/Ch09_EnvironmentConstruction_OperationCheck_ExecJob_RunConf_Arg.png" alt="Run Configurations Arguments tab">
 </div>
-<div class="title">図 14. Run Configurations Arguments tab</div>
+<div class="title">図 15. Run Configurations Arguments tab</div>
 </div>
 <div class="olist arabic">
 <ol class="arabic" start="4">
@@ -1143,7 +1149,7 @@ Run Configurationに設定するパラメータは、実行するジョブによ
 <div class="content">
 <img src="./images/ch09/EnvironmentConstruction/Ch09_EnvironmentConstruction_OperationCheck_ExecJob_Run_Job01.png" alt="Run Job01">
 </div>
-<div class="title">図 15. Run Job01</div>
+<div class="title">図 16. Run Job01</div>
 </div>
 <div class="olist arabic">
 <ol class="arabic" start="3">
@@ -1163,7 +1169,7 @@ Run Configurationに設定するパラメータは、実行するジョブによ
 <div class="content">
 <img src="./images/ch09/EnvironmentConstruction/Ch09_EnvironmentConstruction_OperationCheck_ExecJob_Run_Job01Console.png" alt="Run Job01 console">
 </div>
-<div class="title">図 16. Run Job01 console</div>
+<div class="title">図 17. Run Job01 console</div>
 </div>
 <div class="olist arabic">
 <ol class="arabic" start="4">
@@ -1176,7 +1182,7 @@ Run Configurationに設定するパラメータは、実行するジョブによ
 <div class="content">
 <img src="./images/ch09/EnvironmentConstruction/Ch09_EnvironmentConstruction_OperationCheck_ExecJob_Run_ShowView.png" alt="Show View">
 </div>
-<div class="title">図 17. Show View</div>
+<div class="title">図 18. Show View</div>
 </div>
 <div class="olist arabic">
 <ol class="arabic" start="5">
@@ -1190,7 +1196,7 @@ Run Configurationに設定するパラメータは、実行するジョブによ
 <div class="content">
 <img src="./images/ch09/EnvironmentConstruction/Ch09_EnvironmentConstruction_OperationCheck_ExecJob_Run_DebugView.png" alt="Debug View">
 </div>
-<div class="title">図 18. Debug View</div>
+<div class="title">図 19. Debug View</div>
 </div>
 <div class="admonitionblock tip">
 <table>
@@ -1226,7 +1232,7 @@ STSのメニューから、[project] &#8594; [clean]を選択する。</p>
 <div class="content">
 <img src="./images/ch09/EnvironmentConstruction/Ch09_EnvironmentConstruction_OperationCheck_RefDB_ShowView.png" alt="Show View">
 </div>
-<div class="title">図 19. Show View</div>
+<div class="title">図 20. Show View</div>
 </div>
 <div class="olist arabic">
 <ol class="arabic" start="2">
@@ -1240,7 +1246,7 @@ Spring Batchメタデータテーブル(詳細は<a href="Ch02_SpringBatchArchit
 <div class="content">
 <img src="./images/ch09/EnvironmentConstruction/Ch09_EnvironmentConstruction_OperationCheck_RefDB_Tables.png" alt="Show Tables">
 </div>
-<div class="title">図 20. Show Tables</div>
+<div class="title">図 21. Show Tables</div>
 </div>
 <div class="olist arabic">
 <ol class="arabic" start="3">
@@ -1254,7 +1260,7 @@ Spring Batchメタデータテーブル(詳細は<a href="Ch02_SpringBatchArchit
 <div class="content">
 <img src="./images/ch09/EnvironmentConstruction/Ch09_EnvironmentConstruction_OperationCheck_RefDB_BATCH_JOB_EXECUTION.png" alt="Show BATCH_JOB_EXECUTION">
 </div>
-<div class="title">図 21. Show BATCH_JOB_EXECUTION</div>
+<div class="title">図 22. Show BATCH_JOB_EXECUTION</div>
 </div>
 <div class="paragraph">
 <p><code>job01</code>という名前のジョブが実行されたことがわかる。</p>
@@ -1271,7 +1277,7 @@ Spring Batchメタデータテーブル(詳細は<a href="Ch02_SpringBatchArchit
 
   <div class="common-bg">
     <div class="information">
-      TERASOLUNA Batch Framework for Java (5.x) Development Guideline - version 5.3.0.RELEASE, 2020-6-30
+      TERASOLUNA Batch Framework for Java (5.x) Development Guideline - version 5.4.0.RELEASE, 2021-3-31, commit-id:96f569d
     </div>
     <div class="index">
       <a href="index.html">&gt; INDEX</a>
