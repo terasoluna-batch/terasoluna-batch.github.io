@@ -14,7 +14,7 @@
 
 <div class="common-bg">
   <div class="information">
-    TERASOLUNA Batch Framework for Java (5.x) Development Guideline - version 5.4.0.RELEASE, 2021-3-31, commit-id:8495fee
+    TERASOLUNA Batch Framework for Java (5.x) Development Guideline - version 5.4.1.RELEASE, 2022-3-31, commit-id:e9b4d93
   </div>
   <div class="index">
     <a href="index.html">&gt; INDEX</a>
@@ -171,7 +171,7 @@
 <pre class="CodeRay highlight"><code data-lang="console">C:\xxx&gt;mvn archetype:generate ^
   -DarchetypeGroupId=org.terasoluna.batch ^
   -DarchetypeArtifactId=terasoluna-batch-archetype ^
-  -DarchetypeVersion=5.4.0.RELEASE</code></pre>
+  -DarchetypeVersion=5.4.1.RELEASE</code></pre>
 </div>
 </div>
 <div class="listingblock">
@@ -180,7 +180,7 @@
 <pre class="CodeRay highlight"><code data-lang="console">$ mvn archetype:generate \
   -DarchetypeGroupId=org.terasoluna.batch \
   -DarchetypeArtifactId=terasoluna-batch-archetype \
-  -DarchetypeVersion=5.4.0.RELEASE</code></pre>
+  -DarchetypeVersion=5.4.1.RELEASE</code></pre>
 </div>
 </div>
 <div class="paragraph">
@@ -242,7 +242,7 @@
 <pre class="CodeRay highlight"><code data-lang="console">C:\xxx&gt;mvn archetype:generate ^
 More? -DarchetypeGroupId=org.terasoluna.batch ^
 More? -DarchetypeArtifactId=terasoluna-batch-archetype ^
-More? -DarchetypeVersion=5.4.0.RELEASE
+More? -DarchetypeVersion=5.4.1.RELEASE
 [INFO] Scanning for projects&#8230;&#8203;
 [INFO]
 [INFO] ------------------------------------------------------------------------
@@ -262,7 +262,7 @@ version: 1.0.0-SNAPSHOT
 package: com.example.batch
  Y: : y
 [INFO] ------------------------------------------------------------------------
-[INFO] Using following parameters for creating project from Archetype: terasolua-batch-archetype:5.4.0.RELEASE
+[INFO] Using following parameters for creating project from Archetype: terasolua-batch-archetype:5.4.1.RELEASE
 [INFO] ------------------------------------------------------------------------
 [INFO] Parameter: groupId, Value: com.example.batch
 [INFO] Parameter: artifactId, Value: batch
@@ -289,7 +289,7 @@ package: com.example.batch
 <pre class="CodeRay highlight"><code data-lang="console">$ mvn archetype:generate \
 &gt; -DarchetypeGroupId=org.terasoluna.batch \
 &gt; -DarchetypeArtifactId=terasoluna-batch-archetype \
-&gt; -DarchetypeVersion=5.4.0.RELEASE
+&gt; -DarchetypeVersion=5.4.1.RELEASE
 [INFO] Scanning for projects&#8230;&#8203;
 [INFO]
 [INFO] ------------------------------------------------------------------------
@@ -309,7 +309,7 @@ version: 1.0.0-SNAPSHOT
 package: com.example.batch
  Y: : y
 [INFO] ----------------------------------------------------------------------------
-[INFO] Using following parameters for creating project from Archetype: terasoluna-batch-archetype:5.4.0.RELEASE
+[INFO] Using following parameters for creating project from Archetype: terasoluna-batch-archetype:5.4.1.RELEASE
 [INFO] ----------------------------------------------------------------------------
 [INFO] Parameter: groupId, Value: com.example.batch
 [INFO] Parameter: artifactId, Value: batch
@@ -891,45 +891,34 @@ Spring Batchは<strong>JobRepository</strong>にアクセスするため、デ�
 <div class="listingblock">
 <div class="title">環境ごとに設定ファイルを切替えるpom.xmlの記述例</div>
 <div class="content">
-<pre class="CodeRay highlight"><code data-lang="xml"><span class="tag">&lt;build&gt;</span>
-    <span class="tag">&lt;resources&gt;</span>
-        <span class="tag">&lt;resource&gt;</span>
-            <span class="tag">&lt;directory&gt;</span>src/main/resources<span class="tag">&lt;/directory&gt;</span>
-        <span class="tag">&lt;/resource&gt;</span>
-        <span class="tag">&lt;resource&gt;</span>
-            <span class="tag">&lt;directory&gt;</span>${project.root.basedir}/${project.config.resource.directory.rdbms}<span class="tag">&lt;/directory&gt;</span>
-        <span class="tag">&lt;/resource&gt;</span>
-    <span class="tag">&lt;/resources&gt;</span>
-<span class="tag">&lt;/build&gt;</span>
+<pre class="CodeRay highlight"><code data-lang="xml"><span class="tag">&lt;dependencies&gt;</span>
+    <span class="comment">&lt;!-- omitted --&gt;</span>
+    <span class="tag">&lt;dependency&gt;</span>
+        <span class="tag">&lt;groupId&gt;</span>${jdbc.driver.groupId}<span class="tag">&lt;/groupId&gt;</span>
+        <span class="tag">&lt;artifactId&gt;</span>${jdbc.driver.artifactId}<span class="tag">&lt;/artifactId&gt;</span>
+        <span class="tag">&lt;scope&gt;</span>runtime<span class="tag">&lt;/scope&gt;</span>
+    <span class="tag">&lt;/dependency&gt;</span>
+<span class="tag">&lt;/dependencies&gt;</span>
+
+<span class="comment">&lt;!-- omitted --&gt;</span>
 
 <span class="tag">&lt;profiles&gt;</span>
+    <span class="comment">&lt;!-- omitted --&gt;</span>
     <span class="tag">&lt;profile&gt;</span>
-        <span class="tag">&lt;id&gt;</span>postgresql9-local<span class="tag">&lt;/id&gt;</span>
-        <span class="tag">&lt;activation&gt;</span>
-            <span class="tag">&lt;activeByDefault&gt;</span>true<span class="tag">&lt;/activeByDefault&gt;</span>
-        <span class="tag">&lt;/activation&gt;</span>
-        <span class="tag">&lt;dependencies&gt;</span>
-            <span class="tag">&lt;dependency&gt;</span>
-                <span class="tag">&lt;groupId&gt;</span>org.postgresql<span class="tag">&lt;/groupId&gt;</span>
-                <span class="tag">&lt;artifactId&gt;</span>postgresql<span class="tag">&lt;/artifactId&gt;</span>
-                <span class="tag">&lt;scope&gt;</span>runtime<span class="tag">&lt;/scope&gt;</span>
-            <span class="tag">&lt;/dependency&gt;</span>
-        <span class="tag">&lt;/dependencies&gt;</span>
+        <span class="tag">&lt;id&gt;</span>postgresql12-local<span class="tag">&lt;/id&gt;</span>
         <span class="tag">&lt;properties&gt;</span>
-            <span class="tag">&lt;project.config.resource.directory.rdbms&gt;</span>config/rdbms/postgresql9/local<span class="tag">&lt;/project.config.resource.directory.rdbms&gt;</span>
+            <span class="tag">&lt;jdbc.driver.groupId&gt;</span>org.postgresql<span class="tag">&lt;/jdbc.driver.groupId&gt;</span>
+            <span class="tag">&lt;jdbc.driver.artifactId&gt;</span>postgresql<span class="tag">&lt;/jdbc.driver.artifactId&gt;</span>
+            <span class="comment">&lt;!-- omitted --&gt;</span>
         <span class="tag">&lt;/properties&gt;</span>
     <span class="tag">&lt;/profile&gt;</span>
+    <span class="comment">&lt;!-- omitted --&gt;</span>
     <span class="tag">&lt;profile&gt;</span>
-        <span class="tag">&lt;id&gt;</span>postgresql9-it<span class="tag">&lt;/id&gt;</span>
-        <span class="tag">&lt;dependencies&gt;</span>
-            <span class="tag">&lt;dependency&gt;</span>
-                <span class="tag">&lt;groupId&gt;</span>org.postgresql<span class="tag">&lt;/groupId&gt;</span>
-                <span class="tag">&lt;artifactId&gt;</span>postgresql<span class="tag">&lt;/artifactId&gt;</span>
-                <span class="tag">&lt;scope&gt;</span>runtime<span class="tag">&lt;/scope&gt;</span>
-            <span class="tag">&lt;/dependency&gt;</span>
-        <span class="tag">&lt;/dependencies&gt;</span>
+        <span class="tag">&lt;id&gt;</span>oracle19c-local<span class="tag">&lt;/id&gt;</span>
         <span class="tag">&lt;properties&gt;</span>
-            <span class="tag">&lt;project.config.resource.directory.rdbms&gt;</span>config/rdbms/postgresql9/it<span class="tag">&lt;/project.config.resource.directory.rdbms&gt;</span>
+            <span class="tag">&lt;jdbc.driver.groupId&gt;</span>com.oracle.database.jdbc<span class="tag">&lt;/jdbc.driver.groupId&gt;</span>
+            <span class="tag">&lt;jdbc.driver.artifactId&gt;</span>ojdbc8<span class="tag">&lt;/jdbc.driver.artifactId&gt;</span>
+            <span class="comment">&lt;!-- omitted --&gt;</span>
         <span class="tag">&lt;/properties&gt;</span>
     <span class="tag">&lt;/profile&gt;</span>
 <span class="tag">&lt;/profiles&gt;</span></code></pre>
@@ -1059,7 +1048,7 @@ fi</code></pre>
 
   <div class="common-bg">
     <div class="information">
-      TERASOLUNA Batch Framework for Java (5.x) Development Guideline - version 5.4.0.RELEASE, 2021-3-31, commit-id:8495fee
+      TERASOLUNA Batch Framework for Java (5.x) Development Guideline - version 5.4.1.RELEASE, 2022-3-31, commit-id:e9b4d93
     </div>
     <div class="index">
       <a href="index.html">&gt; INDEX</a>

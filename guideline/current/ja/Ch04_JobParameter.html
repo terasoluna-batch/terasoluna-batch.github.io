@@ -14,7 +14,7 @@
 
 <div class="common-bg">
   <div class="information">
-    TERASOLUNA Batch Framework for Java (5.x) Development Guideline - version 5.4.0.RELEASE, 2021-3-31, commit-id:8495fee
+    TERASOLUNA Batch Framework for Java (5.x) Development Guideline - version 5.4.1.RELEASE, 2022-3-31, commit-id:e9b4d93
   </div>
   <div class="index">
     <a href="index.html">&gt; INDEX</a>
@@ -312,7 +312,7 @@ Spring Batchでは<code>ApplicationContext</code>のインスタンスを生成�
 </ul>
 </div>
 <div class="paragraph">
-<p>しかしTERASOLUNA Batch 5.xでは、以下二つの前提によってStepスコープの指定には<a href="https://docs.spring.io/spring-batch/docs/4.3.1/api/org/springframework/batch/core/configuration/annotation/StepScope.html"><code>@StepScope</code></a>ではなく、<code>scope="step"</code>か<code>@Scope("step")</code>を使用する。</p>
+<p>しかしTERASOLUNA Batch 5.xでは、以下二つの前提によってStepスコープの指定には<a href="https://docs.spring.io/spring-batch/docs/4.3.4/api/org/springframework/batch/core/configuration/annotation/StepScope.html"><code>@StepScope</code></a>ではなく、<code>scope="step"</code>か<code>@Scope("step")</code>を使用する。</p>
 </div>
 <div class="ulist">
 <ul>
@@ -1006,7 +1006,7 @@ $ java org.springframework.batch.core.launch.support.CommandLineJobRunner \
 <p>Spring BatchのベースであるSpring Frameworkには、プロパティ管理の機能が備わっており、
 環境変数やプロパティファイルに設定した値を扱うことができる。
 詳細は、TERASOLUNA Server 5.x 開発ガイドラインの
-<a href="http://terasolunaorg.github.io/guideline/5.6.1.RELEASE/ja/ArchitectureInDetail/GeneralFuncDetail/PropertyManagement.html">プロパティ管理</a> を参照。</p>
+<a href="https://terasolunaorg.github.io/guideline/5.7.1.RELEASE/ja/ArchitectureInDetail/GeneralFuncDetail/PropertyManagement.html">プロパティ管理</a> を参照。</p>
 </div>
 <div class="paragraph">
 <p>プロパティとパラメータを組み合わせることで、大部分のジョブに共通的な設定をプロパティファイルに行ったうえで、一部をパラメータで上書きするといったことが可能になる。</p>
@@ -1222,7 +1222,7 @@ env1の値が設定されてほしいにも関わらず、param1にnullが設定
 
   <div class="common-bg">
     <div class="information">
-      TERASOLUNA Batch Framework for Java (5.x) Development Guideline - version 5.4.0.RELEASE, 2021-3-31, commit-id:8495fee
+      TERASOLUNA Batch Framework for Java (5.x) Development Guideline - version 5.4.1.RELEASE, 2022-3-31, commit-id:e9b4d93
     </div>
     <div class="index">
       <a href="index.html">&gt; INDEX</a>

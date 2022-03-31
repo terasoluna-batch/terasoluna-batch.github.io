@@ -14,7 +14,7 @@
 
 <div class="common-bg">
   <div class="information">
-    TERASOLUNA Batch Framework for Java (5.x) Development Guideline - version 5.4.0.RELEASE, 2021-3-31, commit-id:8495fee
+    TERASOLUNA Batch Framework for Java (5.x) Development Guideline - version 5.4.1.RELEASE, 2022-3-31, commit-id:e9b4d93
   </div>
   <div class="index">
     <a href="index.html">&gt; INDEX</a>
@@ -51,6 +51,78 @@
 </tr>
 </thead>
 <tbody>
+<tr>
+<td class="tableblock halign-left valign-top"><p class="tableblock">2022-3-31</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">-</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">5.4.1 RELEASE 版公開</p></td>
+</tr>
+<tr>
+<td class="tableblock halign-left valign-top"></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">全般</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">記載内容の修正<br>
+・ガイドラインの誤記(タイプミスや単純な記述ミスなど)や表記揺れの修正<br>
+・HTTPS対応による外部リンクへのURLを修正 (管理ID#342)</p></td>
+</tr>
+<tr>
+<td class="tableblock halign-left valign-top"></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><a href="Ch02_TerasolunaBatchStack.html#Ch02_TerasolunaBatchStack">TERASOLUNA Batch Framework for Java (5.x)のスタック</a></p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">記載内容の修正<br>
+・利用するOSSのバージョン一覧をSpring Boot Dependencies 2.6.1.RELEASEに準じて更新 (管理ID#330)<br>
+記載内容の追加<br>
+・ <a href="https://cve.mitre.org/cgi-bin/cvename.cgi?name=CVE-2021-42550/">CVE-2021-42550</a>に関する説明及び注意点を追加 (管理ID#339)</p></td>
+</tr>
+<tr>
+<td class="tableblock halign-left valign-top"></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><a href="Ch03_CreateProject.html#Ch03_CreateProject">バッチアプリケーションの開発</a></p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">記載内容の修正<br>
+・Mavenプロファイルの修正に伴いpom.xmlの記述例を変更 (管理ID#293)</p></td>
+</tr>
+<tr>
+<td class="tableblock halign-left valign-top"></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><a href="Ch03_CreateTaskletJob.html#Ch03_CreateTaskletJob">タスクレットモデルジョブの作成</a></p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">記載内容の修正<br>
+・一部のBean定義例のコンポーネントスキャン範囲の誤りを修正 (管理ID#261)</p></td>
+</tr>
+<tr>
+<td class="tableblock halign-left valign-top"></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><a href="Ch05_DBAccess.html#Ch05_DBAccess">データベースアクセス</a></p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">記載内容の修正<br>
+・MyBatisBatchItemWriterをチャンクモデルで利用する実装例と説明を修正 (管理ID#281)<br>
+・MyBatisCursorItemReaderで利用されるMapperインタフェースのメソッドの戻り値を修正 (管理ID#257)<br>
+・「出力」の目次において「Mapperインタフェースのチャンクモデルでの利用方法」へのリンクを削除し、説明を修正 (管理ID#340)</p></td>
+</tr>
+<tr>
+<td class="tableblock halign-left valign-top"></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><a href="Ch05_FileAccess.html#Ch05_FileAccess">ファイルアクセス</a></p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">記載内容の追加<br>
+・入力ファイル読み込みの設定例にXML関連ライブラリの依存定義を追加 (管理ID#229)<br>
+・出力ファイル書き出しの設定例にXML関連ライブラリの依存定義を追加 (管理ID#229)</p></td>
+</tr>
+<tr>
+<td class="tableblock halign-left valign-top"></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><a href="Ch06_InputValidation.html#Ch06_InputValidation">入力チェック</a></p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">記載内容の追加<br>
+・エラーメッセージの設定について、TERASOLUNA Server 5.xとの違いを追記(管理ID#317)</p></td>
+</tr>
+<tr>
+<td class="tableblock halign-left valign-top"></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><a href="Ch07_JobManagement.html#Ch07_JobManagement">ジョブの管理</a></p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">記載内容の修正<br>
+・終了コードのマッピング定義の誤りと不適切な実装例を修正 (管理ID#277,管理ID#343)</p></td>
+</tr>
+<tr>
+<td class="tableblock halign-left valign-top"></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><a href="Ch08_ParallelAndMultiple.html#Ch08_ParallelAndMultiple">並列処理と多重処理</a></p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">記載内容の削除<br>
+・Multi Thread Stepの非推奨事項の説明における不要な記載を削除 (管理ID#58)</p></td>
+</tr>
+<tr>
+<td class="tableblock halign-left valign-top"></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><a href="#Ch09">チュートリアル</a></p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">記載内容の修正<br>
+・検証環境のバージョンを更新 (管理ID#350)<br>
+・DBeaverのインストールおよびデータベース接続設定の手順を修正 (管理ID#349)</p></td>
+</tr>
 <tr>
 <td class="tableblock halign-left valign-top"><p class="tableblock">2021-3-31</p></td>
 <td class="tableblock halign-left valign-top"><p class="tableblock">-</p></td>
@@ -573,7 +645,7 @@
 
   <div class="common-bg">
     <div class="information">
-      TERASOLUNA Batch Framework for Java (5.x) Development Guideline - version 5.4.0.RELEASE, 2021-3-31, commit-id:8495fee
+      TERASOLUNA Batch Framework for Java (5.x) Development Guideline - version 5.4.1.RELEASE, 2022-3-31, commit-id:e9b4d93
     </div>
     <div class="index">
       <a href="index.html">&gt; INDEX</a>
