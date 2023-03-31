@@ -14,12 +14,20 @@
 
 <div class="common-bg">
   <div class="information">
-    TERASOLUNA Batch Framework for Java (5.x) Development Guideline - version 5.4.1.RELEASE, 2022-3-31, commit-id:e9b4d93
+    TERASOLUNA Batch Framework for Java (5.x) Development Guideline - version 5.5.0.RELEASE, 2023-3-31, commit-id:f6da76a
   </div>
   <div class="index">
     <a href="index.html">&gt; INDEX</a>
   </div>
 </div>
+
+<!-- Google tag (gtag.js) -->
+<script async src="https://www.googletagmanager.com/gtag/js?id=G-8VC2LCPQFM"></script>
+<script>
+  window.dataLayer = window.dataLayer || [];
+  function gtag(){dataLayer.push(arguments);}
+  gtag('js', new Date());  gtag('config', 'G-8VC2LCPQFM');
+</script>
 
 <script>
   (function(i,s,o,g,r,a,m){i['GoogleAnalyticsObject']=r;i[r]=i[r]||function(){
@@ -761,7 +769,7 @@ POJOクラスはバッチ処理の終了した状態をメソッドの返り値�
 </div>
 <div class="paragraph">
 <p>なお、Spring Batchのリファレンス
-<a href="https://docs.spring.io/spring-batch/docs/4.3.4/reference/html/schema-appendix.html">Appendix B. Meta-Data Schema</a>
+<a href="https://docs.spring.io/spring-batch/docs/5.0.0/reference/html/schema-appendix.html">Appendix B. Meta-Data Schema</a>
 にて説明されている内容も含めて、全体像を説明する。</p>
 </div>
 <div class="paragraph">
@@ -838,7 +846,7 @@ TERASOLUNA Batch 5.xでは、明示的に文字データ型を文字数定義に
 </table>
 </div>
 <div class="paragraph">
-<p>6つの全テーブルと相互関係のERDモデルはを以下に示す。</p>
+<p>6つの全テーブルと相互関係のERDモデルを以下に示す。</p>
 </div>
 <div class="imageblock">
 <div class="content">
@@ -1004,28 +1012,16 @@ JobRepositoryが値の更新時に、バージョン番号が変更されてい�
 <td class="tableblock halign-left valign-top"><p class="tableblock">このジョブパラメータが属するジョブ実行を示すBATCH_JOB_EXECUTIONテーブルからの外部キー。</p></td>
 </tr>
 <tr>
-<td class="tableblock halign-left valign-top"><p class="tableblock">TYPE_CD</p></td>
-<td class="tableblock halign-left valign-top"><p class="tableblock">String、date、long、またはdoubleのいずれかのデータ型であることを示す文字列。</p></td>
-</tr>
-<tr>
-<td class="tableblock halign-left valign-top"><p class="tableblock">KEY_NAME</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">PARAMETER_NAME</p></td>
 <td class="tableblock halign-left valign-top"><p class="tableblock">パラメータキー。</p></td>
 </tr>
 <tr>
-<td class="tableblock halign-left valign-top"><p class="tableblock">STRING_VAL</p></td>
-<td class="tableblock halign-left valign-top"><p class="tableblock">データ型が文字列である場合のパラメータ値。</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">PARAMETER_TYPE</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">データ型を示す文字列。</p></td>
 </tr>
 <tr>
-<td class="tableblock halign-left valign-top"><p class="tableblock">DATE_VAL</p></td>
-<td class="tableblock halign-left valign-top"><p class="tableblock">データ型が日時である場合のパラメータ値。</p></td>
-</tr>
-<tr>
-<td class="tableblock halign-left valign-top"><p class="tableblock">LONG_VAL</p></td>
-<td class="tableblock halign-left valign-top"><p class="tableblock">データ型が整数値である場合のパラメータ値。</p></td>
-</tr>
-<tr>
-<td class="tableblock halign-left valign-top"><p class="tableblock">DOUBLE_VAL</p></td>
-<td class="tableblock halign-left valign-top"><p class="tableblock">データ型が実数である場合のパラメータ値。</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">PARAMETER_VALUE</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">パラメータ値を示す文字列。</p></td>
 </tr>
 <tr>
 <td class="tableblock halign-left valign-top"><p class="tableblock">IDENTIFYING</p></td>
@@ -1256,7 +1252,7 @@ JobRepositoryが値の更新時に、バージョン番号が変更されてい�
 
   <div class="common-bg">
     <div class="information">
-      TERASOLUNA Batch Framework for Java (5.x) Development Guideline - version 5.4.1.RELEASE, 2022-3-31, commit-id:e9b4d93
+      TERASOLUNA Batch Framework for Java (5.x) Development Guideline - version 5.5.0.RELEASE, 2023-3-31, commit-id:f6da76a
     </div>
     <div class="index">
       <a href="index.html">&gt; INDEX</a>

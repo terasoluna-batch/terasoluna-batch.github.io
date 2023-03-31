@@ -14,12 +14,20 @@
 
 <div class="common-bg">
   <div class="information">
-    TERASOLUNA Batch Framework for Java (5.x) Development Guideline - version 5.4.1.RELEASE, 2022-3-31, commit-id:e9b4d93
+    TERASOLUNA Batch Framework for Java (5.x) Development Guideline - version 5.5.0.RELEASE, 2023-3-31, commit-id:f6da76a
   </div>
   <div class="index">
     <a href="index.html">&gt; INDEX</a>
   </div>
 </div>
+
+<!-- Google tag (gtag.js) -->
+<script async src="https://www.googletagmanager.com/gtag/js?id=G-8VC2LCPQFM"></script>
+<script>
+  window.dataLayer = window.dataLayer || [];
+  function gtag(){dataLayer.push(arguments);}
+  gtag('js', new Date());  gtag('config', 'G-8VC2LCPQFM');
+</script>
 
 <script>
   (function(i,s,o,g,r,a,m){i['GoogleAnalyticsObject']=r;i[r]=i[r]||function(){
@@ -120,7 +128,7 @@
 </div>
 <div class="paragraph">
 <div class="title">パラメータ変換クラスの実装クラスについて</div>
-<p>前述した<code>JobParametersConverter</code>の実装クラスは複数提供されている。
+<p>TERASOLUNA Batch 5.xでは、前述した<code>JobParametersConverter</code>の実装クラスを複数提供する。
 以下にそれぞれの特徴を示す。</p>
 </div>
 <div class="ulist">
@@ -130,15 +138,21 @@
 <div class="ulist">
 <ul>
 <li>
-<p>パラメータのデータ型を指定することができる(String、Long、Date、Doubleの4種類)。</p>
+<p>Spring Batchが提供する。</p>
+</li>
+<li>
+<p>パラメータのデータ型は <code>java.io.Serializable</code> を実装した任意のJavaBeansを指定できる。</p>
 </li>
 </ul>
 </div>
 </li>
 <li>
-<p>JsrJobParametersConverter</p>
+<p>JobParametersConverterImpl</p>
 <div class="ulist">
 <ul>
+<li>
+<p>TERASOLUNA Batch 5.xが提供する。もともとSpring Batchで提供していたJsrJobParametersConverterを、JSR-352の廃止に伴いTERASOLUNA Batch 5.xへと移植したもの。</p>
+</li>
 <li>
 <p>パラメータのデータ型を指定することができない(Stringのみ)。</p>
 </li>
@@ -180,19 +194,49 @@
 </ul>
 </div>
 <div class="paragraph">
-<p>TERASOLUNA Batch 5.xでは、<code>JsrJobParametersConverter</code>を利用することで、ユーザが意識することなく自動的にRUN_IDを付与している。
+<p>TERASOLUNA Batch 5.xでは、<code>JobParametersConverterImpl</code>を利用することで、ユーザが意識することなく自動的にRUN_IDを付与している。
 この仕組みにより、ユーザから見ると同一ジョブをSpring Batchとしては異なるジョブとして扱っている。</p>
 </div>
 <div class="paragraph">
 <div class="title">パラメータ変換クラスの設定について</div>
-<p>ブランクプロジェクトでは、あらかじめ<code>launch-context.xml</code>にて<code>JsrJobParametersConverter</code>を使用するように設定している。<br>
+<p>ブランクプロジェクトでは、あらかじめ<code>LaunchContextConfig.java/launch-context.xml</code>にて<code>JobParametersConverterImpl</code>を使用するように設定している。<br>
 そのためTERASOLUNA Batch 5.xを推奨設定で使用する場合は<code>JobParametersConverter</code>の設定を行う必要はない。</p>
 </div>
+<div class="tabbox">
+  <input type="radio" name="tabgroup040201" class="JavaConfigTab" id="tabgroup040201_1" checked><label for="tabgroup040201_1" class="tab">JavaConfig</label>
+  <input type="radio" name="tabgroup040201" class="XMLConfigTab" id="tabgroup040201_2"><label for="tabgroup040201_2" class="tab">XMLConfig</label>
+  <div class="tabcontent" name="JavaConfigContent">
+<div class="listingblock">
+<div class="title">com.example.batch.config.LaunchContextConfig.java</div>
+<div class="content">
+<pre class="CodeRay highlight"><code data-lang="java"><span class="annotation">@Bean</span>
+<span class="directive">public</span> JobParametersConverter jobParametersConverter(<span class="annotation">@Qualifier</span>(<span class="string"><span class="delimiter">&quot;</span><span class="content">adminDataSource</span><span class="delimiter">&quot;</span></span>) <span class="predefined-type">DataSource</span> adminDataSource) {
+    <span class="keyword">return</span> <span class="keyword">new</span> JobParametersConverterImpl(adminDataSource);
+}
+
+<span class="annotation">@Bean</span>
+<span class="directive">public</span> JobOperator jobOperator(<span class="annotation">@Qualifier</span>(<span class="string"><span class="delimiter">&quot;</span><span class="content">jobRepository</span><span class="delimiter">&quot;</span></span>) JobRepository jobRepository,
+                               <span class="annotation">@Qualifier</span>(<span class="string"><span class="delimiter">&quot;</span><span class="content">jobRegistry</span><span class="delimiter">&quot;</span></span>) JobRegistry jobRegistry,
+                               <span class="annotation">@Qualifier</span>(<span class="string"><span class="delimiter">&quot;</span><span class="content">jobExplorer</span><span class="delimiter">&quot;</span></span>) JobExplorer jobExplorer,
+                               <span class="annotation">@Qualifier</span>(<span class="string"><span class="delimiter">&quot;</span><span class="content">jobParametersConverter</span><span class="delimiter">&quot;</span></span>) JobParametersConverter jobParametersConverter,
+                               <span class="annotation">@Qualifier</span>(<span class="string"><span class="delimiter">&quot;</span><span class="content">jobLauncher</span><span class="delimiter">&quot;</span></span>) JobLauncher jobLauncher) {
+    <span class="directive">final</span> SimpleJobOperator simpleJobOperator = <span class="keyword">new</span> SimpleJobOperator();
+    simpleJobOperator.setJobRepository(jobRepository);
+    simpleJobOperator.setJobRegistry(jobRegistry);
+    simpleJobOperator.setJobExplorer(jobExplorer);
+    simpleJobOperator.setJobParametersConverter(jobParametersConverter);
+    simpleJobOperator.setJobLauncher(jobLauncher);
+    <span class="keyword">return</span> simpleJobOperator;
+}</code></pre>
+</div>
+</div>
+  </div>
+  <div class="tabcontent" name="XMLConfigContent">
 <div class="listingblock">
 <div class="title">META-INF\spring\launch-context.xml</div>
 <div class="content">
 <pre class="CodeRay highlight"><code data-lang="xml"><span class="tag">&lt;bean</span> <span class="attribute-name">id</span>=<span class="string"><span class="delimiter">&quot;</span><span class="content">jobParametersConverter</span><span class="delimiter">&quot;</span></span>
-      <span class="attribute-name">class</span>=<span class="string"><span class="delimiter">&quot;</span><span class="content">org.springframework.batch.core.jsr.JsrJobParametersConverter</span><span class="delimiter">&quot;</span></span>
+      <span class="attribute-name">class</span>=<span class="string"><span class="delimiter">&quot;</span><span class="content">org.terasoluna.batch.converter.JobParametersConverterImpl</span><span class="delimiter">&quot;</span></span>
       <span class="attribute-name">c:dataSource-ref</span>=<span class="string"><span class="delimiter">&quot;</span><span class="content">adminDataSource</span><span class="delimiter">&quot;</span></span> <span class="tag">/&gt;</span>
 
 <span class="tag">&lt;bean</span> <span class="attribute-name">id</span>=<span class="string"><span class="delimiter">&quot;</span><span class="content">jobOperator</span><span class="delimiter">&quot;</span></span>
@@ -204,8 +248,10 @@
       <span class="attribute-name">p:jobLauncher-ref</span>=<span class="string"><span class="delimiter">&quot;</span><span class="content">jobLauncher</span><span class="delimiter">&quot;</span></span> <span class="tag">/&gt;</span></code></pre>
 </div>
 </div>
+  </div>
+</div>
 <div class="paragraph">
-<p>以降は<code>JsrJobParametersConverter</code>を利用する前提で説明する。</p>
+<p>以降は<code>JobParametersConverterImpl</code>を利用する前提で説明する。</p>
 </div>
 </div>
 <div class="sect2">
@@ -312,7 +358,7 @@ Spring Batchでは<code>ApplicationContext</code>のインスタンスを生成�
 </ul>
 </div>
 <div class="paragraph">
-<p>しかしTERASOLUNA Batch 5.xでは、以下二つの前提によってStepスコープの指定には<a href="https://docs.spring.io/spring-batch/docs/4.3.4/api/org/springframework/batch/core/configuration/annotation/StepScope.html"><code>@StepScope</code></a>ではなく、<code>scope="step"</code>か<code>@Scope("step")</code>を使用する。</p>
+<p>しかしTERASOLUNA Batch 5.xでは、以下二つの前提によってStepスコープの指定には<a href="https://docs.spring.io/spring-batch/docs/5.0.0/api/org/springframework/batch/core/configuration/annotation/StepScope.html"><code>@StepScope</code></a>ではなく、<code>scope="step"</code>か<code>@Scope("step")</code>を使用する。</p>
 </div>
 <div class="ulist">
 <ul>
@@ -719,7 +765,7 @@ TERASOLUNA Batch 5.xでは、<code>DefaultJobParametersValidator</code>を使用
 <td class="content">
 <div class="title">TERASOLUNA Batch 5.xでは省略できない必須パラメータ</div>
 <div class="paragraph">
-<p>TERASOLUNA Batch 5.xではパラメータ変換に<code>JsrJobParametersConverter</code>を採用しているため、以下のパラメータが常に設定される。</p>
+<p>TERASOLUNA Batch 5.xではパラメータ変換に<code>JobParametersConverterImpl</code>を採用しているため、以下のパラメータが常に設定される。</p>
 </div>
 <div class="ulist">
 <ul>
@@ -1222,7 +1268,7 @@ env1の値が設定されてほしいにも関わらず、param1にnullが設定
 
   <div class="common-bg">
     <div class="information">
-      TERASOLUNA Batch Framework for Java (5.x) Development Guideline - version 5.4.1.RELEASE, 2022-3-31, commit-id:e9b4d93
+      TERASOLUNA Batch Framework for Java (5.x) Development Guideline - version 5.5.0.RELEASE, 2023-3-31, commit-id:f6da76a
     </div>
     <div class="index">
       <a href="index.html">&gt; INDEX</a>

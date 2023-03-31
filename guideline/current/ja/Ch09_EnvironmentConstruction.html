@@ -14,12 +14,20 @@
 
 <div class="common-bg">
   <div class="information">
-    TERASOLUNA Batch Framework for Java (5.x) Development Guideline - version 5.4.1.RELEASE, 2022-3-31, commit-id:e9b4d93
+    TERASOLUNA Batch Framework for Java (5.x) Development Guideline - version 5.5.0.RELEASE, 2023-3-31, commit-id:f6da76a
   </div>
   <div class="index">
     <a href="index.html">&gt; INDEX</a>
   </div>
 </div>
+
+<!-- Google tag (gtag.js) -->
+<script async src="https://www.googletagmanager.com/gtag/js?id=G-8VC2LCPQFM"></script>
+<script>
+  window.dataLayer = window.dataLayer || [];
+  function gtag(){dataLayer.push(arguments);}
+  gtag('js', new Date());  gtag('config', 'G-8VC2LCPQFM');
+</script>
 
 <script>
   (function(i,s,o,g,r,a,m){i['GoogleAnalyticsObject']=r;i[r]=i[r]||function(){
@@ -56,10 +64,10 @@
 <li><a href="#Ch09_EnvironmentConstruction_InputDataPreparation_File">ファイルアクセスでデータ入出力を行うジョブの入力データ</a></li>
 </ul>
 </li>
-<li><a href="#Ch09_EnvironmentConstruction_DBeaver">STSからデータベースを参照する準備</a>
+<li><a href="#Ch09_EnvironmentConstruction_H2Console">データベースを参照する準備</a>
 <ul class="sectlevel2">
-<li><a href="#Ch09_EnvironmentConstruction_DBeaver_Install">DBeaverのインストール</a></li>
-<li><a href="#Ch09_EnvironmentConstruction_DBeaver_Connection_Config">DBeaverのデータベース接続設定</a></li>
+<li><a href="#Ch09_EnvironmentConstruction_H2Console_Install">H2のインストール</a></li>
+<li><a href="#Ch09_EnvironmentConstruction_H2Console_Connection_Config">H2 Consoleのデータベース接続設定</a></li>
 </ul>
 </li>
 <li><a href="#Ch09_EnvironmentConstruction_OperationCheck">プロジェクトの動作確認</a>
@@ -70,7 +78,7 @@
 <li><a href="#Ch09_EnvironmentConstruction_OperationCheck_ExecJob_Run">ジョブの実行と結果の確認</a></li>
 </ul>
 </li>
-<li><a href="#Ch09_EnvironmentConstruction_OperationCheck_RefDB">DBeaverを使用してデータベースを参照する</a></li>
+<li><a href="#Ch09_EnvironmentConstruction_OperationCheck_RefDB">H2 Consoleを使用してデータベースを参照する</a></li>
 </ul>
 </li>
 </ul>
@@ -105,14 +113,31 @@
 <div class="paragraph">
 <p>プロジェクトを作成するディレクトリにて、以下のコマンドを実行する。</p>
 </div>
+<div class="tabbox">
+  <input type="radio" name="tabgroup090301" class="JavaConfigTab" id="tabgroup090301_1" checked><label for="tabgroup090301_1" class="tab">JavaConfig</label>
+  <input type="radio" name="tabgroup090301" class="XMLConfigTab" id="tabgroup090301_2"><label for="tabgroup090301_2" class="tab">XMLConfig</label>
+  <div class="tabcontent" name="JavaConfigContent">
 <div class="listingblock">
 <div class="title">コマンドプロンプト(Windows)</div>
 <div class="content">
 <pre class="CodeRay highlight"><code data-lang="console">C:\xxx&gt;mvn archetype:generate ^
   -DarchetypeGroupId=org.terasoluna.batch ^
   -DarchetypeArtifactId=terasoluna-batch-archetype ^
-  -DarchetypeVersion=5.4.1.RELEASE</code></pre>
+  -DarchetypeVersion=5.5.0.RELEASE</code></pre>
 </div>
+</div>
+  </div>
+  <div class="tabcontent" name="XMLConfigContent">
+<div class="listingblock">
+<div class="title">コマンドプロンプト(Windows)</div>
+<div class="content">
+<pre class="CodeRay highlight"><code data-lang="console">C:\xxx&gt;mvn archetype:generate ^
+  -DarchetypeGroupId=org.terasoluna.batch ^
+  -DarchetypeArtifactId=terasoluna-batch-xmlconfig-archetype ^
+  -DarchetypeVersion=5.5.0.RELEASE</code></pre>
+</div>
+</div>
+  </div>
 </div>
 <div class="paragraph">
 <p>その後、以下を対話式に設定する。</p>
@@ -151,13 +176,17 @@
 <div class="paragraph">
 <p>以下のとおり、mvnコマンドに対して「BUILD SUCCESS」が表示されることを確認する。</p>
 </div>
+<div class="tabbox">
+  <input type="radio" name="tabgroup090302" class="JavaConfigTab" id="tabgroup090302_1" checked><label for="tabgroup090302_1" class="tab">JavaConfig</label>
+  <input type="radio" name="tabgroup090302" class="XMLConfigTab" id="tabgroup090302_2"><label for="tabgroup090302_2" class="tab">XMLConfig</label>
+  <div class="tabcontent" name="JavaConfigContent">
 <div class="listingblock">
 <div class="title">実行例</div>
 <div class="content">
 <pre class="CodeRay highlight"><code data-lang="console">C:\xxx&gt;mvn archetype:generate ^
 More?   -DarchetypeGroupId=org.terasoluna.batch ^
 More?   -DarchetypeArtifactId=terasoluna-batch-archetype ^
-More?   -DarchetypeVersion=5.4.1.RELEASE
+More?   -DarchetypeVersion=5.5.0.RELEASE
 [INFO] Scanning for projects&#8230;&#8203;
 [INFO]
 [INFO] ------------------------------------------------------------------------
@@ -177,7 +206,7 @@ version: 1.0.0-SNAPSHOT
 package: org.terasoluna.batch.tutorial
  Y: : y
 [INFO] ----------------------------------------------------------------------------
-[INFO] Using following parameters for creating project from Archetype: terasoluna-batch-archetype:5.4.1.RELEASE
+[INFO] Using following parameters for creating project from Archetype: terasoluna-batch-archetype:5.5.0.RELEASE
 [INFO] ----------------------------------------------------------------------------
 [INFO] Parameter: groupId, Value: org.terasoluna.batch
 [INFO] Parameter: artifactId, Value: terasoluna-batch-tutorial
@@ -197,6 +226,57 @@ package: org.terasoluna.batch.tutorial
 [INFO] Final Memory: 15M/57M
 [INFO] ------------------------------------------------------------------------</code></pre>
 </div>
+</div>
+  </div>
+  <div class="tabcontent" name="XMLConfigContent">
+<div class="listingblock">
+<div class="title">実行例</div>
+<div class="content">
+<pre class="CodeRay highlight"><code data-lang="console">C:\xxx&gt;mvn archetype:generate ^
+More?   -DarchetypeGroupId=org.terasoluna.batch ^
+More?   -DarchetypeArtifactId=terasoluna-batch-xmlcofig-archetype ^
+More?   -DarchetypeVersion=5.5.0.RELEASE
+[INFO] Scanning for projects&#8230;&#8203;
+[INFO]
+[INFO] ------------------------------------------------------------------------
+[INFO] Building Maven Stub Project (No POM) 1
+[INFO] ------------------------------------------------------------------------
+
+(.. omitted)
+
+Define value for property 'groupId': org.terasoluna.batch
+Define value for property 'artifactId': terasoluna-batch-tutorial
+Define value for property 'version' 1.0-SNAPSHOT: : 1.0.0-SNAPSHOT
+Define value for property 'package' org.terasoluna.batch: : org.terasoluna.batch.tutorial
+Confirm properties configuration:
+groupId: org.terasoluna.batch
+artifactId: terasoluna-batch-tutorial
+version: 1.0.0-SNAPSHOT
+package: org.terasoluna.batch.tutorial
+ Y: : y
+[INFO] ----------------------------------------------------------------------------
+[INFO] Using following parameters for creating project from Archetype: terasoluna-batch-archetype:5.5.0.RELEASE
+[INFO] ----------------------------------------------------------------------------
+[INFO] Parameter: groupId, Value: org.terasoluna.batch
+[INFO] Parameter: artifactId, Value: terasoluna-batch-tutorial
+[INFO] Parameter: version, Value: 1.0.0-SNAPSHOT
+[INFO] Parameter: package, Value: org.terasoluna.batch.tutorial
+[INFO] Parameter: packageInPathFormat, Value: org/terasoluna/batch/tutorial
+[INFO] Parameter: package, Value: org.terasoluna.batch.tutorial
+[INFO] Parameter: groupId, Value: org.terasoluna.batch
+[INFO] Parameter: artifactId, Value: terasoluna-batch-tutorial
+[INFO] Parameter: version, Value: 1.0.0-SNAPSHOT
+[INFO] Project created from Archetype in dir: C:\xxx\terasoluna-batch-tutorial
+[INFO] ------------------------------------------------------------------------
+[INFO] BUILD SUCCESS
+[INFO] ------------------------------------------------------------------------
+[INFO] Total time: 01:20 min
+[INFO] Finished at: 2020-03-26T16:33:34+09:00
+[INFO] Final Memory: 15M/57M
+[INFO] ------------------------------------------------------------------------</code></pre>
+</div>
+</div>
+  </div>
 </div>
 <div class="paragraph">
 <p>サンプルジョブを実行し、プロジェクトが正しく作成できたことを確認する。</p>
@@ -278,11 +358,25 @@ STSのメニューから、[File] &#8594; [Import] &#8594; [Maven] &#8594; [Exis
 <div class="paragraph">
 <p>インポートが完了すると、Package Explorerに次のようなプロジェクトが表示される。</p>
 </div>
+<div class="tabbox">
+  <input type="radio" name="tabgroup090303" class="JavaConfigTab" id="tabgroup090303_1" checked><label for="tabgroup090303_1" class="tab">JavaConfig</label>
+  <input type="radio" name="tabgroup090303" class="XMLConfigTab" id="tabgroup090303_2"><label for="tabgroup090303_2" class="tab">XMLConfig</label>
+  <div class="tabcontent" name="JavaConfigContent">
 <div class="imageblock">
 <div class="content">
 <img src="./images/ch09/EnvironmentConstruction/Ch09_EnvironmentConstruction_Import_PackageExplorer.png" alt="Package Explorer">
 </div>
 <div class="title">図 3. Package Explorer</div>
+</div>
+  </div>
+  <div class="tabcontent" name="XMLConfigContent">
+<div class="imageblock">
+<div class="content">
+<img src="./images/ch09/EnvironmentConstruction/Ch09_EnvironmentConstruction_Import_PackageExplorer_XMLConfig.png" alt="Package Explorer">
+</div>
+<div class="title">図 4. Package Explorer</div>
+</div>
+  </div>
 </div>
 <div class="admonitionblock note">
 <table>
@@ -539,7 +633,7 @@ jdbc.url=jdbc:h2:~/batch-admin;AUTO_SERVER=TRUE</code></pre>
 <div class="sect3">
 <h4 id="Ch09_EnvironmentConstruction_InputDataPreparation_DB_Setting"><a class="anchor" href="#Ch09_EnvironmentConstruction_InputDataPreparation_DB_Setting"></a>ジョブ実行時にスクリプトを自動実行する設定の追加</h4>
 <div class="paragraph">
-<p>ジョブ実行時(ApplicationContext生成時)にスクリプトを実行し、データベースの初期化を行うため、<code>&lt;jdbc:initialize-database&gt;</code>要素の定義を追加する。<br></p>
+<p>ジョブ実行時(ApplicationContext生成時)にスクリプトを実行し、データベースの初期化を行うため、<code>DataSourceInitializer/&lt;jdbc:initialize-database&gt;</code>の定義を追加する。<br></p>
 </div>
 <div class="paragraph">
 <p>以下の2つのファイルの編集を実施する。</p>
@@ -550,7 +644,7 @@ jdbc.url=jdbc:h2:~/batch-admin;AUTO_SERVER=TRUE</code></pre>
 <p>batch-application.propertiesに実行対象スクリプトのパスの設定を追加する</p>
 </li>
 <li>
-<p>launch-context.xmlに<code>&lt;jdbc:initialize-database&gt;</code>要素の定義を追加する</p>
+<p>LaunchContextConfig.java/launch-context.xmlに<code>DataSourceInitializer/&lt;jdbc:initialize-database&gt;</code>の定義を追加する</p>
 </li>
 </ul>
 </div>
@@ -583,10 +677,35 @@ tutorial.insert-data.script=file:sqls/insert-member-info-data.sql
 </div>
 </div>
 <div class="paragraph">
-<p>launch-context.xmlを開き、<code>&lt;beans&gt;</code>要素内に<code>&lt;jdbc:initialize-database&gt;</code>要素の定義を追加する。</p>
+<p><code>LaunchContextConfig.java/launch-context.xml</code>を開き、Bean定義で<code>DataSourceInitializer/&lt;jdbc:initialize-database&gt;</code>を追加する。</p>
 </div>
+<div class="tabbox">
+  <input type="radio" name="tabgroup090304" class="JavaConfigTab" id="tabgroup090304_1" checked><label for="tabgroup090304_1" class="tab">JavaConfig</label>
+  <input type="radio" name="tabgroup090304" class="XMLConfigTab" id="tabgroup090304_2"><label for="tabgroup090304_2" class="tab">XMLConfig</label>
+  <div class="tabcontent" name="JavaConfigContent">
 <div class="listingblock">
-<div class="title">src/main/resources/META-INF/spring/launch-context.xml</div>
+<div class="title">org.terasoluna.batch.tutorial.config.LaunchContextConfig.java</div>
+<div class="content">
+<pre class="CodeRay highlight"><code data-lang="java"><span class="comment">// database initialize definition</span>
+<span class="annotation">@Bean</span>
+<span class="directive">public</span> DataSourceInitializer jobDataSourceInitializer(<span class="annotation">@Qualifier</span>(<span class="string"><span class="delimiter">&quot;</span><span class="content">jobDataSource</span><span class="delimiter">&quot;</span></span>) <span class="predefined-type">DataSource</span> jobDataSource,
+                                                   <span class="annotation">@Value</span>(<span class="string"><span class="delimiter">&quot;</span><span class="content">${data-source.initialize.enabled:true}</span><span class="delimiter">&quot;</span></span>) <span class="type">boolean</span> enabled,
+                                                   <span class="annotation">@Value</span>(<span class="string"><span class="delimiter">&quot;</span><span class="content">${tutorial.create-table.script:#{null}}</span><span class="delimiter">&quot;</span></span>) Resource script,
+                                                   <span class="annotation">@Value</span>(<span class="string"><span class="delimiter">&quot;</span><span class="content">${tutorial.insert-data.script:#{null}}</span><span class="delimiter">&quot;</span></span>) Resource commitScript) {
+    <span class="directive">final</span> DataSourceInitializer dataSourceInitializer = <span class="keyword">new</span> DataSourceInitializer();
+    dataSourceInitializer.setDataSource(jobDataSource);
+    dataSourceInitializer.setEnabled(<span class="predefined-constant">true</span>);
+    ResourceDatabasePopulator resourceDatabasePopulator = <span class="keyword">new</span> ResourceDatabasePopulator(script, commitScript);
+    resourceDatabasePopulator.setContinueOnError(<span class="predefined-constant">true</span>);
+    dataSourceInitializer.setDatabasePopulator(resourceDatabasePopulator);
+    <span class="keyword">return</span> dataSourceInitializer;
+}</code></pre>
+</div>
+</div>
+  </div>
+  <div class="tabcontent" name="XMLConfigContent">
+<div class="listingblock">
+<div class="title">META-INF/spring/launch-context.xml</div>
 <div class="content">
 <pre class="CodeRay highlight"><code data-lang="xml"><span class="comment">&lt;!-- database initialize definition --&gt;</span>
 <span class="tag">&lt;jdbc:initialize-database</span> <span class="attribute-name">data-source</span>=<span class="string"><span class="delimiter">&quot;</span><span class="content">jobDataSource</span><span class="delimiter">&quot;</span></span> <span class="attribute-name">enabled</span>=<span class="string"><span class="delimiter">&quot;</span><span class="content">${data-source.initialize.enabled:false}</span><span class="delimiter">&quot;</span></span> <span class="attribute-name">ignore-failures</span>=<span class="string"><span class="delimiter">&quot;</span><span class="content">ALL</span><span class="delimiter">&quot;</span></span><span class="tag">&gt;</span>
@@ -594,6 +713,8 @@ tutorial.insert-data.script=file:sqls/insert-member-info-data.sql
     <span class="tag">&lt;jdbc:script</span> <span class="attribute-name">location</span>=<span class="string"><span class="delimiter">&quot;</span><span class="content">${tutorial.insert-data.script}</span><span class="delimiter">&quot;</span></span> <span class="tag">/&gt;</span>
 <span class="tag">&lt;/jdbc:initialize-database&gt;</span></code></pre>
 </div>
+</div>
+  </div>
 </div>
 </div>
 </div>
@@ -697,19 +818,19 @@ tutorial.insert-data.script=file:sqls/insert-member-info-data.sql
 </div>
 </div>
 <div class="sect1">
-<h2 id="Ch09_EnvironmentConstruction_DBeaver"><a class="anchor" href="#Ch09_EnvironmentConstruction_DBeaver"></a>STSからデータベースを参照する準備</h2>
+<h2 id="Ch09_EnvironmentConstruction_H2Console"><a class="anchor" href="#Ch09_EnvironmentConstruction_H2Console"></a>データベースを参照する準備</h2>
 <div class="sectionbody">
 <div class="paragraph">
-<p>チュートリアルでは、STS上でデータベースの参照やSQL実行を行うために<a href="https://dbeaver.com/eclipse/">DBeaver</a>を使用する。 <br>
-DBeaverでデータベースへ接続するまでの手順は以下のとおり。</p>
+<p>チュートリアルでは、データベースの参照やSQL実行を行うために<a href="https://www.h2database.com/html/quickstart.html#h2_console">H2 Console</a>を使用する。 <br>
+H2 Consoleでデータベースへ接続するまでの手順は以下のとおり。</p>
 </div>
 <div class="olist arabic">
 <ol class="arabic">
 <li>
-<p><a href="#Ch09_EnvironmentConstruction_DBeaver_Install">DBeaverのインストール</a></p>
+<p><a href="#Ch09_EnvironmentConstruction_H2Console_Install">H2のインストール</a></p>
 </li>
 <li>
-<p><a href="#Ch09_EnvironmentConstruction_DBeaver_Connection_Config">DBeaverのデータベース接続設定</a></p>
+<p><a href="#Ch09_EnvironmentConstruction_H2Console_Connection_Config">H2 Consoleのデータベース接続設定</a></p>
 </li>
 </ol>
 </div>
@@ -727,163 +848,62 @@ DBeaverでデータベースへ接続するまでの手順は以下のとおり�
 </ul>
 </div>
 <div class="sect2">
-<h3 id="Ch09_EnvironmentConstruction_DBeaver_Install"><a class="anchor" href="#Ch09_EnvironmentConstruction_DBeaver_Install"></a>DBeaverのインストール</h3>
+<h3 id="Ch09_EnvironmentConstruction_H2Console_Install"><a class="anchor" href="#Ch09_EnvironmentConstruction_H2Console_Install"></a>H2のインストール</h3>
 <div class="paragraph">
-<p>ここでは、DBeaverのインストールを説明する。</p>
+<p>ここでは、H2のインストールを説明する。</p>
 </div>
 <div class="olist arabic">
 <ol class="arabic">
 <li>
-<p>STSのメニューバーから、[Help] &#8594; [Install New Software&#8230;&#8203;] を選択して[Install]ウィンドウを開く。</p>
+<p><code> <a href="https://www.h2database.com/html/main.html" class="bare">https://www.h2database.com/html/main.html</a></code>を開く。</p>
 </li>
 <li>
-<p>[Work with]フォームに<code><a href="https://dbeaver.io/update/latest/" class="bare">https://dbeaver.io/update/latest/</a></code>を入力し、[Enter]キーを押下する。</p>
-</li>
-<li>
-<p>[DBeaver]と[DBeaver IDE]にチェックし、[Next &gt;]を押下する。</p>
+<p>Windows Installerを押下し、インストーラを適当な場所に保存する。</p>
 </li>
 </ol>
 </div>
 <div class="imageblock">
 <div class="content">
-<img src="./images/ch09/EnvironmentConstruction/Ch09_EnvironmentConstruction_DBeaver_Install_AvailableSoftware.png" alt="Available Software">
+<img src="./images/ch09/EnvironmentConstruction/Ch09_EnvironmentConstruction_H2Console_Install_Engine.png" alt="H2 Database Engine">
 </div>
-<div class="title">図 4. Available Software</div>
+<div class="title">図 5. H2 Database Engine</div>
 </div>
 <div class="olist arabic">
-<ol class="arabic" start="4">
+<ol class="arabic" start="3">
 <li>
-<p>インストール対象に[DBeaver IDE]があることを確認し、[Next &gt;]を押下する。</p>
+<p>インストーラを実行し、画面に従ってインストールする。</p>
 </li>
 </ol>
 </div>
 <div class="imageblock">
 <div class="content">
-<img src="./images/ch09/EnvironmentConstruction/Ch09_EnvironmentConstruction_DBeaver_Install_InstallDetails.png" alt="Install Details">
+<img src="./images/ch09/EnvironmentConstruction/Ch09_EnvironmentConstruction_H2Console_Install_Installer.png" alt="Installer">
 </div>
-<div class="title">図 5. Install Details</div>
-</div>
-<div class="olist arabic">
-<ol class="arabic" start="5">
-<li>
-<p>[Licenses text]を確認して、[I accept the terms of the license agreement]にチェックし、[Finish]を押下する。<br></p>
-</li>
-</ol>
-</div>
-<div class="imageblock">
-<div class="content">
-<img src="./images/ch09/EnvironmentConstruction/Ch09_EnvironmentConstruction_DBeaver_Install_ReviewLicenses.png" alt="Review Licenses">
-</div>
-<div class="title">図 6. Review Licenses</div>
-</div>
-<div class="olist arabic">
-<ol class="arabic" start="6">
-<li>
-<p>インストール完了後、STSを再起動する。</p>
-</li>
-</ol>
+<div class="title">図 6. Installer</div>
 </div>
 </div>
 <div class="sect2">
-<h3 id="Ch09_EnvironmentConstruction_DBeaver_Connection_Config"><a class="anchor" href="#Ch09_EnvironmentConstruction_DBeaver_Connection_Config"></a>DBeaverのデータベース接続設定</h3>
+<h3 id="Ch09_EnvironmentConstruction_H2Console_Connection_Config"><a class="anchor" href="#Ch09_EnvironmentConstruction_H2Console_Connection_Config"></a>H2 Consoleのデータベース接続設定</h3>
 <div class="paragraph">
-<p>ここでは、DBeaverでデータベースに接続するための設定を説明する。</p>
+<p>ここでは、H2 Consoleでデータベースに接続するための設定を説明する。</p>
 </div>
 <div class="olist arabic">
 <ol class="arabic">
 <li>
-<p>STSのメニューバーから、[Window] &#8594; [Perspective] &#8594; [Open Perspective] &#8594; [Other&#8230;&#8203;]を選択する。</p>
-</li>
-<li>
-<p>[DBeaver]を選択し、[Open]を押下する。</p>
-</li>
-<li>
-<p>STSのメニューバーに[SQLエディタ]と[データベース]があることを確認する。</p>
+<p>スタートメニューに作成された[H2]から、H2 Consoleを実行する。</p>
 </li>
 </ol>
 </div>
 <div class="imageblock">
 <div class="content">
-<img src="./images/ch09/EnvironmentConstruction/Ch09_EnvironmentConstruction_DBeaver_Perspective_Menubar.png" alt="STS Menu Bar">
+<img src="./images/ch09/EnvironmentConstruction/Ch09_EnvironmentConstruction_H2Console_Start.png" alt="Start">
 </div>
-<div class="title">図 7. STS Menu Bar</div>
-</div>
-<div class="olist arabic">
-<ol class="arabic" start="4">
-<li>
-<p>STSのメニューバーから、[データベース] &#8594; [新しい接続]を選択して[新しい接続を作成する]ウィンドウを開く。</p>
-</li>
-<li>
-<p>フォームに<code>H2</code>を入力し、サイドメニューから[All]を選択する。</p>
-</li>
-<li>
-<p>[H2 Embedded]を選択し、[Next &gt;]を押下する。</p>
-</li>
-</ol>
-</div>
-<div class="imageblock">
-<div class="content">
-<img src="./images/ch09/EnvironmentConstruction/Ch09_EnvironmentConstruction_DBeaver_Select_Connection_Type.png" alt="Select Connection Type">
-</div>
-<div class="title">図 8. Select Connection Type</div>
+<div class="title">図 7. Start</div>
 </div>
 <div class="olist arabic">
-<ol class="arabic" start="7">
+<ol class="arabic" start="2">
 <li>
-<p>[ドライバの設定を編集]を押下し、[ドライバーの編集H2 Embedded']ウインドウを開く。</p>
-</li>
-<li>
-<p>[URLテンプレート]フォームに<code>jdbc:h2:~/batch-admin;AUTO_SERVER=TRUE</code>を入力する。</p>
-</li>
-<li>
-<p>[空のパスワードを許可する]にチェックする。</p>
-</li>
-<li>
-<p>[ライブラリ]タブを開き、[ファイルの追加]から<code>C:\xxx\terasoluna-batch-tutorial\lib\h2-1.4.200.jar</code>を選択し、[開く]を押下する。</p>
-</li>
-<li>
-<p>[クラスを見つける]を押下し、[ドライバクラス]で[org.h2.Driver]を選択する。</p>
-</li>
-</ol>
-</div>
-<div class="imageblock">
-<div class="content">
-<img src="./images/ch09/EnvironmentConstruction/Ch09_EnvironmentConstruction_DBeaver_Edit_Driver.png" alt="Edit Driver">
-</div>
-<div class="title">図 9. Edit Driver</div>
-</div>
-<div class="imageblock">
-<div class="content">
-<img src="./images/ch09/EnvironmentConstruction/Ch09_EnvironmentConstruction_DBeaver_Edit_Lib.png" alt="Edit Library">
-</div>
-<div class="title">図 10. Edit Library</div>
-</div>
-<div class="admonitionblock note">
-<table>
-<tr>
-<td class="icon">
-<i class="fa icon-note" title="Note"></i>
-</td>
-<td class="content">
-<div class="title">H2 Databaseのjarが格納されている場所</div>
-<div class="paragraph">
-<p>H2 Databaseのjarは、プロジェクトのルートディレクトリの<code>lib</code>ディレクトリ配下に格納されている。<br>
-これは、<a href="#Ch09_EnvironmentConstruction_BlankProject_ExecSample">サンプルジョブの実行(正しく作成できたことの確認)</a>の下記のコマンドの実行によって依存ライブラリが<code>lib</code>ディレクトリ配下にコピーされたからである。
-<code>lib</code>ディレクトリは以下にH2 Databaseのjarが格納されていない場合は下記のコマンドを実行すること。</p>
-</div>
-<div class="listingblock">
-<div class="content">
-<pre class="CodeRay highlight"><code data-lang="console">C:\xxx&gt;mvn clean dependency:copy-dependencies -DoutputDirectory=lib package</code></pre>
-</div>
-</div>
-</td>
-</tr>
-</table>
-</div>
-<div class="olist arabic">
-<ol class="arabic" start="12">
-<li>
-<p>下表のとおりフォームに値を入力し、[パスワードをローカルに保存]のチェックをはずす。</p>
+<p>下表のとおりフォームを入力する。</p>
 </li>
 </ol>
 </div>
@@ -901,75 +921,36 @@ DBeaverでデータベースへ接続するまでの手順は以下のとおり�
 </thead>
 <tbody>
 <tr>
-<td class="tableblock halign-left valign-top"><p class="tableblock">データベース/スキーマ</p></td>
-<td class="tableblock halign-left valign-top"><p class="tableblock">terasoluna-batch-tutorial</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">JDBC URL</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">jdbc:h2:~/batch-admin;AUTO_SERVER=TRUE</p></td>
 </tr>
 <tr>
-<td class="tableblock halign-left valign-top"><p class="tableblock">ユーザ名</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">user</p></td>
 <td class="tableblock halign-left valign-top"><p class="tableblock">sa</p></td>
 </tr>
 </tbody>
 </table>
 <div class="imageblock">
 <div class="content">
-<img src="./images/ch09/EnvironmentConstruction/Ch09_EnvironmentConstruction_DBeaver_Setting_Connection.png" alt="Setting Connection">
+<img src="./images/ch09/EnvironmentConstruction/Ch09_EnvironmentConstruction_H2Console_Login.png" alt="Login">
 </div>
-<div class="title">図 11. Setting Connection</div>
+<div class="title">図 8. Login</div>
 </div>
 <div class="olist arabic">
-<ol class="arabic" start="13">
+<ol class="arabic" start="3">
 <li>
-<p>[テスト接続]を押下する。</p>
+<p>[Test Connection]を押下する。</p>
 </li>
 <li>
-<p>[ユーザ資格情報]の入力を要求するウインドウが出た場合、[ユーザ名]フォームに<code>sa</code>を入力し、[OK]を押下する。<br>
-<strong>[パスワード]フォームには値を入力しない。</strong></p>
+<p>入力フォーム下部にTest successfulが表示され、接続できたことを確認し、[Connect]を押下する。</p>
 </li>
 </ol>
-</div>
-<div class="admonitionblock caution">
-<table>
-<tr>
-<td class="icon">
-<i class="fa icon-caution" title="Caution"></i>
-</td>
-<td class="content">
-<div class="title">ドライバファイルをダウンロードする</div>
-<div class="paragraph">
-<p>H2 Embeddedドライバファイルが見つからず、以下のウインドウが表示された場合、[ダウンロード]を押下する。</p>
 </div>
 <div class="imageblock">
 <div class="content">
-<img src="./images/ch09/EnvironmentConstruction/Ch09_EnvironmentConstruction_DBeaver_Download_Driver.png" alt="Download Driver">
+<img src="./images/ch09/EnvironmentConstruction/Ch09_EnvironmentConstruction_H2Console_Test.png" alt="Connection Test">
 </div>
-<div class="title">図 12. Download Driver</div>
-</div>
-</td>
-</tr>
-</table>
-</div>
-<div class="olist arabic">
-<ol class="arabic" start="15">
-<li>
-<p><a href="#Ch09_EnvironmentConstruction_DBeaver_Connection_Config_Connection_Test">Connection Test</a>のようなウインドウが表示され、接続できたことを確認し、[Finish]を押下する。</p>
-</li>
-</ol>
-</div>
-<div id="Ch09_EnvironmentConstruction_DBeaver_Connection_Config_Connection_Test" class="imageblock">
-<div class="content">
-<img src="./images/ch09/EnvironmentConstruction/Ch09_EnvironmentConstruction_DBeaver_Connection_Test.png" alt="Connection Test">
-</div>
-<div class="title">図 13. Connection Test</div>
-</div>
-<div class="olist arabic">
-<ol class="arabic" start="16">
-<li>
-<p>STSのメニューバーから、[Window] &#8594; [Perspective] &#8594; [Open Perspective] &#8594; [Other&#8230;&#8203;]を選択する。</p>
-</li>
-<li>
-<p>[Java (default)]を選択し、[Open]を押下する。</p>
-</li>
-</ol>
+<div class="title">図 9. Connection Test</div>
 </div>
 <div class="paragraph">
 <p>以上でSTSからデータベースを参照する準備が完了した。</p>
@@ -989,7 +970,7 @@ DBeaverでデータベースへ接続するまでの手順は以下のとおり�
 <p><a href="#Ch09_EnvironmentConstruction_OperationCheck_ExecJob">STSでジョブを実行する</a></p>
 </li>
 <li>
-<p><a href="#Ch09_EnvironmentConstruction_OperationCheck_RefDB">DBeaverを使用してデータベースを参照する</a></p>
+<p><a href="#Ch09_EnvironmentConstruction_OperationCheck_RefDB">H2 Consoleを使用してデータベースを参照する</a></p>
 </li>
 </ol>
 </div>
@@ -1070,7 +1051,7 @@ DBeaverでデータベースへ接続するまでの手順は以下のとおり�
 <div class="content">
 <img src="./images/ch09/EnvironmentConstruction/Ch09_EnvironmentConstruction_OperationCheck_ExecJob_RunConf_Main.png" alt="Run Configurations Main tab">
 </div>
-<div class="title">図 14. Run Configurations Main tab</div>
+<div class="title">図 10. Run Configurations Main tab</div>
 </div>
 <div class="olist arabic">
 <ol class="arabic" start="3">
@@ -1102,7 +1083,7 @@ DBeaverでデータベースへ接続するまでの手順は以下のとおり�
 <div class="content">
 <img src="./images/ch09/EnvironmentConstruction/Ch09_EnvironmentConstruction_OperationCheck_ExecJob_RunConf_Arg.png" alt="Run Configurations Arguments tab">
 </div>
-<div class="title">図 15. Run Configurations Arguments tab</div>
+<div class="title">図 11. Run Configurations Arguments tab</div>
 </div>
 <div class="olist arabic">
 <ol class="arabic" start="4">
@@ -1169,7 +1150,7 @@ Run Configurationに設定するパラメータは、実行するジョブによ
 <div class="content">
 <img src="./images/ch09/EnvironmentConstruction/Ch09_EnvironmentConstruction_OperationCheck_ExecJob_Run_Job01.png" alt="Run Job01">
 </div>
-<div class="title">図 16. Run Job01</div>
+<div class="title">図 12. Run Job01</div>
 </div>
 <div class="olist arabic">
 <ol class="arabic" start="3">
@@ -1189,7 +1170,7 @@ Run Configurationに設定するパラメータは、実行するジョブによ
 <div class="content">
 <img src="./images/ch09/EnvironmentConstruction/Ch09_EnvironmentConstruction_OperationCheck_ExecJob_Run_Job01Console.png" alt="Run Job01 console">
 </div>
-<div class="title">図 17. Run Job01 console</div>
+<div class="title">図 13. Run Job01 console</div>
 </div>
 <div class="olist arabic">
 <ol class="arabic" start="4">
@@ -1202,7 +1183,7 @@ Run Configurationに設定するパラメータは、実行するジョブによ
 <div class="content">
 <img src="./images/ch09/EnvironmentConstruction/Ch09_EnvironmentConstruction_OperationCheck_ExecJob_Run_ShowView.png" alt="Show View">
 </div>
-<div class="title">図 18. Show View</div>
+<div class="title">図 14. Show View</div>
 </div>
 <div class="olist arabic">
 <ol class="arabic" start="5">
@@ -1216,7 +1197,7 @@ Run Configurationに設定するパラメータは、実行するジョブによ
 <div class="content">
 <img src="./images/ch09/EnvironmentConstruction/Ch09_EnvironmentConstruction_OperationCheck_ExecJob_Run_DebugView.png" alt="Debug View">
 </div>
-<div class="title">図 19. Debug View</div>
+<div class="title">図 15. Debug View</div>
 </div>
 <div class="admonitionblock tip">
 <table>
@@ -1237,27 +1218,17 @@ STSのメニューから、[project] &#8594; [clean]を選択する。</p>
 </div>
 </div>
 <div class="sect2">
-<h3 id="Ch09_EnvironmentConstruction_OperationCheck_RefDB"><a class="anchor" href="#Ch09_EnvironmentConstruction_OperationCheck_RefDB"></a>DBeaverを使用してデータベースを参照する</h3>
+<h3 id="Ch09_EnvironmentConstruction_OperationCheck_RefDB"><a class="anchor" href="#Ch09_EnvironmentConstruction_OperationCheck_RefDB"></a>H2 Consoleを使用してデータベースを参照する</h3>
 <div class="paragraph">
-<p>ここでは、DBeaverを使用してデータベースを参照する方法について説明する。</p>
+<p>ここでは、H2 Consoleを使用してデータベースを参照する方法について説明する。</p>
 </div>
 <div class="olist arabic">
 <ol class="arabic">
 <li>
-<p>STSのメニューから、[Window] &#8594; [Show View] &#8594; [Other&#8230;&#8203;]を選択し、[データベース]配下の[Database Browser]を選択した状態で[OK]を押下する。</p>
+<p><a href="#Ch09_EnvironmentConstruction_H2Console_Connection_Config">データベースに接続する。</a></p>
 </li>
-</ol>
-</div>
-<div class="imageblock">
-<div class="content">
-<img src="./images/ch09/EnvironmentConstruction/Ch09_EnvironmentConstruction_OperationCheck_RefDB_ShowView.png" alt="Show View">
-</div>
-<div class="title">図 20. Show View</div>
-</div>
-<div class="olist arabic">
-<ol class="arabic" start="2">
 <li>
-<p>[Database Browser]にて[H2 Server -terasoluna-batch-tutorial] &#8594; [PUBLIC] &#8594; [テーブル]を開き、テーブル一覧を確認する。<br>
+<p>テーブル一覧を確認する。<br>
 Spring Batchメタデータテーブル(詳細は<a href="Ch02_SpringBatchArchitecture.html#Ch02_SpringBatchArch_Arch_MetadataSchema">JobRepositoryのメタデータスキーマ</a>を参照)及び、<a href="#Ch09_EnvironmentConstruction_InputDataPreparation_DB">データベースアクセスでデータ入出力を行うジョブの入力データの準備</a>を実施した場合には<code>MEMBER_INFO</code>テーブルが作成されていることが確認できる。</p>
 </li>
 </ol>
@@ -1266,21 +1237,29 @@ Spring Batchメタデータテーブル(詳細は<a href="Ch02_SpringBatchArchit
 <div class="content">
 <img src="./images/ch09/EnvironmentConstruction/Ch09_EnvironmentConstruction_OperationCheck_RefDB_Tables.png" alt="Show Tables">
 </div>
-<div class="title">図 21. Show Tables</div>
+<div class="title">図 16. Show Tables</div>
 </div>
 <div class="olist arabic">
 <ol class="arabic" start="3">
 <li>
-<p>参照したいテーブルをダブルクリックし、開いたViewの[データ]タブを選択することでテーブルに格納されているレコードを参照する。<br>
-以下は<code>BATCH_JOB_EXECUTION</code>テーブルを参照した例である。</p>
+<p>参照したいテーブルをクリックし、[Run]を押下する。</p>
 </li>
 </ol>
 </div>
 <div class="imageblock">
 <div class="content">
+<img src="./images/ch09/EnvironmentConstruction/Ch09_EnvironmentConstruction_OperationCheck_RefDB_Sql.png" alt="Sql">
+</div>
+<div class="title">図 17. Sql</div>
+</div>
+<div class="paragraph">
+<p>以下は<code>BATCH_JOB_EXECUTION</code>テーブルを参照した例である。</p>
+</div>
+<div class="imageblock">
+<div class="content">
 <img src="./images/ch09/EnvironmentConstruction/Ch09_EnvironmentConstruction_OperationCheck_RefDB_BATCH_JOB_EXECUTION.png" alt="Show BATCH_JOB_EXECUTION">
 </div>
-<div class="title">図 22. Show BATCH_JOB_EXECUTION</div>
+<div class="title">図 18. Show BATCH_JOB_EXECUTION</div>
 </div>
 <div class="paragraph">
 <p><code>job01</code>という名前のジョブが実行されたことがわかる。</p>
@@ -1297,7 +1276,7 @@ Spring Batchメタデータテーブル(詳細は<a href="Ch02_SpringBatchArchit
 
   <div class="common-bg">
     <div class="information">
-      TERASOLUNA Batch Framework for Java (5.x) Development Guideline - version 5.4.1.RELEASE, 2022-3-31, commit-id:e9b4d93
+      TERASOLUNA Batch Framework for Java (5.x) Development Guideline - version 5.5.0.RELEASE, 2023-3-31, commit-id:f6da76a
     </div>
     <div class="index">
       <a href="index.html">&gt; INDEX</a>

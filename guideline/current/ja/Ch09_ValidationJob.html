@@ -14,12 +14,20 @@
 
 <div class="common-bg">
   <div class="information">
-    TERASOLUNA Batch Framework for Java (5.x) Development Guideline - version 5.4.1.RELEASE, 2022-3-31, commit-id:e9b4d93
+    TERASOLUNA Batch Framework for Java (5.x) Development Guideline - version 5.5.0.RELEASE, 2023-3-31, commit-id:f6da76a
   </div>
   <div class="index">
     <a href="index.html">&gt; INDEX</a>
   </div>
 </div>
+
+<!-- Google tag (gtag.js) -->
+<script async src="https://www.googletagmanager.com/gtag/js?id=G-8VC2LCPQFM"></script>
+<script>
+  window.dataLayer = window.dataLayer || [];
+  function gtag(){dataLayer.push(arguments);}
+  gtag('js', new Date());  gtag('config', 'G-8VC2LCPQFM');
+</script>
 
 <script>
   (function(i,s,o,g,r,a,m){i['GoogleAnalyticsObject']=r;i[r]=i[r]||function(){
@@ -497,8 +505,33 @@
 <span class="tag">&lt;/dependency&gt;</span></code></pre>
 </div>
 </div>
+<div class="tabbox">
+  <input type="radio" name="tabgroup09040301" class="JavaConfigTab" id="tabgroup09040301_1" checked><label for="tabgroup09040301_1" class="tab">JavaConfig</label>
+  <input type="radio" name="tabgroup09040301" class="XMLConfigTab" id="tabgroup09040301_2"><label for="tabgroup09040301_2" class="tab">XMLConfig</label>
+  <div class="tabcontent" name="JavaConfigContent">
 <div class="listingblock">
-<div class="title">src/main/resources/META-INF/spring/launch-context.xml</div>
+<div class="title">org.terasoluna.batch.tutorial.config.LaunchContextConfig.java</div>
+<div class="content">
+<pre class="CodeRay highlight"><code data-lang="java"><span class="annotation">@Bean</span>
+<span class="directive">public</span> SpringValidator&lt;?&gt; validator(<span class="predefined-type">Validator</span> beanValidator) {
+    <span class="directive">final</span> SpringValidator&lt;?&gt; springValidator = <span class="keyword">new</span> SpringValidator&lt;&gt;();
+    springValidator.setValidator(beanValidator);
+    <span class="keyword">return</span> springValidator;
+}
+
+<span class="annotation">@Bean</span>
+<span class="directive">public</span> <span class="predefined-type">Validator</span> beanValidator() {
+    <span class="keyword">try</span> (LocalValidatorFactoryBean localValidatorFactoryBean = <span class="keyword">new</span> LocalValidatorFactoryBean()) {
+        localValidatorFactoryBean.afterPropertiesSet();
+        <span class="keyword">return</span> localValidatorFactoryBean;
+    }
+}</code></pre>
+</div>
+</div>
+  </div>
+  <div class="tabcontent" name="XMLConfigContent">
+<div class="listingblock">
+<div class="title">META-INF/spring/launch-context.xml</div>
 <div class="content">
 <pre class="CodeRay highlight"><code data-lang="xml"><span class="tag">&lt;bean</span> <span class="attribute-name">id</span>=<span class="string"><span class="delimiter">&quot;</span><span class="content">validator</span><span class="delimiter">&quot;</span></span> <span class="attribute-name">class</span>=<span class="string"><span class="delimiter">&quot;</span><span class="content">org.springframework.batch.item.validator.SpringValidator</span><span class="delimiter">&quot;</span></span>
       <span class="attribute-name">p:validator-ref</span>=<span class="string"><span class="delimiter">&quot;</span><span class="content">beanValidator</span><span class="delimiter">&quot;</span></span><span class="tag">/&gt;</span>
@@ -506,6 +539,8 @@
 <span class="tag">&lt;bean</span> <span class="attribute-name">id</span>=<span class="string"><span class="delimiter">&quot;</span><span class="content">beanValidator</span><span class="delimiter">&quot;</span></span>
       <span class="attribute-name">class</span>=<span class="string"><span class="delimiter">&quot;</span><span class="content">org.springframework.validation.beanvalidation.LocalValidatorFactoryBean</span><span class="delimiter">&quot;</span></span> <span class="tag">/&gt;</span></code></pre>
 </div>
+</div>
+  </div>
 </div>
 </td>
 </tr>
@@ -564,7 +599,7 @@
 <div class="content">
 <pre class="CodeRay highlight"><code data-lang="java"><span class="keyword">package</span> <span class="namespace">org.terasoluna.batch.tutorial.common.dto</span>;
 
-<span class="keyword">import</span> <span class="include">javax.validation.constraints.Max</span>;
+<span class="keyword">import</span> <span class="include">jakarta.validation.constraints.Max</span>;
 
 <span class="directive">public</span> <span class="type">class</span> <span class="class">MemberInfoDto</span> {
     <span class="directive">private</span> <span class="predefined-type">String</span> id;
@@ -615,7 +650,7 @@
 <div class="content">
 <pre class="CodeRay highlight"><code data-lang="java"><span class="comment">// Package and the other import are omitted.</span>
 
-<span class="keyword">import</span> <span class="include">javax.inject.Inject</span>;
+<span class="keyword">import</span> <span class="include">jakarta.inject.Inject</span>;
 <span class="keyword">import</span> <span class="include">org.springframework.batch.item.validator.Validator</span>;
 
 <span class="annotation">@Component</span>
@@ -779,9 +814,9 @@ Field error in object 'item' on field 'point': rejected value [1000001]; codes [
 <div class="sect4">
 <h5 id="Ch09_Impl_ValidationJob_Chunk_Execution_Output_Table"><a class="anchor" href="#Ch09_Impl_ValidationJob_Chunk_Execution_Output_Table"></a>会員情報テーブルの確認</h5>
 <div class="paragraph">
-<p>DBeaverを使用して会員情報テーブルの確認を行う。<br>
+<p>H2 Consoleを使用して会員情報テーブルの確認を行う。<br>
 更新前後の会員情報テーブルの内容を比較し、確認内容のとおりとなっていることを確認する。<br>
-確認手順は<a href="Ch09_EnvironmentConstruction.html#Ch09_EnvironmentConstruction_OperationCheck_RefDB">DBeaverを使用してデータベースを参照する</a>を参照。</p>
+確認手順は<a href="Ch09_EnvironmentConstruction.html#Ch09_EnvironmentConstruction_OperationCheck_RefDB">H2 Consoleを使用してデータベースを参照する</a>を参照。</p>
 </div>
 <div class="dlist">
 <dl>
@@ -976,7 +1011,7 @@ Field error in object 'item' on field 'point': rejected value [1000001]; codes [
 <div class="content">
 <pre class="CodeRay highlight"><code data-lang="java"><span class="keyword">package</span> <span class="namespace">org.terasoluna.batch.tutorial.common.dto</span>;
 
-<span class="keyword">import</span> <span class="include">javax.validation.constraints.Max</span>;
+<span class="keyword">import</span> <span class="include">jakarta.validation.constraints.Max</span>;
 
 <span class="directive">public</span> <span class="type">class</span> <span class="class">MemberInfoDto</span> {
     <span class="directive">private</span> <span class="predefined-type">String</span> id;
@@ -1027,7 +1062,7 @@ Field error in object 'item' on field 'point': rejected value [1000001]; codes [
 <div class="content">
 <pre class="CodeRay highlight"><code data-lang="java"><span class="comment">// Package and the other import are omitted.</span>
 
-<span class="keyword">import</span> <span class="include">javax.inject.Inject</span>;
+<span class="keyword">import</span> <span class="include">jakarta.inject.Inject</span>;
 <span class="keyword">import</span> <span class="include">org.springframework.batch.item.validator.Validator</span>;
 
 <span class="annotation">@Component</span>
@@ -1052,7 +1087,7 @@ Field error in object 'item' on field 'point': rejected value [1000001]; codes [
                 <span class="comment">// The other codes of bussiness logic are omitted.</span>
             }
 
-            writer.write(items);
+            writer.write(<span class="keyword">new</span> Chunk(items));
         } <span class="keyword">finally</span> {
             reader.close();
         }
@@ -1207,9 +1242,9 @@ Field error in object 'item' on field 'point': rejected value [1000001]; codes [
 <div class="sect4">
 <h5 id="Ch09_Impl_ValidationJob_Tasklet_Execution_Output_Table"><a class="anchor" href="#Ch09_Impl_ValidationJob_Tasklet_Execution_Output_Table"></a>会員情報テーブルの確認</h5>
 <div class="paragraph">
-<p>DBeaverを使用して会員情報テーブルの確認を行う。<br>
+<p>H2 Consoleを使用して会員情報テーブルの確認を行う。<br>
 更新前後の会員情報テーブルの内容を比較し、確認内容のとおりとなっていることを確認する。<br>
-確認手順は<a href="Ch09_EnvironmentConstruction.html#Ch09_EnvironmentConstruction_OperationCheck_RefDB">DBeaverを使用してデータベースを参照する</a>を参照。</p>
+確認手順は<a href="Ch09_EnvironmentConstruction.html#Ch09_EnvironmentConstruction_OperationCheck_RefDB">H2 Consoleを使用してデータベースを参照する</a>を参照。</p>
 </div>
 <div class="dlist">
 <dl>
@@ -1269,7 +1304,7 @@ Field error in object 'item' on field 'point': rejected value [1000001]; codes [
 
   <div class="common-bg">
     <div class="information">
-      TERASOLUNA Batch Framework for Java (5.x) Development Guideline - version 5.4.1.RELEASE, 2022-3-31, commit-id:e9b4d93
+      TERASOLUNA Batch Framework for Java (5.x) Development Guideline - version 5.5.0.RELEASE, 2023-3-31, commit-id:f6da76a
     </div>
     <div class="index">
       <a href="index.html">&gt; INDEX</a>

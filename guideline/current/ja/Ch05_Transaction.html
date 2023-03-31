@@ -14,12 +14,20 @@
 
 <div class="common-bg">
   <div class="information">
-    TERASOLUNA Batch Framework for Java (5.x) Development Guideline - version 5.4.1.RELEASE, 2022-3-31, commit-id:e9b4d93
+    TERASOLUNA Batch Framework for Java (5.x) Development Guideline - version 5.5.0.RELEASE, 2023-3-31, commit-id:f6da76a
   </div>
   <div class="index">
     <a href="index.html">&gt; INDEX</a>
   </div>
 </div>
+
+<!-- Google tag (gtag.js) -->
+<script async src="https://www.googletagmanager.com/gtag/js?id=G-8VC2LCPQFM"></script>
+<script>
+  window.dataLayer = window.dataLayer || [];
+  function gtag(){dataLayer.push(arguments);}
+  gtag('js', new Date());  gtag('config', 'G-8VC2LCPQFM');
+</script>
 
 <script>
   (function(i,s,o,g,r,a,m){i['GoogleAnalyticsObject']=r;i[r]=i[r]||function(){
@@ -1021,6 +1029,46 @@ MyBatisのItemWriterについて、詳細は
 <div class="paragraph">
 <p>以下にTERASOLUNA Batch 5.xでの設定例を示す。</p>
 </div>
+<div class="tabbox">
+  <input type="radio" name="tabgroup050101" class="JavaConfigTab" id="tabgroup050101_1" checked><label for="tabgroup050101_1" class="tab">JavaConfig</label>
+  <input type="radio" name="tabgroup050101" class="XMLConfigTab" id="tabgroup050101_2"><label for="tabgroup050101_2" class="tab">XMLConfig</label>
+  <div class="tabcontent" name="JavaConfigContent">
+<div class="listingblock">
+<div class="title">データソースの設定(com.example.batch.config.LaunchContextConfig.java)</div>
+<div class="content">
+<pre class="CodeRay highlight"><code data-lang="java"><span class="comment">// Job-common definitions</span>
+<span class="directive">public</span> BasicDataSource jobDataSource(<span class="annotation">@Value</span>(<span class="string"><span class="delimiter">&quot;</span><span class="content">${jdbc.driver}</span><span class="delimiter">&quot;</span></span>) <span class="predefined-type">String</span> driverClassName,
+                                     <span class="annotation">@Value</span>(<span class="string"><span class="delimiter">&quot;</span><span class="content">${jdbc.url}</span><span class="delimiter">&quot;</span></span>) <span class="predefined-type">String</span> url,
+                                     <span class="annotation">@Value</span>(<span class="string"><span class="delimiter">&quot;</span><span class="content">${jdbc.username}</span><span class="delimiter">&quot;</span></span>) <span class="predefined-type">String</span> username,
+                                     <span class="annotation">@Value</span>(<span class="string"><span class="delimiter">&quot;</span><span class="content">${jdbc.password}</span><span class="delimiter">&quot;</span></span>) <span class="predefined-type">String</span> password) {
+    <span class="directive">final</span> BasicDataSource basicDataSource = <span class="keyword">new</span> BasicDataSource();
+    basicDataSource.setDriverClassName(driverClassName);
+    basicDataSource.setUrl(url);
+    basicDataSource.setUsername(username);
+    basicDataSource.setPassword(password);
+    basicDataSource.setMaxTotal(<span class="integer">10</span>);
+    basicDataSource.setMinIdle(<span class="integer">1</span>);
+    basicDataSource.setMaxWaitMillis(<span class="integer">5000</span>);
+    basicDataSource.setDefaultAutoCommit(<span class="predefined-constant">false</span>);
+    <span class="keyword">return</span> basicDataSource;
+}</code></pre>
+</div>
+</div>
+<div class="listingblock">
+<div class="title">トランザクションマネージャの設定(com.example.batch.config.LaunchContextConfig.java)</div>
+<div class="content">
+<pre class="CodeRay highlight"><code data-lang="java"><span class="comment">// (1)</span>
+<span class="annotation">@Bean</span>
+<span class="directive">public</span> PlatformTransactionManager jobTransactionManager(<span class="annotation">@Qualifier</span>(<span class="string"><span class="delimiter">&quot;</span><span class="content">jobDataSource</span><span class="delimiter">&quot;</span></span>) <span class="predefined-type">DataSource</span> jobDataSource) {
+    <span class="directive">final</span> DataSourceTransactionManager dataSourceTransactionManager = <span class="keyword">new</span> DataSourceTransactionManager();
+    dataSourceTransactionManager.setDataSource(jobDataSource);
+    dataSourceTransactionManager.setRollbackOnCommitFailure(<span class="predefined-constant">true</span>);
+    <span class="keyword">return</span> dataSourceTransactionManager;
+}</code></pre>
+</div>
+</div>
+  </div>
+  <div class="tabcontent" name="XMLConfigContent">
 <div class="listingblock">
 <div class="title">データソースの設定(META-INF/spring/launch-context.xml)</div>
 <div class="content">
@@ -1045,6 +1093,8 @@ MyBatisのItemWriterについて、詳細は
       <span class="attribute-name">p:dataSource-ref</span>=<span class="string"><span class="delimiter">&quot;</span><span class="content">jobDataSource</span><span class="delimiter">&quot;</span></span>
       <span class="attribute-name">p:rollbackOnCommitFailure</span>=<span class="string"><span class="delimiter">&quot;</span><span class="content">true</span><span class="delimiter">&quot;</span></span> <span class="tag">/&gt;</span></code></pre>
 </div>
+</div>
+  </div>
 </div>
 <table class="tableblock frame-all grid-all stretch">
 <colgroup>
@@ -1375,7 +1425,7 @@ ItemWriterを利用することで実装がシンプルになる効果があり�
 </div>
 <div class="paragraph">
 <p>また、実害がある場合や空振りでも参照するトランザクションを発行したくない場合は、リソースを必要としない<code>ResourcelessTransactionManager</code>を使用することができる。
-<code>ResourcelessTransactionManager</code>は<code>launch-context.xml</code>に<code>jobResourcelessTransactionManager</code>として定義済みである。</p>
+<code>ResourcelessTransactionManager</code>は<code>LaunchContextConfig.java/launch-context.xml</code>に<code>jobResourcelessTransactionManager</code>として定義済みである。</p>
 </div>
 <div class="listingblock">
 <div class="title">ResourcelessTransactionManagerの使用例</div>
@@ -1474,7 +1524,7 @@ ItemWriterを利用することで実装がシンプルになる効果があり�
 <div class="content">
 <pre class="CodeRay highlight"><code data-lang="java"><span class="annotation">@Component</span>
 <span class="comment">// (1)</span>
-<span class="directive">public</span> <span class="type">class</span> <span class="class">BranchMasterReadStepListener</span> <span class="directive">extends</span> StepExecutionListenerSupport {
+<span class="directive">public</span> <span class="type">class</span> <span class="class">BranchMasterReadStepListener</span> <span class="directive">implements</span> StepExecutionListener {
 
     <span class="annotation">@Inject</span>
     BranchRepository branchRepository;
@@ -1549,8 +1599,7 @@ ItemWriterを利用することで実装がシンプルになる効果があり�
 <tbody>
 <tr>
 <td class="tableblock halign-left valign-top"><p class="tableblock">(1)</p></td>
-<td class="tableblock halign-left valign-top"><p class="tableblock"><code>StepExecutionListener</code>インタフェースを実装する。<br>
-ここでは実装を簡易にするため、<code>StepExecutionListener</code>インタフェースを実装した<code>StepExecutionListenerSupport</code>からの拡張としている。</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><code>StepExecutionListener</code>インタフェースを実装する。</p></td>
 </tr>
 <tr>
 <td class="tableblock halign-left valign-top"><p class="tableblock">(2)</p></td>
@@ -1940,7 +1989,7 @@ ItemWriterを利用することで実装がシンプルになる効果があり�
 
   <div class="common-bg">
     <div class="information">
-      TERASOLUNA Batch Framework for Java (5.x) Development Guideline - version 5.4.1.RELEASE, 2022-3-31, commit-id:e9b4d93
+      TERASOLUNA Batch Framework for Java (5.x) Development Guideline - version 5.5.0.RELEASE, 2023-3-31, commit-id:f6da76a
     </div>
     <div class="index">
       <a href="index.html">&gt; INDEX</a>

@@ -14,12 +14,20 @@
 
 <div class="common-bg">
   <div class="information">
-    TERASOLUNA Batch Framework for Java (5.x) Development Guideline - version 5.4.1.RELEASE, 2022-3-31, commit-id:e9b4d93
+    TERASOLUNA Batch Framework for Java (5.x) Development Guideline - version 5.5.0.RELEASE, 2023-3-31, commit-id:f6da76a
   </div>
   <div class="index">
     <a href="index.html">&gt; INDEX</a>
   </div>
 </div>
+
+<!-- Google tag (gtag.js) -->
+<script async src="https://www.googletagmanager.com/gtag/js?id=G-8VC2LCPQFM"></script>
+<script>
+  window.dataLayer = window.dataLayer || [];
+  function gtag(){dataLayer.push(arguments);}
+  gtag('js', new Date());  gtag('config', 'G-8VC2LCPQFM');
+</script>
 
 <script>
   (function(i,s,o,g,r,a,m){i['GoogleAnalyticsObject']=r;i[r]=i[r]||function(){
@@ -107,7 +115,7 @@
 <p>本節では、ファイルの入出力を行う方法について説明する。</p>
 </div>
 <div class="paragraph">
-<p>本機能は、チャンクモデルとタスクレットモデルとで同じ使い方になる。</p>
+<p>本章における、ファイルのReader/WriterのBean定義については、チャンクモデルとタスクレットモデルとで同じ定義になる。</p>
 </div>
 <div class="sect2">
 <h3 id="Ch05_FileAccess_Overview_FileType"><a class="anchor" href="#Ch05_FileAccess_Overview_FileType"></a>扱えるファイルの種類</h3>
@@ -695,10 +703,9 @@ Beanのプロパティとレコード内の各項目とのマッピングは<cod
 <td class="tableblock halign-left valign-top"><p class="tableblock">(2)</p></td>
 <td class="tableblock halign-left valign-top"><p class="tableblock">encoding</p></td>
 <td class="tableblock halign-left valign-top"><p class="tableblock">入力ファイルのエンコーディングを設定する。<br>
-<span class="icon"><i class="fa fa-warning"></i></span> Spring Batchが提供するコンポーネントのエンコーディングのデフォルト値はItemReaderとItemWriterで異なっている(ItemWriterのデフォルト値は「UTF-8」)。<br>
-そのため、デフォルト値をそのまま使用する意図である場合でも明示的にエンコーディングを設定することを推奨する。</p></td>
+ 未指定の場合のデフォルト値は「UTF-8」。</p></td>
 <td class="tableblock halign-left valign-top"></td>
-<td class="tableblock halign-left valign-top"><p class="tableblock">JavaVMのデフォルトエンコーディング</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">UTF-8</p></td>
 </tr>
 <tr>
 <td class="tableblock halign-left valign-top"><p class="tableblock">(3)</p></td>
@@ -914,8 +921,7 @@ CSV形式の一般的書式とされるRFC-4180の仕様に定義されている
 <td class="tableblock halign-left valign-top"><p class="tableblock">(2)</p></td>
 <td class="tableblock halign-left valign-top"><p class="tableblock">encoding</p></td>
 <td class="tableblock halign-left valign-top"><p class="tableblock">出力ファイルのエンコーディングを設定する。<br>
-<span class="icon"><i class="fa fa-warning"></i></span> Spring Batchが提供するコンポーネントのエンコーディングのデフォルト値はItemReaderとItemWriterで異なっている(ItemReaderのデフォルト値は「JavaVMのデフォルトエンコーディング」)。<br>
-そのため、デフォルト値をそのまま使用する意図である場合でも明示的にエンコーディングを設定することを推奨する。</p></td>
+ 未指定の場合のデフォルト値は「UTF-8」。</p></td>
 <td class="tableblock halign-left valign-top"></td>
 <td class="tableblock halign-left valign-top"><p class="tableblock">UTF-8</p></td>
 </tr>
@@ -1385,10 +1391,9 @@ falseの場合フィールド内に行頭復帰(CR)、改行(LF)、区切り文�
 <td class="tableblock halign-left valign-top"><p class="tableblock">(2)</p></td>
 <td class="tableblock halign-left valign-top"><p class="tableblock">encoding</p></td>
 <td class="tableblock halign-left valign-top"><p class="tableblock">入力ファイルのエンコーディングを設定する。<br>
-<span class="icon"><i class="fa fa-warning"></i></span> Spring Batchが提供するコンポーネントのエンコーディングのデフォルト値はItemReaderとItemWriterで異なっている(ItemWriterのデフォルト値は「UTF-8」)。<br>
-そのため、デフォルト値をそのまま使用する意図である場合でも明示的にエンコーディングを設定することを推奨する。</p></td>
+ 未指定の場合のデフォルト値は「UTF-8」。</p></td>
 <td class="tableblock halign-left valign-top"></td>
-<td class="tableblock halign-left valign-top"><p class="tableblock">JavaVMのデフォルトエンコーディング</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">UTF-8</p></td>
 </tr>
 <tr>
 <td class="tableblock halign-left valign-top"><p class="tableblock">(3)</p></td>
@@ -1785,8 +1790,7 @@ FieldSetMapperの実装については、<a href="#Ch05_FileAccess_HowToExtend">
 <td class="tableblock halign-left valign-top"><p class="tableblock">(2)</p></td>
 <td class="tableblock halign-left valign-top"><p class="tableblock">encoding</p></td>
 <td class="tableblock halign-left valign-top"><p class="tableblock">出力ファイルのエンコーディングを設定する。<br>
-<span class="icon"><i class="fa fa-warning"></i></span> Spring Batchが提供するコンポーネントのエンコーディングのデフォルト値はItemReaderとItemWriterで異なっている(ItemReaderのデフォルト値は「JavaVMのデフォルトエンコーディング」)。<br>
-そのため、デフォルト値をそのまま使用する意図である場合でも明示的にエンコーディングを設定することを推奨する。</p></td>
+ 未指定の場合のデフォルト値は「UTF-8」。</p></td>
 <td class="tableblock halign-left valign-top"></td>
 <td class="tableblock halign-left valign-top"><p class="tableblock">UTF-8</p></td>
 </tr>
@@ -2177,10 +2181,9 @@ Summary3:6,000,000,000</code></pre>
 <td class="tableblock halign-left valign-top"><p class="tableblock">(2)</p></td>
 <td class="tableblock halign-left valign-top"><p class="tableblock">encoding</p></td>
 <td class="tableblock halign-left valign-top"><p class="tableblock">入力ファイルのエンコーディングを設定する。<br>
-<span class="icon"><i class="fa fa-warning"></i></span> Spring Batchが提供するコンポーネントのエンコーディングのデフォルト値はItemReaderとItemWriterで異なっている(ItemWriterのデフォルト値は「UTF-8」)。<br>
-そのため、デフォルト値をそのまま使用する意図である場合でも明示的にエンコーディングを設定することを推奨する。</p></td>
+ 未指定の場合のデフォルト値は「UTF-8」。</p></td>
 <td class="tableblock halign-left valign-top"></td>
-<td class="tableblock halign-left valign-top"><p class="tableblock">JavaVMのデフォルトエンコーディング</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">UTF-8</p></td>
 </tr>
 <tr>
 <td class="tableblock halign-left valign-top"><p class="tableblock">(3)</p></td>
@@ -2263,8 +2266,7 @@ Summary3:6,000,000,000</code></pre>
 <td class="tableblock halign-left valign-top"><p class="tableblock">(2)</p></td>
 <td class="tableblock halign-left valign-top"><p class="tableblock">encoding</p></td>
 <td class="tableblock halign-left valign-top"><p class="tableblock">出力ファイルのエンコーディングを設定する。<br>
-<span class="icon"><i class="fa fa-warning"></i></span> Spring Batchが提供するコンポーネントのエンコーディングのデフォルト値はItemReaderとItemWriterで異なっている(ItemReaderのデフォルト値は「JavaVMのデフォルトエンコーディング」)。<br>
-そのため、デフォルト値をそのまま使用する意図である場合でも明示的にエンコーディングを設定することを推奨する。</p></td>
+ 未指定の場合のデフォルト値は「UTF-8」。</p></td>
 <td class="tableblock halign-left valign-top"></td>
 <td class="tableblock halign-left valign-top"><p class="tableblock">UTF-8</p></td>
 </tr>
@@ -4183,7 +4185,7 @@ Summary Branch Id : 02,,,2100</code></pre>
                     afterBreakData.setAmount(summary);
                     items.add(afterBreakData);
                     summary = <span class="keyword">new</span> <span class="predefined-type">BigDecimal</span>(<span class="integer">0</span>);
-                    writer.write(items);  <span class="comment">// (11)</span>
+                    writer.write(<span class="keyword">new</span> Chunk(items));  <span class="comment">// (11)</span>
                     items.clear();
                 }
                 previousData = data;  <span class="comment">// (12)</span>
@@ -4660,7 +4662,7 @@ XMLファイルとオブジェクト間の変換処理を行うライブラリ�
 <td class="tableblock halign-left valign-top"><p class="tableblock">(1)</p></td>
 <td class="tableblock halign-left valign-top"><p class="tableblock"><code>StaxEventItemReader</code></p></td>
 <td class="tableblock halign-left valign-top"><p class="tableblock">Bean定義においてencodingプロパティを設定する。</p></td>
-<td class="tableblock halign-left valign-top"><p class="tableblock">JavaVMのデフォルトエンコーディング</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">UTF-8</p></td>
 </tr>
 <tr>
 <td class="tableblock halign-left valign-top"><p class="tableblock">(2)</p></td>
@@ -4684,7 +4686,7 @@ encoding属性が宣言されていない場合はUTF-8で読み込みが行わ�
 Spring Batch 4.3.0以降では<code>StaxEventItemReader</code>にencodingプロパティが追加され、デフォルト値を含め上記の表の仕様に変更された。</p>
 </div>
 <div class="paragraph">
-<p>TERASOLUNA Batch 5.4.0はSpring Batch 4.3.4を利用しているため、TERASOLUNA Batch 5.3.1以前からのバージョンアップを行った場合は、
+<p>TERASOLUNA Batch 5.4.0はSpring Batch 5.0.0を利用しているため、TERASOLUNA Batch 5.3.1以前からのバージョンアップを行った場合は、
 エンコーディングを明示的に指定しないと読み込みに利用されるエンコーディングが変化してしまう可能性があるため注意すること。</p>
 </div>
 </td>
@@ -4782,7 +4784,7 @@ Spring Frameworkが提供するライブラリであるSpring Object/XML Marshal
 </div>
 </div>
 <div class="paragraph">
-<p>Java SE 11でJAXBを利用する場合、jaxb-core及びjaxb-implが必要となる。
+<p>JAXBを利用する場合、jaxb-core及びjaxb-implが必要となる。
 アプリケーションの依存ライブラリやバッチから提供されるライブラリにjaxb-core及びjaxb-implがない場合は、pom.xmlに下記の依存関係を追加する。</p>
 </div>
 <div class="listingblock">
@@ -5300,7 +5302,7 @@ Spring Frameworkが提供するライブラリであるSpring Object/XML Marshal
 </div>
 </div>
 <div class="paragraph">
-<p>Java SE 11でJAXBを利用する場合、jaxb-core及びjaxb-implが必要となる。
+<p>JAXBを利用する場合、jaxb-core及びjaxb-implが必要となる。
 アプリケーションの依存ライブラリやバッチから提供されるライブラリにjaxb-core及びjaxb-implがない場合は、pom.xmlに下記の依存関係を追加する。</p>
 </div>
 <div class="listingblock">
@@ -5537,8 +5539,7 @@ Spring Frameworkが提供するライブラリであるSpring Object/XML Marshal
 <td class="tableblock halign-left valign-top"><p class="tableblock">(2)</p></td>
 <td class="tableblock halign-left valign-top"><p class="tableblock">encoding</p></td>
 <td class="tableblock halign-left valign-top"><p class="tableblock">出力ファイルのエンコーディングを設定する。<br>
-<a href="#Ch05_FileAccess_HowToExtend_Xml_Encoding">入出力におけるエンコーディングの仕様</a>で述べたように、ItemReader/Writer間のデフォルト値の違いによって意図しないエンコーディングで
-出力が行われることを防ぐため、デフォルト値をそのまま使用する意図である場合でも明示的にエンコーディングを設定することを推奨する。</p></td>
+ 未指定の場合のデフォルト値は「UTF-8」。</p></td>
 <td class="tableblock halign-left valign-top"></td>
 <td class="tableblock halign-left valign-top"><p class="tableblock">UTF-8</p></td>
 </tr>
@@ -5596,25 +5597,6 @@ JAXBを利用する場合は、<code>org.springframework.oxm.jaxb.Jaxb2Marshalle
 </tr>
 </tbody>
 </table>
-<div class="admonitionblock warning">
-<table>
-<tr>
-<td class="icon">
-<i class="fa icon-warning" title="Warning"></i>
-</td>
-<td class="content">
-<div class="title">JDK8の環境では現在<code>standalone</code>プロパティの指定が不可能となっている</div>
-<div class="paragraph">
-<p>JDK8の場合、<code>standalone</code>を設定してもXMLファイルに出力されない。<br>
-これはJDK8の不具合として報告され現在解消しているが、JDK9の対応となっているためである。<br>
-<a href="https://bugs.openjdk.java.net/browse/JDK-8139584">JDK Bug System/JDK-8139584</a><br>
-Spring Batchによるこの不具合報告の状況としては以下を参照されたい。<br>
-<a href="https://github.com/spring-projects/spring-batch/issues/758">Spring Batch/BATCH-2856</a><br></p>
-</div>
-</td>
-</tr>
-</table>
-</div>
 <div class="sect4">
 <h5 id="Ch05_FileAccess_HowToExtend_Xml_HeaderFooter"><a class="anchor" href="#Ch05_FileAccess_HowToExtend_Xml_HeaderFooter"></a>ヘッダ・フッタの出力</h5>
 <div class="paragraph">
@@ -5861,7 +5843,7 @@ Spring Batchによるこの不具合報告の状況としては以下を参照�
 <div class="title">マルチフォーマットファイルを読み込む際のレコードにかかるフォーマットの制約</div>
 <div class="paragraph">
 <p>マルチフォーマットファイルを読み込むためには、レコード区分がAntPathMatcherによるパターンマッチで判別可能なフォーマットでなければならない。
-詳細は<code><a href="https://docs.spring.io/spring-batch/docs/4.3.4/api/org/springframework/batch/support/PatternMatcher.html">PatternMatcher</a></code>のAPIドキュメントを参照。</p>
+詳細は<code><a href="https://docs.spring.io/spring-batch/docs/5.0.0/api/org/springframework/batch/support/PatternMatcher.html">PatternMatcher</a></code>のAPIドキュメントを参照。</p>
 </div>
 </td>
 </tr>
@@ -6441,7 +6423,7 @@ E,3,9,4500000000</code></pre>
 
   <div class="common-bg">
     <div class="information">
-      TERASOLUNA Batch Framework for Java (5.x) Development Guideline - version 5.4.1.RELEASE, 2022-3-31, commit-id:e9b4d93
+      TERASOLUNA Batch Framework for Java (5.x) Development Guideline - version 5.5.0.RELEASE, 2023-3-31, commit-id:f6da76a
     </div>
     <div class="index">
       <a href="index.html">&gt; INDEX</a>

@@ -14,12 +14,20 @@
 
 <div class="common-bg">
   <div class="information">
-    TERASOLUNA Batch Framework for Java (5.x) Development Guideline - version 5.4.1.RELEASE, 2022-3-31, commit-id:e9b4d93
+    TERASOLUNA Batch Framework for Java (5.x) Development Guideline - version 5.5.0.RELEASE, 2023-3-31, commit-id:f6da76a
   </div>
   <div class="index">
     <a href="index.html">&gt; INDEX</a>
   </div>
 </div>
+
+<!-- Google tag (gtag.js) -->
+<script async src="https://www.googletagmanager.com/gtag/js?id=G-8VC2LCPQFM"></script>
+<script>
+  window.dataLayer = window.dataLayer || [];
+  function gtag(){dataLayer.push(arguments);}
+  gtag('js', new Date());  gtag('config', 'G-8VC2LCPQFM');
+</script>
 
 <script>
   (function(i,s,o,g,r,a,m){i['GoogleAnalyticsObject']=r;i[r]=i[r]||function(){
@@ -222,7 +230,7 @@ Spring Batchによるこの不具合報告の状況としては以下を参照�
 <p>Indexを作成することで、<code>JobRepository</code>の性能改善が期待できる。<br>
 どのSQL文のどの列に対してIndexを作成するかは、実行計画を確認するなどして適切に判断してほしい。
 Spring Batchのリファレンス
-<a href="https://docs.spring.io/spring-batch/docs/4.3.4/reference/html/schema-appendix.html#recommendationsForIndexingMetaDataTables">B.10 Recommendations for Indexing Meta Data Tables</a>
+<a href="https://docs.spring.io/spring-batch/docs/5.0.0/reference/html/schema-appendix.html#recommendationsForIndexingMetaDataTables">B.10 Recommendations for Indexing Meta Data Tables</a>
 では、Spring Batchが提供するDaoの実装によって、WHERE句でどの列が利用されているか、およびそれらの使用頻度を示しているので参考にするとよい。<br></p>
 </div>
 <div class="paragraph">
@@ -247,7 +255,7 @@ Spring Batchのリファレンス
 </div>
 <div class="paragraph">
 <p>本件の対策として、TERASOLUNA Batch 5.3.0では「Spring Batchで対処された<a href="https://github.com/spring-projects/spring-batch/pull/3635/files">変更</a>を実装する」ことを推奨しているが、
-TERASOLUNA Batch 5.4.1.RELEASEではこの問題は発生しないため、対策は不要となる。</p>
+TERASOLUNA Batch 5.5.0.RELEASEではこの問題は発生しないため、対策は不要となる。</p>
 </div>
 </td>
 </tr>
@@ -448,7 +456,7 @@ TERASOLUNA Batch 5.xではこのチェックを行わない。詳細は<a href="
 <p><code>BATCH_STEP_EXECUTION</code>テーブルの<code>READ_COUNT</code>、<code>WRITE_COUNT</code>はそれぞれ<code>ItemReader</code>、<code>ItemWriter</code>による読み込み・書き込みを行った件数が記録される。</p>
 </li>
 <li>
-<p><code>BATCH_STEP_EXECUTION_CONTEXT</code>テーブルの<code>SHORT_CONTEXT</code>カラムはJSON形式で
+<p><code>BATCH_STEP_EXECUTION_CONTEXT</code>テーブルの<code>SHORT_CONTEXT</code>カラムはBase64でエンコードされたMap形式で
 <code>ItemReader</code>による読み込み処理件数が記録される。しかし、必ずしも<code>BATCH_STEP_EXECUTION</code>による処理件数と一致しない。<br></p>
 </li>
 <li>
@@ -580,8 +588,8 @@ admin=<span class="comment"># select JOB_EXECUTION_ID, STEP_EXECUTION_ID, START_
 
     <span class="comment">// (2)</span>
     <span class="predefined-type">String</span> jobName = jobExecution.getJobInstance().getJobName();
-    <span class="predefined-type">Date</span> jobStartTime = jobExecution.getStartTime();
-    <span class="predefined-type">Date</span> jobEndTime = jobExecution.getEndTime();
+    LocalDateTime jobStartTime = jobExecution.getStartTime();
+    LocalDateTime jobEndTime = jobExecution.getEndTime();
     BatchStatus jobBatchStatus = jobExecution.getStatus();
     <span class="predefined-type">String</span> jobExitCode = jobExecution.getExitStatus().getExitCode();
 
@@ -590,8 +598,8 @@ admin=<span class="comment"># select JOB_EXECUTION_ID, STEP_EXECUTION_ID, START_
     <span class="comment">// (3)</span>
     <span class="keyword">for</span> (StepExecution stepExecution : jobExecution.getStepExecutions()) {
         <span class="predefined-type">String</span> stepName = stepExecution.getStepName();
-        <span class="predefined-type">Date</span> stepStartTime = stepExecution.getStartTime();
-        <span class="predefined-type">Date</span> stepEndTime = stepExecution.getEndTime();
+        LocalDateTime stepStartTime = stepExecution.getStartTime();
+        LocalDateTime stepEndTime = stepExecution.getEndTime();
         BatchStatus stepStatus = stepExecution.getStatus();
         <span class="predefined-type">String</span> stepExitCode = stepExecution.getExitStatus().getExitCode();
 
@@ -921,7 +929,7 @@ javaプロセスの終了コードをカスタマイズするのに必要な作�
 <div class="title">JobExecutionListener実装例</div>
 <div class="content">
 <pre class="CodeRay highlight"><code data-lang="java"><span class="annotation">@Component</span>
-<span class="directive">public</span> <span class="type">class</span> <span class="class">JobExitCodeChangeListener</span> <span class="directive">extends</span> JobExecutionListenerSupport {
+<span class="directive">public</span> <span class="type">class</span> <span class="class">JobExitCodeChangeListener</span> <span class="directive">implements</span> JobExecutionListener {
 
     <span class="annotation">@Override</span>
     <span class="directive">public</span> <span class="type">void</span> afterJob(JobExecution jobExecution) {
@@ -977,8 +985,34 @@ javaプロセスの終了コードをカスタマイズするのに必要な作�
 <div class="paragraph">
 <p>ジョブの終了コードとプロセスの終了コードをマッピング定義を行う。</p>
 </div>
+<div class="tabbox">
+  <input type="radio" name="tabgroup070101" class="JavaConfigTab" id="tabgroup070101_1" checked><label for="tabgroup070101_1" class="tab">JavaConfig</label>
+  <input type="radio" name="tabgroup070101" class="XMLConfigTab" id="tabgroup070101_2"><label for="tabgroup070101_2" class="tab">XMLConfig</label>
+  <div class="tabcontent" name="JavaConfigContent">
 <div class="listingblock">
-<div class="title">launch-context.xml</div>
+<div class="title">org.terasoluna.batch.functionaltest.config.LaunchContextConfig.java</div>
+<div class="content">
+<pre class="CodeRay highlight"><code data-lang="java"><span class="comment">// exitCodeMapper</span>
+<span class="annotation">@Bean</span>
+<span class="directive">public</span> ExitCodeMapper exitCodeMapper() {
+    <span class="directive">final</span> SimpleJvmExitCodeMapper simpleJvmExitCodeMapper = <span class="keyword">new</span> SimpleJvmExitCodeMapper();
+    <span class="directive">final</span> <span class="predefined-type">Map</span>&lt;<span class="predefined-type">String</span>, <span class="predefined-type">Integer</span>&gt; exitCodeMapper = <span class="keyword">new</span> <span class="predefined-type">HashMap</span>&lt;&gt;();
+    <span class="comment">// ExitStatus</span>
+    exitCodeMapper.put(<span class="string"><span class="delimiter">&quot;</span><span class="content">NOOP</span><span class="delimiter">&quot;</span></span>, <span class="integer">0</span>);
+    exitCodeMapper.put(<span class="string"><span class="delimiter">&quot;</span><span class="content">COMPLETED</span><span class="delimiter">&quot;</span></span>, <span class="integer">0</span>);
+    exitCodeMapper.put(<span class="string"><span class="delimiter">&quot;</span><span class="content">STOPPED</span><span class="delimiter">&quot;</span></span>, <span class="integer">255</span>);
+    exitCodeMapper.put(<span class="string"><span class="delimiter">&quot;</span><span class="content">FAILED</span><span class="delimiter">&quot;</span></span>, <span class="integer">255</span>);
+    exitCodeMapper.put(<span class="string"><span class="delimiter">&quot;</span><span class="content">UNKNOWN</span><span class="delimiter">&quot;</span></span>, <span class="integer">255</span>);
+    exitCodeMapper.put(<span class="string"><span class="delimiter">&quot;</span><span class="content">JOB COMPLETED WITH SKIPS</span><span class="delimiter">&quot;</span></span>, <span class="integer">100</span>);
+    simpleJvmExitCodeMapper.setMapping(exitCodeMapper);
+    <span class="keyword">return</span> simpleJvmExitCodeMapper;
+}</code></pre>
+</div>
+</div>
+  </div>
+  <div class="tabcontent" name="XMLConfigContent">
+<div class="listingblock">
+<div class="title">META-INF/spring/launch-context.xml</div>
 <div class="content">
 <pre class="CodeRay highlight"><code data-lang="xml"><span class="comment">&lt;!-- exitCodeMapper --&gt;</span>
 <span class="tag">&lt;bean</span> <span class="attribute-name">id</span>=<span class="string"><span class="delimiter">&quot;</span><span class="content">exitCodeMapper</span><span class="delimiter">&quot;</span></span>
@@ -997,6 +1031,8 @@ javaプロセスの終了コードをカスタマイズするのに必要な作�
     <span class="tag">&lt;/property&gt;</span>
 <span class="tag">&lt;/bean&gt;</span></code></pre>
 </div>
+</div>
+  </div>
 </div>
 <div class="admonitionblock warning">
 <table>
@@ -1265,13 +1301,32 @@ Spring Batchの任意のコンポーネントに読み換えてほしい。</p>
 </li>
 </ul>
 </div>
+<div class="tabbox">
+  <input type="radio" name="tabgroup070102" class="JavaConfigTab" id="tabgroup070102_1" checked><label for="tabgroup070102_1" class="tab">JavaConfig</label>
+  <input type="radio" name="tabgroup070102" class="XMLConfigTab" id="tabgroup070102_2"><label for="tabgroup070102_2" class="tab">XMLConfig</label>
+  <div class="tabcontent" name="JavaConfigContent">
 <div class="listingblock">
-<div class="title">launch-context.xml</div>
+<div class="title">org.terasoluna.batch.functionaltest.config.LaunchContextConfig.java</div>
+<div class="content">
+<pre class="CodeRay highlight"><code data-lang="java"><span class="annotation">@Bean</span>
+<span class="directive">public</span> MessageSource messageSource() {
+    <span class="directive">final</span> ResourceBundleMessageSource resourceBundleMessageSource = <span class="keyword">new</span> ResourceBundleMessageSource();
+    resourceBundleMessageSource.setBasename(<span class="string"><span class="delimiter">&quot;</span><span class="content">i18n/application-messages</span><span class="delimiter">&quot;</span></span>);
+    <span class="keyword">return</span> resourceBundleMessageSource;
+}</code></pre>
+</div>
+</div>
+  </div>
+  <div class="tabcontent" name="XMLConfigContent">
+<div class="listingblock">
+<div class="title">META-INF/spring/launch-context.xml</div>
 <div class="content">
 <pre class="CodeRay highlight"><code data-lang="xml"><span class="tag">&lt;bean</span> <span class="attribute-name">id</span>=<span class="string"><span class="delimiter">&quot;</span><span class="content">messageSource</span><span class="delimiter">&quot;</span></span>
       <span class="attribute-name">class</span>=<span class="string"><span class="delimiter">&quot;</span><span class="content">org.springframework.context.support.ResourceBundleMessageSource</span><span class="delimiter">&quot;</span></span>
       <span class="attribute-name">p:basenames</span>=<span class="string"><span class="delimiter">&quot;</span><span class="content">i18n/application-messages</span><span class="delimiter">&quot;</span></span> <span class="tag">/&gt;</span></code></pre>
 </div>
+</div>
+  </div>
 </div>
 </td>
 </tr>
@@ -1286,7 +1341,7 @@ Spring Batchの任意のコンポーネントに読み換えてほしい。</p>
 
   <div class="common-bg">
     <div class="information">
-      TERASOLUNA Batch Framework for Java (5.x) Development Guideline - version 5.4.1.RELEASE, 2022-3-31, commit-id:e9b4d93
+      TERASOLUNA Batch Framework for Java (5.x) Development Guideline - version 5.5.0.RELEASE, 2023-3-31, commit-id:f6da76a
     </div>
     <div class="index">
       <a href="index.html">&gt; INDEX</a>

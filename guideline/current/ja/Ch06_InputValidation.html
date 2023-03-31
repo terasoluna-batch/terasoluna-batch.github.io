@@ -14,12 +14,20 @@
 
 <div class="common-bg">
   <div class="information">
-    TERASOLUNA Batch Framework for Java (5.x) Development Guideline - version 5.4.1.RELEASE, 2022-3-31, commit-id:e9b4d93
+    TERASOLUNA Batch Framework for Java (5.x) Development Guideline - version 5.5.0.RELEASE, 2023-3-31, commit-id:f6da76a
   </div>
   <div class="index">
     <a href="index.html">&gt; INDEX</a>
   </div>
 </div>
+
+<!-- Google tag (gtag.js) -->
+<script async src="https://www.googletagmanager.com/gtag/js?id=G-8VC2LCPQFM"></script>
+<script>
+  window.dataLayer = window.dataLayer || [];
+  function gtag(){dataLayer.push(arguments);}
+  gtag('js', new Date());  gtag('config', 'G-8VC2LCPQFM');
+</script>
 
 <script>
   (function(i,s,o,g,r,a,m){i['GoogleAnalyticsObject']=r;i[r]=i[r]||function(){
@@ -253,9 +261,9 @@ TERASOLUNA Server 5.x 開発ガイドラインの <a href="https://terasolunaorg
 <i class="fa icon-important" title="Important"></i>
 </td>
 <td class="content">
-<div class="title">javax.validation.Validatorやorg.springframework.validation.Validatorといったバリデータは直接使用しない。</div>
+<div class="title">jakarta.validation.Validatorやorg.springframework.validation.Validatorといったバリデータは直接使用しない。</div>
 <div class="paragraph">
-<p><code>javax.validation.Validator</code>や<code>org.springframework.validation.Validator</code>といったバリデータは直接使用せず、
+<p><code>jakarta.validation.Validator</code>や<code>org.springframework.validation.Validator</code>といったバリデータは直接使用せず、
 <code>org.springframework.batch.item.validator.SpringValidator</code>を使用する。</p>
 </div>
 <div class="paragraph">
@@ -264,7 +272,7 @@ TERASOLUNA Server 5.x 開発ガイドラインの <a href="https://terasolunaorg
 そのため、<code>ValidationException</code>を通して<code>BindException</code>にアクセスでき、柔軟なハンドリングがしやすくなる。</p>
 </div>
 <div class="paragraph">
-<p>一方、<code>javax.validation.Validator</code>や<code>org.springframework.validation.Validator</code>といったバリデータを直接使用すると、バリデーションエラーになった情報を処理する際に煩雑なロジックになってしまう。</p>
+<p>一方、<code>jakarta.validation.Validator</code>や<code>org.springframework.validation.Validator</code>といったバリデータを直接使用すると、バリデーションエラーになった情報を処理する際に煩雑なロジックになってしまう。</p>
 </div>
 </td>
 </tr>
@@ -361,8 +369,33 @@ Spring Batchが提供する<code>ValidatingItemProcessor</code>を使用して�
 <span class="tag">&lt;/dependency&gt;</span></code></pre>
 </div>
 </div>
+<div class="tabbox">
+  <input type="radio" name="tabgroup060101" class="JavaConfigTab" id="tabgroup060101_1" checked><label for="tabgroup060101_1" class="tab">JavaConfig</label>
+  <input type="radio" name="tabgroup060101" class="XMLConfigTab" id="tabgroup060101_2"><label for="tabgroup060101_2" class="tab">XMLConfig</label>
+  <div class="tabcontent" name="JavaConfigContent">
 <div class="listingblock">
-<div class="title">launch-context.xml</div>
+<div class="title">org.terasoluna.batch.functionaltest.config.LaunchContextConfig.java</div>
+<div class="content">
+<pre class="CodeRay highlight"><code data-lang="java"><span class="annotation">@Bean</span>
+<span class="directive">public</span> SpringValidator&lt;?&gt; validator(<span class="predefined-type">Validator</span> beanValidator) {
+    <span class="directive">final</span> SpringValidator&lt;?&gt; springValidator = <span class="keyword">new</span> SpringValidator&lt;&gt;();
+    springValidator.setValidator(beanValidator);
+    <span class="keyword">return</span> springValidator;
+}
+
+<span class="annotation">@Bean</span>
+<span class="directive">public</span> <span class="predefined-type">Validator</span> beanValidator() {
+    <span class="keyword">try</span> (LocalValidatorFactoryBean localValidatorFactoryBean = <span class="keyword">new</span> LocalValidatorFactoryBean()) {
+        localValidatorFactoryBean.afterPropertiesSet();
+        <span class="keyword">return</span> localValidatorFactoryBean;
+    }
+}</code></pre>
+</div>
+</div>
+  </div>
+  <div class="tabcontent" name="XMLConfigContent">
+<div class="listingblock">
+<div class="title">META-INF/spring/launch-context.xml</div>
 <div class="content">
 <pre class="CodeRay highlight"><code data-lang="xml"><span class="tag">&lt;bean</span> <span class="attribute-name">id</span>=<span class="string"><span class="delimiter">&quot;</span><span class="content">validator</span><span class="delimiter">&quot;</span></span> <span class="attribute-name">class</span>=<span class="string"><span class="delimiter">&quot;</span><span class="content">org.springframework.batch.item.validator.SpringValidator</span><span class="delimiter">&quot;</span></span>
       <span class="attribute-name">p:validator-ref</span>=<span class="string"><span class="delimiter">&quot;</span><span class="content">beanValidator</span><span class="delimiter">&quot;</span></span><span class="tag">/&gt;</span>
@@ -370,6 +403,8 @@ Spring Batchが提供する<code>ValidatingItemProcessor</code>を使用して�
 <span class="tag">&lt;bean</span> <span class="attribute-name">id</span>=<span class="string"><span class="delimiter">&quot;</span><span class="content">beanValidator</span><span class="delimiter">&quot;</span></span>
       <span class="attribute-name">class</span>=<span class="string"><span class="delimiter">&quot;</span><span class="content">org.springframework.validation.beanvalidation.LocalValidatorFactoryBean</span><span class="delimiter">&quot;</span></span> <span class="tag">/&gt;</span></code></pre>
 </div>
+</div>
+  </div>
 </div>
 <div class="paragraph">
 <div class="title">エラーメッセージの設定</div>
@@ -1131,7 +1166,7 @@ onProcessErrorメソッドにて発生した例外の種類を判定して例外
 
   <div class="common-bg">
     <div class="information">
-      TERASOLUNA Batch Framework for Java (5.x) Development Guideline - version 5.4.1.RELEASE, 2022-3-31, commit-id:e9b4d93
+      TERASOLUNA Batch Framework for Java (5.x) Development Guideline - version 5.5.0.RELEASE, 2023-3-31, commit-id:f6da76a
     </div>
     <div class="index">
       <a href="index.html">&gt; INDEX</a>

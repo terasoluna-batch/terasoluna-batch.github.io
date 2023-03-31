@@ -14,12 +14,20 @@
 
 <div class="common-bg">
   <div class="information">
-    TERASOLUNA Batch Framework for Java (5.x) Development Guideline - version 5.4.1.RELEASE, 2022-3-31, commit-id:e9b4d93
+    TERASOLUNA Batch Framework for Java (5.x) Development Guideline - version 5.5.0.RELEASE, 2023-3-31, commit-id:f6da76a
   </div>
   <div class="index">
     <a href="index.html">&gt; INDEX</a>
   </div>
 </div>
+
+<!-- Google tag (gtag.js) -->
+<script async src="https://www.googletagmanager.com/gtag/js?id=G-8VC2LCPQFM"></script>
+<script>
+  window.dataLayer = window.dataLayer || [];
+  function gtag(){dataLayer.push(arguments);}
+  gtag('js', new Date());  gtag('config', 'G-8VC2LCPQFM');
+</script>
 
 <script>
   (function(i,s,o,g,r,a,m){i['GoogleAnalyticsObject']=r;i[r]=i[r]||function(){
@@ -216,7 +224,7 @@ MyBatisによるデータベースアクセスの基本的な利用方法は、T
 <h4 id="Ch05_DBAccess_HowToUse_Config_DataSource"><a class="anchor" href="#Ch05_DBAccess_HowToUse_Config_DataSource"></a>データソースの設定</h4>
 <div class="paragraph">
 <p>TERASOLUNA Batch 5.xでは、2つのデータソースを前提としている。
-<code>launch-context.xml</code>でデフォルト設定している2つのデータソースを示す。</p>
+<code>LaunchContextConfig.java/launch-context.xml</code>でデフォルト設定している2つのデータソースを示す。</p>
 </div>
 <table class="tableblock frame-all grid-all stretch">
 <caption class="title">表 1. データソース一覧</caption>
@@ -260,9 +268,55 @@ JobRepositoryや<a href="Ch04_AsyncJobWithDB.html#Ch04_AsyncJobWithDB">非同期
 </table>
 </div>
 <div class="paragraph">
-<p>以下に、launch-context.xmlと接続情報のプロパティを示す。<br>
+<p>以下に、LaunchContextConfig.java/launch-context.xmlと接続情報のプロパティを示す。<br>
 これらをユーザの環境に合わせて設定すること。</p>
 </div>
+<div class="tabbox">
+  <input type="radio" name="tabgroup050201" class="JavaConfigTab" id="tabgroup050201_1" checked><label for="tabgroup050201_1" class="tab">JavaConfig</label>
+  <input type="radio" name="tabgroup050201" class="XMLConfigTab" id="tabgroup050201_2"><label for="tabgroup050201_2" class="tab">XMLConfig</label>
+  <div class="tabcontent" name="JavaConfigContent">
+<div class="listingblock">
+<div class="title">org.terasoluna.batch.functionaltest.config.LaunchContextConfig.java</div>
+<div class="content">
+<pre class="CodeRay highlight"><code data-lang="java"><span class="comment">// (1)</span>
+<span class="annotation">@Bean</span>
+<span class="directive">public</span> BasicDataSource adminDataSource(<span class="annotation">@Value</span>(<span class="string"><span class="delimiter">&quot;</span><span class="content">${admin.h2.jdbc.driver}</span><span class="delimiter">&quot;</span></span>) <span class="predefined-type">String</span> driverClassName,
+                                       <span class="annotation">@Value</span>(<span class="string"><span class="delimiter">&quot;</span><span class="content">${admin.h2.jdbc.url}</span><span class="delimiter">&quot;</span></span>) <span class="predefined-type">String</span> url,
+                                       <span class="annotation">@Value</span>(<span class="string"><span class="delimiter">&quot;</span><span class="content">${admin.h2.jdbc.username}</span><span class="delimiter">&quot;</span></span>) <span class="predefined-type">String</span> username,
+                                       <span class="annotation">@Value</span>(<span class="string"><span class="delimiter">&quot;</span><span class="content">${admin.h2.jdbc.password}</span><span class="delimiter">&quot;</span></span>) <span class="predefined-type">String</span> password) {
+    <span class="directive">final</span> BasicDataSource dataSource = <span class="keyword">new</span> BasicDataSource();
+    dataSource.setDriverClassName(driverClassName);
+    dataSource.setUrl(url);
+    dataSource.setUsername(username);
+    dataSource.setPassword(password);
+    dataSource.setMaxTotal(<span class="integer">10</span>);
+    dataSource.setMinIdle(<span class="integer">1</span>);
+    dataSource.setMaxWaitMillis(<span class="integer">5000</span>);
+    dataSource.setDefaultAutoCommit(<span class="predefined-constant">false</span>);
+    <span class="keyword">return</span> dataSource;
+}
+
+<span class="comment">// (2)</span>
+<span class="annotation">@Bean</span>
+<span class="directive">public</span> BasicDataSource jobDataSource(<span class="annotation">@Value</span>(<span class="string"><span class="delimiter">&quot;</span><span class="content">${jdbc.driver}</span><span class="delimiter">&quot;</span></span>) <span class="predefined-type">String</span> driverClassName,
+                                     <span class="annotation">@Value</span>(<span class="string"><span class="delimiter">&quot;</span><span class="content">${jdbc.url}</span><span class="delimiter">&quot;</span></span>) <span class="predefined-type">String</span> url,
+                                     <span class="annotation">@Value</span>(<span class="string"><span class="delimiter">&quot;</span><span class="content">${jdbc.username}</span><span class="delimiter">&quot;</span></span>) <span class="predefined-type">String</span> username,
+                                     <span class="annotation">@Value</span>(<span class="string"><span class="delimiter">&quot;</span><span class="content">${jdbc.password}</span><span class="delimiter">&quot;</span></span>) <span class="predefined-type">String</span> password) {
+    <span class="directive">final</span> BasicDataSource basicDataSource = <span class="keyword">new</span> BasicDataSource();
+    basicDataSource.setDriverClassName(driverClassName);
+    basicDataSource.setUrl(url);
+    basicDataSource.setUsername(username);
+    basicDataSource.setPassword(password);
+    basicDataSource.setMaxTotal(<span class="integer">10</span>);
+    basicDataSource.setMinIdle(<span class="integer">1</span>);
+    basicDataSource.setMaxWaitMillis(<span class="integer">5000</span>);
+    basicDataSource.setDefaultAutoCommit(<span class="predefined-constant">false</span>);
+    <span class="keyword">return</span> basicDataSource;
+}</code></pre>
+</div>
+</div>
+  </div>
+  <div class="tabcontent" name="XMLConfigContent">
 <div class="listingblock">
 <div class="title">resources\META-INF\spring\launch-context.xml</div>
 <div class="content">
@@ -290,6 +344,8 @@ JobRepositoryや<a href="Ch04_AsyncJobWithDB.html#Ch04_AsyncJobWithDB">非同期
       <span class="attribute-name">p:maxWaitMillis</span>=<span class="string"><span class="delimiter">&quot;</span><span class="content">5000</span><span class="delimiter">&quot;</span></span>
       <span class="attribute-name">p:defaultAutoCommit</span>=<span class="string"><span class="delimiter">&quot;</span><span class="content">false</span><span class="delimiter">&quot;</span></span> <span class="tag">/&gt;</span></code></pre>
 </div>
+</div>
+  </div>
 </div>
 <div class="listingblock">
 <div class="title">batch-application.properties</div>
@@ -417,6 +473,38 @@ JDBCドライバに適切な<code>fetchSize</code>を指定することが必須
 <div class="paragraph">
 <p>以下にデフォルト提供されている設定を示す。</p>
 </div>
+<div class="tabbox">
+  <input type="radio" name="tabgroup050202" class="JavaConfigTab" id="tabgroup050202_1" checked><label for="tabgroup050202_1" class="tab">JavaConfig</label>
+  <input type="radio" name="tabgroup050202" class="XMLConfigTab" id="tabgroup050202_2"><label for="tabgroup050202_2" class="tab">XMLConfig</label>
+  <div class="tabcontent" name="JavaConfigContent">
+<div class="listingblock">
+<div class="title">org.terasoluna.batch.functionaltest.config.LaunchContextConfig.java</div>
+<div class="content">
+<pre class="CodeRay highlight"><code data-lang="java"><span class="comment">// (1)</span>
+<span class="annotation">@Bean</span>
+<span class="directive">public</span> SqlSessionFactory jobSqlSessionFactory(<span class="annotation">@Qualifier</span>(<span class="string"><span class="delimiter">&quot;</span><span class="content">jobDataSource</span><span class="delimiter">&quot;</span></span>) <span class="predefined-type">DataSource</span> jobDataSource) <span class="directive">throws</span> <span class="exception">Exception</span> {
+    <span class="directive">final</span> SqlSessionFactoryBean sqlSessionFactoryBean = <span class="keyword">new</span> SqlSessionFactoryBean();
+    sqlSessionFactoryBean.setDataSource(jobDataSource);
+
+    <span class="directive">final</span> org.apache.ibatis.session.Configuration configuration = <span class="keyword">new</span> org.apache.ibatis.session.Configuration();
+    configuration.setLocalCacheScope(LocalCacheScope.STATEMENT);
+    configuration.setLazyLoadingEnabled(<span class="predefined-constant">true</span>);
+    configuration.setAggressiveLazyLoading(<span class="predefined-constant">false</span>);
+    configuration.setDefaultFetchSize(<span class="integer">1000</span>);
+    configuration.setDefaultExecutorType(ExecutorType.REUSE);
+     sqlSessionFactoryBean.setConfiguration(configuration);
+    <span class="keyword">return</span> sqlSessionFactoryBean.getObject();
+}
+
+<span class="comment">// (2)</span>
+<span class="annotation">@Bean</span>
+<span class="directive">public</span> SqlSessionTemplate batchModeSqlSessionTemplate(<span class="annotation">@Qualifier</span>(<span class="string"><span class="delimiter">&quot;</span><span class="content">jobSqlSessionFactory</span><span class="delimiter">&quot;</span></span>) SqlSessionFactory jobSqlSessionFactory) {
+    <span class="keyword">return</span> <span class="keyword">new</span> SqlSessionTemplate(jobSqlSessionFactory, ExecutorType.BATCH);
+}</code></pre>
+</div>
+</div>
+  </div>
+  <div class="tabcontent" name="XMLConfigContent">
 <div class="listingblock">
 <div class="title">META-INF/spring/launch-context.xml</div>
 <div class="content">
@@ -440,6 +528,8 @@ JDBCドライバに適切な<code>fetchSize</code>を指定することが必須
       <span class="attribute-name">c:sqlSessionFactory-ref</span>=<span class="string"><span class="delimiter">&quot;</span><span class="content">jobSqlSessionFactory</span><span class="delimiter">&quot;</span></span>
       <span class="attribute-name">c:executorType</span>=<span class="string"><span class="delimiter">&quot;</span><span class="content">BATCH</span><span class="delimiter">&quot;</span></span><span class="tag">/&gt;</span></code></pre>
 </div>
+</div>
+  </div>
 </div>
 <table class="tableblock frame-all grid-all stretch">
 <caption class="title">表 3. 説明</caption>
@@ -476,8 +566,34 @@ JDBCドライバに適切な<code>fetchSize</code>を指定することが必須
 <div class="paragraph">
 <p>同期実行をする場合は、adminDataSourceを利用した<code>SqlSessionFactory</code>は不要であるため、定義がされていない。
 <a href="Ch04_AsyncJobWithDB.html#Ch04_AsyncJobWithDB">非同期実行(DBポーリング)</a>を利用する場合、ジョブ要求テーブルへアクセスするために
-<code>META-INF/spring/async-batch-daemon.xml</code>内に定義されている。</p>
+<code>AsyncBatchDaemonConfig.java/META-INF/spring/async-batch-daemon.xml</code>内に定義されている。</p>
 </div>
+<div class="tabbox">
+  <input type="radio" name="tabgroup050203" class="JavaConfigTab" id="tabgroup050203_1" checked><label for="tabgroup050203_1" class="tab">JavaConfig</label>
+  <input type="radio" name="tabgroup050203" class="XMLConfigTab" id="tabgroup050203_2"><label for="tabgroup050203_2" class="tab">XMLConfig</label>
+  <div class="tabcontent" name="JavaConfigContent">
+<div class="listingblock">
+<div class="title">org.terasoluna.batch.functionaltest.config.AsyncBatchDaemonConfig.java</div>
+<div class="content">
+<pre class="CodeRay highlight"><code data-lang="java"><span class="annotation">@Bean</span>
+<span class="directive">public</span> SqlSessionFactory adminSqlSessionFactory(<span class="annotation">@Qualifier</span>(<span class="string"><span class="delimiter">&quot;</span><span class="content">adminDataSource</span><span class="delimiter">&quot;</span></span>) <span class="predefined-type">DataSource</span> adminDataSource,
+                                                DatabaseIdProvider databaseIdProvider) <span class="directive">throws</span> <span class="exception">Exception</span> {
+    <span class="directive">final</span> SqlSessionFactoryBean sqlSessionFactoryBean = <span class="keyword">new</span> SqlSessionFactoryBean();
+    sqlSessionFactoryBean.setDataSource(adminDataSource);
+    sqlSessionFactoryBean.setDatabaseIdProvider(databaseIdProvider);
+    <span class="directive">final</span> org.apache.ibatis.session.Configuration configuration = <span class="keyword">new</span> org.apache.ibatis.session.Configuration();
+    configuration.setLocalCacheScope(LocalCacheScope.STATEMENT);
+    configuration.setLazyLoadingEnabled(<span class="predefined-constant">true</span>);
+    configuration.setAggressiveLazyLoading(<span class="predefined-constant">false</span>);
+    configuration.setDefaultFetchSize(<span class="integer">1000</span>);
+    configuration.setDefaultExecutorType(ExecutorType.REUSE);
+    sqlSessionFactoryBean.setConfiguration(configuration);
+    <span class="keyword">return</span> sqlSessionFactoryBean.getObject();
+}</code></pre>
+</div>
+</div>
+  </div>
+  <div class="tabcontent" name="XMLConfigContent">
 <div class="listingblock">
 <div class="title">META-INF/spring/async-batch-daemon.xml</div>
 <div class="content">
@@ -494,6 +610,8 @@ JDBCドライバに適切な<code>fetchSize</code>を指定することが必須
     <span class="tag">&lt;/property&gt;</span>
 <span class="tag">&lt;/bean&gt;</span></code></pre>
 </div>
+</div>
+  </div>
 </div>
 </td>
 </tr>
@@ -1736,7 +1854,7 @@ MyBatis-Springが提供する<code>MyBatisBatchItemWriter</code>によるデー�
 
                 items.add(processor.process(item)); <span class="comment">// (10)</span>
                 <span class="keyword">if</span> (items.size() == <span class="integer">10</span>) {
-                    writer.write(items); <span class="comment">// (11)</span>
+                    writer.write(<span class="keyword">new</span> Chunk(items)); <span class="comment">// (11)</span>
                     items.clear();
                 }
             }
@@ -2019,7 +2137,7 @@ ItemWriterとは異なる更新処理をするためにItemProcessorで個別に
 <div class="listingblock">
 <div class="title">リスナーでの実装例</div>
 <div class="content">
-<pre class="CodeRay highlight"><code data-lang="java"><span class="directive">public</span> <span class="type">class</span> <span class="class">CacheSetListener</span> <span class="directive">extends</span> StepExecutionListenerSupport {
+<pre class="CodeRay highlight"><code data-lang="java"><span class="directive">public</span> <span class="type">class</span> <span class="class">CacheSetListener</span> <span class="directive">implements</span> StepExecutionListener {
 
     <span class="comment">// (1)</span>
     <span class="annotation">@Inject</span>
@@ -2441,7 +2559,7 @@ MyBatisBatchItemWriterとFlatFileItemWriterを設定することで、データ�
 
   <div class="common-bg">
     <div class="information">
-      TERASOLUNA Batch Framework for Java (5.x) Development Guideline - version 5.4.1.RELEASE, 2022-3-31, commit-id:e9b4d93
+      TERASOLUNA Batch Framework for Java (5.x) Development Guideline - version 5.5.0.RELEASE, 2023-3-31, commit-id:f6da76a
     </div>
     <div class="index">
       <a href="index.html">&gt; INDEX</a>

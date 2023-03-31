@@ -14,12 +14,20 @@
 
 <div class="common-bg">
   <div class="information">
-    TERASOLUNA Batch Framework for Java (5.x) Development Guideline - version 5.4.1.RELEASE, 2022-3-31, commit-id:e9b4d93
+    TERASOLUNA Batch Framework for Java (5.x) Development Guideline - version 5.5.0.RELEASE, 2023-3-31, commit-id:f6da76a
   </div>
   <div class="index">
     <a href="index.html">&gt; INDEX</a>
   </div>
 </div>
+
+<!-- Google tag (gtag.js) -->
+<script async src="https://www.googletagmanager.com/gtag/js?id=G-8VC2LCPQFM"></script>
+<script>
+  window.dataLayer = window.dataLayer || [];
+  function gtag(){dataLayer.push(arguments);}
+  gtag('js', new Date());  gtag('config', 'G-8VC2LCPQFM');
+</script>
 
 <script>
   (function(i,s,o,g,r,a,m){i['GoogleAnalyticsObject']=r;i[r]=i[r]||function(){
@@ -209,7 +217,7 @@ Spring Batchはチャンク処理中にエラーが発生した場合、<code>Ch
 <div class="title">使用例</div>
 <div class="content">
 <pre class="CodeRay highlight"><code data-lang="java"><span class="directive">public</span> <span class="type">void</span> afterChunkError(ChunkContext context) {
-    logger.error(<span class="string"><span class="delimiter">&quot;</span><span class="content">Exception occurred while chunk. [context:{}]</span><span class="delimiter">&quot;</span></span>, context,
+    logger.error(<span class="string"><span class="delimiter">&quot;</span><span class="content">Exception occurred while chunk. [context:{}]</span><span class="delimiter">&quot;</span></span>,
             context.getAttribute(ChunkListener.ROLLBACK_EXCEPTION_KEY));
 }</code></pre>
 </div>
@@ -269,9 +277,9 @@ Spring Batchはチャンク処理中にエラーが発生した場合、<code>Ch
 <div class="title">ItemWriteListenerインタフェース</div>
 <div class="content">
 <pre class="CodeRay highlight"><code data-lang="java"><span class="directive">public</span> <span class="type">interface</span> <span class="class">ItemWriteListener</span>&lt;S&gt; <span class="directive">extends</span> StepListener {
-  <span class="type">void</span> beforeWrite(<span class="predefined-type">List</span>&lt;? <span class="directive">extends</span> S&gt; items);
-  <span class="type">void</span> afterWrite(<span class="predefined-type">List</span>&lt;? <span class="directive">extends</span> S&gt; items);
-  <span class="type">void</span> onWriteError(<span class="exception">Exception</span> exception, <span class="predefined-type">List</span>&lt;? <span class="directive">extends</span> S&gt; items);
+  <span class="type">void</span> beforeWrite(Chunk&lt;? <span class="directive">extends</span> S&gt; items);
+  <span class="type">void</span> afterWrite(Chunk&lt;? <span class="directive">extends</span> S&gt; items);
+  <span class="type">void</span> onWriteError(<span class="exception">Exception</span> exception, Chunk&lt;? <span class="directive">extends</span> S&gt; items);
 }</code></pre>
 </div>
 </div>
@@ -973,7 +981,7 @@ XMLスキーマ定義では様々な箇所に記述できるが、インタフ�
 
   <div class="common-bg">
     <div class="information">
-      TERASOLUNA Batch Framework for Java (5.x) Development Guideline - version 5.4.1.RELEASE, 2022-3-31, commit-id:e9b4d93
+      TERASOLUNA Batch Framework for Java (5.x) Development Guideline - version 5.5.0.RELEASE, 2023-3-31, commit-id:f6da76a
     </div>
     <div class="index">
       <a href="index.html">&gt; INDEX</a>

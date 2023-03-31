@@ -14,12 +14,20 @@
 
 <div class="common-bg">
   <div class="information">
-    TERASOLUNA Batch Framework for Java (5.x) Development Guideline - version 5.4.1.RELEASE, 2022-3-31, commit-id:e9b4d93
+    TERASOLUNA Batch Framework for Java (5.x) Development Guideline - version 5.5.0.RELEASE, 2023-3-31, commit-id:f6da76a
   </div>
   <div class="index">
     <a href="index.html">&gt; INDEX</a>
   </div>
 </div>
+
+<!-- Google tag (gtag.js) -->
+<script async src="https://www.googletagmanager.com/gtag/js?id=G-8VC2LCPQFM"></script>
+<script>
+  window.dataLayer = window.dataLayer || [];
+  function gtag(){dataLayer.push(arguments);}
+  gtag('js', new Date());  gtag('config', 'G-8VC2LCPQFM');
+</script>
 
 <script>
   (function(i,s,o,g,r,a,m){i['GoogleAnalyticsObject']=r;i[r]=i[r]||function(){
@@ -599,8 +607,8 @@ ItemReader、ItemWriterでのスキップは<a href="Ch06_ExceptionHandling.html
 <p>チャンクモデル/タスクレットモデルで共通して利用するため、既に作成している場合は読み飛ばしてよい。</p>
 </div>
 <div class="paragraph">
-<p><code>application-messages.properties</code>および<code>launch-context.xml</code>を以下のとおり設定する。<br>
-なお、<code>launch-context.xml</code>の設定はブランクプロジェクトに設定済みである。</p>
+<p><code>application-messages.properties</code>および<code>LaunchContextConfig.java/launch-context.xml</code>を以下のとおり設定する。<br>
+なお、<code>LaunchContextConfig.java/launch-context.xml</code>の設定はブランクプロジェクトに設定済みである。</p>
 </div>
 <div class="listingblock">
 <div class="title">src/main/resources/i18n/application-messages.properties</div>
@@ -609,8 +617,27 @@ ItemReader、ItemWriterでのスキップは<a href="Ch06_ExceptionHandling.html
 errors.maxInteger=The {0} exceeds {1}.</code></pre>
 </div>
 </div>
+<div class="tabbox">
+  <input type="radio" name="tabgroup09040501" class="JavaConfigTab" id="tabgroup09040501_1" checked><label for="tabgroup09040501_1" class="tab">JavaConfig</label>
+  <input type="radio" name="tabgroup09040501" class="XMLConfigTab" id="tabgroup09040501_2"><label for="tabgroup09040501_2" class="tab">XMLConfig</label>
+  <div class="tabcontent" name="JavaConfigContent">
 <div class="listingblock">
-<div class="title">src/main/resources/META-INF/spring/launch-context.xml</div>
+<div class="title">org.terasoluna.batch.tutorial.config.LaunchContextConfig.java</div>
+<div class="content">
+<pre class="CodeRay highlight"><code data-lang="java"><span class="comment">// omitted</span>
+<span class="annotation">@Bean</span>
+<span class="directive">public</span> MessageSource messageSource() {
+    <span class="directive">final</span> ResourceBundleMessageSource resourceBundleMessageSource = <span class="keyword">new</span> ResourceBundleMessageSource();
+    resourceBundleMessageSource.setBasename(<span class="string"><span class="delimiter">&quot;</span><span class="content">i18n/application-messages</span><span class="delimiter">&quot;</span></span>); <span class="comment">// (2)</span>
+    <span class="keyword">return</span> resourceBundleMessageSource;
+}
+<span class="comment">// omitted</span></code></pre>
+</div>
+</div>
+  </div>
+  <div class="tabcontent" name="XMLConfigContent">
+<div class="listingblock">
+<div class="title">META-INF/spring/launch-context.xml</div>
 <div class="content">
 <pre class="CodeRay highlight"><code data-lang="xml"><span class="comment">&lt;!-- omitted --&gt;</span>
 
@@ -619,6 +646,8 @@ errors.maxInteger=The {0} exceeds {1}.</code></pre>
 
 <span class="comment">&lt;!-- omitted --&gt;</span></code></pre>
 </div>
+</div>
+  </div>
 </div>
 <table class="tableblock frame-all grid-all stretch">
 <caption class="title">表 2. 説明</caption>
@@ -636,12 +665,11 @@ errors.maxInteger=The {0} exceeds {1}.</code></pre>
 <tr>
 <td class="tableblock halign-left valign-top"><p class="tableblock">(1)</p></td>
 <td class="tableblock halign-left valign-top"><p class="tableblock">ポイント上限超過時に出力するメッセージを設定する。<br>
-{0)に項目名、{1}に上限値を割り当てる。</p></td>
+{0}に項目名、{1}に上限値を割り当てる。</p></td>
 </tr>
 <tr>
 <td class="tableblock halign-left valign-top"><p class="tableblock">(2)</p></td>
-<td class="tableblock halign-left valign-top"><p class="tableblock">プロパティファイルからメッセージを使用するために、<code>MessageSource</code>を設定する。<br>
-<code>basenames</code>に、プロパティファイルの格納場所を指定する。</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">プロパティファイルからメッセージを使用するために、<code>MessageSource</code>を設定する。</p></td>
 </tr>
 </tbody>
 </table>
@@ -907,11 +935,43 @@ errors.maxInteger=The {0} exceeds {1}.</code></pre>
 <div class="paragraph">
 <p>終了コードのマッピングを追加で設定する。</p>
 </div>
+<div class="tabbox">
+  <input type="radio" name="tabgroup09040502" class="JavaConfigTab" id="tabgroup09040502_1" checked><label for="tabgroup09040502_1" class="tab">JavaConfig</label>
+  <input type="radio" name="tabgroup09040502" class="XMLConfigTab" id="tabgroup09040502_2"><label for="tabgroup09040502_2" class="tab">XMLConfig</label>
+  <div class="tabcontent" name="JavaConfigContent">
+<div class="paragraph">
+<p><code>LaunchContextConfig.java</code>に以下のとおり、独自の終了コードを追加する。</p>
+</div>
+<div class="listingblock">
+<div class="title">org.terasoluna.batch.tutorial.config.LaunchContextConfig.java</div>
+<div class="content">
+<pre class="CodeRay highlight"><code data-lang="java"><span class="comment">// omitted</span>
+
+<span class="annotation">@Bean</span>
+<span class="directive">public</span> ExitCodeMapper exitCodeMapper() {
+    <span class="directive">final</span> SimpleJvmExitCodeMapper simpleJvmExitCodeMapper = <span class="keyword">new</span> SimpleJvmExitCodeMapper();
+    <span class="directive">final</span> <span class="predefined-type">Map</span>&lt;<span class="predefined-type">String</span>, <span class="predefined-type">Integer</span>&gt; exitCodeMapper = <span class="keyword">new</span> <span class="predefined-type">HashMap</span>&lt;&gt;();
+    <span class="comment">// ExitStatus</span>
+    exitCodeMapper.put(<span class="string"><span class="delimiter">&quot;</span><span class="content">NOOP</span><span class="delimiter">&quot;</span></span>, <span class="integer">0</span>);
+    exitCodeMapper.put(<span class="string"><span class="delimiter">&quot;</span><span class="content">COMPLETED</span><span class="delimiter">&quot;</span></span>, <span class="integer">0</span>);
+    exitCodeMapper.put(<span class="string"><span class="delimiter">&quot;</span><span class="content">STOPPED</span><span class="delimiter">&quot;</span></span>, <span class="integer">255</span>);
+    exitCodeMapper.put(<span class="string"><span class="delimiter">&quot;</span><span class="content">FAILED</span><span class="delimiter">&quot;</span></span>, <span class="integer">255</span>);
+    exitCodeMapper.put(<span class="string"><span class="delimiter">&quot;</span><span class="content">UNKNOWN</span><span class="delimiter">&quot;</span></span>, <span class="integer">255</span>);
+    exitCodeMapper.put(<span class="string"><span class="delimiter">&quot;</span><span class="content">SKIPPED</span><span class="delimiter">&quot;</span></span>, <span class="integer">200</span>); <span class="comment">// (1)</span>
+    simpleJvmExitCodeMapper.setMapping(exitCodeMapper);
+    <span class="keyword">return</span> simpleJvmExitCodeMapper;
+}
+
+<span class="comment">// omitted</span></code></pre>
+</div>
+</div>
+  </div>
+  <div class="tabcontent" name="XMLConfigContent">
 <div class="paragraph">
 <p><code>launch-context.xml</code>に以下のとおり、独自の終了コードを追加する。</p>
 </div>
 <div class="listingblock">
-<div class="title">src/main/resources/META-INF/spring/launch-context.xml</div>
+<div class="title">META-INF/spring/launch-context.xml</div>
 <div class="content">
 <pre class="CodeRay highlight"><code data-lang="xml"><span class="comment">&lt;!-- omitted --&gt;</span>
 
@@ -932,6 +992,8 @@ errors.maxInteger=The {0} exceeds {1}.</code></pre>
 
 <span class="comment">&lt;!-- omitted --&gt;</span></code></pre>
 </div>
+</div>
+  </div>
 </div>
 <table class="tableblock frame-all grid-all stretch">
 <caption class="title">表 6. 説明</caption>
@@ -1154,7 +1216,7 @@ tutorial.insert-data.script=file:sqls/insert-member-info-error-data.sql</code></
 <h5 id="Ch09_Impl_ExceptionHandlingWithTryCatchJob_Chunk_Execution_Output_Table"><a class="anchor" href="#Ch09_Impl_ExceptionHandlingWithTryCatchJob_Chunk_Execution_Output_Table"></a>会員情報テーブルの確認</h5>
 <div class="paragraph">
 <p>更新前後の会員情報テーブルの内容を比較し、確認内容のとおりとなっていることを確認する。<br>
-確認手順は<a href="Ch09_EnvironmentConstruction.html#Ch09_EnvironmentConstruction_OperationCheck_RefDB">DBeaverを使用してデータベースを参照する</a>を参照。</p>
+確認手順は<a href="Ch09_EnvironmentConstruction.html#Ch09_EnvironmentConstruction_OperationCheck_RefDB">H2 Consoleを使用してデータベースを参照する</a>を参照。</p>
 </div>
 <div class="dlist">
 <dl>
@@ -1344,8 +1406,8 @@ tutorial.insert-data.script=file:sqls/insert-member-info-error-data.sql</code></
 <p>チャンクモデル/タスクレットモデルで共通して利用するため、既に作成している場合は読み飛ばしてよい。</p>
 </div>
 <div class="paragraph">
-<p><code>application-messages.properties</code>および<code>launch-context.xml</code>を以下のとおり設定する。<br>
-なお、<code>launch-context.xml</code>の設定はブランクプロジェクトに設定済みである。</p>
+<p><code>application-messages.properties</code>および<code>LaunchContextConfig.java/launch-context.xml</code>を以下のとおり設定する。<br>
+なお、<code>LaunchContextConfig.java/launch-context.xml</code>の設定はブランクプロジェクトに設定済みである。</p>
 </div>
 <div class="listingblock">
 <div class="title">src/main/resources/i18n/application-messages.properties</div>
@@ -1354,8 +1416,27 @@ tutorial.insert-data.script=file:sqls/insert-member-info-error-data.sql</code></
 errors.maxInteger=The {0} exceeds {1}.</code></pre>
 </div>
 </div>
+<div class="tabbox">
+  <input type="radio" name="tabgroup09040503" class="JavaConfigTab" id="tabgroup09040503_1" checked><label for="tabgroup09040503_1" class="tab">JavaConfig</label>
+  <input type="radio" name="tabgroup09040503" class="XMLConfigTab" id="tabgroup09040503_2"><label for="tabgroup09040503_2" class="tab">XMLConfig</label>
+  <div class="tabcontent" name="JavaConfigContent">
 <div class="listingblock">
-<div class="title">src/main/resources/META-INF/spring/launch-context.xml</div>
+<div class="title">org.terasoluna.batch.tutorial.config.LaunchContextConfig.java</div>
+<div class="content">
+<pre class="CodeRay highlight"><code data-lang="java"><span class="comment">// omitted</span>
+<span class="annotation">@Bean</span>
+<span class="directive">public</span> MessageSource messageSource() {
+    <span class="directive">final</span> ResourceBundleMessageSource resourceBundleMessageSource = <span class="keyword">new</span> ResourceBundleMessageSource();
+    resourceBundleMessageSource.setBasename(<span class="string"><span class="delimiter">&quot;</span><span class="content">i18n/application-messages</span><span class="delimiter">&quot;</span></span>); <span class="comment">// (2)</span>
+    <span class="keyword">return</span> resourceBundleMessageSource;
+}
+<span class="comment">// omitted</span></code></pre>
+</div>
+</div>
+  </div>
+  <div class="tabcontent" name="XMLConfigContent">
+<div class="listingblock">
+<div class="title">META-INF/spring/launch-context.xml</div>
 <div class="content">
 <pre class="CodeRay highlight"><code data-lang="xml"><span class="comment">&lt;!-- omitted --&gt;</span>
 
@@ -1364,6 +1445,8 @@ errors.maxInteger=The {0} exceeds {1}.</code></pre>
 
 <span class="comment">&lt;!-- omitted --&gt;</span></code></pre>
 </div>
+</div>
+  </div>
 </div>
 <table class="tableblock frame-all grid-all stretch">
 <caption class="title">表 8. 説明</caption>
@@ -1381,12 +1464,11 @@ errors.maxInteger=The {0} exceeds {1}.</code></pre>
 <tr>
 <td class="tableblock halign-left valign-top"><p class="tableblock">(1)</p></td>
 <td class="tableblock halign-left valign-top"><p class="tableblock">ポイント上限超過時に出力するメッセージを設定する。<br>
-{0)に項目名、{1}に上限値を割り当てる。</p></td>
+{0}に項目名、{1}に上限値を割り当てる。</p></td>
 </tr>
 <tr>
 <td class="tableblock halign-left valign-top"><p class="tableblock">(2)</p></td>
-<td class="tableblock halign-left valign-top"><p class="tableblock">プロパティファイルからメッセージを使用するために、<code>MessageSource</code>を設定する。<br>
-<code>basenames</code>に、プロパティファイルの格納場所を指定する。</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">プロパティファイルからメッセージを使用するために、<code>MessageSource</code>を設定する。</p></td>
 </tr>
 </tbody>
 </table>
@@ -1551,11 +1633,43 @@ errors.maxInteger=The {0} exceeds {1}.</code></pre>
 <div class="paragraph">
 <p>チャンクモデル/タスクレットモデルで共通して利用するため、既に実施している場合は読み飛ばしてよい。</p>
 </div>
+<div class="tabbox">
+  <input type="radio" name="tabgroup09040504" class="JavaConfigTab" id="tabgroup09040504_1" checked><label for="tabgroup09040504_1" class="tab">JavaConfig</label>
+  <input type="radio" name="tabgroup09040504" class="XMLConfigTab" id="tabgroup09040504_2"><label for="tabgroup09040504_2" class="tab">XMLConfig</label>
+  <div class="tabcontent" name="JavaConfigContent">
+<div class="paragraph">
+<p><code>LaunchContextConfig.java</code>に以下のとおり、独自の終了コードを追加する。</p>
+</div>
+<div class="listingblock">
+<div class="title">org.terasoluna.batch.tutorial.config.LaunchContextConfig.java</div>
+<div class="content">
+<pre class="CodeRay highlight"><code data-lang="java"><span class="comment">// omitted</span>
+
+<span class="annotation">@Bean</span>
+<span class="directive">public</span> ExitCodeMapper exitCodeMapper() {
+    <span class="directive">final</span> SimpleJvmExitCodeMapper simpleJvmExitCodeMapper = <span class="keyword">new</span> SimpleJvmExitCodeMapper();
+    <span class="directive">final</span> <span class="predefined-type">Map</span>&lt;<span class="predefined-type">String</span>, <span class="predefined-type">Integer</span>&gt; exitCodeMapper = <span class="keyword">new</span> <span class="predefined-type">HashMap</span>&lt;&gt;();
+    <span class="comment">// ExitStatus</span>
+    exitCodeMapper.put(<span class="string"><span class="delimiter">&quot;</span><span class="content">NOOP</span><span class="delimiter">&quot;</span></span>, <span class="integer">0</span>);
+    exitCodeMapper.put(<span class="string"><span class="delimiter">&quot;</span><span class="content">COMPLETED</span><span class="delimiter">&quot;</span></span>, <span class="integer">0</span>);
+    exitCodeMapper.put(<span class="string"><span class="delimiter">&quot;</span><span class="content">STOPPED</span><span class="delimiter">&quot;</span></span>, <span class="integer">255</span>);
+    exitCodeMapper.put(<span class="string"><span class="delimiter">&quot;</span><span class="content">FAILED</span><span class="delimiter">&quot;</span></span>, <span class="integer">255</span>);
+    exitCodeMapper.put(<span class="string"><span class="delimiter">&quot;</span><span class="content">UNKNOWN</span><span class="delimiter">&quot;</span></span>, <span class="integer">255</span>);
+    exitCodeMapper.put(<span class="string"><span class="delimiter">&quot;</span><span class="content">SKIPPED</span><span class="delimiter">&quot;</span></span>, <span class="integer">200</span>);  <span class="comment">// (1)</span>
+    simpleJvmExitCodeMapper.setMapping(exitCodeMapper);
+    <span class="keyword">return</span> simpleJvmExitCodeMapper;
+}
+
+<span class="comment">// omitted</span></code></pre>
+</div>
+</div>
+  </div>
+  <div class="tabcontent" name="XMLConfigContent">
 <div class="paragraph">
 <p><code>launch-context.xml</code>に以下のとおり、独自の終了コードを追加する。</p>
 </div>
 <div class="listingblock">
-<div class="title">src/main/resources/META-INF/spring/launch-context.xml</div>
+<div class="title">META-INF/spring/launch-context.xml</div>
 <div class="content">
 <pre class="CodeRay highlight"><code data-lang="xml"><span class="comment">&lt;!-- omitted --&gt;</span>
 
@@ -1576,6 +1690,8 @@ errors.maxInteger=The {0} exceeds {1}.</code></pre>
 
 <span class="comment">&lt;!-- omitted --&gt;</span></code></pre>
 </div>
+</div>
+  </div>
 </div>
 <table class="tableblock frame-all grid-all stretch">
 <caption class="title">表 11. 説明</caption>
@@ -1656,7 +1772,7 @@ errors.maxInteger=The {0} exceeds {1}.</code></pre>
                 <span class="comment">// The other codes of bussiness logic are omitted.</span>
             }
 
-            writer.write(items);
+            writer.write(<span class="keyword">new</span> Chunk(items));
         } <span class="keyword">finally</span> {
             reader.close();
         }
@@ -1827,7 +1943,7 @@ tutorial.insert-data.script=file:sqls/insert-member-info-error-data.sql</code></
 <h5 id="Ch09_Impl_ExceptionHandlingWithTryCatchJob_Tasklet_Execution_Output_Table"><a class="anchor" href="#Ch09_Impl_ExceptionHandlingWithTryCatchJob_Tasklet_Execution_Output_Table"></a>会員情報テーブルの確認</h5>
 <div class="paragraph">
 <p>更新前後の会員情報テーブルの内容を比較し、確認内容のとおりとなっていることを確認する。<br>
-確認手順は<a href="Ch09_EnvironmentConstruction.html#Ch09_EnvironmentConstruction_OperationCheck_RefDB">DBeaverを使用してデータベースを参照する</a>を参照。</p>
+確認手順は<a href="Ch09_EnvironmentConstruction.html#Ch09_EnvironmentConstruction_OperationCheck_RefDB">H2 Consoleを使用してデータベースを参照する</a>を参照。</p>
 </div>
 <div class="dlist">
 <dl>
@@ -1991,7 +2107,7 @@ tutorial.insert-data.script=file:sqls/insert-member-info-error-data.sql</code></
 
   <div class="common-bg">
     <div class="information">
-      TERASOLUNA Batch Framework for Java (5.x) Development Guideline - version 5.4.1.RELEASE, 2022-3-31, commit-id:e9b4d93
+      TERASOLUNA Batch Framework for Java (5.x) Development Guideline - version 5.5.0.RELEASE, 2023-3-31, commit-id:f6da76a
     </div>
     <div class="index">
       <a href="index.html">&gt; INDEX</a>

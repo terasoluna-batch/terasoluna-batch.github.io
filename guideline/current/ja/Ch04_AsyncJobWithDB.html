@@ -14,12 +14,20 @@
 
 <div class="common-bg">
   <div class="information">
-    TERASOLUNA Batch Framework for Java (5.x) Development Guideline - version 5.4.1.RELEASE, 2022-3-31, commit-id:e9b4d93
+    TERASOLUNA Batch Framework for Java (5.x) Development Guideline - version 5.5.0.RELEASE, 2023-3-31, commit-id:f6da76a
   </div>
   <div class="index">
     <a href="index.html">&gt; INDEX</a>
   </div>
 </div>
+
+<!-- Google tag (gtag.js) -->
+<script async src="https://www.googletagmanager.com/gtag/js?id=G-8VC2LCPQFM"></script>
+<script>
+  window.dataLayer = window.dataLayer || [];
+  function gtag(){dataLayer.push(arguments);}
+  gtag('js', new Date());  gtag('config', 'G-8VC2LCPQFM');
+</script>
 
 <script>
   (function(i,s,o,g,r,a,m){i['GoogleAnalyticsObject']=r;i[r]=i[r]||function(){
@@ -481,9 +489,8 @@ PRIMARY KEY</p></td>
 <td class="tableblock halign-left valign-top"><p class="tableblock">varchar(200)</p></td>
 <td class="tableblock halign-left valign-top"><p class="tableblock">-</p></td>
 <td class="tableblock halign-left valign-top"><p class="tableblock">実行するジョブに渡すパラメータ。</p>
-<p class="tableblock">単一パラメータの書式は同期実行と同じだが、複数パラメータを指定する場合は、同期型実行の空白区切りとは異なり、
-各パラメータをカンマ区切り(下記参照)にする必要がある。<br></p>
-<p class="tableblock">{パラメータ名}={パラメータ値},{パラメータ名}={パラメータ値}&#8230;&#8203;</p></td>
+<p class="tableblock">複数パラメータを指定する場合は、同期型実行と同様に各パラメータを空白区切り(下記参照)にする必要がある。<br></p>
+<p class="tableblock">{パラメータ名}={パラメータ値} {パラメータ名}={パラメータ値}&#8230;&#8203;</p></td>
 </tr>
 <tr>
 <td class="tableblock halign-left valign-top"><p class="tableblock">job_execution_id</p></td>
@@ -515,6 +522,23 @@ EXECUTED : ジョブ実行済み</p></td>
 </tr>
 </tbody>
 </table>
+<div class="admonitionblock warning">
+<table>
+<tr>
+<td class="icon">
+<i class="fa icon-warning" title="Warning"></i>
+</td>
+<td class="content">
+<div class="title">ジョブパラメータを複数指定する場合の留意点</div>
+<div class="paragraph">
+<p>Spring Batchが提供するSimpleJobOperatorの仕様変更に伴い、TERASOLUNA Batch 5.xでもジョブパラメータを複数指定する場合の区切り文字を変更している。<br>
+既にカンマ区切りが使用されている場合、空白区切りに変更すること。<br>
+詳細は、<a href="https://github.com/spring-projects/spring-batch/issues/2122">Spring Batch/BATCH-1461</a>を参照されたい。</p>
+</div>
+</td>
+</tr>
+</table>
+</div>
 <div class="paragraph">
 <p>DDLは以下のとおり。</p>
 </div>
@@ -748,8 +772,8 @@ Spring Batchから提供されている<code>JobOperator</code>の<code>start</c
 <div class="sect3">
 <h4 id="Ch04_AsyncJobWithDB_Arch_Components_AppCtx"><a class="anchor" href="#Ch04_AsyncJobWithDB_Arch_Components_AppCtx"></a>ApplicationContextの構成</h4>
 <div class="paragraph">
-<p>非同期バッチデーモンは、非同期実行専用の<code>async-batch-daemon.xml</code>をApplicationContextとして読み込む。
-同期実行でも使用している<code>launch-context.xml</code>の他に次の構成を追加している。</p>
+<p>非同期バッチデーモンは、非同期実行専用の<code>AsyncBatchDaemonConfig.java/async-batch-daemon.xml</code>をApplicationContextとして読み込む。
+同期実行でも使用している<code>LaunchContextConfig.java/launch-context.xml</code>の他に次の構成を追加している。</p>
 </div>
 <div class="dlist">
 <dl>
@@ -830,23 +854,44 @@ Spring Batchから提供されている<code>JobOperator</code>の<code>start</c
 </td>
 <td class="content">
 <div class="paragraph">
-<p>ジョブのBean定義における<code>job-base-context.xml</code>のインポートは、同期実行と非同期実行で挙動が異なる。</p>
+<p>ジョブのBean定義における<code>JobBaseContextConfig.java/job-base-context.xml</code>のインポートは、同期実行と非同期実行で挙動が異なる。</p>
 </div>
 <div class="ulist">
 <ul>
 <li>
-<p>同期実行では、<code>job-base-context.xml</code>から更に<code>launch-context.xml</code>をインポートする。</p>
+<p>同期実行では、<code>JobBaseContextConfig.java/job-base-context.xml</code>から更に<code>LaunchContextConfig.java/launch-context.xml</code>をインポートする。</p>
 </li>
 <li>
-<p>非同期実行では、<code>job-base-context.xml</code>から<code>launch-context.xml</code>をインポートしない。
-その代わりに<code>AsyncBatchDaemon</code>がロードする<code>async-batch-daemon.xml</code>にて、
-<code>launch-context.xml</code>をインポートする。</p>
+<p>非同期実行では、<code>JobBaseContextConfig.java/job-base-context.xml</code>から<code>LaunchContextConfig.java/launch-context.xml</code>をインポートしない。
+その代わりに<code>AsyncBatchDaemon</code>がロードする<code>AsyncBatchDaemonConfig.java/async-batch-daemon.xml</code>にて、
+<code>LaunchContextConfig.java/launch-context.xml</code>をインポートする。</p>
 </li>
 </ul>
 </div>
 <div class="paragraph">
 <p>これは、Spring Batchを起動する際に必要な各種Beanは各ジョブごとにインスタンス化する必要はないことに起因する。
-Spring Batchの起動に必要な各種Beanは各ジョブの親となる共通定義(<code>async-batch-daemon.xml</code>)にて1つだけ生成すればよい。</p>
+Spring Batchの起動に必要な各種Beanは各ジョブの親となる共通定義(<code>AsyncBatchDaemonConfig.java/async-batch-daemon.xml</code>)にて1つだけ生成すればよい。</p>
+</div>
+</td>
+</tr>
+</table>
+</div>
+<div class="admonitionblock important">
+<table>
+<tr>
+<td class="icon">
+<i class="fa icon-important" title="Important"></i>
+</td>
+<td class="content">
+<div class="paragraph">
+<p>（JavaConfigを選択した場合）<br>
+ジョブのBean定義上でプロパティ値を参照する場合、<code>&lt;context:property-placeholder&gt;</code>タグの指定が必要である。</p>
+</div>
+<div class="paragraph">
+<p>これは、JavaConfigとXMLConfig間で、プロパティソースの共有ができないためである。</p>
+</div>
+<div class="paragraph">
+<p>JavaConfigでは、プロパティソースは<code>LaunchContextConfig.java</code>の中で<code>PropertySourcesPlaceholderConfigurer</code>として定義するが、ジョブのBean定義（XMLConfig）からは認識できない。</p>
 </div>
 </td>
 </tr>
@@ -923,7 +968,7 @@ async-batch-daemon.polling-stop-file-path=/tmp/stop-async-batch-daemon</code></p
 非同期バッチデーモン起動時にジョブ要求テーブルがない場合は、自動生成される。<br>
 これは主に試験用機能であり、<code>batch-application.properties</code>内の<br>
 <code>data-source.initialize.enabled</code>で実行可否を設定できる。<br>
-詳細な定義は<code>async-batch-daemon.xml</code>内の<code>&lt;jdbc:initialize-database&gt;</code>を参照。</p></td>
+詳細な定義は<code>AsyncBatchDaemonConfig.java</code>内の<code>dataSourceInitializer</code>メソッド、もしくは<code>async-batch-daemon.xml</code>内の<code>&lt;jdbc:initialize-database&gt;</code>を参照。</p></td>
 </tr>
 <tr>
 <td class="tableblock halign-left valign-top"><p class="tableblock">(4)</p></td>
@@ -951,32 +996,42 @@ async-batch-daemon.polling-stop-file-path=/tmp/stop-async-batch-daemon</code></p
 </tr>
 </tbody>
 </table>
-<div class="admonitionblock note">
+<div class="admonitionblock important">
 <table>
 <tr>
 <td class="icon">
-<i class="fa icon-note" title="Note"></i>
+<i class="fa icon-important" title="Important"></i>
 </td>
 <td class="content">
-<div class="title">環境変数による設定値の変更</div>
+<div class="title">プロパティアクセスの仕様変更への対応</div>
 <div class="paragraph">
-<p><code>batch-application.properties</code>の設定値は、同名の環境変数を定義することで設定の変更が可能である。<br>
-環境変数が設定された場合は、プロパティファイルの値より優先して使用される。<br>
-これは、以下のBean定義に起因する。</p>
+<p>デフォルトのプロパティアクセスの優先順位は、下記である。</p>
 </div>
-<div class="listingblock">
-<div class="title">launch-context.xmlの設定箇所</div>
-<div class="content">
-<pre class="CodeRay highlight"><code data-lang="xml"><span class="tag">&lt;context:property-placeholder</span> <span class="attribute-name">location</span>=<span class="string"><span class="delimiter">&quot;</span><span class="content">classpath:batch-application.properties</span><span class="delimiter">&quot;</span></span>
-        <span class="attribute-name">system-properties-mode</span>=<span class="string"><span class="delimiter">&quot;</span><span class="content">OVERRIDE</span><span class="delimiter">&quot;</span></span>
-        <span class="attribute-name">ignore-resource-not-found</span>=<span class="string"><span class="delimiter">&quot;</span><span class="content">false</span><span class="delimiter">&quot;</span></span>
-        <span class="attribute-name">ignore-unresolvable</span>=<span class="string"><span class="delimiter">&quot;</span><span class="content">true</span><span class="delimiter">&quot;</span></span>
-        <span class="attribute-name">order</span>=<span class="string"><span class="delimiter">&quot;</span><span class="content">1</span><span class="delimiter">&quot;</span></span><span class="tag">/&gt;</span></code></pre>
-</div>
+<div class="ulist">
+<ul>
+<li>
+<p>プロパティファイル＞システムプロパティ</p>
+</li>
+</ul>
 </div>
 <div class="paragraph">
-<p>詳細については、TERASOLUNA Server 5.x 開発ガイドラインの
-<a href="https://terasolunaorg.github.io/guideline/5.7.1.RELEASE/ja/ArchitectureInDetail/GeneralFuncDetail/PropertyManagement.html#technical-details-label">プロパティファイル定義方法について</a>を参照。</p>
+<p>以前のバージョンでは、<code>&lt;context:property-placeholder&gt;</code>タグの属性<code>system-properties-mode</code>の値でプロパティアクセスの優先順位を制御可能だった。</p>
+</div>
+<div class="paragraph">
+<p>たとえば<code>"OVERRIDE"</code>を指定すると、システムプロパティ（環境変数等）を優先的に読み込むようになり、プロパティファイルのプロパティを上書きすることができた。ところが、バージョン<code>5.5.0.RELEASE</code>から<code>system-properties-mode</code>による制御が不可となったばかりか、設定値によっては<code>@Value</code>によるプロパティ値取得が機能しなくなった。</p>
+</div>
+<div class="paragraph">
+<p>上記の仕様変更にともなう、意図せぬ動作不良を回避するために、下記を実施すること。</p>
+</div>
+<div class="ulist">
+<ul>
+<li>
+<p>属性<code>system-properties-mode</code>の値を<code>"ENVIRONMENT"</code>に変更、もしくは属性そのものを削除する。これをしないと、<code>@Value</code>によるプロパティ値取得に失敗する</p>
+</li>
+<li>
+<p>以前のバージョンで属性<code>system-properties-mode</code>に<code>"OVERRIDE"</code>を指定している場合、プロパティアクセスの優先順位が逆となるので、<code>5.5.0.RELEASE</code>へマイグレーションする場合はアプリケーションの修正が必要な場合がある。もしプロパティファイルとシステムプロパティに同一のプロパティを設定している場合は、プロパティファイルとシステムプロパティのプロパティ値を入れ替えるか、プロパティ名が重複しないように修正する等の対応が必要となる</p>
+</li>
+</ul>
 </div>
 </td>
 </tr>
@@ -985,12 +1040,103 @@ async-batch-daemon.polling-stop-file-path=/tmp/stop-async-batch-daemon</code></p
 </div>
 <div class="sect3">
 <h4 id="Ch04_AsyncJobWithDB_HowToUse_Config_Job"><a class="anchor" href="#Ch04_AsyncJobWithDB_HowToUse_Config_Job"></a>ジョブの設定</h4>
+<div class="tabbox">
+  <input type="radio" name="tabgroup040303" class="JavaConfigTab" id="tabgroup040303_1" checked><label for="tabgroup040303_1" class="tab">JavaConfig</label>
+  <input type="radio" name="tabgroup040303" class="XMLConfigTab" id="tabgroup040303_2"><label for="tabgroup040303_2" class="tab">XMLConfig</label>
+  <div class="tabcontent" name="JavaConfigContent">
+<div class="paragraph">
+<p>非同期実行する対象のジョブは、<code>AsyncBatchDaemonConfig.java</code>の<code>automaticJobRegistrar</code>に設定する。<br>
+以下に初期設定を示す。</p>
+</div>
+<div class="listingblock">
+<div class="title">org.terasoluna.batch.tutorial.config.AsyncBatchDaemonConfig.java</div>
+<div class="content">
+<pre class="CodeRay highlight"><code data-lang="java"><span class="annotation">@Bean</span>
+<span class="directive">public</span> AutomaticJobRegistrar automaticJobRegistrar(JobRegistry jobRegistry,
+                                                   ApplicationContextFactory<span class="type">[]</span> applicationContextFactories) <span class="directive">throws</span> <span class="exception">Exception</span> {
+    <span class="directive">final</span> AutomaticJobRegistrar automaticJobRegistrar = <span class="keyword">new</span> AutomaticJobRegistrar();
+    <span class="directive">final</span> DefaultJobLoader defaultJobLoader = <span class="keyword">new</span> DefaultJobLoader();
+    defaultJobLoader.setJobRegistry(jobRegistry);
+    automaticJobRegistrar.setApplicationContextFactories(applicationContextFactories);
+    automaticJobRegistrar.setJobLoader(defaultJobLoader);
+    automaticJobRegistrar.afterPropertiesSet();
+    <span class="keyword">return</span> automaticJobRegistrar;
+}
+
+<span class="annotation">@Bean</span>
+<span class="directive">public</span> ApplicationContextFactory<span class="type">[]</span> applicationContextFactories(<span class="directive">final</span> ApplicationContext ctx) <span class="directive">throws</span> <span class="exception">IOException</span> {
+    <span class="keyword">return</span> <span class="keyword">new</span> ApplicationContextFactoryHelper(ctx).load(<span class="string"><span class="delimiter">&quot;</span><span class="content">classpath:/META-INF/jobs/**/*.xml</span><span class="delimiter">&quot;</span></span>); <span class="comment">// (1)</span>
+}</code></pre>
+</div>
+</div>
+<table class="tableblock frame-all grid-all stretch">
+<caption class="title">表 6. 設定内容の項目一覧</caption>
+<colgroup>
+<col style="width: 10%;">
+<col style="width: 90%;">
+</colgroup>
+<thead>
+<tr>
+<th class="tableblock halign-left valign-top">項番</th>
+<th class="tableblock halign-left valign-top">説明</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td class="tableblock halign-left valign-top"><p class="tableblock">(1)</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">非同期実行するジョブBean定義のパス。<br>
+<code>ApplicationContextFactoryHelper</code> は JavaConfigで <code>ApplicationContextFactory</code> の生成を補助するヘルパクラスである。コンストラクタには各ジョブで親となる共通定義の <code>ApplicationContext</code> を指定する。</p></td>
+</tr>
+</tbody>
+</table>
+<div class="admonitionblock warning">
+<table>
+<tr>
+<td class="icon">
+<i class="fa icon-warning" title="Warning"></i>
+</td>
+<td class="content">
+<div class="title">登録ジョブの絞込みについて</div>
+<div class="paragraph">
+<p>登録するジョブは、非同期実行することを前提に設計・実装されたジョブを指定すること。
+非同期で実行することを想定していないジョブを含めて指定すると、ジョブ登録時に意図しない参照により例外が発生することもあるので注意すること。</p>
+</div>
+<div class="listingblock">
+<div class="title">絞込の例</div>
+<div class="content">
+<pre class="CodeRay highlight"><code data-lang="java"><span class="annotation">@Bean</span>
+<span class="directive">public</span> AutomaticJobRegistrar automaticJobRegistrar(JobRegistry jobRegistry,
+                                                   ApplicationContextFactory<span class="type">[]</span> applicationContextFactories) <span class="directive">throws</span> <span class="exception">Exception</span> {
+    <span class="directive">final</span> AutomaticJobRegistrar automaticJobRegistrar = <span class="keyword">new</span> AutomaticJobRegistrar();
+    <span class="directive">final</span> DefaultJobLoader defaultJobLoader = <span class="keyword">new</span> DefaultJobLoader();
+    defaultJobLoader.setJobRegistry(jobRegistry);
+    automaticJobRegistrar.setApplicationContextFactories(applicationContextFactories);
+    automaticJobRegistrar.setJobLoader(defaultJobLoader);
+    automaticJobRegistrar.afterPropertiesSet();
+    <span class="keyword">return</span> automaticJobRegistrar;
+}
+
+<span class="annotation">@Bean</span>
+<span class="directive">public</span> ApplicationContextFactory<span class="type">[]</span> applicationContextFactories(<span class="directive">final</span> ApplicationContext ctx) <span class="directive">throws</span> <span class="exception">IOException</span> {
+    <span class="keyword">return</span> <span class="keyword">new</span> ApplicationContextFactoryHelper(ctx).load(
+        <span class="string"><span class="delimiter">&quot;</span><span class="content">classpath:/META-INF/jobs/aysnc/**/*.xml</span><span class="delimiter">&quot;</span></span>, <span class="comment">// For the async directory and below</span>
+        <span class="string"><span class="delimiter">&quot;</span><span class="content">classpath:/META-INF/jobs/CASE100/SpecialJob.xml</span><span class="delimiter">&quot;</span></span> <span class="comment">// For a specific job</span>
+        );
+}</code></pre>
+</div>
+</div>
+</td>
+</tr>
+</table>
+</div>
+  </div>
+  <div class="tabcontent" name="XMLConfigContent">
 <div class="paragraph">
 <p>非同期実行する対象のジョブは、<code>async-batch-daemon.xml</code>の<code>automaticJobRegistrar</code>に設定する。<br>
 以下に初期設定を示す。</p>
 </div>
 <div class="listingblock">
-<div class="title">async-batch-daemon.xml</div>
+<div class="title">META-INF/spring/async-batch-daemon.xml</div>
 <div class="content">
 <pre class="CodeRay highlight"><code data-lang="xml"><span class="tag">&lt;bean</span> <span class="attribute-name">id</span>=<span class="string"><span class="delimiter">&quot;</span><span class="content">automaticJobRegistrar</span><span class="delimiter">&quot;</span></span>
       <span class="attribute-name">class</span>=<span class="string"><span class="delimiter">&quot;</span><span class="content">org.springframework.batch.core.configuration.support.AutomaticJobRegistrar</span><span class="delimiter">&quot;</span></span><span class="tag">&gt;</span>
@@ -1011,7 +1157,7 @@ async-batch-daemon.polling-stop-file-path=/tmp/stop-async-batch-daemon</code></p
 </div>
 </div>
 <table class="tableblock frame-all grid-all stretch">
-<caption class="title">表 6. 設定内容の項目一覧</caption>
+<caption class="title">表 7. 設定内容の項目一覧</caption>
 <colgroup>
 <col style="width: 10%;">
 <col style="width: 90%;">
@@ -1069,6 +1215,8 @@ async-batch-daemon.polling-stop-file-path=/tmp/stop-async-batch-daemon</code></p
 </tr>
 </table>
 </div>
+  </div>
+</div>
 <div class="admonitionblock tip">
 <table>
 <tr>
@@ -1116,6 +1264,40 @@ async-batch-daemon.polling-stop-file-path=/tmp/stop-async-batch-daemon</code></p
 <div class="paragraph">
 <p>TERASOLUNA Batch 5.xが提供する、<code>AsyncBatchDaemon</code>を起動する。</p>
 </div>
+<div class="tabbox">
+  <input type="radio" name="tabgroup040304" class="JavaConfigTab" id="tabgroup040304_1" checked><label for="tabgroup040304_1" class="tab">JavaConfig</label>
+  <input type="radio" name="tabgroup040304" class="XMLConfigTab" id="tabgroup040304_2"><label for="tabgroup040304_2" class="tab">XMLConfig</label>
+  <div class="tabcontent" name="JavaConfigContent">
+<div class="listingblock">
+<div class="title">AsyncBatchDaemonの起動</div>
+<div class="content">
+<pre class="CodeRay highlight"><code data-lang="console">$ # Start AsyncBatchDaemon
+$ java -cp dependency/* org.terasoluna.batch.async.db.AsyncBatchDaemon</code></pre>
+</div>
+</div>
+<div class="paragraph">
+<p>この場合、<code>org.terasoluna.batch.config.AsyncBatchDaemonConfig.java</code>を読み込み各種Beanを生成する。</p>
+</div>
+<div class="paragraph">
+<p>また、別途カスタマイズした<code>AsyncBatchDaemonConfig.java</code>を利用したい場合は第一引数に指定して<code>AsyncBatchDaemon</code>を起動することで実現できる。<br>
+引数に指定するBean定義ファイルは、クラスパスからの相対パスで指定すること。<br>
+なお、第二引数以降は無視される。</p>
+</div>
+<div class="listingblock">
+<div class="title">カスタマイズしたorg.terasoluna.batch.config.CustomizedAsyncBatchDaemonConfigを利用する場合</div>
+<div class="content">
+<pre class="CodeRay highlight"><code data-lang="console">$ # Start AsyncBatchDaemon
+$ java -cp dependency/* org.terasoluna.batch.async.db.AsyncBatchDaemon org.terasoluna.batch.config.CustomizedAsyncBatchDaemonConfig</code></pre>
+</div>
+</div>
+<div class="paragraph">
+<p><code>AsyncBatchDaemonConfig.java</code>のカスタマイズは、ごく一部の設定を変更する場合は直接修正してよい。<br>
+しかし、大幅な変更を加える場合や、後述する<a href="#Ch04_AsyncJobWithDB_HowToExtend_MultiDaemon">複数起動</a>にて複数の設定を管理する場合は、
+別途ファイルを作成して管理するほうが扱いやすい。<br>
+ユーザの状況に応じて選択すること。</p>
+</div>
+  </div>
+  <div class="tabcontent" name="XMLConfigContent">
 <div class="listingblock">
 <div class="title">AsyncBatchDaemonの起動</div>
 <div class="content">
@@ -1144,6 +1326,8 @@ $ java -cp dependency/* org.terasoluna.batch.async.db.AsyncBatchDaemon META-INF/
 別途ファイルを作成して管理するほうが扱いやすい。<br>
 ユーザの状況に応じて選択すること。</p>
 </div>
+  </div>
+</div>
 <div class="admonitionblock note">
 <table>
 <tr>
@@ -1168,7 +1352,7 @@ $ java -cp dependency/* org.terasoluna.batch.async.db.AsyncBatchDaemon META-INF/
 <div class="title">PostgreSQLの場合</div>
 <div class="content">
 <pre class="CodeRay highlight"><code data-lang="sql"><span class="class">INSERT</span> <span class="class">INTO</span> batch_job_request(job_name,job_parameter,polling_status,create_date)
-<span class="keyword">VALUES</span> (<span class="string"><span class="delimiter">'</span><span class="content">job01</span><span class="delimiter">'</span></span>, <span class="string"><span class="delimiter">'</span><span class="content">param1=dummy,param2=100</span><span class="delimiter">'</span></span>, <span class="string"><span class="delimiter">'</span><span class="content">INIT</span><span class="delimiter">'</span></span>, current_timestamp);</code></pre>
+<span class="keyword">VALUES</span> (<span class="string"><span class="delimiter">'</span><span class="content">job01</span><span class="delimiter">'</span></span>, <span class="string"><span class="delimiter">'</span><span class="content">param1=dummy param2=100</span><span class="delimiter">'</span></span>, <span class="string"><span class="delimiter">'</span><span class="content">INIT</span><span class="delimiter">'</span></span>, current_timestamp);</code></pre>
 </div>
 </div>
 </div>
@@ -1310,7 +1494,7 @@ ocation
 <p>以下に退避対象のテーブルおよびシーケンスの一覧を示す。</p>
 </div>
 <table class="tableblock frame-all grid-all stretch">
-<caption class="title">表 7. 退避対象一覧</caption>
+<caption class="title">表 8. 退避対象一覧</caption>
 <colgroup>
 <col style="width: 50%;">
 <col style="width: 50%;">
@@ -1334,19 +1518,19 @@ ocation
 <td class="tableblock halign-left valign-top" rowspan="9"><p class="tableblock">Spring Batch</p></td>
 </tr>
 <tr>
-<td class="tableblock halign-left valign-top"><p class="tableblock">batch_job_exeution</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">batch_job_execution</p></td>
 </tr>
 <tr>
-<td class="tableblock halign-left valign-top"><p class="tableblock">batch_job_exeution_params</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">batch_job_execution_params</p></td>
 </tr>
 <tr>
-<td class="tableblock halign-left valign-top"><p class="tableblock">batch_job_exeution_context</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">batch_job_execution_context</p></td>
 </tr>
 <tr>
-<td class="tableblock halign-left valign-top"><p class="tableblock">batch_step_exeution</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">batch_step_execution</p></td>
 </tr>
 <tr>
-<td class="tableblock halign-left valign-top"><p class="tableblock">batch_step_exeution_context</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">batch_step_execution_context</p></td>
 </tr>
 <tr>
 <td class="tableblock halign-left valign-top"><p class="tableblock">batch_job_seq</p></td>
@@ -1417,7 +1601,7 @@ ocation
 <p>カスタマイズしたテーブルを使用したSQLMapの定義</p>
 </li>
 <li>
-<p><code>async-batch-daemon.xml</code>のBean定義の修正</p>
+<p><code>AsyncBatchDaemonConfig.java/async-batch-daemon.xml</code>のBean定義の修正</p>
 </li>
 </ol>
 </div>
@@ -1484,7 +1668,7 @@ ocation
 </div>
 </div>
 <table class="tableblock frame-all grid-all stretch">
-<caption class="title">表 8. 拡張ポイント</caption>
+<caption class="title">表 9. 拡張ポイント</caption>
 <colgroup>
 <col style="width: 10%;">
 <col style="width: 90%;">
@@ -1559,7 +1743,7 @@ ocation
 </div>
 </div>
 <table class="tableblock frame-all grid-all stretch">
-<caption class="title">表 9. 拡張ポイント</caption>
+<caption class="title">表 10. 拡張ポイント</caption>
 <colgroup>
 <col style="width: 10%;">
 <col style="width: 90%;">
@@ -1588,15 +1772,53 @@ ocation
 <div class="olist arabic">
 <ol class="arabic" start="4">
 <li>
-<p><code>async-batch-daemon.xml</code>のBean定義の修正</p>
+<p><code>AsyncBatchDaemonConfig.java/async-batch-daemon.xml</code>のBean定義の修正</p>
 </li>
 </ol>
 </div>
 <div class="paragraph">
 <p>(2)で作成した拡張インタフェースを<code>batchJobRequestRepository</code>に設定する。</p>
 </div>
+<div class="tabbox">
+  <input type="radio" name="tabgroup040305" class="JavaConfigTab" id="tabgroup040305_1" checked><label for="tabgroup040305_1" class="tab">JavaConfig</label>
+  <input type="radio" name="tabgroup040305" class="XMLConfigTab" id="tabgroup040305_2"><label for="tabgroup040305_2" class="tab">XMLConfig</label>
+  <div class="tabcontent" name="JavaConfigContent">
 <div class="listingblock">
-<div class="title">async-batch-daemon.xml</div>
+<div class="title">org.terasoluna.batch.functionaltest.config.AsyncBatchDaemonConfig.java</div>
+<div class="content">
+<pre class="CodeRay highlight"><code data-lang="java"><span class="annotation">@Bean</span>
+<span class="directive">public</span> MapperFactoryBean&lt;CustomizedBatchJobRequestRepository&gt; batchJobRequestRepository(
+        <span class="annotation">@Qualifier</span>(<span class="string"><span class="delimiter">&quot;</span><span class="content">adminSqlSessionFactory</span><span class="delimiter">&quot;</span></span>) SqlSessionFactory adminSqlSessionFactory) {
+    <span class="directive">final</span> MapperFactoryBean&lt;CustomizedBatchJobRequestRepository&gt; mapperFactoryBean = <span class="keyword">new</span> MapperFactoryBean&lt;&gt;();
+    mapperFactoryBean.setMapperInterface(CustomizedBatchJobRequestRepository.class); <span class="comment">// (1)</span>
+    mapperFactoryBean.setSqlSessionFactory(adminSqlSessionFactory);
+    <span class="keyword">return</span> mapperFactoryBean;
+}</code></pre>
+</div>
+</div>
+<table class="tableblock frame-all grid-all stretch">
+<caption class="title">表 11. 拡張ポイント</caption>
+<colgroup>
+<col style="width: 10%;">
+<col style="width: 90%;">
+</colgroup>
+<thead>
+<tr>
+<th class="tableblock halign-left valign-top">項番</th>
+<th class="tableblock halign-left valign-top">説明</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td class="tableblock halign-left valign-top"><p class="tableblock">(1)</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><code>BatchJobRequestRepository</code>の拡張インタフェースを<code>setMapperInterface</code>メソッドで設定する。</p></td>
+</tr>
+</tbody>
+</table>
+  </div>
+  <div class="tabcontent" name="XMLConfigContent">
+<div class="listingblock">
+<div class="title">META-INF/spring/async-batch-daemon.xml</div>
 <div class="content">
 <pre class="CodeRay highlight"><code data-lang="xml"> <span class="comment">&lt;!--(1) --&gt;</span>
 <span class="tag">&lt;bean</span> <span class="attribute-name">id</span>=<span class="string"><span class="delimiter">&quot;</span><span class="content">batchJobRequestRepository</span><span class="delimiter">&quot;</span></span>
@@ -1606,7 +1828,7 @@ ocation
 </div>
 </div>
 <table class="tableblock frame-all grid-all stretch">
-<caption class="title">表 10. 拡張ポイント</caption>
+<caption class="title">表 12. 拡張ポイント</caption>
 <colgroup>
 <col style="width: 10%;">
 <col style="width: 90%;">
@@ -1624,6 +1846,8 @@ ocation
 </tr>
 </tbody>
 </table>
+  </div>
+</div>
 </div>
 <div class="sect3">
 <h4 id="Ch04_AsyncJobWithDB_HowToExtend_CustomTable_GroupID"><a class="anchor" href="#Ch04_AsyncJobWithDB_HowToExtend_CustomTable_GroupID"></a>グループIDによる複数プロセスによる分散処理</h4>
@@ -1710,7 +1934,7 @@ ocation
 </div>
 </div>
 <table class="tableblock frame-all grid-all stretch">
-<caption class="title">表 11. 拡張ポイント</caption>
+<caption class="title">表 13. 拡張ポイント</caption>
 <colgroup>
 <col style="width: 10%;">
 <col style="width: 90%;">
@@ -1735,7 +1959,7 @@ ocation
 <div class="olist arabic">
 <ol class="arabic" start="4">
 <li>
-<p><code>async-batch-daemon.xml</code>のBean定義の修正</p>
+<p><code>AsyncBatchDaemonConfig.java/async-batch-daemon.xml</code>のBean定義の修正</p>
 </li>
 </ol>
 </div>
@@ -1743,8 +1967,43 @@ ocation
 <p>(2)で作成した拡張インタフェースを<code>batchJobRequestRepository</code>に設定し、
 <code>jobRequestPollTask</code>に環境変数で与えられたグループIDをクエリパラメータとして設定する。</p>
 </div>
+<div class="tabbox">
+  <input type="radio" name="tabgroup040306" class="JavaConfigTab" id="tabgroup040306_1" checked><label for="tabgroup040306_1" class="tab">JavaConfig</label>
+  <input type="radio" name="tabgroup040306" class="XMLConfigTab" id="tabgroup040306_2"><label for="tabgroup040306_2" class="tab">XMLConfig</label>
+  <div class="tabcontent" name="JavaConfigContent">
 <div class="listingblock">
-<div class="title">async-batch-daemon.xml</div>
+<div class="title">org.terasoluna.batch.functionaltest.config.AsyncBatchDaemonConfig.java</div>
+<div class="content">
+<pre class="CodeRay highlight"><code data-lang="java"><span class="annotation">@Bean</span>
+<span class="directive">public</span> MapperFactoryBean&lt;CustomizedBatchJobRequestRepository&gt; batchJobRequestRepository(
+        <span class="annotation">@Qualifier</span>(<span class="string"><span class="delimiter">&quot;</span><span class="content">adminSqlSessionFactory</span><span class="delimiter">&quot;</span></span>) SqlSessionFactory adminSqlSessionFactory) {
+    <span class="directive">final</span> MapperFactoryBean&lt;CustomizedBatchJobRequestRepository&gt; mapperFactoryBean = <span class="keyword">new</span> MapperFactoryBean&lt;&gt;();
+    mapperFactoryBean.setMapperInterface(CustomizedBatchJobRequestRepository.class); <span class="comment">// (1)</span>
+    mapperFactoryBean.setSqlSessionFactory(adminSqlSessionFactory);
+    <span class="keyword">return</span> mapperFactoryBean;
+}
+
+<span class="annotation">@Bean</span>
+<span class="directive">public</span> JobRequestPollTask jobRequestPollTask(<span class="annotation">@Qualifier</span>(<span class="string"><span class="delimiter">&quot;</span><span class="content">adminTransactionManager</span><span class="delimiter">&quot;</span></span>) DataSourceTransactionManager adminTransactionManager,
+                                             JobOperator jobOperator,
+                                             MapperFactoryBean&lt;CustomizedBatchJobRequestRepository&gt; batchJobRequestRepository,
+                                             <span class="annotation">@Qualifier</span>(<span class="string"><span class="delimiter">&quot;</span><span class="content">daemonTaskExecutor</span><span class="delimiter">&quot;</span></span>) ThreadPoolTaskExecutor daemonTaskExecutor,
+                                             AutomaticJobRegistrar automaticJobRegistrar)  <span class="directive">throws</span> <span class="exception">Exception</span> {
+
+    JobRequestPollTask jobRequestPollTask = <span class="keyword">new</span> JobRequestPollTask(batchJobRequestRepository.getObject(), adminTransactionManager, daemonTaskExecutor, jobOperator,
+            automaticJobRegistrar);
+    <span class="directive">final</span> <span class="predefined-type">Map</span>&lt;<span class="predefined-type">String</span>, <span class="predefined-type">Object</span>&gt; pollingQueryParam = <span class="keyword">new</span> <span class="predefined-type">LinkedHashMap</span>&lt;&gt;();
+    pollingQueryParam.put(<span class="string"><span class="delimiter">&quot;</span><span class="content">groupId</span><span class="delimiter">&quot;</span></span>, groupId); <span class="comment">// (2)</span>
+
+    jobRequestPollTask.setOptionalPollingQueryParams(pollingQueryParam); <span class="comment">// (3)</span>
+    <span class="keyword">return</span> jobRequestPollTask;
+}</code></pre>
+</div>
+</div>
+  </div>
+  <div class="tabcontent" name="XMLConfigContent">
+<div class="listingblock">
+<div class="title">META-INF/spring/async-batch-daemon.xml</div>
 <div class="content">
 <pre class="CodeRay highlight"><code data-lang="xml"> <span class="comment">&lt;!--(1) --&gt;</span>
 <span class="tag">&lt;bean</span> <span class="attribute-name">id</span>=<span class="string"><span class="delimiter">&quot;</span><span class="content">batchJobRequestRepository</span><span class="delimiter">&quot;</span></span>
@@ -1752,27 +2011,29 @@ ocation
       <span class="attribute-name">p:mapperInterface</span>=<span class="string"><span class="delimiter">&quot;</span><span class="content">org.terasoluna.batch.extend.repository.CustomizedBatchJobRequestRepository</span><span class="delimiter">&quot;</span></span>
       <span class="attribute-name">p:sqlSessionFactory-ref</span>=<span class="string"><span class="delimiter">&quot;</span><span class="content">adminSqlSessionFactory</span><span class="delimiter">&quot;</span></span> <span class="tag">/&gt;</span>
 
-    <span class="tag">&lt;bean</span> <span class="attribute-name">id</span>=<span class="string"><span class="delimiter">&quot;</span><span class="content">jobRequestPollTask</span><span class="delimiter">&quot;</span></span>
-          <span class="attribute-name">class</span>=<span class="string"><span class="delimiter">&quot;</span><span class="content">org.terasoluna.batch.async.db.JobRequestPollTask</span><span class="delimiter">&quot;</span></span>
-          <span class="attribute-name">c:transactionManager-ref</span>=<span class="string"><span class="delimiter">&quot;</span><span class="content">adminTransactionManager</span><span class="delimiter">&quot;</span></span>
-          <span class="attribute-name">c:jobOperator-ref</span>=<span class="string"><span class="delimiter">&quot;</span><span class="content">jobOperator</span><span class="delimiter">&quot;</span></span>
-          <span class="attribute-name">c:batchJobRequestRepository-ref</span>=<span class="string"><span class="delimiter">&quot;</span><span class="content">batchJobRequestRepository</span><span class="delimiter">&quot;</span></span>
-          <span class="attribute-name">c:daemonTaskExecutor-ref</span>=<span class="string"><span class="delimiter">&quot;</span><span class="content">daemonTaskExecutor</span><span class="delimiter">&quot;</span></span>
-          <span class="attribute-name">c:automaticJobRegistrar-ref</span>=<span class="string"><span class="delimiter">&quot;</span><span class="content">automaticJobRegistrar</span><span class="delimiter">&quot;</span></span>
-          <span class="attribute-name">p:optionalPollingQueryParams-ref</span>=<span class="string"><span class="delimiter">&quot;</span><span class="content">pollingQueryParam</span><span class="delimiter">&quot;</span></span> <span class="tag">/&gt;</span> <span class="comment">&lt;!-- (2) --&gt;</span>
+<span class="tag">&lt;bean</span> <span class="attribute-name">id</span>=<span class="string"><span class="delimiter">&quot;</span><span class="content">jobRequestPollTask</span><span class="delimiter">&quot;</span></span>
+      <span class="attribute-name">class</span>=<span class="string"><span class="delimiter">&quot;</span><span class="content">org.terasoluna.batch.async.db.JobRequestPollTask</span><span class="delimiter">&quot;</span></span>
+      <span class="attribute-name">c:transactionManager-ref</span>=<span class="string"><span class="delimiter">&quot;</span><span class="content">adminTransactionManager</span><span class="delimiter">&quot;</span></span>
+      <span class="attribute-name">c:jobOperator-ref</span>=<span class="string"><span class="delimiter">&quot;</span><span class="content">jobOperator</span><span class="delimiter">&quot;</span></span>
+      <span class="attribute-name">c:batchJobRequestRepository-ref</span>=<span class="string"><span class="delimiter">&quot;</span><span class="content">batchJobRequestRepository</span><span class="delimiter">&quot;</span></span>
+      <span class="attribute-name">c:daemonTaskExecutor-ref</span>=<span class="string"><span class="delimiter">&quot;</span><span class="content">daemonTaskExecutor</span><span class="delimiter">&quot;</span></span>
+      <span class="attribute-name">c:automaticJobRegistrar-ref</span>=<span class="string"><span class="delimiter">&quot;</span><span class="content">automaticJobRegistrar</span><span class="delimiter">&quot;</span></span>
+      <span class="attribute-name">p:optionalPollingQueryParams-ref</span>=<span class="string"><span class="delimiter">&quot;</span><span class="content">pollingQueryParam</span><span class="delimiter">&quot;</span></span> <span class="tag">/&gt;</span> <span class="comment">&lt;!-- (3) --&gt;</span>
 
-   <span class="tag">&lt;bean</span> <span class="attribute-name">id</span>=<span class="string"><span class="delimiter">&quot;</span><span class="content">pollingQueryParam</span><span class="delimiter">&quot;</span></span>
-         <span class="attribute-name">class</span>=<span class="string"><span class="delimiter">&quot;</span><span class="content">org.springframework.beans.factory.config.MapFactoryBean</span><span class="delimiter">&quot;</span></span><span class="tag">&gt;</span>
-        <span class="tag">&lt;property</span> <span class="attribute-name">name</span>=<span class="string"><span class="delimiter">&quot;</span><span class="content">sourceMap</span><span class="delimiter">&quot;</span></span><span class="tag">&gt;</span>
+<span class="tag">&lt;bean</span> <span class="attribute-name">id</span>=<span class="string"><span class="delimiter">&quot;</span><span class="content">pollingQueryParam</span><span class="delimiter">&quot;</span></span>
+      <span class="attribute-name">class</span>=<span class="string"><span class="delimiter">&quot;</span><span class="content">org.springframework.beans.factory.config.MapFactoryBean</span><span class="delimiter">&quot;</span></span><span class="tag">&gt;</span>
+      <span class="tag">&lt;property</span> <span class="attribute-name">name</span>=<span class="string"><span class="delimiter">&quot;</span><span class="content">sourceMap</span><span class="delimiter">&quot;</span></span><span class="tag">&gt;</span>
             <span class="tag">&lt;map&gt;</span>
-                <span class="tag">&lt;entry</span> <span class="attribute-name">key</span>=<span class="string"><span class="delimiter">&quot;</span><span class="content">groupId</span><span class="delimiter">&quot;</span></span> <span class="attribute-name">value</span>=<span class="string"><span class="delimiter">&quot;</span><span class="content">${GROUP_ID}</span><span class="delimiter">&quot;</span></span><span class="tag">/&gt;</span>  <span class="comment">&lt;!-- (3) --&gt;</span>
+                <span class="tag">&lt;entry</span> <span class="attribute-name">key</span>=<span class="string"><span class="delimiter">&quot;</span><span class="content">groupId</span><span class="delimiter">&quot;</span></span> <span class="attribute-name">value</span>=<span class="string"><span class="delimiter">&quot;</span><span class="content">${GROUP_ID}</span><span class="delimiter">&quot;</span></span><span class="tag">/&gt;</span>  <span class="comment">&lt;!-- (2) --&gt;</span>
             <span class="tag">&lt;/map&gt;</span>
-        <span class="tag">&lt;/property&gt;</span>
-   <span class="tag">&lt;/bean&gt;</span></code></pre>
+      <span class="tag">&lt;/property&gt;</span>
+<span class="tag">&lt;/bean&gt;</span></code></pre>
 </div>
+</div>
+  </div>
 </div>
 <table class="tableblock frame-all grid-all stretch">
-<caption class="title">表 12. 拡張ポイント</caption>
+<caption class="title">表 14. 拡張ポイント</caption>
 <colgroup>
 <col style="width: 10%;">
 <col style="width: 90%;">
@@ -1786,15 +2047,15 @@ ocation
 <tbody>
 <tr>
 <td class="tableblock halign-left valign-top"><p class="tableblock">(1)</p></td>
-<td class="tableblock halign-left valign-top"><p class="tableblock"><code>BatchJobRequestRepository</code>の拡張インタフェースをFQCNで<code>mapperInterface</code>属性に設定する。</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><code>BatchJobRequestRepository</code>の拡張インタフェースを<code>MapperInterface</code>に設定する。</p></td>
 </tr>
 <tr>
 <td class="tableblock halign-left valign-top"><p class="tableblock">(2)</p></td>
-<td class="tableblock halign-left valign-top"><p class="tableblock"><code>JobRequestPollTask</code>の<code>optionalPollingQueryParams-ref</code>属性に(3)で定義するMapを設定する。</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">環境変数で与えれられたグループID(GROUP_ID)を、クエリパラメータのグループID(groupId)に設定する。</p></td>
 </tr>
 <tr>
 <td class="tableblock halign-left valign-top"><p class="tableblock">(3)</p></td>
-<td class="tableblock halign-left valign-top"><p class="tableblock">環境変数で与えれらたグループID(GROUP_ID)をクエリパラメータのグループID(groupId)に設定する。</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><code>JobRequestPollTask</code>の<code>optionalPollingQueryParams</code>に、(2)のMapを設定する。</p></td>
 </tr>
 </tbody>
 </table>
@@ -1830,16 +2091,16 @@ $ java -cp dependency/* org.terasoluna.batch.async.db.AsyncBatchDaemon</code></p
 <div class="olist arabic">
 <ol class="arabic">
 <li>
-<p><code>async-batch-daemon.xml</code>のコピーを作成</p>
+<p><code>AsyncBatchDaemonConfig.java/async-batch-daemon.xml</code>のコピーを作成</p>
 </li>
 <li>
-<p>ファイル名を<code>customized-async-batch-daemon.xml</code>に変更</p>
+<p>ファイル名を<code>AsyncBatchDaemonClockConfig.java/async-batch-daemon-clock.xml</code>に変更</p>
 </li>
 <li>
-<p><code>customized-async-batch-daemon.xml</code>のBean定義を修正</p>
+<p><code>AsyncBatchDaemonClockConfig.java/async-batch-daemon-clock.xml</code>のBean定義を修正</p>
 </li>
 <li>
-<p>カスタマイズしたAsyncBatchDaemonを起動<br>
+<p>カスタマイズした<code>AsyncBatchDaemonClockConfig.java/async-batch-daemon-clock.xml</code>でAsyncBatchDaemonを起動<br>
 詳細は、<a href="#Ch04_AsyncJobWithDB_HowToUse_Daemon_Launch">非同期バッチデーモンの起動</a>を参照。</p>
 </li>
 </ol>
@@ -1847,6 +2108,49 @@ $ java -cp dependency/* org.terasoluna.batch.async.db.AsyncBatchDaemon</code></p
 <div class="paragraph">
 <p>下記に日時を固定し、タイムゾーンを変更するための設定例を示す。</p>
 </div>
+<div class="tabbox">
+  <input type="radio" name="tabgroup040307" class="JavaConfigTab" id="tabgroup040307_1" checked><label for="tabgroup040307_1" class="tab">JavaConfig</label>
+  <input type="radio" name="tabgroup040307" class="XMLConfigTab" id="tabgroup040307_2"><label for="tabgroup040307_2" class="tab">XMLConfig</label>
+  <div class="tabcontent" name="JavaConfigContent">
+<div class="listingblock">
+<div class="title">org.terasoluna.batch.config.ch04.asyncjobwithdb.AsyncBatchDaemonClockConfig.java</div>
+<div class="content">
+<pre class="CodeRay highlight"><code data-lang="java"><span class="annotation">@Bean</span>
+<span class="directive">public</span> JobRequestPollTask jobRequestPollTask(<span class="annotation">@Qualifier</span>(<span class="string"><span class="delimiter">&quot;</span><span class="content">adminTransactionManager</span><span class="delimiter">&quot;</span></span>) DataSourceTransactionManager adminTransactionManager,
+                                             JobOperator jobOperator,
+                                             MapperFactoryBean&lt;BatchJobRequestRepository&gt; batchJobRequestRepository,
+                                             <span class="annotation">@Qualifier</span>(<span class="string"><span class="delimiter">&quot;</span><span class="content">daemonTaskExecutor</span><span class="delimiter">&quot;</span></span>) ThreadPoolTaskExecutor daemonTaskExecutor,
+                                             AutomaticJobRegistrar automaticJobRegistrar)  <span class="directive">throws</span> <span class="exception">Exception</span> {
+
+    JobRequestPollTask jobRequestPollTask = <span class="keyword">new</span> JobRequestPollTask(batchJobRequestRepository.getObject(), adminTransactionManager, daemonTaskExecutor, jobOperator,
+            automaticJobRegistrar);
+    jobRequestPollTask.setClock(Clock.fixed(ZonedDateTime.parse(<span class="string"><span class="delimiter">&quot;</span><span class="content">2016-12-31T16:00-08:00[America/Los_Angeles]</span><span class="delimiter">&quot;</span></span>).toInstant(), ZoneId.of(<span class="string"><span class="delimiter">&quot;</span><span class="content">PST</span><span class="delimiter">&quot;</span></span>, ZoneId.SHORT_IDS))); <span class="comment">// (1)</span>
+    <span class="keyword">return</span> jobRequestPollTask;
+}</code></pre>
+</div>
+</div>
+<table class="tableblock frame-all grid-all stretch">
+<caption class="title">表 15. 説明</caption>
+<colgroup>
+<col style="width: 10%;">
+<col style="width: 90%;">
+</colgroup>
+<thead>
+<tr>
+<th class="tableblock halign-left valign-top">項番</th>
+<th class="tableblock halign-left valign-top">説明</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td class="tableblock halign-left valign-top"><p class="tableblock">(1)</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">日時を2016年12月31日16時0分0秒に固定し、タイムゾーンをロサンゼルス時間とした<code>java.time.Clock</code>を、<code>JobRequestPollTask</code>の<code>setClock</code>メソッドで設定する。<br>
+ロサンゼルス時間のタイムゾーンIDは<code>PST</code>である。</p></td>
+</tr>
+</tbody>
+</table>
+  </div>
+  <div class="tabcontent" name="XMLConfigContent">
 <div class="listingblock">
 <div class="title">META-INF/ch04/asyncjobwithdb/async-batch-daemon-clock.xml</div>
 <div class="content">
@@ -1866,7 +2170,7 @@ $ java -cp dependency/* org.terasoluna.batch.async.db.AsyncBatchDaemon</code></p
 </div>
 </div>
 <table class="tableblock frame-all grid-all stretch">
-<caption class="title">表 13. 説明</caption>
+<caption class="title">表 16. 説明</caption>
 <colgroup>
 <col style="width: 10%;">
 <col style="width: 90%;">
@@ -1889,6 +2193,8 @@ $ java -cp dependency/* org.terasoluna.batch.async.db.AsyncBatchDaemon</code></p
 </tr>
 </tbody>
 </table>
+  </div>
+</div>
 </div>
 <div class="sect2">
 <h3 id="Ch04_AsyncJobWithDB_HowToExtend_MultiDaemon"><a class="anchor" href="#Ch04_AsyncJobWithDB_HowToExtend_MultiDaemon"></a>複数起動</h3>
@@ -1970,7 +2276,7 @@ $ java -cp dependency/* org.terasoluna.batch.async.db.AsyncBatchDaemon</code></p
 
   <div class="common-bg">
     <div class="information">
-      TERASOLUNA Batch Framework for Java (5.x) Development Guideline - version 5.4.1.RELEASE, 2022-3-31, commit-id:e9b4d93
+      TERASOLUNA Batch Framework for Java (5.x) Development Guideline - version 5.5.0.RELEASE, 2023-3-31, commit-id:f6da76a
     </div>
     <div class="index">
       <a href="index.html">&gt; INDEX</a>

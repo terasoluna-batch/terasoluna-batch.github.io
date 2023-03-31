@@ -14,12 +14,20 @@
 
 <div class="common-bg">
   <div class="information">
-    TERASOLUNA Batch Framework for Java (5.x) Development Guideline - version 5.4.1.RELEASE, 2022-3-31, commit-id:e9b4d93
+    TERASOLUNA Batch Framework for Java (5.x) Development Guideline - version 5.5.0.RELEASE, 2023-3-31, commit-id:f6da76a
   </div>
   <div class="index">
     <a href="index.html">&gt; INDEX</a>
   </div>
 </div>
+
+<!-- Google tag (gtag.js) -->
+<script async src="https://www.googletagmanager.com/gtag/js?id=G-8VC2LCPQFM"></script>
+<script>
+  window.dataLayer = window.dataLayer || [];
+  function gtag(){dataLayer.push(arguments);}
+  gtag('js', new Date());  gtag('config', 'G-8VC2LCPQFM');
+</script>
 
 <script>
   (function(i,s,o,g,r,a,m){i['GoogleAnalyticsObject']=r;i[r]=i[r]||function(){
@@ -214,6 +222,62 @@ async-batch-daemon.polling-stop-file-path=/tmp/stop-async-batch-daemon</code></p
 </div>
 <div class="sect2">
 <h3 id="Ch09_Impl_AsyncExecutionJob_Preparation_Bean"><a class="anchor" href="#Ch09_Impl_AsyncExecutionJob_Preparation_Bean"></a>ジョブの設定</h3>
+<div class="tabbox">
+  <input type="radio" name="tabgroup09040601" class="JavaConfigTab" id="tabgroup09040601_1" checked><label for="tabgroup09040601_1" class="tab">JavaConfig</label>
+  <input type="radio" name="tabgroup09040601" class="XMLConfigTab" id="tabgroup09040601_2"><label for="tabgroup09040601_2" class="tab">XMLConfig</label>
+  <div class="tabcontent" name="JavaConfigContent">
+<div class="paragraph">
+<p>非同期実行する対象のジョブは、<code>AsyncBatchDaemonConfig.java</code>の<code>automaticJobRegistrar</code>に設定する。</p>
+</div>
+<div class="paragraph">
+<p>例として<a href="Ch09_DBAccessJob.html#Ch09_Impl_DBAccessJob">データベースアクセスでデータ入出力を行うジョブ</a>(チャンクモデル)を指定した設定を以下に示す。</p>
+</div>
+<div class="listingblock">
+<div class="title">org.terasoluna.batch.tutorial.config.AsyncBatchDaemonConfig.java</div>
+<div class="content">
+<pre class="CodeRay highlight"><code data-lang="java"><span class="comment">// omitted</span>
+<span class="annotation">@Bean</span>
+<span class="directive">public</span> AutomaticJobRegistrar automaticJobRegistrar(ResourceLoader resourceLoader, JobRegistry jobRegistry,
+                                                   ApplicationContextFactory<span class="type">[]</span> applicationContextFactories) <span class="directive">throws</span> <span class="exception">Exception</span> {
+    <span class="directive">final</span> AutomaticJobRegistrar automaticJobRegistrar = <span class="keyword">new</span> AutomaticJobRegistrar();
+    <span class="directive">final</span> DefaultJobLoader defaultJobLoader = <span class="keyword">new</span> DefaultJobLoader();
+    defaultJobLoader.setJobRegistry(jobRegistry);
+    automaticJobRegistrar.setApplicationContextFactories(applicationContextFactories);
+    automaticJobRegistrar.setJobLoader(defaultJobLoader);
+    <span class="keyword">return</span> automaticJobRegistrar;
+}
+
+<span class="annotation">@Bean</span>
+<span class="directive">public</span> ApplicationContextFactory<span class="type">[]</span> applicationContextFactories(<span class="directive">final</span> ApplicationContext ctx) <span class="directive">throws</span> <span class="exception">IOException</span> {
+    <span class="keyword">return</span> <span class="keyword">new</span> ApplicationContextFactoryHelper(ctx).load(<span class="string"><span class="delimiter">&quot;</span><span class="content">classpath:/META-INF/jobs/dbaccess/jobPointAddChunk.xml</span><span class="delimiter">&quot;</span></span>); <span class="comment">// (1)</span>
+}
+<span class="comment">// omitted</span></code></pre>
+</div>
+</div>
+<table class="tableblock frame-all grid-all stretch">
+<caption class="title">表 2. 説明</caption>
+<colgroup>
+<col style="width: 10%;">
+<col style="width: 90%;">
+</colgroup>
+<thead>
+<tr>
+<th class="tableblock halign-left valign-top">項番</th>
+<th class="tableblock halign-left valign-top">説明</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td class="tableblock halign-left valign-top"><p class="tableblock">(1)</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">非同期実行する対象ジョブのBean定義ファイルを指定する。<br>
+ワイルドカード(**/*)の利用も可能である。
+ジョブの指定に際しては<a href="Ch04_AsyncJobWithDB.html#Ch04_AsyncJobWithDB_HowToUse_Config_Job">ジョブの設定</a>に記載してある注意事項を参照。<br>
+<code>ApplicationContextFactoryHelper</code> は JavaConfigで <code>ApplicationContextFactory</code> の生成を補助するヘルパクラスである。コンストラクタには各ジョブで親となる共通定義の <code>ApplicationContext</code> を指定する。</p></td>
+</tr>
+</tbody>
+</table>
+  </div>
+  <div class="tabcontent" name="XMLConfigContent">
 <div class="paragraph">
 <p>非同期実行する対象のジョブは、<code>async-batch-daemon.xml</code>の<code>automaticJobRegistrar</code>に設定する。</p>
 </div>
@@ -221,7 +285,7 @@ async-batch-daemon.polling-stop-file-path=/tmp/stop-async-batch-daemon</code></p
 <p>例として<a href="Ch09_DBAccessJob.html#Ch09_Impl_DBAccessJob">データベースアクセスでデータ入出力を行うジョブ</a>(チャンクモデル)を指定した設定を以下に示す。</p>
 </div>
 <div class="listingblock">
-<div class="title">src/main/resources/META-INF/spring/async-batch-daemon.xml</div>
+<div class="title">META-INF/spring/async-batch-daemon.xml</div>
 <div class="content">
 <pre class="CodeRay highlight"><code data-lang="xml"><span class="preprocessor">&lt;?xml version=&quot;1.0&quot; encoding=&quot;UTF-8&quot;?&gt;</span>
 <span class="tag">&lt;beans</span> <span class="attribute-name">xmlns</span>=<span class="string"><span class="delimiter">&quot;</span><span class="content">http://www.springframework.org/schema/beans</span><span class="delimiter">&quot;</span></span>
@@ -255,7 +319,7 @@ async-batch-daemon.polling-stop-file-path=/tmp/stop-async-batch-daemon</code></p
 </div>
 </div>
 <table class="tableblock frame-all grid-all stretch">
-<caption class="title">表 2. 説明</caption>
+<caption class="title">表 3. 説明</caption>
 <colgroup>
 <col style="width: 10%;">
 <col style="width: 90%;">
@@ -275,6 +339,8 @@ async-batch-daemon.polling-stop-file-path=/tmp/stop-async-batch-daemon</code></p
 </tr>
 </tbody>
 </table>
+  </div>
+</div>
 <div class="admonitionblock warning">
 <table>
 <tr>
@@ -388,7 +454,7 @@ tutorial.insert-data.script=file:sqls/insert-member-info-data.sql
 作成手順は<a href="Ch09_EnvironmentConstruction.html#Ch09_EnvironmentConstruction_OperationCheck_ExecJob_RunConf">Run Configuration(実行構成)の作成</a>を参照。</p>
 </div>
 <table class="tableblock frame-all grid-all stretch">
-<caption class="title">表 3. Run ConfigurationsのMainタブで設定する値</caption>
+<caption class="title">表 4. Run ConfigurationsのMainタブで設定する値</caption>
 <colgroup>
 <col style="width: 30%;">
 <col style="width: 70%;">
@@ -453,33 +519,13 @@ tutorial.insert-data.script=file:sqls/insert-member-info-data.sql
 <div class="title">SQL実行手順</div>
 <ol class="arabic">
 <li>
-<p>Database Browserを表示する。<br>
-Database Browserの表示手順は<a href="Ch09_EnvironmentConstruction.html#Ch09_EnvironmentConstruction_OperationCheck_RefDB">DBeaverを使用してデータベースを参照する</a>を参照。</p>
+<p>H2 Consoleを表示する。<br>
+H2 Consoleの表示手順は<a href="Ch09_EnvironmentConstruction.html#Ch09_EnvironmentConstruction_OperationCheck_RefDB">H2 Consoleを使用してデータベースを参照する</a>を参照。</p>
 </li>
 </ol>
-</div>
-<div class="imageblock">
-<div class="content">
-<img src="./images/ch09/AsyncExecution/Ch09_AsyncExecutionJob_DataSourceExplorer.png" alt="Data Source Explorer View">
-</div>
-<div class="title">図 1. Data Source Explorer View</div>
 </div>
 <div class="olist arabic">
 <ol class="arabic" start="2">
-<li>
-<p>SQLエディタを開く。<br>
-[H2 Embedded]を右クリックし、[最近のSQLエディタ]をクリックする。</p>
-</li>
-</ol>
-</div>
-<div class="imageblock">
-<div class="content">
-<img src="./images/ch09/AsyncExecution/Ch09_AsyncExecutionJob_SQLEditor.png" alt="Open SQL Editor">
-</div>
-<div class="title">図 2. SQL Editor</div>
-</div>
-<div class="olist arabic">
-<ol class="arabic" start="3">
 <li>
 <p>SQLを記述する。<br>
 データベースアクセスするジョブとファイルアクセスするジョブを実行するためのSQLをチャンクモデルの例で以下に示す。</p>
@@ -513,7 +559,7 @@ Database Browserの表示手順は<a href="Ch09_EnvironmentConstruction.html#Ch0
 <div class="title">ファイルアクセスするジョブの実行要求用SQL</div>
 <div class="content">
 <pre class="CodeRay highlight"><code data-lang="sql"><span class="class">INSERT</span> <span class="class">INTO</span> batch_job_request(job_name,job_parameter,polling_status,create_date)
-<span class="keyword">VALUES</span> (<span class="string"><span class="delimiter">'</span><span class="content">jobPointAddChunk</span><span class="delimiter">'</span></span>, <span class="string"><span class="delimiter">'</span><span class="content">inputFile=files/input/input-member-info-data.csv,outputFile=files/output/output-member-info-data.csv</span><span class="delimiter">'</span></span>, <span class="string"><span class="delimiter">'</span><span class="content">INIT</span><span class="delimiter">'</span></span>, current_timestamp);</code></pre>
+<span class="keyword">VALUES</span> (<span class="string"><span class="delimiter">'</span><span class="content">jobPointAddChunk</span><span class="delimiter">'</span></span>, <span class="string"><span class="delimiter">'</span><span class="content">inputFile=files/input/input-member-info-data.csv outputFile=files/output/output-member-info-data.csv</span><span class="delimiter">'</span></span>, <span class="string"><span class="delimiter">'</span><span class="content">INIT</span><span class="delimiter">'</span></span>, current_timestamp);</code></pre>
 </div>
 </div>
 <div class="paragraph">
@@ -521,15 +567,9 @@ Database Browserの表示手順は<a href="Ch09_EnvironmentConstruction.html#Ch0
 ここでは、データベースアクセスするジョブの実行要求用SQLを記述している。</p>
 </div>
 <div class="olist arabic">
-<ol class="arabic" start="4">
+<ol class="arabic" start="3">
 <li>
-<p>ジョブの実行要求用SQLを入力し、[Ctrl]キー + [S]キーで保存する。</p>
-</li>
-<li>
-<p>[Ctrl]キー + [Enter]キーでSQLを実行する。</p>
-</li>
-<li>
-<p>[Statistics]に更新したRowカウント、実行したクエリ、クエリが完了した時間が出力される。</p>
+<p>[Shift]キー + [Enter]キーでSQLを実行する。</p>
 </li>
 </ol>
 </div>
@@ -537,10 +577,10 @@ Database Browserの表示手順は<a href="Ch09_EnvironmentConstruction.html#Ch0
 <div class="content">
 <img src="./images/ch09/AsyncExecution/Ch09_AsyncExecutionJob_ExecuteSQL.png" alt="Execute SQL">
 </div>
-<div class="title">図 3. Execute SQL</div>
+<div class="title">図 1. Execute SQL</div>
 </div>
 <div class="olist arabic">
-<ol class="arabic" start="7">
+<ol class="arabic" start="4">
 <li>
 <p>ジョブ要求テーブルを確認する。<br>
 下図のとおり、ジョブ要求テーブルにジョブを実行するための情報が登録されていることを確認する。<br>
@@ -553,7 +593,7 @@ Database Browserの表示手順は<a href="Ch09_EnvironmentConstruction.html#Ch0
 <div class="content">
 <img src="./images/ch09/AsyncExecution/Ch09_AsyncExecutionJob_BatchJobRequestTable.png" alt="Confrim batch_job_Request Table">
 </div>
-<div class="title">図 4. ジョブ要求テーブルの確認</div>
+<div class="title">図 2. ジョブ要求テーブルの確認</div>
 </div>
 </div>
 </div>
@@ -607,7 +647,7 @@ Database Browserの表示手順は<a href="Ch09_EnvironmentConstruction.html#Ch0
 <h4 id="Ch09_Impl_AsyncExecutionJob_ExecutionResultCheck_Output_Table"><a class="anchor" href="#Ch09_Impl_AsyncExecutionJob_ExecutionResultCheck_Output_Table"></a>データベースアクセスするジョブの場合</h4>
 <div class="paragraph">
 <p>更新前後の会員情報テーブルの内容を比較し、確認内容のとおりとなっていることを確認する。<br>
-確認手順は<a href="Ch09_EnvironmentConstruction.html#Ch09_EnvironmentConstruction_OperationCheck_RefDB">Data Source Explorerを使用してデータベースを参照する</a>を参照。</p>
+確認手順は<a href="Ch09_EnvironmentConstruction.html#Ch09_EnvironmentConstruction_OperationCheck_RefDB">H2 Consoleを使用してデータベースを参照する</a>を参照。</p>
 </div>
 <div class="dlist">
 <dl>
@@ -660,7 +700,7 @@ Database Browserの表示手順は<a href="Ch09_EnvironmentConstruction.html#Ch0
 <div class="content">
 <img src="./images/ch09/AsyncExecution/Ch09_AsyncExecutionJob_Result_MemberInfoTable.png" alt="Table of member_info">
 </div>
-<div class="title">図 5. 更新前後の会員情報テーブルの内容</div>
+<div class="title">図 3. 更新前後の会員情報テーブルの内容</div>
 </div>
 </div>
 <div class="sect3">
@@ -730,7 +770,7 @@ Database Browserの表示手順は<a href="Ch09_EnvironmentConstruction.html#Ch0
 <div class="content">
 <img src="./images/ch09/AsyncExecution/Ch09_AsyncExecutionJob_Result_MemberInfoFile.png" alt="File of member_info">
 </div>
-<div class="title">図 6. 会員情報ファイルの入出力内容</div>
+<div class="title">図 4. 会員情報ファイルの入出力内容</div>
 </div>
 </div>
 </div>
@@ -750,7 +790,7 @@ C:\tmpにstop-async-batch-daemonファイル(空ファイル)を作成する。<
 <div class="content">
 <img src="./images/ch09/AsyncExecution/Ch09_AsyncExecutionJob_StopAsyncBatchDaemon.png" alt="Stop AsyncBatchDaemon">
 </div>
-<div class="title">図 7. 終了ファイル作成</div>
+<div class="title">図 5. 終了ファイル作成</div>
 </div>
 <div class="paragraph">
 <p>STSのコンソールで以下のとおり非同期バッチデーモンが停止していることを確認する。</p>
@@ -800,7 +840,7 @@ C:\tmpにstop-async-batch-daemonファイル(空ファイル)を作成する。<
 <div class="content">
 <img src="./images/ch09/AsyncExecution/Ch09_AsyncExecutionJob_Confirm_JobStatus.png" alt="SQL Results View">
 </div>
-<div class="title">図 8. ジョブの状態確認</div>
+<div class="title">図 6. ジョブの状態確認</div>
 </div>
 </div>
 </div>
@@ -810,7 +850,7 @@ C:\tmpにstop-async-batch-daemonファイル(空ファイル)を作成する。<
 
   <div class="common-bg">
     <div class="information">
-      TERASOLUNA Batch Framework for Java (5.x) Development Guideline - version 5.4.1.RELEASE, 2022-3-31, commit-id:e9b4d93
+      TERASOLUNA Batch Framework for Java (5.x) Development Guideline - version 5.5.0.RELEASE, 2023-3-31, commit-id:f6da76a
     </div>
     <div class="index">
       <a href="index.html">&gt; INDEX</a>

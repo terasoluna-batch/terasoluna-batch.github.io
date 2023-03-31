@@ -14,12 +14,20 @@
 
 <div class="common-bg">
   <div class="information">
-    TERASOLUNA Batch Framework for Java (5.x) Development Guideline - version 5.4.1.RELEASE, 2022-3-31, commit-id:e9b4d93
+    TERASOLUNA Batch Framework for Java (5.x) Development Guideline - version 5.5.0.RELEASE, 2023-3-31, commit-id:f6da76a
   </div>
   <div class="index">
     <a href="index.html">&gt; INDEX</a>
   </div>
 </div>
+
+<!-- Google tag (gtag.js) -->
+<script async src="https://www.googletagmanager.com/gtag/js?id=G-8VC2LCPQFM"></script>
+<script>
+  window.dataLayer = window.dataLayer || [];
+  function gtag(){dataLayer.push(arguments);}
+  gtag('js', new Date());  gtag('config', 'G-8VC2LCPQFM');
+</script>
 
 <script>
   (function(i,s,o,g,r,a,m){i['GoogleAnalyticsObject']=r;i[r]=i[r]||function(){
@@ -530,6 +538,36 @@
 <p>Bean定義ファイルにて、チャンクモデルでデータベースアクセスを行うジョブを構成する要素の組み合わせ方を設定する。<br>
 ここでは、Bean定義ファイルの枠および共通的な設定のみ記述し、以降の項で各構成要素の設定を行う。</p>
 </div>
+<div class="tabbox">
+  <input type="radio" name="tabgroup09040101" class="JavaConfigTab" id="tabgroup09040101_1" checked><label for="tabgroup09040101_1" class="tab">JavaConfig</label>
+  <input type="radio" name="tabgroup09040101" class="XMLConfigTab" id="tabgroup09040101_2"><label for="tabgroup09040101_2" class="tab">XMLConfig</label>
+  <div class="tabcontent" name="JavaConfigContent">
+<div class="listingblock">
+<div class="title">src/main/resources/META-INF/jobs/dbaccess/jobPointAddChunk.xml</div>
+<div class="content">
+<pre class="CodeRay highlight"><code data-lang="xml"><span class="preprocessor">&lt;?xml version=&quot;1.0&quot; encoding=&quot;UTF-8&quot;?&gt;</span>
+<span class="tag">&lt;beans</span> <span class="attribute-name">xmlns</span>=<span class="string"><span class="delimiter">&quot;</span><span class="content">http://www.springframework.org/schema/beans</span><span class="delimiter">&quot;</span></span>
+       <span class="attribute-name">xmlns:xsi</span>=<span class="string"><span class="delimiter">&quot;</span><span class="content">http://www.w3.org/2001/XMLSchema-instance</span><span class="delimiter">&quot;</span></span>
+       <span class="attribute-name">xmlns:context</span>=<span class="string"><span class="delimiter">&quot;</span><span class="content">http://www.springframework.org/schema/context</span><span class="delimiter">&quot;</span></span>
+       <span class="attribute-name">xmlns:batch</span>=<span class="string"><span class="delimiter">&quot;</span><span class="content">http://www.springframework.org/schema/batch</span><span class="delimiter">&quot;</span></span>
+       <span class="attribute-name">xmlns:p</span>=<span class="string"><span class="delimiter">&quot;</span><span class="content">http://www.springframework.org/schema/p</span><span class="delimiter">&quot;</span></span>
+       <span class="attribute-name">xmlns:mybatis</span>=<span class="string"><span class="delimiter">&quot;</span><span class="content">http://mybatis.org/schema/mybatis-spring</span><span class="delimiter">&quot;</span></span>
+       <span class="attribute-name">xsi:schemaLocation</span>=<span class="string"><span class="delimiter">&quot;</span><span class="content">http://www.springframework.org/schema/beans https://www.springframework.org/schema/beans/spring-beans.xsd</span>
+             <span class="content">http://www.springframework.org/schema/context https://www.springframework.org/schema/context/spring-context.xsd</span>
+             <span class="content">http://www.springframework.org/schema/batch https://www.springframework.org/schema/batch/spring-batch.xsd</span>
+             <span class="content">http://mybatis.org/schema/mybatis-spring http://mybatis.org/schema/mybatis-spring.xsd</span><span class="delimiter">&quot;</span></span><span class="tag">&gt;</span>
+
+    <span class="comment">&lt;!-- (1) --&gt;</span>
+    <span class="tag">&lt;bean</span> <span class="attribute-name">class</span>=<span class="string"><span class="delimiter">&quot;</span><span class="content">org.terasoluna.batch.tutorial.config.JobBaseContextConfig</span><span class="delimiter">&quot;</span></span> <span class="tag">/&gt;</span>
+
+    <span class="comment">&lt;!-- (2) --&gt;</span>
+    <span class="tag">&lt;context:component-scan</span> <span class="attribute-name">base-package</span>=<span class="string"><span class="delimiter">&quot;</span><span class="content">org.terasoluna.batch.tutorial.dbaccess.chunk</span><span class="delimiter">&quot;</span></span><span class="tag">/&gt;</span>
+
+<span class="tag">&lt;/beans&gt;</span></code></pre>
+</div>
+</div>
+  </div>
+  <div class="tabcontent" name="XMLConfigContent">
 <div class="listingblock">
 <div class="title">src/main/resources/META-INF/jobs/dbaccess/jobPointAddChunk.xml</div>
 <div class="content">
@@ -553,6 +591,8 @@
 
 <span class="tag">&lt;/beans&gt;</span></code></pre>
 </div>
+</div>
+  </div>
 </div>
 <table class="tableblock frame-all grid-all stretch">
 <caption class="title">表 2. 説明</caption>
@@ -820,6 +860,48 @@ MapperXMLファイルを自動的に読み込ませるために、Repositoryイ�
 <div class="paragraph">
 <p>MyBatisによるデータベースアクセスするための設定として、ジョブBean定義ファイルに以下の(1)～(3)を追記する。</p>
 </div>
+<div class="tabbox">
+  <input type="radio" name="tabgroup09040102" class="JavaConfigTab" id="tabgroup09040102_1" checked><label for="tabgroup09040102_1" class="tab">JavaConfig</label>
+  <input type="radio" name="tabgroup09040102" class="XMLConfigTab" id="tabgroup09040102_2"><label for="tabgroup09040102_2" class="tab">XMLConfig</label>
+  <div class="tabcontent" name="JavaConfigContent">
+<div class="listingblock">
+<div class="title">src/main/resources/META-INF/jobs/dbaccess/jobPointAddChunk.xml</div>
+<div class="content">
+<pre class="CodeRay highlight"><code data-lang="xml"><span class="preprocessor">&lt;?xml version=&quot;1.0&quot; encoding=&quot;UTF-8&quot;?&gt;</span>
+<span class="tag">&lt;beans</span> <span class="attribute-name">xmlns</span>=<span class="string"><span class="delimiter">&quot;</span><span class="content">http://www.springframework.org/schema/beans</span><span class="delimiter">&quot;</span></span>
+       <span class="attribute-name">xmlns:xsi</span>=<span class="string"><span class="delimiter">&quot;</span><span class="content">http://www.w3.org/2001/XMLSchema-instance</span><span class="delimiter">&quot;</span></span>
+       <span class="attribute-name">xmlns:context</span>=<span class="string"><span class="delimiter">&quot;</span><span class="content">http://www.springframework.org/schema/context</span><span class="delimiter">&quot;</span></span>
+       <span class="attribute-name">xmlns:batch</span>=<span class="string"><span class="delimiter">&quot;</span><span class="content">http://www.springframework.org/schema/batch</span><span class="delimiter">&quot;</span></span>
+       <span class="attribute-name">xmlns:p</span>=<span class="string"><span class="delimiter">&quot;</span><span class="content">http://www.springframework.org/schema/p</span><span class="delimiter">&quot;</span></span>
+       <span class="attribute-name">xmlns:mybatis</span>=<span class="string"><span class="delimiter">&quot;</span><span class="content">http://mybatis.org/schema/mybatis-spring</span><span class="delimiter">&quot;</span></span>
+       <span class="attribute-name">xsi:schemaLocation</span>=<span class="string"><span class="delimiter">&quot;</span><span class="content">http://www.springframework.org/schema/beans https://www.springframework.org/schema/beans/spring-beans.xsd</span>
+             <span class="content">http://www.springframework.org/schema/context https://www.springframework.org/schema/context/spring-context.xsd</span>
+             <span class="content">http://www.springframework.org/schema/batch https://www.springframework.org/schema/batch/spring-batch.xsd</span>
+             <span class="content">http://mybatis.org/schema/mybatis-spring http://mybatis.org/schema/mybatis-spring.xsd</span><span class="delimiter">&quot;</span></span><span class="tag">&gt;</span>
+
+    <span class="tag">&lt;bean</span> <span class="attribute-name">class</span>=<span class="string"><span class="delimiter">&quot;</span><span class="content">org.terasoluna.batch.tutorial.config.JobBaseContextConfig</span><span class="delimiter">&quot;</span></span> <span class="tag">/&gt;</span>
+
+    <span class="tag">&lt;context:component-scan</span> <span class="attribute-name">base-package</span>=<span class="string"><span class="delimiter">&quot;</span><span class="content">org.terasoluna.batch.tutorial.dbaccess.chunk</span><span class="delimiter">&quot;</span></span><span class="tag">/&gt;</span>
+
+    <span class="comment">&lt;!-- (1) --&gt;</span>
+    <span class="tag">&lt;mybatis:scan</span> <span class="attribute-name">base-package</span>=<span class="string"><span class="delimiter">&quot;</span><span class="content">org.terasoluna.batch.tutorial.common.repository</span><span class="delimiter">&quot;</span></span> <span class="attribute-name">factory-ref</span>=<span class="string"><span class="delimiter">&quot;</span><span class="content">jobSqlSessionFactory</span><span class="delimiter">&quot;</span></span><span class="tag">/&gt;</span>
+
+    <span class="comment">&lt;!-- (2) --&gt;</span>
+    <span class="tag">&lt;bean</span> <span class="attribute-name">id</span>=<span class="string"><span class="delimiter">&quot;</span><span class="content">reader</span><span class="delimiter">&quot;</span></span>
+          <span class="attribute-name">class</span>=<span class="string"><span class="delimiter">&quot;</span><span class="content">org.mybatis.spring.batch.MyBatisCursorItemReader</span><span class="delimiter">&quot;</span></span>
+          <span class="attribute-name">p:queryId</span>=<span class="string"><span class="delimiter">&quot;</span><span class="content">org.terasoluna.batch.tutorial.common.repository.MemberInfoRepository.cursor</span><span class="delimiter">&quot;</span></span>
+          <span class="attribute-name">p:sqlSessionFactory-ref</span>=<span class="string"><span class="delimiter">&quot;</span><span class="content">jobSqlSessionFactory</span><span class="delimiter">&quot;</span></span><span class="tag">/&gt;</span>
+
+    <span class="comment">&lt;!-- (3) --&gt;</span>
+    <span class="tag">&lt;bean</span> <span class="attribute-name">id</span>=<span class="string"><span class="delimiter">&quot;</span><span class="content">writer</span><span class="delimiter">&quot;</span></span> <span class="attribute-name">class</span>=<span class="string"><span class="delimiter">&quot;</span><span class="content">org.mybatis.spring.batch.MyBatisBatchItemWriter</span><span class="delimiter">&quot;</span></span>
+          <span class="attribute-name">p:statementId</span>=<span class="string"><span class="delimiter">&quot;</span><span class="content">org.terasoluna.batch.tutorial.common.repository.MemberInfoRepository.updatePointAndStatus</span><span class="delimiter">&quot;</span></span>
+          <span class="attribute-name">p:sqlSessionTemplate-ref</span>=<span class="string"><span class="delimiter">&quot;</span><span class="content">batchModeSqlSessionTemplate</span><span class="delimiter">&quot;</span></span><span class="tag">/&gt;</span>
+
+<span class="tag">&lt;/beans&gt;</span></code></pre>
+</div>
+</div>
+  </div>
+  <div class="tabcontent" name="XMLConfigContent">
 <div class="listingblock">
 <div class="title">src/main/resources/META-INF/jobs/dbaccess/jobPointAddChunk.xml</div>
 <div class="content">
@@ -855,6 +937,8 @@ MapperXMLファイルを自動的に読み込ませるために、Repositoryイ�
 
 <span class="tag">&lt;/beans&gt;</span></code></pre>
 </div>
+</div>
+  </div>
 </div>
 <table class="tableblock frame-all grid-all stretch">
 <caption class="title">表 6. 説明</caption>
@@ -1042,6 +1126,55 @@ ItemProcessorの実装例は、<a href="Ch05_DBAccess.html#Ch05_DBAccess_HowToUs
 <div class="paragraph">
 <p>作成したビジネスロジックをジョブとして設定するため、ジョブBean定義ファイルに以下の(1)以降を追記する。</p>
 </div>
+<div class="tabbox">
+  <input type="radio" name="tabgroup09040103" class="JavaConfigTab" id="tabgroup09040103_1" checked><label for="tabgroup09040103_1" class="tab">JavaConfig</label>
+  <input type="radio" name="tabgroup09040103" class="XMLConfigTab" id="tabgroup09040103_2"><label for="tabgroup09040103_2" class="tab">XMLConfig</label>
+  <div class="tabcontent" name="JavaConfigContent">
+<div class="listingblock">
+<div class="title">src/main/resources/META-INF/jobs/dbaccess/jobPointAddChunk.xml</div>
+<div class="content">
+<pre class="CodeRay highlight"><code data-lang="xml"><span class="preprocessor">&lt;?xml version=&quot;1.0&quot; encoding=&quot;UTF-8&quot;?&gt;</span>
+<span class="tag">&lt;beans</span> <span class="attribute-name">xmlns</span>=<span class="string"><span class="delimiter">&quot;</span><span class="content">http://www.springframework.org/schema/beans</span><span class="delimiter">&quot;</span></span>
+       <span class="attribute-name">xmlns:xsi</span>=<span class="string"><span class="delimiter">&quot;</span><span class="content">http://www.w3.org/2001/XMLSchema-instance</span><span class="delimiter">&quot;</span></span>
+       <span class="attribute-name">xmlns:context</span>=<span class="string"><span class="delimiter">&quot;</span><span class="content">http://www.springframework.org/schema/context</span><span class="delimiter">&quot;</span></span>
+       <span class="attribute-name">xmlns:batch</span>=<span class="string"><span class="delimiter">&quot;</span><span class="content">http://www.springframework.org/schema/batch</span><span class="delimiter">&quot;</span></span>
+       <span class="attribute-name">xmlns:p</span>=<span class="string"><span class="delimiter">&quot;</span><span class="content">http://www.springframework.org/schema/p</span><span class="delimiter">&quot;</span></span>
+       <span class="attribute-name">xmlns:mybatis</span>=<span class="string"><span class="delimiter">&quot;</span><span class="content">http://mybatis.org/schema/mybatis-spring</span><span class="delimiter">&quot;</span></span>
+       <span class="attribute-name">xsi:schemaLocation</span>=<span class="string"><span class="delimiter">&quot;</span><span class="content">http://www.springframework.org/schema/beans https://www.springframework.org/schema/beans/spring-beans.xsd</span>
+             <span class="content">http://www.springframework.org/schema/context https://www.springframework.org/schema/context/spring-context.xsd</span>
+             <span class="content">http://www.springframework.org/schema/batch https://www.springframework.org/schema/batch/spring-batch.xsd</span>
+             <span class="content">http://mybatis.org/schema/mybatis-spring http://mybatis.org/schema/mybatis-spring.xsd</span><span class="delimiter">&quot;</span></span><span class="tag">&gt;</span>
+
+    <span class="tag">&lt;bean</span> <span class="attribute-name">class</span>=<span class="string"><span class="delimiter">&quot;</span><span class="content">org.terasoluna.batch.tutorial.config.JobBaseContextConfig</span><span class="delimiter">&quot;</span></span> <span class="tag">/&gt;</span>
+
+    <span class="tag">&lt;context:component-scan</span> <span class="attribute-name">base-package</span>=<span class="string"><span class="delimiter">&quot;</span><span class="content">org.terasoluna.batch.tutorial.dbaccess.chunk</span><span class="delimiter">&quot;</span></span><span class="tag">/&gt;</span>
+
+    <span class="tag">&lt;mybatis:scan</span> <span class="attribute-name">base-package</span>=<span class="string"><span class="delimiter">&quot;</span><span class="content">org.terasoluna.batch.tutorial.common.repository</span><span class="delimiter">&quot;</span></span> <span class="attribute-name">factory-ref</span>=<span class="string"><span class="delimiter">&quot;</span><span class="content">jobSqlSessionFactory</span><span class="delimiter">&quot;</span></span><span class="tag">/&gt;</span>
+
+    <span class="tag">&lt;bean</span> <span class="attribute-name">id</span>=<span class="string"><span class="delimiter">&quot;</span><span class="content">reader</span><span class="delimiter">&quot;</span></span>
+          <span class="attribute-name">class</span>=<span class="string"><span class="delimiter">&quot;</span><span class="content">org.mybatis.spring.batch.MyBatisCursorItemReader</span><span class="delimiter">&quot;</span></span>
+          <span class="attribute-name">p:queryId</span>=<span class="string"><span class="delimiter">&quot;</span><span class="content">org.terasoluna.batch.tutorial.common.repository.MemberInfoRepository.cursor</span><span class="delimiter">&quot;</span></span>
+          <span class="attribute-name">p:sqlSessionFactory-ref</span>=<span class="string"><span class="delimiter">&quot;</span><span class="content">jobSqlSessionFactory</span><span class="delimiter">&quot;</span></span><span class="tag">/&gt;</span>
+
+    <span class="tag">&lt;bean</span> <span class="attribute-name">id</span>=<span class="string"><span class="delimiter">&quot;</span><span class="content">writer</span><span class="delimiter">&quot;</span></span> <span class="attribute-name">class</span>=<span class="string"><span class="delimiter">&quot;</span><span class="content">org.mybatis.spring.batch.MyBatisBatchItemWriter</span><span class="delimiter">&quot;</span></span>
+          <span class="attribute-name">p:statementId</span>=<span class="string"><span class="delimiter">&quot;</span><span class="content">org.terasoluna.batch.tutorial.common.repository.MemberInfoRepository.updatePointAndStatus</span><span class="delimiter">&quot;</span></span>
+          <span class="attribute-name">p:sqlSessionTemplate-ref</span>=<span class="string"><span class="delimiter">&quot;</span><span class="content">batchModeSqlSessionTemplate</span><span class="delimiter">&quot;</span></span><span class="tag">/&gt;</span>
+
+    <span class="comment">&lt;!-- (1) --&gt;</span>
+    <span class="tag">&lt;batch:job</span> <span class="attribute-name">id</span>=<span class="string"><span class="delimiter">&quot;</span><span class="content">jobPointAddChunk</span><span class="delimiter">&quot;</span></span> <span class="attribute-name">job-repository</span>=<span class="string"><span class="delimiter">&quot;</span><span class="content">jobRepository</span><span class="delimiter">&quot;</span></span><span class="tag">&gt;</span>
+        <span class="tag">&lt;batch:step</span> <span class="attribute-name">id</span>=<span class="string"><span class="delimiter">&quot;</span><span class="content">jobPointAddChunk.step01</span><span class="delimiter">&quot;</span></span><span class="tag">&gt;</span> <span class="comment">&lt;!-- (2) --&gt;</span>
+            <span class="tag">&lt;batch:tasklet</span> <span class="attribute-name">transaction-manager</span>=<span class="string"><span class="delimiter">&quot;</span><span class="content">jobTransactionManager</span><span class="delimiter">&quot;</span></span><span class="tag">&gt;</span>
+                <span class="tag">&lt;batch:chunk</span> <span class="attribute-name">reader</span>=<span class="string"><span class="delimiter">&quot;</span><span class="content">reader</span><span class="delimiter">&quot;</span></span>
+                             <span class="attribute-name">processor</span>=<span class="string"><span class="delimiter">&quot;</span><span class="content">pointAddItemProcessor</span><span class="delimiter">&quot;</span></span>
+                             <span class="attribute-name">writer</span>=<span class="string"><span class="delimiter">&quot;</span><span class="content">writer</span><span class="delimiter">&quot;</span></span> <span class="attribute-name">commit-interval</span>=<span class="string"><span class="delimiter">&quot;</span><span class="content">10</span><span class="delimiter">&quot;</span></span><span class="tag">/&gt;</span> <span class="comment">&lt;!-- (3) --&gt;</span>
+            <span class="tag">&lt;/batch:tasklet&gt;</span>
+        <span class="tag">&lt;/batch:step&gt;</span>
+    <span class="tag">&lt;/batch:job&gt;</span>
+<span class="tag">&lt;/beans&gt;</span></code></pre>
+</div>
+</div>
+  </div>
+  <div class="tabcontent" name="XMLConfigContent">
 <div class="listingblock">
 <div class="title">src/main/resources/META-INF/jobs/dbaccess/jobPointAddChunk.xml</div>
 <div class="content">
@@ -1084,6 +1217,8 @@ ItemProcessorの実装例は、<a href="Ch05_DBAccess.html#Ch05_DBAccess_HowToUs
     <span class="tag">&lt;/batch:job&gt;</span>
 <span class="tag">&lt;/beans&gt;</span></code></pre>
 </div>
+</div>
+  </div>
 </div>
 <table class="tableblock frame-all grid-all stretch">
 <caption class="title">表 8. 説明</caption>
@@ -1236,7 +1371,7 @@ ItemProcessorの実装例は、<a href="Ch05_DBAccess.html#Ch05_DBAccess_HowToUs
 <h4 id="Ch09_Impl_DBAccessJob_Chunk_Execution_Table"><a class="anchor" href="#Ch09_Impl_DBAccessJob_Chunk_Execution_Table"></a>会員情報テーブルの確認</h4>
 <div class="paragraph">
 <p>更新前後の会員情報テーブルの内容を比較し、確認内容のとおりとなっていることを確認する。<br>
-確認手順は<a href="Ch09_EnvironmentConstruction.html#Ch09_EnvironmentConstruction_OperationCheck_RefDB">DBeaverを使用してデータベースを参照する</a>を参照。</p>
+確認手順は<a href="Ch09_EnvironmentConstruction.html#Ch09_EnvironmentConstruction_OperationCheck_RefDB">H2 Consoleを使用してデータベースを参照する</a>を参照。</p>
 </div>
 <div class="dlist">
 <dl>
@@ -1326,6 +1461,36 @@ ItemProcessorの実装例は、<a href="Ch05_DBAccess.html#Ch05_DBAccess_HowToUs
 <p>Bean定義ファイルにて、タスクレットモデルでデータベースアクセスを行うジョブを構成する要素の組み合わせ方を設定する。<br>
 ここでは、Bean定義ファイルの枠および共通的な設定のみ記述し、以降の項で各構成要素の設定を行う。</p>
 </div>
+<div class="tabbox">
+  <input type="radio" name="tabgroup09040104" class="JavaConfigTab" id="tabgroup09040104_1" checked><label for="tabgroup09040104_1" class="tab">JavaConfig</label>
+  <input type="radio" name="tabgroup09040104" class="XMLConfigTab" id="tabgroup09040104_2"><label for="tabgroup09040104_2" class="tab">XMLConfig</label>
+  <div class="tabcontent" name="JavaConfigContent">
+<div class="listingblock">
+<div class="title">src/main/resources/META-INF/jobs/dbaccess/jobPointAddTasklet.xml</div>
+<div class="content">
+<pre class="CodeRay highlight"><code data-lang="xml"><span class="preprocessor">&lt;?xml version=&quot;1.0&quot; encoding=&quot;UTF-8&quot;?&gt;</span>
+<span class="tag">&lt;beans</span> <span class="attribute-name">xmlns</span>=<span class="string"><span class="delimiter">&quot;</span><span class="content">http://www.springframework.org/schema/beans</span><span class="delimiter">&quot;</span></span>
+       <span class="attribute-name">xmlns:xsi</span>=<span class="string"><span class="delimiter">&quot;</span><span class="content">http://www.w3.org/2001/XMLSchema-instance</span><span class="delimiter">&quot;</span></span>
+       <span class="attribute-name">xmlns:context</span>=<span class="string"><span class="delimiter">&quot;</span><span class="content">http://www.springframework.org/schema/context</span><span class="delimiter">&quot;</span></span>
+       <span class="attribute-name">xmlns:batch</span>=<span class="string"><span class="delimiter">&quot;</span><span class="content">http://www.springframework.org/schema/batch</span><span class="delimiter">&quot;</span></span>
+       <span class="attribute-name">xmlns:p</span>=<span class="string"><span class="delimiter">&quot;</span><span class="content">http://www.springframework.org/schema/p</span><span class="delimiter">&quot;</span></span>
+       <span class="attribute-name">xmlns:mybatis</span>=<span class="string"><span class="delimiter">&quot;</span><span class="content">http://mybatis.org/schema/mybatis-spring</span><span class="delimiter">&quot;</span></span>
+       <span class="attribute-name">xsi:schemaLocation</span>=<span class="string"><span class="delimiter">&quot;</span><span class="content">http://www.springframework.org/schema/beans https://www.springframework.org/schema/beans/spring-beans.xsd</span>
+             <span class="content">http://www.springframework.org/schema/context https://www.springframework.org/schema/context/spring-context.xsd</span>
+             <span class="content">http://www.springframework.org/schema/batch https://www.springframework.org/schema/batch/spring-batch.xsd</span>
+             <span class="content">http://mybatis.org/schema/mybatis-spring http://mybatis.org/schema/mybatis-spring.xsd</span><span class="delimiter">&quot;</span></span><span class="tag">&gt;</span>
+
+    <span class="comment">&lt;!-- (1) --&gt;</span>
+    <span class="tag">&lt;bean</span> <span class="attribute-name">class</span>=<span class="string"><span class="delimiter">&quot;</span><span class="content">org.terasoluna.batch.tutorial.config.JobBaseContextConfig</span><span class="delimiter">&quot;</span></span> <span class="tag">/&gt;</span>
+
+    <span class="comment">&lt;!-- (2) --&gt;</span>
+    <span class="tag">&lt;context:component-scan</span> <span class="attribute-name">base-package</span>=<span class="string"><span class="delimiter">&quot;</span><span class="content">org.terasoluna.batch.tutorial.dbaccess.tasklet</span><span class="delimiter">&quot;</span></span><span class="tag">/&gt;</span>
+
+<span class="tag">&lt;/beans&gt;</span></code></pre>
+</div>
+</div>
+  </div>
+  <div class="tabcontent" name="XMLConfigContent">
 <div class="listingblock">
 <div class="title">src/main/resources/META-INF/jobs/dbaccess/jobPointAddTasklet.xml</div>
 <div class="content">
@@ -1349,6 +1514,8 @@ ItemProcessorの実装例は、<a href="Ch05_DBAccess.html#Ch05_DBAccess_HowToUs
 
 <span class="tag">&lt;/beans&gt;</span></code></pre>
 </div>
+</div>
+  </div>
 </div>
 <table class="tableblock frame-all grid-all stretch">
 <caption class="title">表 9. 説明</caption>
@@ -1616,6 +1783,48 @@ statusとpointを更新するSQLを設定する。</p></td>
 <div class="paragraph">
 <p>MyBatisによるデータベースアクセスするための設定として、ジョブBean定義ファイルに以下の(1)～(3)を追記する。</p>
 </div>
+<div class="tabbox">
+  <input type="radio" name="tabgroup09040105" class="JavaConfigTab" id="tabgroup09040105_1" checked><label for="tabgroup09040105_1" class="tab">JavaConfig</label>
+  <input type="radio" name="tabgroup09040105" class="XMLConfigTab" id="tabgroup09040105_2"><label for="tabgroup09040105_2" class="tab">XMLConfig</label>
+  <div class="tabcontent" name="JavaConfigContent">
+<div class="listingblock">
+<div class="title">src/main/resources/META-INF/jobs/dbaccess/jobPointAddTasklet.xml</div>
+<div class="content">
+<pre class="CodeRay highlight"><code data-lang="xml"><span class="preprocessor">&lt;?xml version=&quot;1.0&quot; encoding=&quot;UTF-8&quot;?&gt;</span>
+<span class="tag">&lt;beans</span> <span class="attribute-name">xmlns</span>=<span class="string"><span class="delimiter">&quot;</span><span class="content">http://www.springframework.org/schema/beans</span><span class="delimiter">&quot;</span></span>
+       <span class="attribute-name">xmlns:xsi</span>=<span class="string"><span class="delimiter">&quot;</span><span class="content">http://www.w3.org/2001/XMLSchema-instance</span><span class="delimiter">&quot;</span></span>
+       <span class="attribute-name">xmlns:context</span>=<span class="string"><span class="delimiter">&quot;</span><span class="content">http://www.springframework.org/schema/context</span><span class="delimiter">&quot;</span></span>
+       <span class="attribute-name">xmlns:batch</span>=<span class="string"><span class="delimiter">&quot;</span><span class="content">http://www.springframework.org/schema/batch</span><span class="delimiter">&quot;</span></span>
+       <span class="attribute-name">xmlns:p</span>=<span class="string"><span class="delimiter">&quot;</span><span class="content">http://www.springframework.org/schema/p</span><span class="delimiter">&quot;</span></span>
+       <span class="attribute-name">xmlns:mybatis</span>=<span class="string"><span class="delimiter">&quot;</span><span class="content">http://mybatis.org/schema/mybatis-spring</span><span class="delimiter">&quot;</span></span>
+       <span class="attribute-name">xsi:schemaLocation</span>=<span class="string"><span class="delimiter">&quot;</span><span class="content">http://www.springframework.org/schema/beans https://www.springframework.org/schema/beans/spring-beans.xsd</span>
+             <span class="content">http://www.springframework.org/schema/context https://www.springframework.org/schema/context/spring-context.xsd</span>
+             <span class="content">http://www.springframework.org/schema/batch https://www.springframework.org/schema/batch/spring-batch.xsd</span>
+             <span class="content">http://mybatis.org/schema/mybatis-spring http://mybatis.org/schema/mybatis-spring.xsd</span><span class="delimiter">&quot;</span></span><span class="tag">&gt;</span>
+
+    <span class="tag">&lt;bean</span> <span class="attribute-name">class</span>=<span class="string"><span class="delimiter">&quot;</span><span class="content">org.terasoluna.batch.tutorial.config.JobBaseContextConfig</span><span class="delimiter">&quot;</span></span> <span class="tag">/&gt;</span>
+
+    <span class="tag">&lt;context:component-scan</span> <span class="attribute-name">base-package</span>=<span class="string"><span class="delimiter">&quot;</span><span class="content">org.terasoluna.batch.tutorial.dbaccess.tasklet</span><span class="delimiter">&quot;</span></span><span class="tag">/&gt;</span>
+
+    <span class="comment">&lt;!-- (1) --&gt;</span>
+    <span class="tag">&lt;mybatis:scan</span> <span class="attribute-name">base-package</span>=<span class="string"><span class="delimiter">&quot;</span><span class="content">org.terasoluna.batch.tutorial.common.repository</span><span class="delimiter">&quot;</span></span> <span class="attribute-name">factory-ref</span>=<span class="string"><span class="delimiter">&quot;</span><span class="content">jobSqlSessionFactory</span><span class="delimiter">&quot;</span></span><span class="tag">/&gt;</span>
+
+    <span class="comment">&lt;!-- (2) --&gt;</span>
+    <span class="tag">&lt;bean</span> <span class="attribute-name">id</span>=<span class="string"><span class="delimiter">&quot;</span><span class="content">reader</span><span class="delimiter">&quot;</span></span>
+          <span class="attribute-name">class</span>=<span class="string"><span class="delimiter">&quot;</span><span class="content">org.mybatis.spring.batch.MyBatisCursorItemReader</span><span class="delimiter">&quot;</span></span>
+          <span class="attribute-name">p:queryId</span>=<span class="string"><span class="delimiter">&quot;</span><span class="content">org.terasoluna.batch.tutorial.common.repository.MemberInfoRepository.cursor</span><span class="delimiter">&quot;</span></span>
+          <span class="attribute-name">p:sqlSessionFactory-ref</span>=<span class="string"><span class="delimiter">&quot;</span><span class="content">jobSqlSessionFactory</span><span class="delimiter">&quot;</span></span><span class="tag">/&gt;</span>
+
+    <span class="comment">&lt;!-- (3) --&gt;</span>
+    <span class="tag">&lt;bean</span> <span class="attribute-name">id</span>=<span class="string"><span class="delimiter">&quot;</span><span class="content">writer</span><span class="delimiter">&quot;</span></span> <span class="attribute-name">class</span>=<span class="string"><span class="delimiter">&quot;</span><span class="content">org.mybatis.spring.batch.MyBatisBatchItemWriter</span><span class="delimiter">&quot;</span></span>
+          <span class="attribute-name">p:statementId</span>=<span class="string"><span class="delimiter">&quot;</span><span class="content">org.terasoluna.batch.tutorial.common.repository.MemberInfoRepository.updatePointAndStatus</span><span class="delimiter">&quot;</span></span>
+          <span class="attribute-name">p:sqlSessionTemplate-ref</span>=<span class="string"><span class="delimiter">&quot;</span><span class="content">batchModeSqlSessionTemplate</span><span class="delimiter">&quot;</span></span><span class="tag">/&gt;</span>
+
+<span class="tag">&lt;/beans&gt;</span></code></pre>
+</div>
+</div>
+  </div>
+  <div class="tabcontent" name="XMLConfigContent">
 <div class="listingblock">
 <div class="title">src/main/resources/META-INF/jobs/dbaccess/jobPointAddTasklet.xml</div>
 <div class="content">
@@ -1651,6 +1860,8 @@ statusとpointを更新するSQLを設定する。</p></td>
 
 <span class="tag">&lt;/beans&gt;</span></code></pre>
 </div>
+</div>
+  </div>
 </div>
 <table class="tableblock frame-all grid-all stretch">
 <caption class="title">表 13. 説明</caption>
@@ -1756,13 +1967,14 @@ Taskletの実装例は、<a href="Ch05_DBAccess.html#Ch05_DBAccess_HowToUse_Inpu
 <span class="keyword">import</span> <span class="include">org.springframework.batch.core.StepContribution</span>;
 <span class="keyword">import</span> <span class="include">org.springframework.batch.core.scope.context.ChunkContext</span>;
 <span class="keyword">import</span> <span class="include">org.springframework.batch.core.step.tasklet.Tasklet</span>;
+<span class="keyword">import</span> <span class="include">org.springframework.batch.item.Chunk</span>;
 <span class="keyword">import</span> <span class="include">org.springframework.batch.item.ItemStreamReader</span>;
 <span class="keyword">import</span> <span class="include">org.springframework.batch.item.ItemWriter</span>;
 <span class="keyword">import</span> <span class="include">org.springframework.batch.repeat.RepeatStatus</span>;
 <span class="keyword">import</span> <span class="include">org.springframework.stereotype.Component</span>;
 <span class="keyword">import</span> <span class="include">org.terasoluna.batch.tutorial.common.dto.MemberInfoDto</span>;
 
-<span class="keyword">import</span> <span class="include">javax.inject.Inject</span>;
+<span class="keyword">import</span> <span class="include">jakarta.inject.Inject</span>;
 <span class="keyword">import</span> <span class="include">java.util.ArrayList</span>;
 <span class="keyword">import</span> <span class="include">java.util.List</span>;
 
@@ -1815,12 +2027,12 @@ Taskletの実装例は、<a href="Ch05_DBAccess.html#Ch05_DBAccess_HowToUse_Inpu
                 items.add(item);
 
                 <span class="keyword">if</span> (items.size() == CHUNK_SIZE) { <span class="comment">// (15)</span>
-                    writer.write(items); <span class="comment">// (16)</span>
+                    writer.write(<span class="keyword">new</span> Chunk(items)); <span class="comment">// (16)</span>
                     items.clear();
                 }
             }
 
-            writer.write(items); <span class="comment">// (17)</span>
+            writer.write(<span class="keyword">new</span> Chunk(items)); <span class="comment">// (17)</span>
         } <span class="keyword">finally</span> {
             reader.close(); <span class="comment">// (18)</span>
         }
@@ -1938,6 +2150,52 @@ Taskletの実装例は、<a href="Ch05_DBAccess.html#Ch05_DBAccess_HowToUse_Inpu
 <div class="paragraph">
 <p>作成したビジネスロジックをジョブとして設定するため、ジョブBean定義ファイルに以下の(1)以降を追記する。</p>
 </div>
+<div class="tabbox">
+  <input type="radio" name="tabgroup09040106" class="JavaConfigTab" id="tabgroup09040106_1" checked><label for="tabgroup09040106_1" class="tab">JavaConfig</label>
+  <input type="radio" name="tabgroup09040106" class="XMLConfigTab" id="tabgroup09040106_2"><label for="tabgroup09040106_2" class="tab">XMLConfig</label>
+  <div class="tabcontent" name="JavaConfigContent">
+<div class="listingblock">
+<div class="title">src/main/resources/META-INF/jobs/dbaccess/jobPointAddTasklet.xml</div>
+<div class="content">
+<pre class="CodeRay highlight"><code data-lang="xml"><span class="preprocessor">&lt;?xml version=&quot;1.0&quot; encoding=&quot;UTF-8&quot;?&gt;</span>
+<span class="tag">&lt;beans</span> <span class="attribute-name">xmlns</span>=<span class="string"><span class="delimiter">&quot;</span><span class="content">http://www.springframework.org/schema/beans</span><span class="delimiter">&quot;</span></span>
+       <span class="attribute-name">xmlns:xsi</span>=<span class="string"><span class="delimiter">&quot;</span><span class="content">http://www.w3.org/2001/XMLSchema-instance</span><span class="delimiter">&quot;</span></span>
+       <span class="attribute-name">xmlns:context</span>=<span class="string"><span class="delimiter">&quot;</span><span class="content">http://www.springframework.org/schema/context</span><span class="delimiter">&quot;</span></span>
+       <span class="attribute-name">xmlns:batch</span>=<span class="string"><span class="delimiter">&quot;</span><span class="content">http://www.springframework.org/schema/batch</span><span class="delimiter">&quot;</span></span>
+       <span class="attribute-name">xmlns:p</span>=<span class="string"><span class="delimiter">&quot;</span><span class="content">http://www.springframework.org/schema/p</span><span class="delimiter">&quot;</span></span>
+       <span class="attribute-name">xmlns:mybatis</span>=<span class="string"><span class="delimiter">&quot;</span><span class="content">http://mybatis.org/schema/mybatis-spring</span><span class="delimiter">&quot;</span></span>
+       <span class="attribute-name">xsi:schemaLocation</span>=<span class="string"><span class="delimiter">&quot;</span><span class="content">http://www.springframework.org/schema/beans https://www.springframework.org/schema/beans/spring-beans.xsd</span>
+             <span class="content">http://www.springframework.org/schema/context https://www.springframework.org/schema/context/spring-context.xsd</span>
+             <span class="content">http://www.springframework.org/schema/batch https://www.springframework.org/schema/batch/spring-batch.xsd</span>
+             <span class="content">http://mybatis.org/schema/mybatis-spring http://mybatis.org/schema/mybatis-spring.xsd</span><span class="delimiter">&quot;</span></span><span class="tag">&gt;</span>
+
+    <span class="tag">&lt;bean</span> <span class="attribute-name">class</span>=<span class="string"><span class="delimiter">&quot;</span><span class="content">org.terasoluna.batch.tutorial.config.JobBaseContextConfig</span><span class="delimiter">&quot;</span></span> <span class="tag">/&gt;</span>
+
+    <span class="tag">&lt;context:component-scan</span> <span class="attribute-name">base-package</span>=<span class="string"><span class="delimiter">&quot;</span><span class="content">org.terasoluna.batch.tutorial.dbaccess.tasklet</span><span class="delimiter">&quot;</span></span><span class="tag">/&gt;</span>
+
+    <span class="tag">&lt;mybatis:scan</span> <span class="attribute-name">base-package</span>=<span class="string"><span class="delimiter">&quot;</span><span class="content">org.terasoluna.batch.tutorial.common.repository</span><span class="delimiter">&quot;</span></span> <span class="attribute-name">factory-ref</span>=<span class="string"><span class="delimiter">&quot;</span><span class="content">jobSqlSessionFactory</span><span class="delimiter">&quot;</span></span><span class="tag">/&gt;</span>
+
+    <span class="tag">&lt;bean</span> <span class="attribute-name">id</span>=<span class="string"><span class="delimiter">&quot;</span><span class="content">reader</span><span class="delimiter">&quot;</span></span>
+          <span class="attribute-name">class</span>=<span class="string"><span class="delimiter">&quot;</span><span class="content">org.mybatis.spring.batch.MyBatisCursorItemReader</span><span class="delimiter">&quot;</span></span>
+          <span class="attribute-name">p:queryId</span>=<span class="string"><span class="delimiter">&quot;</span><span class="content">org.terasoluna.batch.tutorial.common.repository.MemberInfoRepository.cursor</span><span class="delimiter">&quot;</span></span>
+          <span class="attribute-name">p:sqlSessionFactory-ref</span>=<span class="string"><span class="delimiter">&quot;</span><span class="content">jobSqlSessionFactory</span><span class="delimiter">&quot;</span></span><span class="tag">/&gt;</span>
+
+    <span class="tag">&lt;bean</span> <span class="attribute-name">id</span>=<span class="string"><span class="delimiter">&quot;</span><span class="content">writer</span><span class="delimiter">&quot;</span></span> <span class="attribute-name">class</span>=<span class="string"><span class="delimiter">&quot;</span><span class="content">org.mybatis.spring.batch.MyBatisBatchItemWriter</span><span class="delimiter">&quot;</span></span>
+          <span class="attribute-name">p:statementId</span>=<span class="string"><span class="delimiter">&quot;</span><span class="content">org.terasoluna.batch.tutorial.common.repository.MemberInfoRepository.updatePointAndStatus</span><span class="delimiter">&quot;</span></span>
+         <span class="attribute-name">p:sqlSessionTemplate-ref</span>=<span class="string"><span class="delimiter">&quot;</span><span class="content">batchModeSqlSessionTemplate</span><span class="delimiter">&quot;</span></span><span class="tag">/&gt;</span>
+
+    <span class="comment">&lt;!-- (1) --&gt;</span>
+    <span class="tag">&lt;batch:job</span> <span class="attribute-name">id</span>=<span class="string"><span class="delimiter">&quot;</span><span class="content">jobPointAddTasklet</span><span class="delimiter">&quot;</span></span> <span class="attribute-name">job-repository</span>=<span class="string"><span class="delimiter">&quot;</span><span class="content">jobRepository</span><span class="delimiter">&quot;</span></span><span class="tag">&gt;</span>
+        <span class="tag">&lt;batch:step</span> <span class="attribute-name">id</span>=<span class="string"><span class="delimiter">&quot;</span><span class="content">jobPointAddTasklet.step01</span><span class="delimiter">&quot;</span></span><span class="tag">&gt;</span> <span class="comment">&lt;!-- (2) --&gt;</span>
+            <span class="tag">&lt;batch:tasklet</span> <span class="attribute-name">transaction-manager</span>=<span class="string"><span class="delimiter">&quot;</span><span class="content">jobTransactionManager</span><span class="delimiter">&quot;</span></span>
+                           <span class="attribute-name">ref</span>=<span class="string"><span class="delimiter">&quot;</span><span class="content">pointAddTasklet</span><span class="delimiter">&quot;</span></span><span class="tag">/&gt;</span> <span class="comment">&lt;!-- (3) --&gt;</span>
+        <span class="tag">&lt;/batch:step&gt;</span>
+    <span class="tag">&lt;/batch:job&gt;</span>
+<span class="tag">&lt;/beans&gt;</span></code></pre>
+</div>
+</div>
+  </div>
+  <div class="tabcontent" name="XMLConfigContent">
 <div class="listingblock">
 <div class="title">src/main/resources/META-INF/jobs/dbaccess/jobPointAddTasklet.xml</div>
 <div class="content">
@@ -1977,6 +2235,8 @@ Taskletの実装例は、<a href="Ch05_DBAccess.html#Ch05_DBAccess_HowToUse_Inpu
     <span class="tag">&lt;/batch:job&gt;</span>
 <span class="tag">&lt;/beans&gt;</span></code></pre>
 </div>
+</div>
+  </div>
 </div>
 <table class="tableblock frame-all grid-all stretch">
 <caption class="title">表 15. 説明</caption>
@@ -2104,7 +2364,7 @@ Taskletの実装例は、<a href="Ch05_DBAccess.html#Ch05_DBAccess_HowToUse_Inpu
 <h4 id="Ch09_Impl_DBAccessJob_Tasklet_Execution_Table"><a class="anchor" href="#Ch09_Impl_DBAccessJob_Tasklet_Execution_Table"></a>会員情報テーブルの確認</h4>
 <div class="paragraph">
 <p>更新前後の会員情報テーブルの内容を比較し、確認内容のとおりとなっていることを確認する。<br>
-確認手順は<a href="Ch09_EnvironmentConstruction.html#Ch09_EnvironmentConstruction_OperationCheck_RefDB">DBeaverを使用してデータベースを参照する</a>を参照。</p>
+確認手順は<a href="Ch09_EnvironmentConstruction.html#Ch09_EnvironmentConstruction_OperationCheck_RefDB">H2 Consoleを使用してデータベースを参照する</a>を参照。</p>
 </div>
 <div class="dlist">
 <dl>
@@ -2169,7 +2429,7 @@ Taskletの実装例は、<a href="Ch05_DBAccess.html#Ch05_DBAccess_HowToUse_Inpu
 
   <div class="common-bg">
     <div class="information">
-      TERASOLUNA Batch Framework for Java (5.x) Development Guideline - version 5.4.1.RELEASE, 2022-3-31, commit-id:e9b4d93
+      TERASOLUNA Batch Framework for Java (5.x) Development Guideline - version 5.5.0.RELEASE, 2023-3-31, commit-id:f6da76a
     </div>
     <div class="index">
       <a href="index.html">&gt; INDEX</a>

@@ -14,12 +14,20 @@
 
 <div class="common-bg">
   <div class="information">
-    TERASOLUNA Batch Framework for Java (5.x) Development Guideline - version 5.4.1.RELEASE, 2022-3-31, commit-id:e9b4d93
+    TERASOLUNA Batch Framework for Java (5.x) Development Guideline - version 5.5.0.RELEASE, 2023-3-31, commit-id:f6da76a
   </div>
   <div class="index">
     <a href="index.html">&gt; INDEX</a>
   </div>
 </div>
+
+<!-- Google tag (gtag.js) -->
+<script async src="https://www.googletagmanager.com/gtag/js?id=G-8VC2LCPQFM"></script>
+<script>
+  window.dataLayer = window.dataLayer || [];
+  function gtag(){dataLayer.push(arguments);}
+  gtag('js', new Date());  gtag('config', 'G-8VC2LCPQFM');
+</script>
 
 <script>
   (function(i,s,o,g,r,a,m){i['GoogleAnalyticsObject']=r;i[r]=i[r]||function(){
@@ -51,6 +59,85 @@
 </tr>
 </thead>
 <tbody>
+<tr>
+<td class="tableblock halign-left valign-top"><p class="tableblock">2023-3-31</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">-</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">5.5.0 RELEASE 版公開</p></td>
+</tr>
+<tr>
+<td class="tableblock halign-left valign-top"></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">全般</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">記載内容の修正<br>
+・TERASOLUNA Batch Framework for Java (5.x)のバージョン表記を5.5.0.RELEASEに変更<br>
+・Spring Framework 6.0.3のJakarta EE 9対応に伴い、実装例のパッケージ名をjavax.xxxからjakarta.xxxに修正<br>
+・Spring Framework 6.0.3のベースラインJDKバージョンが17となったことに伴い、JDKバージョンを17に更新（あわせて、以前のバージョンである8、11を削除）<br>
+・Spring boot dependencies 3.0.1となったことに伴い、writeメソッドの引数をList型からChunk型に修正<br>
+・JavaConfigに関するコード例、説明を追加し、タブを用いてXMLConfigの説明と併記<br>
+・ガイドラインの誤記(タイプミスや単純な記述ミスなど)や表記揺れの修正<br>
+・チュートリアルで使用した、DBeaverをH2 Consoleに変更</p></td>
+</tr>
+<tr>
+<td class="tableblock halign-left valign-top"></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><a href="Ch02_TerasolunaBatchStack.html#Ch02_TerasolunaBatchStack">TERASOLUNA Batch Framework for Java (5.x)のスタック</a></p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">記載内容の修正<br>
+・利用するOSSのバージョン一覧をSpring Boot Dependencies 3.0.1.RELEASEに準じて更新</p></td>
+</tr>
+<tr>
+<td class="tableblock halign-left valign-top"></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><a href="Ch02_SpringBatchArchitecture.html#Ch02_SpringBatchArch">Spring Batchのアーキテクチャ</a></p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">記載内容の修正<br>
+・メタデータテーブル（<code>BATCH_JOB_EXECUTION_PARAMS</code>）のカラム名の変更に伴う修正</p></td>
+</tr>
+<tr>
+<td class="tableblock halign-left valign-top"></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><a href="Ch03_CreateProject.html#Ch03_CreateProject">バッチアプリケーションの開発</a></p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">記載内容の修正<br>
+・JavaConfigがデフォルトとなる旨を追記</p></td>
+</tr>
+<tr>
+<td class="tableblock halign-left valign-top"></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><a href="Ch04_AsyncJobWithDB.html#Ch04_AsyncJobWithDB">非同期実行(DBポーリング)</a></p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">記載内容の修正<br>
+・Spring Batchが提供する<code>SimpleJobOperator</code>の仕様が変更されたことに伴い、ジョブパラメータ区切り文字の説明の修正とWarningの追加</p></td>
+</tr>
+<tr>
+<td class="tableblock halign-left valign-top"></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><a href="Ch04_AsyncJobWithWebContainer.html#Ch04_AsyncJobWithWeb">非同期実行(Webコンテナ)</a></p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">記載内容の修正<br>
+・Spring Batchが提供する<code>SimpleJobOperator</code>の仕様が変更されたことに伴い、JobControllerの実装例を修正</p></td>
+</tr>
+<tr>
+<td class="tableblock halign-left valign-top"></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><a href="Ch04_JobParameter.html#Ch04_JobParameter">ジョブの起動パラメータ</a></p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">記載内容の修正<br>
+・パラメータ変換クラスの具象クラス（<code>JsrJobParametersConverter</code>）の廃止にともなう修正</p></td>
+</tr>
+<tr>
+<td class="tableblock halign-left valign-top"></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><a href="Ch04_AsyncJobWithDB.html#Ch04_AsyncJobWithDB">非同期実行(DBポーリング)</a></p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">記載内容の修正<br>
+・JavaConfigで、ジョブ定義ファイルでプロパティ値を参照する場合、<code>&lt;context:property-placeholder&gt;</code>タグを記載する旨追記<br>
+・AsyncBatchDaemonの引数なし起動時の挙動、引数の指定方法を修正</p></td>
+</tr>
+<tr>
+<td class="tableblock halign-left valign-top"></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><a href="Ch05_FileAccess.html#Ch05_FileAccess">ファイルアクセス</a></p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">記載内容の修正<br>
+・ItemReader/ItemWriterのデフォルトエンコーディングがUTF-8に変更されたことに伴う修正</p></td>
+</tr>
+<tr>
+<td class="tableblock halign-left valign-top"></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><a href="Ch07_JobManagement.html#Ch07_JobManagement_HowToUse">How to use</a></p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">記載内容の修正<br>
+・<code>SHORT_CONTEXT</code>カラムに格納される値の形式の変更に伴う修正
+・<code>JobExecution</code>と<code>StepExecution</code>のtimestampの型が変更されたことに伴う修正</p></td>
+</tr>
+<tr>
+<td class="tableblock halign-left valign-top"></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><a href="Ch09_Introduction.html#Ch09_Introduction_Environment">チュートリアル</a></p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">記載内容の修正<br>
+・検証環境のバージョンを更新  <br></p></td>
+</tr>
 <tr>
 <td class="tableblock halign-left valign-top"><p class="tableblock">2022-3-31</p></td>
 <td class="tableblock halign-left valign-top"><p class="tableblock">-</p></td>
@@ -118,7 +205,7 @@
 </tr>
 <tr>
 <td class="tableblock halign-left valign-top"></td>
-<td class="tableblock halign-left valign-top"><p class="tableblock"><a href="#Ch09">チュートリアル</a></p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><a href="Ch09_index.html#Ch09">チュートリアル</a></p></td>
 <td class="tableblock halign-left valign-top"><p class="tableblock">記載内容の修正<br>
 ・検証環境のバージョンを更新 (管理ID#350)<br>
 ・DBeaverのインストールおよびデータベース接続設定の手順を修正 (管理ID#349)</p></td>
@@ -645,7 +732,7 @@
 
   <div class="common-bg">
     <div class="information">
-      TERASOLUNA Batch Framework for Java (5.x) Development Guideline - version 5.4.1.RELEASE, 2022-3-31, commit-id:e9b4d93
+      TERASOLUNA Batch Framework for Java (5.x) Development Guideline - version 5.5.0.RELEASE, 2023-3-31, commit-id:f6da76a
     </div>
     <div class="index">
       <a href="index.html">&gt; INDEX</a>
