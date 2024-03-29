@@ -14,7 +14,7 @@
 
 <div class="common-bg">
   <div class="information">
-    TERASOLUNA Batch Framework for Java (5.x) Development Guideline - version 5.5.0.RELEASE, 2023-3-31, commit-id:f6da76a
+    TERASOLUNA Batch Framework for Java (5.x) Development Guideline - version 5.6.0.RELEASE, 2023-3-31, commit-id:f5cbeda
   </div>
   <div class="index">
     <a href="index.html">&gt; INDEX</a>
@@ -60,6 +60,94 @@
 </thead>
 <tbody>
 <tr>
+<td class="tableblock halign-left valign-top"><p class="tableblock">2024-3-29</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">-</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">5.6.0 RELEASE 版公開</p></td>
+</tr>
+<tr>
+<td class="tableblock halign-left valign-top"></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">全般</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">記載内容の修正<br>
+・TERASOLUNA Batch Framework for Java (5.x)のバージョン表記を5.6.0.RELEASEに変更<br>
+・JavaConfigに関するコード例、説明を追加し、タブを用いてXMLConfigの説明と併記<br>
+・ガイドラインの誤記(タイプミスや単純な記述ミスなど)や表記揺れの修正<br>
+・<code>SimpleJobLauncher</code>が非推奨となったことに伴い、コード例を修正</p></td>
+</tr>
+<tr>
+<td class="tableblock halign-left valign-top"></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><a href="Ch02_TerasolunaBatchStack.html#Ch02_TerasolunaBatchStack">TERASOLUNA Batch Framework for Java (5.x)のスタック</a></p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">記載内容の修正<br>
+・利用するOSSのバージョン一覧をSpring Boot Dependencies 3.2.2.RELEASEに準じて更新</p></td>
+</tr>
+<tr>
+<td class="tableblock halign-left valign-top"></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><a href="Ch02_SpringBatchArchitecture.html#Ch02_SpringBatchArch">Spring Batchのアーキテクチャ</a></p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">記載内容の削除<br>
+・XMLによるBean定義を行った場合の起動コマンド例を削除<br>
+・<code>ItemProcessor</code>についての記載を削除</p></td>
+</tr>
+<tr>
+<td class="tableblock halign-left valign-top"></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><a href="Ch02_TerasolunaBatchArchitecture.html#Ch02_TerasolunaBatchArch">TERASOLUNA Batch Framework for Java (5.x)のアーキテクチャ</a></p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">記載内容の削除<br>
+・チャンクモデルとタスクレットモデルのジョブ設定例を削除</p></td>
+</tr>
+<tr>
+<td class="tableblock halign-left valign-top"></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><a href="Ch03_CreateProject.html#Ch03_CreateProject_BuildAndExec">プロジェクトのビルドと実行</a></p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">記載内容の修正<br>
+・Spring Framework 6.1から<code>LocalVariableTableParameterNameDiscoverer</code>が廃止にともなう修正<br>
+記載内容の追加<br>
+・DefaultBatchConfigurationについて追加<br>
+・バッチアプリケーションのBean定義構成の説明を追加<br>
+・Bean定義の分類とBean定義ファイルの対応関係を追加<br>
+・ジョブの作成でJavaConfigとXMLConfigの実装方針を追加</p></td>
+</tr>
+<tr>
+<td class="tableblock halign-left valign-top"></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><a href="Ch04_JobParameter.html#Ch04_JobParameter">ジョブの起動パラメータ</a></p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">記載内容の修正<br>
+・<code>DefaultJobParametersValidator</code>を使用した場合のOKケースとNGケースの修正<br>
+記載内容の追加<br>
+・Stepスコープの定義方法を追加</p></td>
+</tr>
+<tr>
+<td class="tableblock halign-left valign-top"></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><a href="Ch04_AsyncJobWithDB.html#Ch04_AsyncJobWithDB">非同期実行(DBポーリング)</a></p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">記載内容の修正<br>
+・JavaConfig/XMLConfigの非同期実行するジョブの初期設定コードを修正<br>
+・非同期実行するジョブの説明を修正<br>
+記載内容の削除<br>
+・登録ジョブの絞込みについてを削除</p></td>
+</tr>
+<tr>
+<td class="tableblock halign-left valign-top"></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><a href="Ch04_AsyncJobWithWebContainer.html#Ch04_AsyncJobWithWeb">非同期実行(Webコンテナ)</a></p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">記載内容の修正<br>
+・<code>SimpleJobOperator.start(String jobName, String parameters)</code>メソッドが非推奨なったため、かわりに<code>SimpleJobOperator.start(String jobName, Properties parameters)</code>メソッドを使用するコード例に修正<br>
+・web.xmlの記述例の修正、REST Clientによるジョブの起動と実行結果確認の修正<br>
+記載内容の削除<br>
+・ジョブ起動時に渡されるジョブパラメータについてを削除</p></td>
+</tr>
+<tr>
+<td class="tableblock halign-left valign-top"></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><a href="Ch05_Transaction.html#Ch05_Transaction">トランザクション制御</a></p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">記載内容の追加<br>
+・spring-data-commonsが提供する<code>ChainedTransactionManager</code>が非推奨である旨を追記</p></td>
+</tr>
+<tr>
+<td class="tableblock halign-left valign-top"></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><a href="Ch06_ReProcessing.html#Ch06_RerunRestart">処理の再実行</a></p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">記載内容の修正<br>
+・<code>restartable</code>属性の設定を変更</p></td>
+</tr>
+<tr>
+<td class="tableblock halign-left valign-top"></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><a href="Ch07_JobManagement.html#Ch07_JobManagement_Overview_JobExecutionManagement_Function">Spring Batchが提供する機能</a></p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">記載内容の追加<br>
+・インメモリJobRepository（MapJobRepositoryFactoryBean）を、非推奨 → 使用すべきではない、に修正</p></td>
+</tr>
+<tr>
 <td class="tableblock halign-left valign-top"><p class="tableblock">2023-3-31</p></td>
 <td class="tableblock halign-left valign-top"><p class="tableblock">-</p></td>
 <td class="tableblock halign-left valign-top"><p class="tableblock">5.5.0 RELEASE 版公開</p></td>
@@ -69,8 +157,8 @@
 <td class="tableblock halign-left valign-top"><p class="tableblock">全般</p></td>
 <td class="tableblock halign-left valign-top"><p class="tableblock">記載内容の修正<br>
 ・TERASOLUNA Batch Framework for Java (5.x)のバージョン表記を5.5.0.RELEASEに変更<br>
-・Spring Framework 6.0.3のJakarta EE 9対応に伴い、実装例のパッケージ名をjavax.xxxからjakarta.xxxに修正<br>
-・Spring Framework 6.0.3のベースラインJDKバージョンが17となったことに伴い、JDKバージョンを17に更新（あわせて、以前のバージョンである8、11を削除）<br>
+・Spring Framework 6.1.3のJakarta EE 9対応に伴い、実装例のパッケージ名をjavax.xxxからjakarta.xxxに修正<br>
+・Spring Framework 6.1.3のベースラインJDKバージョンが17となったことに伴い、JDKバージョンを17に更新（あわせて、以前のバージョンである8、11を削除）<br>
 ・Spring boot dependencies 3.0.1となったことに伴い、writeメソッドの引数をList型からChunk型に修正<br>
 ・JavaConfigに関するコード例、説明を追加し、タブを用いてXMLConfigの説明と併記<br>
 ・ガイドラインの誤記(タイプミスや単純な記述ミスなど)や表記揺れの修正<br>
@@ -732,7 +820,7 @@
 
   <div class="common-bg">
     <div class="information">
-      TERASOLUNA Batch Framework for Java (5.x) Development Guideline - version 5.5.0.RELEASE, 2023-3-31, commit-id:f6da76a
+      TERASOLUNA Batch Framework for Java (5.x) Development Guideline - version 5.6.0.RELEASE, 2023-3-31, commit-id:f5cbeda
     </div>
     <div class="index">
       <a href="index.html">&gt; INDEX</a>
@@ -741,7 +829,7 @@
 
   <div class="footer-bg">
     <div class="copyright">
-      &copy; Copyright 2017 NTT DATA Corporation. &copy; Copyright 2017 NTT Corporation.
+      &copy; Copyright 2017 NTT DATA Group Corporation. &copy; Copyright 2017 NTT Corporation.
     </div>
   </div>
 

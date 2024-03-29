@@ -14,7 +14,7 @@
 
 <div class="common-bg">
   <div class="information">
-    TERASOLUNA Batch Framework for Java (5.x) Development Guideline - version 5.5.0.RELEASE, 2023-3-31, commit-id:f6da76a
+    TERASOLUNA Batch Framework for Java (5.x) Development Guideline - version 5.6.0.RELEASE, 2023-3-31, commit-id:f5cbeda
   </div>
   <div class="index">
     <a href="index.html">&gt; INDEX</a>
@@ -263,25 +263,6 @@ Spring Batchを中心としたOSSの組み合わせを利用して実現する�
 </ul>
 </div>
 </dd>
-</dl>
-</div>
-<div class="listingblock">
-<div class="title">チャンクモデルのジョブ設定例</div>
-<div class="content">
-<pre class="CodeRay highlight"><code data-lang="xml"><span class="tag">&lt;batch:job</span> <span class="attribute-name">id</span>=<span class="string"><span class="delimiter">&quot;</span><span class="content">exampleJob</span><span class="delimiter">&quot;</span></span><span class="tag">&gt;</span>
-    <span class="tag">&lt;batch:step</span> <span class="attribute-name">id</span>=<span class="string"><span class="delimiter">&quot;</span><span class="content">exampleStep</span><span class="delimiter">&quot;</span></span><span class="tag">&gt;</span>
-        <span class="tag">&lt;batch:tasklet&gt;</span>
-            <span class="tag">&lt;batch:chunk</span> <span class="attribute-name">reader</span>=<span class="string"><span class="delimiter">&quot;</span><span class="content">reader</span><span class="delimiter">&quot;</span></span>
-                         <span class="attribute-name">processor</span>=<span class="string"><span class="delimiter">&quot;</span><span class="content">processor</span><span class="delimiter">&quot;</span></span>
-                         <span class="attribute-name">writer</span>=<span class="string"><span class="delimiter">&quot;</span><span class="content">writer</span><span class="delimiter">&quot;</span></span>
-                         <span class="attribute-name">commit-interval</span>=<span class="string"><span class="delimiter">&quot;</span><span class="content">100</span><span class="delimiter">&quot;</span></span> <span class="tag">/&gt;</span>
-        <span class="tag">&lt;/batch:tasklet&gt;</span>
-    <span class="tag">&lt;/batch:step&gt;</span>
-<span class="tag">&lt;/batch:job&gt;</span></code></pre>
-</div>
-</div>
-<div class="dlist">
-<dl>
 <dt class="hdlist1">使用目的</dt>
 <dd>
 <p>一定件数のデータをまとめて処理を行うため、大量データを取り扱う場合に用いられる。</p>
@@ -301,20 +282,6 @@ Spring Batchを中心としたOSSの組み合わせを利用して実現する�
 <p>Tasklet実装だけを設定する。<br>
 タスクレットモデルの概要は、 <a href="Ch02_SpringBatchArchitecture.html#Ch02_SpringBatchArch_Arch_BusinessLogic_Tasklet">"タスクレットモデル"</a> を参照。</p>
 </dd>
-</dl>
-</div>
-<div class="listingblock">
-<div class="title">タスクレットモデルのジョブ設定例</div>
-<div class="content">
-<pre class="CodeRay highlight"><code data-lang="xml"><span class="tag">&lt;batch:job</span> <span class="attribute-name">id</span>=<span class="string"><span class="delimiter">&quot;</span><span class="content">exampleJob</span><span class="delimiter">&quot;</span></span><span class="tag">&gt;</span>
-    <span class="tag">&lt;batch:step</span> <span class="attribute-name">id</span>=<span class="string"><span class="delimiter">&quot;</span><span class="content">exampleStep</span><span class="delimiter">&quot;</span></span><span class="tag">&gt;</span>
-        <span class="tag">&lt;batch:tasklet</span> <span class="attribute-name">ref</span>=<span class="string"><span class="delimiter">&quot;</span><span class="content">myTasklet</span><span class="delimiter">&quot;</span></span><span class="tag">&gt;</span>
-    <span class="tag">&lt;/batch:step&gt;</span>
-<span class="tag">&lt;/batch:job&gt;</span></code></pre>
-</div>
-</div>
-<div class="dlist">
-<dl>
 <dt class="hdlist1">使用目的</dt>
 <dd>
 <p>システムコマンドの実行など、入出力を伴わない処理を実行するために用いられる。<br>
@@ -542,7 +509,7 @@ Webアプリケーションは、ジョブの終了を待たずに起動後す�
 </ol>
 </div>
 <div class="paragraph">
-<p>また、 <a href="https://terasolunaorg.github.io/guideline/5.7.1.RELEASE/ja/">TERASOLUNA Server Framework for Java (5.x)</a>で構築されるWebアプリケーションと連携することも可能である。</p>
+<p>また、 <a href="https://terasolunaorg.github.io/guideline/5.9.0.RELEASE/ja/">TERASOLUNA Server Framework for Java (5.x)</a>で構築されるWebアプリケーションと連携することも可能である。</p>
 </div>
 </div>
 </div>
@@ -595,12 +562,11 @@ Webアプリケーションは、ジョブの終了を待たずに起動後す�
 </div>
 </div>
 </div>
-<link rel="stylesheet" href="./theme/css/coderay-asciidoctor.css">
 <div class="container">
 
   <div class="common-bg">
     <div class="information">
-      TERASOLUNA Batch Framework for Java (5.x) Development Guideline - version 5.5.0.RELEASE, 2023-3-31, commit-id:f6da76a
+      TERASOLUNA Batch Framework for Java (5.x) Development Guideline - version 5.6.0.RELEASE, 2023-3-31, commit-id:f5cbeda
     </div>
     <div class="index">
       <a href="index.html">&gt; INDEX</a>
@@ -609,7 +575,7 @@ Webアプリケーションは、ジョブの終了を待たずに起動後す�
 
   <div class="footer-bg">
     <div class="copyright">
-      &copy; Copyright 2017 NTT DATA Corporation. &copy; Copyright 2017 NTT Corporation.
+      &copy; Copyright 2017 NTT DATA Group Corporation. &copy; Copyright 2017 NTT Corporation.
     </div>
   </div>
 

@@ -14,7 +14,7 @@
 
 <div class="common-bg">
   <div class="information">
-    TERASOLUNA Batch Framework for Java (5.x) Development Guideline - version 5.5.0.RELEASE, 2023-3-31, commit-id:f6da76a
+    TERASOLUNA Batch Framework for Java (5.x) Development Guideline - version 5.6.0.RELEASE, 2023-3-31, commit-id:f5cbeda
   </div>
   <div class="index">
     <a href="index.html">&gt; INDEX</a>
@@ -106,7 +106,7 @@
 </div>
 <div class="paragraph">
 <p>排他制御に関する概念は、オンライン処理と同様であるため、TERASOLUNA Server 5.x 開発ガイドラインにある
-<a href="https://terasolunaorg.github.io/guideline/5.7.1.RELEASE/ja/ArchitectureInDetail/DataAccessDetail/ExclusionControl.html">排他制御</a>を参照。</p>
+<a href="https://terasolunaorg.github.io/guideline/5.9.0.RELEASE/ja/ArchitectureInDetail/DataAccessDetail/ExclusionControl.html">排他制御</a>を参照。</p>
 </div>
 <div class="paragraph">
 <p>ここでは、TERASOLUNA Server 5.xでは説明されていない部分を中心に説明をする。</p>
@@ -118,7 +118,7 @@
 <h3 id="Ch05_ExclusiveControl_Overview_Necessity"><a class="anchor" href="#Ch05_ExclusiveControl_Overview_Necessity"></a>排他制御の必要性</h3>
 <div class="paragraph">
 <p>排他制御の必要性に関しては、TERASOLUNA Server 5.x 開発ガイドラインにある
-<a href="https://terasolunaorg.github.io/guideline/5.7.1.RELEASE/ja/ArchitectureInDetail/DataAccessDetail/ExclusionControl.html#exclusioncontrol-necessity">排他制御の必要性</a>を参照。</p>
+<a href="https://terasolunaorg.github.io/guideline/5.9.0.RELEASE/ja/ArchitectureInDetail/DataAccessDetail/ExclusionControl.html#exclusioncontrol-necessity">排他制御の必要性</a>を参照。</p>
 </div>
 </div>
 <div class="sect2">
@@ -193,7 +193,7 @@
 そのため、ファイルの更新順序をルール化することが重要である。<br>
 デッドロックの予防に関してはデータベースのテーブル間でのデッドロック防止と同様である。
 詳細については、TERASOLUNA Server 5.x 開発ガイドラインの
-<a href="https://terasolunaorg.github.io/guideline/5.7.1.RELEASE/ja/ArchitectureInDetail/DataAccessDetail/ExclusionControl.html#id9">デッドロックの予防</a>を参照。</p>
+<a href="https://terasolunaorg.github.io/guideline/5.9.0.RELEASE/ja/ArchitectureInDetail/DataAccessDetail/ExclusionControl.html#id9">デッドロックの予防</a>を参照。</p>
 </div>
 </td>
 </tr>
@@ -204,7 +204,7 @@
 <h3 id="Ch05_ExclusiveControl_Overview_DB"><a class="anchor" href="#Ch05_ExclusiveControl_Overview_DB"></a>データベースの排他制御</h3>
 <div class="paragraph">
 <p>データベースの排他制御に関しては、TERASOLUNA Server 5.x 開発ガイドラインにある
-<a href="https://terasolunaorg.github.io/guideline/5.7.1.RELEASE/ja/ArchitectureInDetail/DataAccessDetail/ExclusionControl.html#id5">データベースのロック機能による排他制御</a>
+<a href="https://terasolunaorg.github.io/guideline/5.9.0.RELEASE/ja/ArchitectureInDetail/DataAccessDetail/ExclusionControl.html#id5">データベースのロック機能による排他制御</a>
 で詳しく説明されているため、そちらを参照。</p>
 </div>
 </div>
@@ -227,11 +227,11 @@
 </thead>
 <tbody>
 <tr>
-<td class="tableblock halign-left valign-top"><p class="tableblock"><a href="https://terasolunaorg.github.io/guideline/5.7.1.RELEASE/ja/ArchitectureInDetail/DataAccessDetail/ExclusionControl.html#id7">楽観ロック</a></p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><a href="https://terasolunaorg.github.io/guideline/5.9.0.RELEASE/ja/ArchitectureInDetail/DataAccessDetail/ExclusionControl.html#id7">楽観ロック</a></p></td>
 <td class="tableblock halign-left valign-top"><p class="tableblock">同時実行時におけるトランザクションで、別トランザクションの更新結果を処理対象外にして処理を継続できる場合</p></td>
 </tr>
 <tr>
-<td class="tableblock halign-left valign-top"><p class="tableblock"><a href="https://terasolunaorg.github.io/guideline/5.7.1.RELEASE/ja/ArchitectureInDetail/DataAccessDetail/ExclusionControl.html#id8">悲観ロック</a></p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><a href="https://terasolunaorg.github.io/guideline/5.9.0.RELEASE/ja/ArchitectureInDetail/DataAccessDetail/ExclusionControl.html#id8">悲観ロック</a></p></td>
 <td class="tableblock halign-left valign-top"><p class="tableblock">処理時間が長く、処理中に対象データの状況が変化したことによるやり直しが難しい処理<br>
 ファイルに対する排他制御が必要な処理</p></td>
 </tr>
@@ -513,8 +513,32 @@ ItemProcessorでデータが取得できない場合は、他のトランザク�
 <code>transactional</code>プロパティがデフォルトの<code>true</code>の場合、ファイル出力のタイミングがTransactionManagerと同期し、排他制御がされていない状態でのファイル出力が行われる。
 以下に、ItemStreamWriterの設定例を示す。</p>
 </div>
+<div class="tabbox">
+  <input type="radio" name="tabgroup050401" class="JavaConfigTab" id="tabgroup050401_1" checked><label for="tabgroup050401_1" class="tab">JavaConfig</label>
+  <input type="radio" name="tabgroup050401" class="XMLConfigTab" id="tabgroup050401_2"><label for="tabgroup050401_2" class="tab">XMLConfig</label>
+  <div class="tabcontent" name="JavaConfigContent">
 <div class="listingblock">
-<div class="title">ItemStreamWriterの設定例</div>
+<div class="content">
+<pre class="CodeRay highlight"><code data-lang="java"><span class="annotation">@Bean</span>
+<span class="annotation">@StepScope</span>
+<span class="directive">public</span> FlatFileItemWriter&lt;SalesPlanDetailWithProcessName&gt; writer(
+        <span class="annotation">@Value</span>(<span class="string"><span class="delimiter">&quot;</span><span class="content">#{jobParameters['outputFile']}</span><span class="delimiter">&quot;</span></span>) <span class="predefined-type">File</span> outputFile) {
+    DelimitedLineAggregator&lt;SalesPlanDetailWithProcessName&gt; lineAggregator = <span class="keyword">new</span> DelimitedLineAggregator&lt;&gt;();
+    BeanWrapperFieldExtractor&lt;SalesPlanDetailWithProcessName&gt; fieldExtractor = <span class="keyword">new</span> BeanWrapperFieldExtractor&lt;&gt;();
+    fieldExtractor.setNames(<span class="keyword">new</span> <span class="predefined-type">String</span><span class="type">[]</span> {<span class="string"><span class="delimiter">&quot;</span><span class="content">processName</span><span class="delimiter">&quot;</span></span>, <span class="string"><span class="delimiter">&quot;</span><span class="content">plan.branchId</span><span class="delimiter">&quot;</span></span>, <span class="string"><span class="delimiter">&quot;</span><span class="content">plan.year</span><span class="delimiter">&quot;</span></span>, <span class="string"><span class="delimiter">&quot;</span><span class="content">plan.month</span><span class="delimiter">&quot;</span></span>, <span class="string"><span class="delimiter">&quot;</span><span class="content">plan.customerId</span><span class="delimiter">&quot;</span></span>, <span class="string"><span class="delimiter">&quot;</span><span class="content">plan.amount</span><span class="delimiter">&quot;</span></span>});
+    lineAggregator.setFieldExtractor(fieldExtractor);
+    <span class="keyword">return</span> <span class="keyword">new</span> FlatFileItemWriterBuilder&lt;SalesPlanDetailWithProcessName&gt;()
+            .name(ClassUtils.getShortName(FlatFileItemWriter.class))
+            .resource(<span class="keyword">new</span> FileSystemResource(outputFile))
+            .lineAggregator(lineAggregator)
+            .transactional(<span class="predefined-constant">false</span>) <span class="comment">// (1)</span>
+            .build();
+}</code></pre>
+</div>
+</div>
+  </div>
+  <div class="tabcontent" name="XMLConfigContent">
+<div class="listingblock">
 <div class="content">
 <pre class="CodeRay highlight"><code data-lang="xml"><span class="tag">&lt;bean</span> <span class="attribute-name">id</span>=<span class="string"><span class="delimiter">&quot;</span><span class="content">writer</span><span class="delimiter">&quot;</span></span> <span class="attribute-name">class</span>=<span class="string"><span class="delimiter">&quot;</span><span class="content">org.springframework.batch.item.file.FlatFileItemWriter</span><span class="delimiter">&quot;</span></span> <span class="attribute-name">scope</span>=<span class="string"><span class="delimiter">&quot;</span><span class="content">step</span><span class="delimiter">&quot;</span></span>
       <span class="attribute-name">p:resource</span>=<span class="string"><span class="delimiter">&quot;</span><span class="content">file:#{jobParameters['outputFile']}</span><span class="delimiter">&quot;</span></span>
@@ -529,6 +553,8 @@ ItemProcessorでデータが取得できない場合は、他のトランザク�
     <span class="tag">&lt;/property&gt;</span>
 <span class="tag">&lt;/bean&gt;</span></code></pre>
 </div>
+</div>
+  </div>
 </div>
 <table class="tableblock frame-all grid-all stretch">
 <caption class="title">表 4. 説明</caption>
@@ -545,7 +571,7 @@ ItemProcessorでデータが取得できない場合は、他のトランザク�
 <tbody>
 <tr>
 <td class="tableblock halign-left valign-top"><p class="tableblock">(1)</p></td>
-<td class="tableblock halign-left valign-top"><p class="tableblock"><code>transactional</code>属性に<code>false</code>を設定する。</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><code>FlatFileItemWriterBuilderのtransactionalメソッド/&lt;bean&gt;要素のtransactional属性</code>に<code>false</code>を設定する。</p></td>
 </tr>
 </tbody>
 </table>
@@ -723,9 +749,9 @@ ItemProcessorでデータが取得できない場合は、他のトランザク�
 </div>
 <div class="paragraph">
 <p>データベースの排他制御実装は、TERASOLUNA Server 5.x 開発ガイドラインにある
-<a href="https://terasolunaorg.github.io/guideline/5.7.1.RELEASE/ja/ArchitectureInDetail/DataAccessDetail/ExclusionControl.html#mybatis3">MyBatis3使用時の実装方法</a>が基本である。
+<a href="https://terasolunaorg.github.io/guideline/5.9.0.RELEASE/ja/ArchitectureInDetail/DataAccessDetail/ExclusionControl.html#mybatis3">MyBatis3使用時の実装方法</a>が基本である。
 本ガイドラインでは、
-<a href="https://terasolunaorg.github.io/guideline/5.7.1.RELEASE/ja/ArchitectureInDetail/DataAccessDetail/ExclusionControl.html#mybatis3">MyBatis3使用時の実装方法</a>ができている前提で説明を行う。</p>
+<a href="https://terasolunaorg.github.io/guideline/5.9.0.RELEASE/ja/ArchitectureInDetail/DataAccessDetail/ExclusionControl.html#mybatis3">MyBatis3使用時の実装方法</a>ができている前提で説明を行う。</p>
 </div>
 <div class="paragraph">
 <p><a href="#Ch05_ExclusiveControl_Overview_Component">排他制御とコンポーネントの関係</a>にあるとおり、処理モデル・コンポーネントの組み合わせによるバリエーションがある。</p>
@@ -771,7 +797,7 @@ ItemProcessorでデータが取得できない場合は、他のトランザク�
 </table>
 <div class="paragraph">
 <p>タスクレットモデルでMapperインタフェースを使用する場合は、
-<a href="https://terasolunaorg.github.io/guideline/5.7.1.RELEASE/ja/ArchitectureInDetail/DataAccessDetail/ExclusionControl.html#mybatis3">MyBatis3使用時の実装方法</a>のとおりであるため、説明を割愛する。</p>
+<a href="https://terasolunaorg.github.io/guideline/5.9.0.RELEASE/ja/ArchitectureInDetail/DataAccessDetail/ExclusionControl.html#mybatis3">MyBatis3使用時の実装方法</a>のとおりであるため、説明を割愛する。</p>
 </div>
 <div class="paragraph">
 <p>タスクレットモデルでItemReader/ItemWriterを使用する場合は、Mapperインタフェースでの呼び出し部分がItemReader/ItemWriterに代わるだけなので、これも説明を割愛する。</p>
@@ -790,8 +816,79 @@ ItemProcessorでデータが取得できない場合は、他のトランザク�
 <div class="paragraph">
 <p>楽観ロックを行うジョブ定義を以下に示す。</p>
 </div>
+<div class="tabbox">
+  <input type="radio" name="tabgroup050402" class="JavaConfigTab" id="tabgroup050402_1" checked><label for="tabgroup050402_1" class="tab">JavaConfig</label>
+  <input type="radio" name="tabgroup050402" class="XMLConfigTab" id="tabgroup050402_2"><label for="tabgroup050402_2" class="tab">XMLConfig</label>
+  <div class="tabcontent" name="JavaConfigContent">
 <div class="listingblock">
-<div class="title">ジョブ定義</div>
+<div class="content">
+<pre class="CodeRay highlight"><code data-lang="java"><span class="annotation">@Configuration</span>
+<span class="annotation">@Import</span>(JobBaseContextConfig.class)
+<span class="annotation">@ComponentScan</span>(value = { <span class="string"><span class="delimiter">&quot;</span><span class="content">org.terasoluna.batch.functionaltest.app.common</span><span class="delimiter">&quot;</span></span>,
+<span class="string"><span class="delimiter">&quot;</span><span class="content">org.terasoluna.batch.functionaltest.ch05.exclusivecontrol</span><span class="delimiter">&quot;</span></span>}, scopedProxy = ScopedProxyMode.TARGET_CLASS)
+<span class="annotation">@MapperScan</span>(basePackages = <span class="string"><span class="delimiter">&quot;</span><span class="content">org.terasoluna.batch.functionaltest.ch05.exclusivecontrol.repository</span><span class="delimiter">&quot;</span></span>, sqlSessionFactoryRef = <span class="string"><span class="delimiter">&quot;</span><span class="content">jobSqlSessionFactory</span><span class="delimiter">&quot;</span></span>)
+<span class="directive">public</span> <span class="type">class</span> <span class="class">ChunkOptimisticLockCheckJobConfig</span> {
+
+    <span class="annotation">@Bean</span>
+    <span class="annotation">@StepScope</span>
+    <span class="directive">public</span> MyBatisCursorItemReader&lt;Branch&gt; reader(
+            <span class="annotation">@Qualifier</span>(<span class="string"><span class="delimiter">&quot;</span><span class="content">jobSqlSessionFactory</span><span class="delimiter">&quot;</span></span>) SqlSessionFactory jobSqlSessionFactory,
+            <span class="annotation">@Value</span>(<span class="string"><span class="delimiter">&quot;</span><span class="content">#{jobParameters['branchId']}</span><span class="delimiter">&quot;</span></span>) <span class="predefined-type">String</span> branchId) {
+        <span class="predefined-type">Map</span>&lt;<span class="predefined-type">String</span>, <span class="predefined-type">Object</span>&gt; parameterValues = <span class="keyword">new</span> <span class="predefined-type">HashMap</span>&lt;&gt;();
+        parameterValues.put(<span class="string"><span class="delimiter">&quot;</span><span class="content">branchId</span><span class="delimiter">&quot;</span></span>, branchId);
+        <span class="keyword">return</span> <span class="keyword">new</span> MyBatisCursorItemReaderBuilder&lt;Branch&gt;()
+                .sqlSessionFactory(jobSqlSessionFactory)
+                .parameterValues(parameterValues)
+                .queryId(
+                        <span class="string"><span class="delimiter">&quot;</span><span class="content">org.terasoluna.batch.functionaltest.ch05.exclusivecontrol.repository.ExclusiveControlRepository.branchFindOne</span><span class="delimiter">&quot;</span></span>) <span class="comment">// (1)</span>
+                .build();
+    }
+
+    <span class="annotation">@Bean</span>
+    <span class="annotation">@StepScope</span>
+    <span class="directive">public</span> MyBatisBatchItemWriter&lt;ExclusiveBranch&gt; writer(
+            <span class="annotation">@Qualifier</span>(<span class="string"><span class="delimiter">&quot;</span><span class="content">jobSqlSessionFactory</span><span class="delimiter">&quot;</span></span>) SqlSessionFactory jobSqlSessionFactory,
+            SqlSessionTemplate batchModeSqlSessionTemplate,
+            <span class="annotation">@Value</span>(<span class="string"><span class="delimiter">&quot;</span><span class="content">#{new Boolean(jobParameters['assertUpdates'])}</span><span class="delimiter">&quot;</span></span>) <span class="type">boolean</span> assertUpdates) {
+        <span class="keyword">return</span> <span class="keyword">new</span> MyBatisBatchItemWriterBuilder&lt;ExclusiveBranch&gt;()
+                .sqlSessionFactory(jobSqlSessionFactory)
+                .statementId(
+                        <span class="string"><span class="delimiter">&quot;</span><span class="content">org.terasoluna.batch.functionaltest.ch05.exclusivecontrol.repository.ExclusiveControlRepository.branchExclusiveUpdate</span><span class="delimiter">&quot;</span></span>) <span class="comment">// (2)</span>
+                .sqlSessionTemplate(batchModeSqlSessionTemplate)
+                .assertUpdates(assertUpdates) <span class="comment">// (3)</span>
+                .build();
+    }
+
+    <span class="annotation">@Bean</span>
+    <span class="directive">public</span> Step step01(JobRepository jobRepository,
+                       <span class="annotation">@Qualifier</span>(<span class="string"><span class="delimiter">&quot;</span><span class="content">jobTransactionManager</span><span class="delimiter">&quot;</span></span>) PlatformTransactionManager transactionManager,
+                       MyBatisCursorItemReader&lt;Branch&gt; reader,
+                       MyBatisBatchItemWriter&lt;ExclusiveBranch&gt; writer,
+                       BranchEditItemProcessor branchEditItemProcessor) {
+        <span class="keyword">return</span> <span class="keyword">new</span> StepBuilder(<span class="string"><span class="delimiter">&quot;</span><span class="content">chunkOptimisticLockCheckJob.step01</span><span class="delimiter">&quot;</span></span>,
+                jobRepository)
+                .&lt;Branch, ExclusiveBranch&gt; chunk(<span class="integer">10</span>, transactionManager)
+                .reader(reader)
+                .processor(branchEditItemProcessor)
+                .writer(writer)
+                .build();
+    }
+
+    <span class="annotation">@Bean</span>
+    <span class="directive">public</span> Job chunkOptimisticLockCheckJob(JobRepository jobRepository,
+                                            Step step01,
+                                            JobExecutionLoggingListener jobExecutionLoggingListener) {
+        <span class="keyword">return</span> <span class="keyword">new</span> JobBuilder(<span class="string"><span class="delimiter">&quot;</span><span class="content">chunkOptimisticLockCheckJob</span><span class="delimiter">&quot;</span></span>,jobRepository)
+                .start(step01)
+                .listener(jobExecutionLoggingListener)
+                .build();
+    }
+}</code></pre>
+</div>
+</div>
+  </div>
+  <div class="tabcontent" name="XMLConfigContent">
+<div class="listingblock">
 <div class="content">
 <pre class="CodeRay highlight"><code data-lang="xml"><span class="comment">&lt;!-- (1) --&gt;</span>
 <span class="tag">&lt;bean</span> <span class="attribute-name">id</span>=<span class="string"><span class="delimiter">&quot;</span><span class="content">reader</span><span class="delimiter">&quot;</span></span>
@@ -821,6 +918,8 @@ ItemProcessorでデータが取得できない場合は、他のトランザク�
     <span class="tag">&lt;/batch:step&gt;</span>
 <span class="tag">&lt;/batch:job&gt;</span></code></pre>
 </div>
+</div>
+  </div>
 </div>
 <table class="tableblock frame-all grid-all stretch">
 <caption class="title">表 7. 説明</caption>
@@ -860,8 +959,79 @@ ItemProcessorでデータが取得できない場合は、他のトランザク�
 <div class="paragraph">
 <p>悲観ロックを行うジョブ定義とItemProcessorを以下に示す。</p>
 </div>
+<div class="tabbox">
+  <input type="radio" name="tabgroup050403" class="JavaConfigTab" id="tabgroup050403_1" checked><label for="tabgroup050403_1" class="tab">JavaConfig</label>
+  <input type="radio" name="tabgroup050403" class="XMLConfigTab" id="tabgroup050403_2"><label for="tabgroup050403_2" class="tab">XMLConfig</label>
+  <div class="tabcontent" name="JavaConfigContent">
 <div class="listingblock">
-<div class="title">ジョブ定義</div>
+<div class="content">
+<pre class="CodeRay highlight"><code data-lang="java"><span class="annotation">@Configuration</span>
+<span class="annotation">@Import</span>(JobBaseContextConfig.class)
+<span class="annotation">@ComponentScan</span>(value = { <span class="string"><span class="delimiter">&quot;</span><span class="content">org.terasoluna.batch.functionaltest.app.common</span><span class="delimiter">&quot;</span></span>,
+<span class="string"><span class="delimiter">&quot;</span><span class="content">org.terasoluna.batch.functionaltest.ch05.exclusivecontrol</span><span class="delimiter">&quot;</span></span>}, scopedProxy = ScopedProxyMode.TARGET_CLASS)
+<span class="annotation">@MapperScan</span>(basePackages = <span class="string"><span class="delimiter">&quot;</span><span class="content">org.terasoluna.batch.functionaltest.ch05.exclusivecontrol.repository</span><span class="delimiter">&quot;</span></span>, sqlSessionTemplateRef = <span class="string"><span class="delimiter">&quot;</span><span class="content">batchModeSqlSessionTemplate</span><span class="delimiter">&quot;</span></span>) <span class="comment">// (1)</span>
+<span class="directive">public</span> <span class="type">class</span> <span class="class">ChunkPessimisticLockCheckJobConfig</span> {
+
+    <span class="annotation">@Bean</span>
+    <span class="annotation">@StepScope</span>
+    <span class="directive">public</span> MyBatisCursorItemReader&lt;<span class="predefined-type">String</span>&gt; reader(
+            <span class="annotation">@Qualifier</span>(<span class="string"><span class="delimiter">&quot;</span><span class="content">jobSqlSessionFactory</span><span class="delimiter">&quot;</span></span>) SqlSessionFactory jobSqlSessionFactory,
+            <span class="annotation">@Value</span>(<span class="string"><span class="delimiter">&quot;</span><span class="content">#{jobParameters['branchName']}</span><span class="delimiter">&quot;</span></span>) <span class="predefined-type">String</span> branchName) {
+        <span class="predefined-type">Map</span>&lt;<span class="predefined-type">String</span>, <span class="predefined-type">Object</span>&gt; parameterValues = <span class="keyword">new</span> <span class="predefined-type">HashMap</span>&lt;&gt;();
+        parameterValues.put(<span class="string"><span class="delimiter">&quot;</span><span class="content">branchName</span><span class="delimiter">&quot;</span></span>, branchName);
+        <span class="keyword">return</span> <span class="keyword">new</span> MyBatisCursorItemReaderBuilder&lt;<span class="predefined-type">String</span>&gt;()
+                .sqlSessionFactory(jobSqlSessionFactory)
+                .parameterValues(parameterValues)
+                .queryId(
+                        <span class="string"><span class="delimiter">&quot;</span><span class="content">org.terasoluna.batch.functionaltest.ch05.exclusivecontrol.repository.ExclusiveControlRepository.branchIdFindByName</span><span class="delimiter">&quot;</span></span>) <span class="comment">// (2)</span>
+                .build();
+    }
+
+    <span class="annotation">@Bean</span>
+    <span class="annotation">@StepScope</span>
+    <span class="directive">public</span> MyBatisBatchItemWriter&lt;ExclusiveBranch&gt; writer(
+            <span class="annotation">@Qualifier</span>(<span class="string"><span class="delimiter">&quot;</span><span class="content">jobSqlSessionFactory</span><span class="delimiter">&quot;</span></span>) SqlSessionFactory jobSqlSessionFactory,
+            SqlSessionTemplate batchModeSqlSessionTemplate,
+            <span class="annotation">@Value</span>(<span class="string"><span class="delimiter">&quot;</span><span class="content">#{new Boolean(jobParameters['assertUpdates'])}</span><span class="delimiter">&quot;</span></span>) <span class="type">boolean</span> assertUpdates) {
+        <span class="keyword">return</span> <span class="keyword">new</span> MyBatisBatchItemWriterBuilder&lt;ExclusiveBranch&gt;()
+                .sqlSessionFactory(jobSqlSessionFactory)
+                .statementId(
+                        <span class="string"><span class="delimiter">&quot;</span><span class="content">org.terasoluna.batch.functionaltest.ch05.exclusivecontrol.repository.ExclusiveControlRepository.branchUpdate</span><span class="delimiter">&quot;</span></span>) <span class="comment">// (3)</span>
+                .sqlSessionTemplate(batchModeSqlSessionTemplate)
+                .assertUpdates(assertUpdates)
+                .build();
+    }
+
+    <span class="annotation">@Bean</span>
+    <span class="directive">public</span> Step step01(JobRepository jobRepository,
+                       <span class="annotation">@Qualifier</span>(<span class="string"><span class="delimiter">&quot;</span><span class="content">jobTransactionManager</span><span class="delimiter">&quot;</span></span>) PlatformTransactionManager transactionManager,
+                       MyBatisCursorItemReader&lt;<span class="predefined-type">String</span>&gt; reader,
+                       MyBatisBatchItemWriter&lt;ExclusiveBranch&gt; writer,
+                       BranchEditWithkPessimisticLockItemProcessor processor) {
+        <span class="keyword">return</span> <span class="keyword">new</span> StepBuilder(<span class="string"><span class="delimiter">&quot;</span><span class="content">chunkPessimisticLockCheckJob.step01</span><span class="delimiter">&quot;</span></span>,
+                jobRepository)
+                .&lt;<span class="predefined-type">String</span>, ExclusiveBranch&gt; chunk(<span class="integer">10</span>, transactionManager)
+                .reader(reader)
+                .processor(processor) <span class="comment">// (4)</span>
+                .writer(writer)
+                .build();
+    }
+
+    <span class="annotation">@Bean</span>
+    <span class="directive">public</span> Job chunkPessimisticLockCheckJob(JobRepository jobRepository,
+                                            Step step01,
+                                            JobExecutionLoggingListener jobExecutionLoggingListener) {
+        <span class="keyword">return</span> <span class="keyword">new</span> JobBuilder(<span class="string"><span class="delimiter">&quot;</span><span class="content">chunkPessimisticLockCheckJob</span><span class="delimiter">&quot;</span></span>,jobRepository)
+                .start(step01)
+                .listener(jobExecutionLoggingListener)
+                .build();
+    }
+}</code></pre>
+</div>
+</div>
+  </div>
+  <div class="tabcontent" name="XMLConfigContent">
+<div class="listingblock">
 <div class="content">
 <pre class="CodeRay highlight"><code data-lang="xml"><span class="comment">&lt;!-- (1) --&gt;</span>
 <span class="tag">&lt;mybatis:scan</span>
@@ -895,6 +1065,8 @@ ItemProcessorでデータが取得できない場合は、他のトランザク�
     <span class="tag">&lt;/batch:step&gt;</span>
 <span class="tag">&lt;/batch:job&gt;</span></code></pre>
 </div>
+</div>
+  </div>
 </div>
 <div class="listingblock">
 <div class="title">悲観ロックを行うItemProcessor</div>
@@ -1018,7 +1190,7 @@ NO WAITやタイムアウトを設定して悲観ロックを行い、他のト�
 
   <div class="common-bg">
     <div class="information">
-      TERASOLUNA Batch Framework for Java (5.x) Development Guideline - version 5.5.0.RELEASE, 2023-3-31, commit-id:f6da76a
+      TERASOLUNA Batch Framework for Java (5.x) Development Guideline - version 5.6.0.RELEASE, 2023-3-31, commit-id:f5cbeda
     </div>
     <div class="index">
       <a href="index.html">&gt; INDEX</a>
@@ -1027,7 +1199,7 @@ NO WAITやタイムアウトを設定して悲観ロックを行い、他のト�
 
   <div class="footer-bg">
     <div class="copyright">
-      &copy; Copyright 2017 NTT DATA Corporation. &copy; Copyright 2017 NTT Corporation.
+      &copy; Copyright 2017 NTT DATA Group Corporation. &copy; Copyright 2017 NTT Corporation.
     </div>
   </div>
 

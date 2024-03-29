@@ -14,7 +14,7 @@
 
 <div class="common-bg">
   <div class="information">
-    TERASOLUNA Batch Framework for Java (5.x) Development Guideline - version 5.5.0.RELEASE, 2023-3-31, commit-id:f6da76a
+    TERASOLUNA Batch Framework for Java (5.x) Development Guideline - version 5.6.0.RELEASE, 2023-3-31, commit-id:f5cbeda
   </div>
   <div class="index">
     <a href="index.html">&gt; INDEX</a>
@@ -249,7 +249,7 @@ async-batch-daemon.polling-stop-file-path=/tmp/stop-async-batch-daemon</code></p
 
 <span class="annotation">@Bean</span>
 <span class="directive">public</span> ApplicationContextFactory<span class="type">[]</span> applicationContextFactories(<span class="directive">final</span> ApplicationContext ctx) <span class="directive">throws</span> <span class="exception">IOException</span> {
-    <span class="keyword">return</span> <span class="keyword">new</span> ApplicationContextFactoryHelper(ctx).load(<span class="string"><span class="delimiter">&quot;</span><span class="content">classpath:/META-INF/jobs/dbaccess/jobPointAddChunk.xml</span><span class="delimiter">&quot;</span></span>); <span class="comment">// (1)</span>
+    <span class="keyword">return</span> <span class="keyword">new</span> ApplicationContextFactoryHelper(ctx).load(<span class="string"><span class="delimiter">&quot;</span><span class="content">classpath:org/terasoluna/batch/tutorial/config/dbaccess/JobPointAddChunkConfig.class</span><span class="delimiter">&quot;</span></span>); <span class="comment">// (1)</span>
 }
 <span class="comment">// omitted</span></code></pre>
 </div>
@@ -623,10 +623,10 @@ H2 Consoleの表示手順は<a href="Ch09_EnvironmentConstruction.html#Ch09_Envi
 [2020/03/27 16:11:28] [daemonTaskScheduler-1] [o.t.b.a.d.JobRequestPollTask] [INFO ] Polling processing.
 [2020/03/27 16:11:28] [daemonTaskExecutor-1] [o.s.b.c.l.s.SimpleJobOperator] [INFO ] Checking status of job with name=jobPointAddChunk
 [2020/03/27 16:11:28] [daemonTaskExecutor-1] [o.s.b.c.l.s.SimpleJobOperator] [INFO ] Attempting to launch job with name=jobPointAddChunk and parameters=
-[2020/03/27 16:11:28] [daemonTaskExecutor-1] [o.s.b.c.l.s.SimpleJobLauncher] [INFO ] Job: [FlowJob: [name=jobPointAddChunk]] launched with the following parameters: [{jsr_batch_run_id=196}]
+[2020/03/27 16:11:28] [daemonTaskExecutor-1] [o.s.b.c.l.s.TaskExecutorJobLauncher] [INFO ] Job: [FlowJob: [name=jobPointAddChunk]] launched with the following parameters: [{jsr_batch_run_id=196}]
 [2020/03/27 16:11:28] [daemonTaskExecutor-1] [o.s.b.c.j.SimpleStepHandler] [INFO ] Executing step: [jobPointAddChunk.step01]
 [2020/03/27 16:11:28] [daemonTaskExecutor-1] [o.s.b.c.s.AbstractStep] [INFO ] Step: [jobPointAddChunk.step01] executed in 218ms
-[2020/03/27 16:11:28] [daemonTaskExecutor-1] [o.s.b.c.l.s.SimpleJobLauncher] [INFO ] Job: [FlowJob: [name=jobPointAddChunk]] completed with the following parameters: [{jsr_batch_run_id=196}] and the following status: [COMPLETED] in 287ms
+[2020/03/27 16:11:28] [daemonTaskExecutor-1] [o.s.b.c.l.s.TaskExecutorJobLauncher] [INFO ] Job: [FlowJob: [name=jobPointAddChunk]] completed with the following parameters: [{jsr_batch_run_id=196}] and the following status: [COMPLETED] in 287ms
 [2020/03/27 16:11:38] [daemonTaskScheduler-1] [o.t.b.a.d.JobRequestPollTask] [INFO ] Polling processing.</code></pre>
 </div>
 </div>
@@ -850,7 +850,7 @@ C:\tmpにstop-async-batch-daemonファイル(空ファイル)を作成する。<
 
   <div class="common-bg">
     <div class="information">
-      TERASOLUNA Batch Framework for Java (5.x) Development Guideline - version 5.5.0.RELEASE, 2023-3-31, commit-id:f6da76a
+      TERASOLUNA Batch Framework for Java (5.x) Development Guideline - version 5.6.0.RELEASE, 2023-3-31, commit-id:f5cbeda
     </div>
     <div class="index">
       <a href="index.html">&gt; INDEX</a>
@@ -859,7 +859,7 @@ C:\tmpにstop-async-batch-daemonファイル(空ファイル)を作成する。<
 
   <div class="footer-bg">
     <div class="copyright">
-      &copy; Copyright 2017 NTT DATA Corporation. &copy; Copyright 2017 NTT Corporation.
+      &copy; Copyright 2017 NTT DATA Group Corporation. &copy; Copyright 2017 NTT Corporation.
     </div>
   </div>
 

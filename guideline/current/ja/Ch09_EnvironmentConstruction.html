@@ -14,7 +14,7 @@
 
 <div class="common-bg">
   <div class="information">
-    TERASOLUNA Batch Framework for Java (5.x) Development Guideline - version 5.5.0.RELEASE, 2023-3-31, commit-id:f6da76a
+    TERASOLUNA Batch Framework for Java (5.x) Development Guideline - version 5.6.0.RELEASE, 2023-3-31, commit-id:f5cbeda
   </div>
   <div class="index">
     <a href="index.html">&gt; INDEX</a>
@@ -123,7 +123,7 @@
 <pre class="CodeRay highlight"><code data-lang="console">C:\xxx&gt;mvn archetype:generate ^
   -DarchetypeGroupId=org.terasoluna.batch ^
   -DarchetypeArtifactId=terasoluna-batch-archetype ^
-  -DarchetypeVersion=5.5.0.RELEASE</code></pre>
+  -DarchetypeVersion=5.6.0.RELEASE</code></pre>
 </div>
 </div>
   </div>
@@ -134,7 +134,7 @@
 <pre class="CodeRay highlight"><code data-lang="console">C:\xxx&gt;mvn archetype:generate ^
   -DarchetypeGroupId=org.terasoluna.batch ^
   -DarchetypeArtifactId=terasoluna-batch-xmlconfig-archetype ^
-  -DarchetypeVersion=5.5.0.RELEASE</code></pre>
+  -DarchetypeVersion=5.6.0.RELEASE</code></pre>
 </div>
 </div>
   </div>
@@ -186,7 +186,7 @@
 <pre class="CodeRay highlight"><code data-lang="console">C:\xxx&gt;mvn archetype:generate ^
 More?   -DarchetypeGroupId=org.terasoluna.batch ^
 More?   -DarchetypeArtifactId=terasoluna-batch-archetype ^
-More?   -DarchetypeVersion=5.5.0.RELEASE
+More?   -DarchetypeVersion=5.6.0.RELEASE
 [INFO] Scanning for projects&#8230;&#8203;
 [INFO]
 [INFO] ------------------------------------------------------------------------
@@ -206,7 +206,7 @@ version: 1.0.0-SNAPSHOT
 package: org.terasoluna.batch.tutorial
  Y: : y
 [INFO] ----------------------------------------------------------------------------
-[INFO] Using following parameters for creating project from Archetype: terasoluna-batch-archetype:5.5.0.RELEASE
+[INFO] Using following parameters for creating project from Archetype: terasoluna-batch-archetype:5.6.0.RELEASE
 [INFO] ----------------------------------------------------------------------------
 [INFO] Parameter: groupId, Value: org.terasoluna.batch
 [INFO] Parameter: artifactId, Value: terasoluna-batch-tutorial
@@ -235,7 +235,7 @@ package: org.terasoluna.batch.tutorial
 <pre class="CodeRay highlight"><code data-lang="console">C:\xxx&gt;mvn archetype:generate ^
 More?   -DarchetypeGroupId=org.terasoluna.batch ^
 More?   -DarchetypeArtifactId=terasoluna-batch-xmlcofig-archetype ^
-More?   -DarchetypeVersion=5.5.0.RELEASE
+More?   -DarchetypeVersion=5.6.0.RELEASE
 [INFO] Scanning for projects&#8230;&#8203;
 [INFO]
 [INFO] ------------------------------------------------------------------------
@@ -255,7 +255,7 @@ version: 1.0.0-SNAPSHOT
 package: org.terasoluna.batch.tutorial
  Y: : y
 [INFO] ----------------------------------------------------------------------------
-[INFO] Using following parameters for creating project from Archetype: terasoluna-batch-archetype:5.5.0.RELEASE
+[INFO] Using following parameters for creating project from Archetype: terasoluna-batch-archetype:5.6.0.RELEASE
 [INFO] ----------------------------------------------------------------------------
 [INFO] Parameter: groupId, Value: org.terasoluna.batch
 [INFO] Parameter: artifactId, Value: terasoluna-batch-tutorial
@@ -281,8 +281,62 @@ package: org.terasoluna.batch.tutorial
 <div class="paragraph">
 <p>サンプルジョブを実行し、プロジェクトが正しく作成できたことを確認する。</p>
 </div>
-<div id="Ch09_EnvironmentConstruction_BlankProject_ExecSample" class="listingblock">
-<div class="title">サンプルジョブの実行(正しく作成できたことの確認)</div>
+<div class="tabbox">
+  <input type="radio" name="tabgroup090303" class="JavaConfigTab" id="tabgroup090303_1" checked><label for="tabgroup090303_1" class="tab">JavaConfig</label>
+  <input type="radio" name="tabgroup090303" class="XMLConfigTab" id="tabgroup090303_2"><label for="tabgroup090303_2" class="tab">XMLConfig</label>
+  <div class="tabcontent" name="JavaConfigContent">
+<div class="listingblock">
+<div class="content">
+<pre class="CodeRay highlight"><code data-lang="console">C:\xxx&gt;cd terasoluna-batch-tutorial
+C:\xxx&gt;mvn clean dependency:copy-dependencies -DoutputDirectory=lib package
+C:\xxx&gt;java -cp &quot;lib/*;target/*&quot; ^
+org.springframework.batch.core.launch.support.CommandLineJobRunner ^
+org.terasoluna.batch.tutorial.jobs.Job01Config job01</code></pre>
+</div>
+</div>
+<div class="paragraph">
+<p>以下のとおり、mvnコマンドに対して「BUILD SUCCESS」、javaコマンドに対して「COMPLETED」が表示されることを確認する。</p>
+</div>
+<div class="listingblock">
+<div class="title">出力例</div>
+<div class="content">
+<pre class="CodeRay highlight"><code data-lang="console">C:\xxx&gt;cd terasoluna-batch-tutorial
+
+C:\xxx\terasoluna-batch-tutorial&gt;mvn clean dependency:copy-dependencies -Doutput
+Directory=lib package
+[INFO] Scanning for projects...
+[INFO]
+[INFO] ------------------------------------------------------------------------
+[INFO] Building TERASOLUNA Batch Framework for Java (5.x) Blank Project 1.0.0-SN
+APSHOT
+[INFO] ------------------------------------------------------------------------
+
+(.. omitted)
+
+[INFO] ------------------------------------------------------------------------
+[INFO] BUILD SUCCESS
+[INFO] ------------------------------------------------------------------------
+[INFO] Total time: 30.139 s
+[INFO] Finished at: 2020-03-26T16:41:55+09:00
+[INFO] Final Memory: 20M/74M
+[INFO] ------------------------------------------------------------------------
+
+C:\xxx\terasoluna-batch-tutorial&gt;java -cp &quot;lib/*;target/*&quot; ^
+More? org.springframework.batch.core.launch.support.CommandLineJobRunner ^
+More? org.terasoluna.batch.tutorial.jobs.Job01Config job01
+[2020/03/26 16:42:29] [main] [o.s.c.s.PostProcessorRegistrationDelegate$BeanPostProcessorChecker] [INFO ] Bean 'jobRegistry' of type [org.springframework.batch.core.configuration.support.MapJobRegistry] is not eligible for getting processed by all BeanPostProcessors (for example: not eligible for auto-proxying)
+
+(.. ommited)
+
+[2020/03/26 16:42:31] [main] [o.s.b.c.l.s.TaskExecutorJobLauncher] [INFO ] Job: [FlowJob: [name=job01]] launched with the following parameters: [{jsr_batch_run_id=1}]
+[2020/03/26 16:42:31] [main] [o.s.b.c.j.SimpleStepHandler] [INFO ] Executing step: [job01.step01]
+[2020/03/26 16:42:31] [main] [o.s.b.c.s.AbstractStep] [INFO ] Step: [job01.step01] executed in 53ms
+[2020/03/26 16:42:31] [main] [o.s.b.c.l.s.TaskExecutorJobLauncher] [INFO ] Job: [FlowJob: [name=job01]] completed with the following parameters: [{jsr_batch_run_id=1}] and the following status: [COMPLETED] in 115ms</code></pre>
+</div>
+</div>
+  </div>
+  <div class="tabcontent" name="XMLConfigContent">
+<div class="listingblock">
 <div class="content">
 <pre class="CodeRay highlight"><code data-lang="console">C:\xxx&gt;cd terasoluna-batch-tutorial
 C:\xxx&gt;mvn clean dependency:copy-dependencies -DoutputDirectory=lib package
@@ -325,11 +379,13 @@ More? META-INF/jobs/job01.xml job01
 
 (.. ommited)
 
-[2020/03/26 16:42:31] [main] [o.s.b.c.l.s.SimpleJobLauncher] [INFO ] Job: [FlowJob: [name=job01]] launched with the following parameters: [{jsr_batch_run_id=1}]
+[2020/03/26 16:42:31] [main] [o.s.b.c.l.s.TaskExecutorJobLauncher] [INFO ] Job: [FlowJob: [name=job01]] launched with the following parameters: [{jsr_batch_run_id=1}]
 [2020/03/26 16:42:31] [main] [o.s.b.c.j.SimpleStepHandler] [INFO ] Executing step: [job01.step01]
 [2020/03/26 16:42:31] [main] [o.s.b.c.s.AbstractStep] [INFO ] Step: [job01.step01] executed in 53ms
-[2020/03/26 16:42:31] [main] [o.s.b.c.l.s.SimpleJobLauncher] [INFO ] Job: [FlowJob: [name=job01]] completed with the following parameters: [{jsr_batch_run_id=1}] and the following status: [COMPLETED] in 115ms</code></pre>
+[2020/03/26 16:42:31] [main] [o.s.b.c.l.s.TaskExecutorJobLauncher] [INFO ] Job: [FlowJob: [name=job01]] completed with the following parameters: [{jsr_batch_run_id=1}] and the following status: [COMPLETED] in 115ms</code></pre>
 </div>
+</div>
+  </div>
 </div>
 </div>
 </div>
@@ -359,8 +415,8 @@ STSのメニューから、[File] &#8594; [Import] &#8594; [Maven] &#8594; [Exis
 <p>インポートが完了すると、Package Explorerに次のようなプロジェクトが表示される。</p>
 </div>
 <div class="tabbox">
-  <input type="radio" name="tabgroup090303" class="JavaConfigTab" id="tabgroup090303_1" checked><label for="tabgroup090303_1" class="tab">JavaConfig</label>
-  <input type="radio" name="tabgroup090303" class="XMLConfigTab" id="tabgroup090303_2"><label for="tabgroup090303_2" class="tab">XMLConfig</label>
+  <input type="radio" name="tabgroup090304" class="JavaConfigTab" id="tabgroup090304_1" checked><label for="tabgroup090304_1" class="tab">JavaConfig</label>
+  <input type="radio" name="tabgroup090304" class="XMLConfigTab" id="tabgroup090304_2"><label for="tabgroup090304_2" class="tab">XMLConfig</label>
   <div class="tabcontent" name="JavaConfigContent">
 <div class="imageblock">
 <div class="content">
@@ -680,8 +736,8 @@ tutorial.insert-data.script=file:sqls/insert-member-info-data.sql
 <p><code>LaunchContextConfig.java/launch-context.xml</code>を開き、Bean定義で<code>DataSourceInitializer/&lt;jdbc:initialize-database&gt;</code>を追加する。</p>
 </div>
 <div class="tabbox">
-  <input type="radio" name="tabgroup090304" class="JavaConfigTab" id="tabgroup090304_1" checked><label for="tabgroup090304_1" class="tab">JavaConfig</label>
-  <input type="radio" name="tabgroup090304" class="XMLConfigTab" id="tabgroup090304_2"><label for="tabgroup090304_2" class="tab">XMLConfig</label>
+  <input type="radio" name="tabgroup090305" class="JavaConfigTab" id="tabgroup090305_1" checked><label for="tabgroup090305_1" class="tab">JavaConfig</label>
+  <input type="radio" name="tabgroup090305" class="XMLConfigTab" id="tabgroup090305_2"><label for="tabgroup090305_2" class="tab">XMLConfig</label>
   <div class="tabcontent" name="JavaConfigContent">
 <div class="listingblock">
 <div class="title">org.terasoluna.batch.tutorial.config.LaunchContextConfig.java</div>
@@ -690,8 +746,8 @@ tutorial.insert-data.script=file:sqls/insert-member-info-data.sql
 <span class="annotation">@Bean</span>
 <span class="directive">public</span> DataSourceInitializer jobDataSourceInitializer(<span class="annotation">@Qualifier</span>(<span class="string"><span class="delimiter">&quot;</span><span class="content">jobDataSource</span><span class="delimiter">&quot;</span></span>) <span class="predefined-type">DataSource</span> jobDataSource,
                                                    <span class="annotation">@Value</span>(<span class="string"><span class="delimiter">&quot;</span><span class="content">${data-source.initialize.enabled:true}</span><span class="delimiter">&quot;</span></span>) <span class="type">boolean</span> enabled,
-                                                   <span class="annotation">@Value</span>(<span class="string"><span class="delimiter">&quot;</span><span class="content">${tutorial.create-table.script:#{null}}</span><span class="delimiter">&quot;</span></span>) Resource script,
-                                                   <span class="annotation">@Value</span>(<span class="string"><span class="delimiter">&quot;</span><span class="content">${tutorial.insert-data.script:#{null}}</span><span class="delimiter">&quot;</span></span>) Resource commitScript) {
+                                                   <span class="annotation">@Value</span>(<span class="string"><span class="delimiter">&quot;</span><span class="content">${tutorial.create-table.script}</span><span class="delimiter">&quot;</span></span>) Resource script,
+                                                   <span class="annotation">@Value</span>(<span class="string"><span class="delimiter">&quot;</span><span class="content">${tutorial.insert-data.script}</span><span class="delimiter">&quot;</span></span>) Resource commitScript) {
     <span class="directive">final</span> DataSourceInitializer dataSourceInitializer = <span class="keyword">new</span> DataSourceInitializer();
     dataSourceInitializer.setDataSource(jobDataSource);
     dataSourceInitializer.setEnabled(<span class="predefined-constant">true</span>);
@@ -708,7 +764,7 @@ tutorial.insert-data.script=file:sqls/insert-member-info-data.sql
 <div class="title">META-INF/spring/launch-context.xml</div>
 <div class="content">
 <pre class="CodeRay highlight"><code data-lang="xml"><span class="comment">&lt;!-- database initialize definition --&gt;</span>
-<span class="tag">&lt;jdbc:initialize-database</span> <span class="attribute-name">data-source</span>=<span class="string"><span class="delimiter">&quot;</span><span class="content">jobDataSource</span><span class="delimiter">&quot;</span></span> <span class="attribute-name">enabled</span>=<span class="string"><span class="delimiter">&quot;</span><span class="content">${data-source.initialize.enabled:false}</span><span class="delimiter">&quot;</span></span> <span class="attribute-name">ignore-failures</span>=<span class="string"><span class="delimiter">&quot;</span><span class="content">ALL</span><span class="delimiter">&quot;</span></span><span class="tag">&gt;</span>
+<span class="tag">&lt;jdbc:initialize-database</span> <span class="attribute-name">data-source</span>=<span class="string"><span class="delimiter">&quot;</span><span class="content">jobDataSource</span><span class="delimiter">&quot;</span></span> <span class="attribute-name">enabled</span>=<span class="string"><span class="delimiter">&quot;</span><span class="content">${data-source.initialize.enabled:true}</span><span class="delimiter">&quot;</span></span> <span class="attribute-name">ignore-failures</span>=<span class="string"><span class="delimiter">&quot;</span><span class="content">ALL</span><span class="delimiter">&quot;</span></span><span class="tag">&gt;</span>
     <span class="tag">&lt;jdbc:script</span> <span class="attribute-name">location</span>=<span class="string"><span class="delimiter">&quot;</span><span class="content">${tutorial.create-table.script}</span><span class="delimiter">&quot;</span></span> <span class="tag">/&gt;</span>
     <span class="tag">&lt;jdbc:script</span> <span class="attribute-name">location</span>=<span class="string"><span class="delimiter">&quot;</span><span class="content">${tutorial.insert-data.script}</span><span class="delimiter">&quot;</span></span> <span class="tag">/&gt;</span>
 <span class="tag">&lt;/jdbc:initialize-database&gt;</span></code></pre>
@@ -1060,8 +1116,37 @@ H2 Consoleでデータベースへ接続するまでの手順は以下のとお�
 </li>
 </ol>
 </div>
+<div class="tabbox">
+  <input type="radio" name="tabgroup090306" class="JavaConfigTab" id="tabgroup090306_1" checked><label for="tabgroup090306_1" class="tab">JavaConfig</label>
+  <input type="radio" name="tabgroup090306" class="XMLConfigTab" id="tabgroup090306_2"><label for="tabgroup090306_2" class="tab">XMLConfig</label>
+  <div class="tabcontent" name="JavaConfigContent">
 <table class="tableblock frame-all grid-all stretch">
-<caption class="title">表 4. Run ConfigurationsのArgumentsタブで入力する値</caption>
+<colgroup>
+<col style="width: 30%;">
+<col style="width: 70%;">
+</colgroup>
+<thead>
+<tr>
+<th class="tableblock halign-left valign-top">項目名</th>
+<th class="tableblock halign-left valign-top">値</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td class="tableblock halign-left valign-top"><p class="tableblock">Program arguments</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">org.terasoluna.batch.tutorial.jobs.Job01Config job01</p></td>
+</tr>
+</tbody>
+</table>
+<div class="imageblock">
+<div class="content">
+<img src="./images/ch09/EnvironmentConstruction/Ch09_EnvironmentConstruction_OperationCheck_ExecJob_RunConf_Arg_JavaConfig.png" alt="Run Configurations Arguments tab">
+</div>
+<div class="title">図 11. Run Configurations Arguments tab</div>
+</div>
+  </div>
+  <div class="tabcontent" name="XMLConfigContent">
+<table class="tableblock frame-all grid-all stretch">
 <colgroup>
 <col style="width: 30%;">
 <col style="width: 70%;">
@@ -1083,7 +1168,9 @@ H2 Consoleでデータベースへ接続するまでの手順は以下のとお�
 <div class="content">
 <img src="./images/ch09/EnvironmentConstruction/Ch09_EnvironmentConstruction_OperationCheck_ExecJob_RunConf_Arg.png" alt="Run Configurations Arguments tab">
 </div>
-<div class="title">図 11. Run Configurations Arguments tab</div>
+<div class="title">図 12. Run Configurations Arguments tab</div>
+</div>
+  </div>
 </div>
 <div class="olist arabic">
 <ol class="arabic" start="4">
@@ -1150,7 +1237,7 @@ Run Configurationに設定するパラメータは、実行するジョブによ
 <div class="content">
 <img src="./images/ch09/EnvironmentConstruction/Ch09_EnvironmentConstruction_OperationCheck_ExecJob_Run_Job01.png" alt="Run Job01">
 </div>
-<div class="title">図 12. Run Job01</div>
+<div class="title">図 13. Run Job01</div>
 </div>
 <div class="olist arabic">
 <ol class="arabic" start="3">
@@ -1163,14 +1250,14 @@ Run Configurationに設定するパラメータは、実行するジョブによ
 <div class="listingblock">
 <div class="title">コンソールログ出力例</div>
 <div class="content">
-<pre class="CodeRay highlight"><code data-lang="console">[2020/03/27 10:39:16] [main] [o.s.b.c.l.s.SimpleJobLauncher] [INFO ] Job: [FlowJob: [name=job01]] completed with the following parameters: [{jsr_batch_run_id=168}] and the following status: [COMPLETED] in 172ms</code></pre>
+<pre class="CodeRay highlight"><code data-lang="console">[2020/03/27 10:39:16] [main] [o.s.b.c.l.s.TaskExecutorJobLauncher] [INFO ] Job: [FlowJob: [name=job01]] completed with the following parameters: [{jsr_batch_run_id=168}] and the following status: [COMPLETED] in 172ms</code></pre>
 </div>
 </div>
 <div class="imageblock">
 <div class="content">
 <img src="./images/ch09/EnvironmentConstruction/Ch09_EnvironmentConstruction_OperationCheck_ExecJob_Run_Job01Console.png" alt="Run Job01 console">
 </div>
-<div class="title">図 13. Run Job01 console</div>
+<div class="title">図 14. Run Job01 console</div>
 </div>
 <div class="olist arabic">
 <ol class="arabic" start="4">
@@ -1183,7 +1270,7 @@ Run Configurationに設定するパラメータは、実行するジョブによ
 <div class="content">
 <img src="./images/ch09/EnvironmentConstruction/Ch09_EnvironmentConstruction_OperationCheck_ExecJob_Run_ShowView.png" alt="Show View">
 </div>
-<div class="title">図 14. Show View</div>
+<div class="title">図 15. Show View</div>
 </div>
 <div class="olist arabic">
 <ol class="arabic" start="5">
@@ -1197,7 +1284,7 @@ Run Configurationに設定するパラメータは、実行するジョブによ
 <div class="content">
 <img src="./images/ch09/EnvironmentConstruction/Ch09_EnvironmentConstruction_OperationCheck_ExecJob_Run_DebugView.png" alt="Debug View">
 </div>
-<div class="title">図 15. Debug View</div>
+<div class="title">図 16. Debug View</div>
 </div>
 <div class="admonitionblock tip">
 <table>
@@ -1237,7 +1324,7 @@ Spring Batchメタデータテーブル(詳細は<a href="Ch02_SpringBatchArchit
 <div class="content">
 <img src="./images/ch09/EnvironmentConstruction/Ch09_EnvironmentConstruction_OperationCheck_RefDB_Tables.png" alt="Show Tables">
 </div>
-<div class="title">図 16. Show Tables</div>
+<div class="title">図 17. Show Tables</div>
 </div>
 <div class="olist arabic">
 <ol class="arabic" start="3">
@@ -1250,7 +1337,7 @@ Spring Batchメタデータテーブル(詳細は<a href="Ch02_SpringBatchArchit
 <div class="content">
 <img src="./images/ch09/EnvironmentConstruction/Ch09_EnvironmentConstruction_OperationCheck_RefDB_Sql.png" alt="Sql">
 </div>
-<div class="title">図 17. Sql</div>
+<div class="title">図 18. Sql</div>
 </div>
 <div class="paragraph">
 <p>以下は<code>BATCH_JOB_EXECUTION</code>テーブルを参照した例である。</p>
@@ -1259,7 +1346,7 @@ Spring Batchメタデータテーブル(詳細は<a href="Ch02_SpringBatchArchit
 <div class="content">
 <img src="./images/ch09/EnvironmentConstruction/Ch09_EnvironmentConstruction_OperationCheck_RefDB_BATCH_JOB_EXECUTION.png" alt="Show BATCH_JOB_EXECUTION">
 </div>
-<div class="title">図 18. Show BATCH_JOB_EXECUTION</div>
+<div class="title">図 19. Show BATCH_JOB_EXECUTION</div>
 </div>
 <div class="paragraph">
 <p><code>job01</code>という名前のジョブが実行されたことがわかる。</p>
@@ -1276,7 +1363,7 @@ Spring Batchメタデータテーブル(詳細は<a href="Ch02_SpringBatchArchit
 
   <div class="common-bg">
     <div class="information">
-      TERASOLUNA Batch Framework for Java (5.x) Development Guideline - version 5.5.0.RELEASE, 2023-3-31, commit-id:f6da76a
+      TERASOLUNA Batch Framework for Java (5.x) Development Guideline - version 5.6.0.RELEASE, 2023-3-31, commit-id:f5cbeda
     </div>
     <div class="index">
       <a href="index.html">&gt; INDEX</a>
@@ -1285,7 +1372,7 @@ Spring Batchメタデータテーブル(詳細は<a href="Ch02_SpringBatchArchit
 
   <div class="footer-bg">
     <div class="copyright">
-      &copy; Copyright 2017 NTT DATA Corporation. &copy; Copyright 2017 NTT Corporation.
+      &copy; Copyright 2017 NTT DATA Group Corporation. &copy; Copyright 2017 NTT Corporation.
     </div>
   </div>
 

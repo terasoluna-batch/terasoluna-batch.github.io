@@ -14,7 +14,7 @@
 
 <div class="common-bg">
   <div class="information">
-    TERASOLUNA Batch Framework for Java (5.x) Development Guideline - version 5.5.0.RELEASE, 2023-3-31, commit-id:f6da76a
+    TERASOLUNA Batch Framework for Java (5.x) Development Guideline - version 5.6.0.RELEASE, 2023-3-31, commit-id:f5cbeda
   </div>
   <div class="index">
     <a href="index.html">&gt; INDEX</a>
@@ -89,10 +89,10 @@ MyBatisによるデータベースアクセスの基本的な利用方法は、T
 <div class="ulist">
 <ul>
 <li>
-<p><a href="https://terasolunaorg.github.io/guideline/5.7.1.RELEASE/ja/ArchitectureInDetail/DataAccessDetail/DataAccessCommon.html">データベースアクセス(共通編)</a></p>
+<p><a href="https://terasolunaorg.github.io/guideline/5.9.0.RELEASE/ja/ArchitectureInDetail/DataAccessDetail/DataAccessCommon.html">データベースアクセス(共通編)</a></p>
 </li>
 <li>
-<p><a href="https://terasolunaorg.github.io/guideline/5.7.1.RELEASE/ja/ArchitectureInDetail/DataAccessDetail/DataAccessMyBatis3.html">データベースアクセス(MyBatis3編)</a></p>
+<p><a href="https://terasolunaorg.github.io/guideline/5.9.0.RELEASE/ja/ArchitectureInDetail/DataAccessDetail/DataAccessMyBatis3.html">データベースアクセス(MyBatis3編)</a></p>
 </li>
 </ul>
 </div>
@@ -622,7 +622,7 @@ JDBCドライバに適切な<code>fetchSize</code>を指定することが必須
 <h4 id="Ch05_DBAccess_HowToUse_Config_MapperXML"><a class="anchor" href="#Ch05_DBAccess_HowToUse_Config_MapperXML"></a>Mapper XMLの定義</h4>
 <div class="paragraph">
 <p>TERASOLUNA Batch 5.x特有の説明事項はないので、TERASOLUNA Server 5.x 開発ガイドラインの
-<a href="https://terasolunaorg.github.io/guideline/5.7.1.RELEASE/ja/ArchitectureInDetail/DataAccessDetail/DataAccessMyBatis3.html#dataaccessmybatis3howtodababaseaccess">データベースアクセス処理の実装</a>を参照。</p>
+<a href="https://terasolunaorg.github.io/guideline/5.9.0.RELEASE/ja/ArchitectureInDetail/DataAccessDetail/DataAccessMyBatis3.html#dataaccessmybatis3howtodababaseaccess">データベースアクセス処理の実装</a>を参照。</p>
 </div>
 </div>
 <div class="sect3">
@@ -640,7 +640,7 @@ JDBCドライバに適切な<code>fetchSize</code>を指定することが必須
 <div class="ulist">
 <ul>
 <li>
-<p><code>META-INF/spring/launch-context.xml</code>にすべてのMapper XMLを記述することになる。</p>
+<p><code>LaunchContextConfig.java/launch-context.xml</code>にすべてのMapper XMLを記述することになる。</p>
 </li>
 </ul>
 </div>
@@ -650,7 +650,7 @@ JDBCドライバに適切な<code>fetchSize</code>を指定することが必須
 <div class="ulist">
 <ul>
 <li>
-<p><code>META-INF/jobs/</code>配下のBean定義に、個々のジョブごとに必要なMapper XMLを記述することになる。</p>
+<p><code>jobs/</code>配下のBean定義に、個々のジョブごとに必要なMapper XMLを記述することになる。</p>
 </li>
 </ul>
 </div>
@@ -659,7 +659,7 @@ JDBCドライバに適切な<code>fetchSize</code>を指定することが必須
 </div>
 <div class="paragraph">
 <p>基本的な設定方法については、TERASOLUNA Server 5.x 開発ガイドラインの
-<a href="https://terasolunaorg.github.io/guideline/5.7.1.RELEASE/ja/ArchitectureInDetail/DataAccessDetail/DataAccessMyBatis3.html#dataaccessmybatis3howtousesettingsmybatis-spring">MyBatis-Springの設定</a>を参照。</p>
+<a href="https://terasolunaorg.github.io/guideline/5.9.0.RELEASE/ja/ArchitectureInDetail/DataAccessDetail/DataAccessMyBatis3.html#dataaccessmybatis3howtousesettingsmybatis-spring">MyBatis-Springの設定</a>を参照。</p>
 </div>
 <div class="admonitionblock warning">
 <table>
@@ -698,6 +698,18 @@ JDBCドライバに適切な<code>fetchSize</code>を指定することが必須
 <div class="paragraph">
 <p>以下に設定例を示す。</p>
 </div>
+<div class="tabbox">
+  <input type="radio" name="tabgroup050204" class="JavaConfigTab" id="tabgroup050204_1" checked><label for="tabgroup050204_1" class="tab">JavaConfig</label>
+  <input type="radio" name="tabgroup050204" class="XMLConfigTab" id="tabgroup050204_2"><label for="tabgroup050204_2" class="tab">XMLConfig</label>
+  <div class="tabcontent" name="JavaConfigContent">
+<div class="listingblock">
+<div class="title">org.terasoluna.batch.jobs.common.JobSalesPlan01Config.java</div>
+<div class="content">
+<pre class="CodeRay highlight"><code data-lang="java"><span class="annotation">@MapperScan</span>(value = <span class="string"><span class="delimiter">&quot;</span><span class="content">org.terasoluna.batch.functionaltest.app.repository.plan</span><span class="delimiter">&quot;</span></span>, sqlSessionFactoryRef = <span class="string"><span class="delimiter">&quot;</span><span class="content">jobSqlSessionFactory</span><span class="delimiter">&quot;</span></span>)</code></pre>
+</div>
+</div>
+  </div>
+  <div class="tabcontent" name="XMLConfigContent">
 <div class="listingblock">
 <div class="title">jobSalesPlan01.xml</div>
 <div class="content">
@@ -706,6 +718,8 @@ JDBCドライバに適切な<code>fetchSize</code>を指定することが必須
     <span class="attribute-name">base-package</span>=<span class="string"><span class="delimiter">&quot;</span><span class="content">org.terasoluna.batch.functionaltest.app.repository.plan</span><span class="delimiter">&quot;</span></span>
     <span class="attribute-name">factory-ref</span>=<span class="string"><span class="delimiter">&quot;</span><span class="content">jobSqlSessionFactory</span><span class="delimiter">&quot;</span></span><span class="tag">/&gt;</span></code></pre>
 </div>
+</div>
+  </div>
 </div>
 <table class="tableblock frame-all grid-all stretch">
 <caption class="title">表 4. 説明</caption>
@@ -722,9 +736,9 @@ JDBCドライバに適切な<code>fetchSize</code>を指定することが必須
 <tbody>
 <tr>
 <td class="tableblock halign-left valign-top"><p class="tableblock">(1)</p></td>
-<td class="tableblock halign-left valign-top"><p class="tableblock"><code>&lt;mybatis:scan&gt;</code>の<code>base-package</code>属性にMapper XMLをスキャンするパッケージを設定する。
+<td class="tableblock halign-left valign-top"><p class="tableblock"><code>@MapperScanのvalue属性/&lt;mybatis:scan&gt;要素のbase-package属性</code>にMapper XMLをスキャンするパッケージを設定する。
 指定するのはこのジョブが必要とするMapper XMLが直下に格納されているパッケージである。<br>
-<code>factory-ref</code>属性には<code>jobSqlSessionFactory</code>を設定する。</p></td>
+<code>sqlSessionFactoryRef属性/factory-ref属性</code>には<code>jobSqlSessionFactory</code>を設定する。</p></td>
 </tr>
 </tbody>
 </table>
@@ -800,7 +814,7 @@ MyBatis-Springが提供する<code>MyBatisCursorItemReader</code>によるデー
 </div>
 <div class="paragraph">
 <p><code>MyBatisPagingItemReader</code>は、TERASOLUNA Server 5.x 開発ガイドラインの
-<a href="https://terasolunaorg.github.io/guideline/5.7.1.RELEASE/ja/ArchitectureInDetail/DataAccessDetail/DataAccessMyBatis3.html#entity-sql">Entityのページネーション検索(SQL絞り込み方式)</a>で
+<a href="https://terasolunaorg.github.io/guideline/5.9.0.RELEASE/ja/ArchitectureInDetail/DataAccessDetail/DataAccessMyBatis3.html#entity-sql">Entityのページネーション検索(SQL絞り込み方式)</a>で
 説明している仕組みを利用したItemReaderである。<br>
 一定件数を取得した後に再度SQLを発行するため、データの一貫性が保たれない可能性がある。
 そのため、バッチ処理で利用するには危険であることから、TERASOLUNA Batch 5.xでは原則使用しない。<br>
@@ -811,7 +825,7 @@ TERASOLUNA Batch 5.xではMyBatisと連携して、Cursorを利用し取得デ�
 <code>mybatis:scan</code>によって動的にMapper XMLを登録する方法を採用している。
 そのため、Mapper XMLに対応するインタフェースを用意する必要がある。
 詳細については、TERASOLUNA Server 5.x 開発ガイドラインの
-<a href="https://terasolunaorg.github.io/guideline/5.7.1.RELEASE/ja/ArchitectureInDetail/DataAccessDetail/DataAccessMyBatis3.html#dataaccessmybatis3howtodababaseaccess">データベースアクセス処理の実装</a>を参照。</p>
+<a href="https://terasolunaorg.github.io/guideline/5.9.0.RELEASE/ja/ArchitectureInDetail/DataAccessDetail/DataAccessMyBatis3.html#dataaccessmybatis3howtodababaseaccess">データベースアクセス処理の実装</a>を参照。</p>
 </div>
 <div class="admonitionblock warning">
 <table>
@@ -841,8 +855,63 @@ TERASOLUNA Batch 5.xではMyBatisと連携して、Cursorを利用し取得デ�
 </dd>
 </dl>
 </div>
+<div class="tabbox">
+  <input type="radio" name="tabgroup050205" class="JavaConfigTab" id="tabgroup050205_1" checked><label for="tabgroup050205_1" class="tab">JavaConfig</label>
+  <input type="radio" name="tabgroup050205" class="XMLConfigTab" id="tabgroup050205_2"><label for="tabgroup050205_2" class="tab">XMLConfig</label>
+  <div class="tabcontent" name="JavaConfigContent">
 <div class="listingblock">
-<div class="title">Bean定義</div>
+<div class="content">
+<pre class="CodeRay highlight"><code data-lang="java"><span class="annotation">@Configuration</span>
+<span class="annotation">@Import</span>(JobBaseContextConfig.class)
+<span class="annotation">@ComponentScan</span>(value = {<span class="string"><span class="delimiter">&quot;</span><span class="content">org.terasoluna.batch.functionaltest.app.common</span><span class="delimiter">&quot;</span></span>,
+    <span class="string"><span class="delimiter">&quot;</span><span class="content">org.terasoluna.batch.functionaltest.ch05.transaction.component</span><span class="delimiter">&quot;</span></span>,
+    <span class="string"><span class="delimiter">&quot;</span><span class="content">org.terasoluna.batch.functionaltest.ch05.transaction.listener</span><span class="delimiter">&quot;</span></span>}, scopedProxy = ScopedProxyMode.TARGET_CLASS)
+<span class="annotation">@MapperScan</span>(basePackages = <span class="string"><span class="delimiter">&quot;</span><span class="content">org.terasoluna.batch.functionaltest.ch05.transaction.repository.admin</span><span class="delimiter">&quot;</span></span>, sqlSessionFactoryRef = <span class="string"><span class="delimiter">&quot;</span><span class="content">adminSqlSessionFactory</span><span class="delimiter">&quot;</span></span>)
+<span class="annotation">@MapperScan</span>(basePackages = <span class="string"><span class="delimiter">&quot;</span><span class="content">org.terasoluna.batch.functionaltest.app.repository.mst</span><span class="delimiter">&quot;</span></span>, sqlSessionFactoryRef = <span class="string"><span class="delimiter">&quot;</span><span class="content">jobSqlSessionFactory</span><span class="delimiter">&quot;</span></span>) <span class="comment">// (1)</span>
+<span class="directive">public</span> <span class="type">class</span> <span class="class">OutputAllCustomerList01Config</span> {
+
+    <span class="comment">// (2)</span>
+    <span class="annotation">@Bean</span>
+    <span class="annotation">@StepScope</span>
+    <span class="directive">public</span> MyBatisCursorItemReader&lt;Customer&gt; reader(
+            <span class="annotation">@Qualifier</span>(<span class="string"><span class="delimiter">&quot;</span><span class="content">jobSqlSessionFactory</span><span class="delimiter">&quot;</span></span>) SqlSessionFactory jobSqlSessionFactory) {
+        <span class="keyword">return</span> <span class="keyword">new</span> MyBatisCursorItemReaderBuilder&lt;Customer&gt;()
+                .sqlSessionFactory(jobSqlSessionFactory) <span class="comment">// (4)</span>
+                .queryId(
+                        <span class="string"><span class="delimiter">&quot;</span><span class="content">org.terasoluna.batch.functionaltest.app.repository.mst.CustomerRepository.findAll</span><span class="delimiter">&quot;</span></span>) <span class="comment">// (3)</span>
+                .build();
+    }
+    <span class="comment">// omitted</span>
+    <span class="annotation">@Bean</span>
+    <span class="directive">public</span> Step step01(JobRepository jobRepository,
+                       <span class="annotation">@Qualifier</span>(<span class="string"><span class="delimiter">&quot;</span><span class="content">jobTransactionManager</span><span class="delimiter">&quot;</span></span>) PlatformTransactionManager transactionManager,
+                       ItemReader&lt;Customer&gt; reader,
+                       ItemWriter&lt;Customer&gt; writer,
+                       RetrieveBranchFromContextItemProcessor processor,
+                       BranchMasterReadStepListener listener) {
+        <span class="keyword">return</span> <span class="keyword">new</span> StepBuilder(<span class="string"><span class="delimiter">&quot;</span><span class="content">outputAllCustomerList01.step01</span><span class="delimiter">&quot;</span></span>,
+                jobRepository)
+                .&lt;Customer, Customer&gt; chunk(<span class="integer">10</span>, transactionManager)
+                .reader(reader) <span class="comment">// (5)</span>
+                .processor(processor)
+                .listener(listener)
+                .writer(writer)
+                .build();
+    }
+
+    <span class="annotation">@Bean</span>
+    <span class="directive">public</span> Job outputAllCustomerList01(JobRepository jobRepository,
+                                            Step step01) {
+        <span class="keyword">return</span> <span class="keyword">new</span> JobBuilder(<span class="string"><span class="delimiter">&quot;</span><span class="content">outputAllCustomerList01</span><span class="delimiter">&quot;</span></span>,jobRepository)
+                .start(step01)
+                .build();
+    }
+}</code></pre>
+</div>
+</div>
+  </div>
+  <div class="tabcontent" name="XMLConfigContent">
+<div class="listingblock">
 <div class="content">
 <pre class="CodeRay highlight"><code data-lang="xml"><span class="comment">&lt;!-- (1) --&gt;</span>
 <span class="tag">&lt;mybatis:scan</span>
@@ -866,6 +935,8 @@ TERASOLUNA Batch 5.xではMyBatisと連携して、Cursorを利用し取得デ�
     <span class="tag">&lt;/batch:step&gt;</span>
 <span class="tag">&lt;/batch:job&gt;</span></code></pre>
 </div>
+</div>
+  </div>
 </div>
 <div class="listingblock">
 <div class="title">Mapper XML</div>
@@ -948,15 +1019,15 @@ TERASOLUNA Batch 5.xではMyBatisと連携して、Cursorを利用し取得デ�
 </tr>
 <tr>
 <td class="tableblock halign-left valign-top"><p class="tableblock">(3)</p></td>
-<td class="tableblock halign-left valign-top"><p class="tableblock"><code>queryId</code>属性に、(7)で定義しているSQLのIDを(6)の<code>namespace</code> + <code>&lt;メソッド名&gt;</code>で指定する。</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><code>MyBatisCursorItemReaderBuilderのqueryIdメソッド/&lt;bean&gt;要素のqueryId属性</code>に、(7)で定義しているSQLのIDを(6)の<code>namespace</code> + <code>&lt;メソッド名&gt;</code>で指定する。</p></td>
 </tr>
 <tr>
 <td class="tableblock halign-left valign-top"><p class="tableblock">(4)</p></td>
-<td class="tableblock halign-left valign-top"><p class="tableblock"><code>sqlSessionFactory-ref</code>属性に、アクセスするデータベースの<code>SqlSessionFactory</code>を指定する。</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><code>MyBatisCursorItemReaderBuilderのsqlSessionFactoryメソッド/&lt;bean&gt;要素のsqlSessionFactory-ref属性</code>に、アクセスするデータベースの<code>SqlSessionFactory</code>を指定する。</p></td>
 </tr>
 <tr>
 <td class="tableblock halign-left valign-top"><p class="tableblock">(5)</p></td>
-<td class="tableblock halign-left valign-top"><p class="tableblock">(2)で定義した<code>MyBatisCursorItemReader</code>を<code>reader</code>属性に指定する。</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">(2)で定義した<code>MyBatisCursorItemReader</code>を<code>StepBuilderのreaderメソッド/&lt;batch:chunk&gt;要素のreader属性</code>に指定する。</p></td>
 </tr>
 <tr>
 <td class="tableblock halign-left valign-top"><p class="tableblock">(6)</p></td>
@@ -997,8 +1068,57 @@ TERASOLUNA Batch 5.xではMyBatisと連携して、Cursorを利用し取得デ�
 <p>タスクレットモデルではチャンクモデルと異なり、<code>Tasklet</code>実装においてリソースを明示的にオープン/クローズする必要がある。
 また、入力データの読み込みも明示的に行う。</p>
 </div>
+<div class="tabbox">
+  <input type="radio" name="tabgroup050206" class="JavaConfigTab" id="tabgroup050206_1" checked><label for="tabgroup050206_1" class="tab">JavaConfig</label>
+  <input type="radio" name="tabgroup050206" class="XMLConfigTab" id="tabgroup050206_2"><label for="tabgroup050206_2" class="tab">XMLConfig</label>
+  <div class="tabcontent" name="JavaConfigContent">
 <div class="listingblock">
-<div class="title">Bean定義</div>
+<div class="content">
+<pre class="CodeRay highlight"><code data-lang="java"><span class="annotation">@Configuration</span>
+<span class="annotation">@Import</span>(JobBaseContextConfig.class)
+<span class="annotation">@ComponentScan</span>(value = {<span class="string"><span class="delimiter">&quot;</span><span class="content">org.terasoluna.batch.functionaltest.app.common</span><span class="delimiter">&quot;</span></span>,
+    <span class="string"><span class="delimiter">&quot;</span><span class="content">org.terasoluna.batch.functionaltest.ch07.jobmanagement</span><span class="delimiter">&quot;</span></span>}, scopedProxy = ScopedProxyMode.TARGET_CLASS)
+<span class="annotation">@MapperScan</span>(basePackages = <span class="string"><span class="delimiter">&quot;</span><span class="content">org.terasoluna.batch.functionaltest.app.repository.plan</span><span class="delimiter">&quot;</span></span>, sqlSessionFactoryRef = <span class="string"><span class="delimiter">&quot;</span><span class="content">jobSqlSessionFactory</span><span class="delimiter">&quot;</span></span>) <span class="comment">// (1)</span>
+<span class="directive">public</span> <span class="type">class</span> <span class="class">CustomizedJobExitCodeTaskletJobConfig</span> {
+
+    <span class="comment">// (2)</span>
+    <span class="annotation">@Bean</span>
+    <span class="directive">public</span> MyBatisCursorItemReader&lt;SalesPlanSummary&gt; summarizeDetails(
+            <span class="annotation">@Qualifier</span>(<span class="string"><span class="delimiter">&quot;</span><span class="content">jobSqlSessionFactory</span><span class="delimiter">&quot;</span></span>) SqlSessionFactory jobSqlSessionFactory) {
+        <span class="keyword">return</span> <span class="keyword">new</span> MyBatisCursorItemReaderBuilder&lt;SalesPlanSummary&gt;()
+                .sqlSessionFactory(jobSqlSessionFactory) <span class="comment">// (4)</span>
+                .queryId(
+                        <span class="string"><span class="delimiter">&quot;</span><span class="content">org.terasoluna.batch.functionaltest.app.repository.plan.SalesPlanDetailRepository.summarizeDetails</span><span class="delimiter">&quot;</span></span>) <span class="comment">// (3)</span>
+                .build();
+    }
+    <span class="comment">// omitted</span>
+    <span class="annotation">@Bean</span>
+    <span class="directive">public</span> Step step01(JobRepository jobRepository,
+                       <span class="annotation">@Qualifier</span>(<span class="string"><span class="delimiter">&quot;</span><span class="content">jobTransactionManager</span><span class="delimiter">&quot;</span></span>) PlatformTransactionManager transactionManager,
+                       CheckAmountTasklet tasklet) {
+        <span class="keyword">return</span> <span class="keyword">new</span> StepBuilder(<span class="string"><span class="delimiter">&quot;</span><span class="content">customizedJobExitCodeTaskletJob.step01</span><span class="delimiter">&quot;</span></span>,
+                jobRepository)
+                .tasklet(tasklet, transactionManager)
+                .build();
+    }
+
+    <span class="annotation">@Bean</span>
+    <span class="directive">public</span> Job customizedJobExitCodeTaskletJob(JobRepository jobRepository,
+                                                 Step step01,
+                                                 JobExitCodeChangeListener jobExitCodeChangeListener) {
+        <span class="keyword">return</span> <span class="keyword">new</span> JobBuilder(<span class="string"><span class="delimiter">&quot;</span><span class="content">customizedJobExitCodeTaskletJob</span><span class="delimiter">&quot;</span></span>,
+                jobRepository)
+                .start(step01)
+                .listener(jobExitCodeChangeListener)
+                .build();
+    }
+    <span class="comment">// omitted</span>
+}</code></pre>
+</div>
+</div>
+  </div>
+  <div class="tabcontent" name="XMLConfigContent">
+<div class="listingblock">
 <div class="content">
 <pre class="CodeRay highlight"><code data-lang="xml"><span class="comment">&lt;!-- (1) --&gt;</span>
 <span class="tag">&lt;mybatis:scan</span>
@@ -1017,6 +1137,8 @@ TERASOLUNA Batch 5.xではMyBatisと連携して、Cursorを利用し取得デ�
     <span class="comment">&lt;!-- omitted --&gt;</span>
 <span class="tag">&lt;/batch:job&gt;</span></code></pre>
 </div>
+</div>
+  </div>
 </div>
 <div class="listingblock">
 <div class="title">Mapper XML</div>
@@ -1119,11 +1241,11 @@ TERASOLUNA Batch 5.xではMyBatisと連携して、Cursorを利用し取得デ�
 </tr>
 <tr>
 <td class="tableblock halign-left valign-top"><p class="tableblock">(3)</p></td>
-<td class="tableblock halign-left valign-top"><p class="tableblock"><code>queryId</code>属性に、(6)で定義しているSQLのIDを(5)の<code>namespace</code> + <code>&lt;メソッド名&gt;</code>で指定する。</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><code>MyBatisCursorItemReaderBuilderのqueryIdメソッド/&lt;bean&gt;要素のqueryId属性</code>に、(7)で定義しているSQLのIDを(6)の<code>namespace</code> + <code>&lt;メソッド名&gt;</code>で指定する。</p></td>
 </tr>
 <tr>
 <td class="tableblock halign-left valign-top"><p class="tableblock">(4)</p></td>
-<td class="tableblock halign-left valign-top"><p class="tableblock"><code>sqlSessionFactory-ref</code>属性に、アクセスするデータベースの<code>SqlSessionFactory</code>を指定する。</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><code>MyBatisCursorItemReaderBuilderのsqlSessionFactoryメソッド/&lt;bean&gt;要素のsqlSessionFactory-ref属性</code>に、アクセスするデータベースの<code>SqlSessionFactory</code>を指定する。</p></td>
 </tr>
 <tr>
 <td class="tableblock halign-left valign-top"><p class="tableblock">(5)</p></td>
@@ -1196,8 +1318,39 @@ Bean定義にてMap形式でジョブパラメータから値を取得し、キ�
 <span class="comment">&lt;!-- omitted --&gt;</span></code></pre>
 </div>
 </div>
+<div class="tabbox">
+  <input type="radio" name="tabgroup050207" class="JavaConfigTab" id="tabgroup050207_1" checked><label for="tabgroup050207_1" class="tab">JavaConfig</label>
+  <input type="radio" name="tabgroup050207" class="XMLConfigTab" id="tabgroup050207_2"><label for="tabgroup050207_2" class="tab">XMLConfig</label>
+  <div class="tabcontent" name="JavaConfigContent">
 <div class="listingblock">
-<div class="title">Bean定義</div>
+<div class="content">
+<pre class="CodeRay highlight"><code data-lang="java"><span class="comment">// omitted</span>
+<span class="comment">// (2)</span>
+<span class="annotation">@Bean</span>
+<span class="annotation">@StepScope</span>
+<span class="directive">public</span> MyBatisCursorItemReader&lt;SalesPerformanceSummary&gt; reader(
+        <span class="annotation">@Qualifier</span>(<span class="string"><span class="delimiter">&quot;</span><span class="content">jobSqlSessionFactory</span><span class="delimiter">&quot;</span></span>) SqlSessionFactory jobSqlSessionFactory,
+        <span class="annotation">@Value</span>(<span class="string"><span class="delimiter">&quot;</span><span class="content">#{jobParameters['year']}</span><span class="delimiter">&quot;</span></span>) <span class="predefined-type">Integer</span> year,
+        <span class="annotation">@Value</span>(<span class="string"><span class="delimiter">&quot;</span><span class="content">#{jobParameters['month']}</span><span class="delimiter">&quot;</span></span>) <span class="predefined-type">Integer</span> month,
+        <span class="annotation">@Value</span>(<span class="string"><span class="delimiter">&quot;</span><span class="content">#{stepExecutionContext['dataSize']}</span><span class="delimiter">&quot;</span></span>) <span class="predefined-type">Integer</span> dataSize,
+        <span class="annotation">@Value</span>(<span class="string"><span class="delimiter">&quot;</span><span class="content">#{stepExecutionContext['offset']}</span><span class="delimiter">&quot;</span></span>) <span class="predefined-type">Integer</span> offset) {
+    <span class="predefined-type">Map</span>&lt;<span class="predefined-type">String</span>, <span class="predefined-type">Object</span>&gt; parameterValues = <span class="keyword">new</span> <span class="predefined-type">HashMap</span>&lt;&gt;();
+    parameterValues.put(<span class="string"><span class="delimiter">&quot;</span><span class="content">year</span><span class="delimiter">&quot;</span></span>, year); <span class="comment">// (4)</span>
+    parameterValues.put(<span class="string"><span class="delimiter">&quot;</span><span class="content">month</span><span class="delimiter">&quot;</span></span>, month); <span class="comment">// (4)</span>
+    <span class="comment">// omitted</span>
+    <span class="keyword">return</span> <span class="keyword">new</span> MyBatisCursorItemReaderBuilder&lt;SalesPerformanceSummary&gt;()
+            .sqlSessionFactory(jobSqlSessionFactory)
+            .queryId(
+                    <span class="string"><span class="delimiter">&quot;</span><span class="content">org.terasoluna.batch.functionaltest.ch08.parallelandmultiple.repository.SalesSummaryRepository.findByYearAndMonth</span><span class="delimiter">&quot;</span></span>)
+            .parameterValues(parameterValues) <span class="comment">// (3)</span>
+            .build();
+}
+<span class="comment">// omited</span></code></pre>
+</div>
+</div>
+  </div>
+  <div class="tabcontent" name="XMLConfigContent">
+<div class="listingblock">
 <div class="content">
 <pre class="CodeRay highlight"><code data-lang="xml"><span class="comment">&lt;!-- omitted --&gt;</span>
 
@@ -1219,6 +1372,8 @@ Bean定義にてMap形式でジョブパラメータから値を取得し、キ�
 
 <span class="comment">&lt;!-- omitted --&gt;</span></code></pre>
 </div>
+</div>
+  </div>
 </div>
 <table class="tableblock frame-all grid-all stretch">
 <caption class="title">表 7. 説明</caption>
@@ -1243,12 +1398,12 @@ Bean定義にてMap形式でジョブパラメータから値を取得し、キ�
 </tr>
 <tr>
 <td class="tableblock halign-left valign-top"><p class="tableblock">(3)</p></td>
-<td class="tableblock halign-left valign-top"><p class="tableblock"><code>&lt;property&gt;</code>要素の<code>name</code>属性に<code>parameterValues</code>を設定する。</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><code>MyBatisCursorItemReaderBuilderのparameterValuesメソッド/&lt;property&gt;要素のname属性にparameterValues</code>を設定する。</p></td>
 </tr>
 <tr>
 <td class="tableblock halign-left valign-top"><p class="tableblock">(4)</p></td>
 <td class="tableblock halign-left valign-top"><p class="tableblock">検索条件にする値をジョブパラメータから取得し、キーに設定することで検索条件を指定する。
-SQLの引数が数値型で定義されているため、<code>value-type</code>で<code>Integer</code>に変換して渡している。</p></td>
+SQLの引数が数値型で定義されているため、<code>Integer</code>に変換して渡している。</p></td>
 </tr>
 </tbody>
 </table>
@@ -1345,21 +1500,52 @@ SQLの引数が数値型で定義されているため、<code>value-type</code>
 }</code></pre>
 </div>
 </div>
+<div class="tabbox">
+  <input type="radio" name="tabgroup050208" class="JavaConfigTab" id="tabgroup050208_1" checked><label for="tabgroup050208_1" class="tab">JavaConfig</label>
+  <input type="radio" name="tabgroup050208" class="XMLConfigTab" id="tabgroup050208_2"><label for="tabgroup050208_2" class="tab">XMLConfig</label>
+  <div class="tabcontent" name="JavaConfigContent">
 <div class="listingblock">
-<div class="title">Bean定義</div>
+<div class="content">
+<pre class="CodeRay highlight"><code data-lang="java"><span class="annotation">@Configuration</span>
+<span class="annotation">@Import</span>(JobBaseContextConfig.class)
+<span class="annotation">@ComponentScan</span>({ <span class="string"><span class="delimiter">&quot;</span><span class="content">org.terasoluna.batch.functionaltest.app.common</span><span class="delimiter">&quot;</span></span>,
+        <span class="string"><span class="delimiter">&quot;</span><span class="content">org.terasoluna.batch.functionaltest.ch05.dbaccess</span><span class="delimiter">&quot;</span></span> })
+<span class="annotation">@MapperScan</span>(basePackages = {
+        <span class="string"><span class="delimiter">&quot;</span><span class="content">org.terasoluna.batch.functionaltest.app.repository</span><span class="delimiter">&quot;</span></span>,
+        <span class="string"><span class="delimiter">&quot;</span><span class="content">org.terasoluna.batch.functionaltest.ch05.dbaccess.repository</span><span class="delimiter">&quot;</span></span> }, sqlSessionTemplateRef = <span class="string"><span class="delimiter">&quot;</span><span class="content">batchModeSqlSessionTemplate</span><span class="delimiter">&quot;</span></span>) <span class="comment">// (3)</span>
+<span class="directive">public</span> <span class="type">class</span> <span class="class">DBAccessByItemProcessorConfig</span> {
+
+    <span class="comment">// (4)</span>
+    <span class="annotation">@Bean</span>
+    <span class="directive">public</span> MyBatisCursorItemReader&lt;SalesPerformanceDetail&gt; reader(
+            <span class="annotation">@Qualifier</span>(<span class="string"><span class="delimiter">&quot;</span><span class="content">jobSqlSessionFactory</span><span class="delimiter">&quot;</span></span>) SqlSessionFactory jobSqlSessionFactory) {
+        <span class="keyword">return</span> <span class="keyword">new</span> MyBatisCursorItemReaderBuilder&lt;SalesPerformanceDetail&gt;()
+                .sqlSessionFactory(jobSqlSessionFactory)
+                .queryId(
+                        <span class="string"><span class="delimiter">&quot;</span><span class="content">org.terasoluna.batch.functionaltest.app.repository.performance.SalesPerformanceDetailRepository.findAll</span><span class="delimiter">&quot;</span></span>)
+                .build();
+    }
+    <span class="comment">// omitted</span></code></pre>
+</div>
+</div>
+  </div>
+  <div class="tabcontent" name="XMLConfigContent">
+<div class="listingblock">
 <div class="content">
 <pre class="CodeRay highlight"><code data-lang="xml"><span class="comment">&lt;!-- (3) --&gt;</span>
 <span class="tag">&lt;mybatis:scan</span>
-        <span class="attribute-name">base-package</span>=<span class="string"><span class="delimiter">&quot;</span><span class="content">org.terasoluna.batch.functionaltest.app.repository</span><span class="delimiter">&quot;</span></span>
-        <span class="attribute-name">template-ref</span>=<span class="string"><span class="delimiter">&quot;</span><span class="content">batchModeSqlSessionTemplate</span><span class="delimiter">&quot;</span></span><span class="tag">/&gt;</span>
+<span class="attribute-name">base-package</span>=<span class="string"><span class="delimiter">&quot;</span><span class="content">org.terasoluna.batch.functionaltest.app.repository</span><span class="delimiter">&quot;</span></span>
+<span class="attribute-name">template-ref</span>=<span class="string"><span class="delimiter">&quot;</span><span class="content">batchModeSqlSessionTemplate</span><span class="delimiter">&quot;</span></span><span class="tag">/&gt;</span>
 
 <span class="comment">&lt;!-- (4) --&gt;</span>
 <span class="tag">&lt;bean</span> <span class="attribute-name">id</span>=<span class="string"><span class="delimiter">&quot;</span><span class="content">reader</span><span class="delimiter">&quot;</span></span> <span class="attribute-name">class</span>=<span class="string"><span class="delimiter">&quot;</span><span class="content">org.mybatis.spring.batch.MyBatisCursorItemReader</span><span class="delimiter">&quot;</span></span>
-      <span class="attribute-name">p:queryId</span>=<span class="string"><span class="delimiter">&quot;</span><span class="content">org.terasoluna.batch.functionaltest.app.repository.performance.SalesPerformanceDetailRepository.findAll</span><span class="delimiter">&quot;</span></span>
-      <span class="attribute-name">p:sqlSessionFactory-ref</span>=<span class="string"><span class="delimiter">&quot;</span><span class="content">jobSqlSessionFactory</span><span class="delimiter">&quot;</span></span><span class="tag">/&gt;</span>
+<span class="attribute-name">p:queryId</span>=<span class="string"><span class="delimiter">&quot;</span><span class="content">org.terasoluna.batch.functionaltest.app.repository.performance.SalesPerformanceDetailRepository.findAll</span><span class="delimiter">&quot;</span></span>
+<span class="attribute-name">p:sqlSessionFactory-ref</span>=<span class="string"><span class="delimiter">&quot;</span><span class="content">jobSqlSessionFactory</span><span class="delimiter">&quot;</span></span><span class="tag">/&gt;</span>
 
 <span class="comment">&lt;!-- omitted job definition --&gt;</span></code></pre>
 </div>
+</div>
+  </div>
 </div>
 <div class="paragraph">
 <p>MapperインタフェースとMapper XMLについては<a href="#Ch05_DBAccess_HowToUse_Input_MyBatisItemReader">MyBatisCursorItemReader</a>
@@ -1387,13 +1573,13 @@ SQLの引数が数値型で定義されているため、<code>value-type</code>
 <tr>
 <td class="tableblock halign-left valign-top"><p class="tableblock">(3)</p></td>
 <td class="tableblock halign-left valign-top"><p class="tableblock">Mapper XMLの登録を行う。<br>
-<code>template-ref</code>属性に<code>BATCH</code>設定されている<code>batchModeSqlSessionTemplate</code>を指定することで、
+<code>@MapperScanのsqlSessionTemplateRef属性/&lt;mybatis:scan&gt;要素のtemplate-ref属性</code>に<code>BATCH</code>設定されている<code>batchModeSqlSessionTemplate</code>を指定することで、
 ItemProcessorでのデータベースアクセスは<code>BATCH</code>となる。</p></td>
 </tr>
 <tr>
 <td class="tableblock halign-left valign-top"><p class="tableblock">(4)</p></td>
 <td class="tableblock halign-left valign-top"><p class="tableblock"><code>MyBatisCursorItemReader</code>を定義する。<br>
-<code>sqlSessionFactory-ref</code>属性に、アクセスするデータベースの<code>SqlSessionFactory</code>を指定する。</p></td>
+<code>MyBatisCursorItemReaderBuilderのsqlSessionFactoryメソッド/&lt;bean&gt;要素のsqlSessionFactory-ref属性</code>に、アクセスするデータベースの<code>SqlSessionFactory</code>を指定する。</p></td>
 </tr>
 </tbody>
 </table>
@@ -1409,6 +1595,33 @@ ItemProcessorでのデータベースアクセスは<code>BATCH</code>となる�
 <p>以下に示す定義例のように、MyBatisCursorItemReaderとMyBatisBatchItemWriterで異なる<code>ExecutorType</code>を使用しても問題ない。
 これは、MyBatisCursorItemReaderによるトランザクションはItemWriterのトランザクションとは別であるからである。</p>
 </div>
+<div class="tabbox">
+  <input type="radio" name="tabgroup050209" class="JavaConfigTab" id="tabgroup050209_1" checked><label for="tabgroup050209_1" class="tab">JavaConfig</label>
+  <input type="radio" name="tabgroup050209" class="XMLConfigTab" id="tabgroup050209_2"><label for="tabgroup050209_2" class="tab">XMLConfig</label>
+  <div class="tabcontent" name="JavaConfigContent">
+<div class="listingblock">
+<div class="content">
+<pre class="CodeRay highlight"><code data-lang="java"><span class="annotation">@Bean</span>
+<span class="directive">public</span> MyBatisCursorItemReader reader(
+        <span class="annotation">@Qualifier</span>(<span class="string"><span class="delimiter">&quot;</span><span class="content">jobSqlSessionFactory</span><span class="delimiter">&quot;</span></span>) SqlSessionFactory jobSqlSessionFactory) {
+    <span class="keyword">return</span> <span class="keyword">new</span> MyBatisCursorItemReaderBuilder()
+            .sqlSessionFactory(jobSqlSessionFactory)
+            .queryId(<span class="string"><span class="delimiter">&quot;</span><span class="content">xxx</span><span class="delimiter">&quot;</span></span>)
+            .build();
+}
+
+<span class="annotation">@Bean</span>
+<span class="directive">public</span> MyBatisBatchItemWriter writer(
+        SqlSessionTemplate batchModeSqlSessionTemplate) {
+    <span class="keyword">return</span> <span class="keyword">new</span> MyBatisBatchItemWriterBuilder()
+            .statementId(<span class="string"><span class="delimiter">&quot;</span><span class="content">yyy</span><span class="delimiter">&quot;</span></span>)
+            .sqlSessionTemplate(batchModeSqlSessionTemplate)
+            .build();
+}</code></pre>
+</div>
+</div>
+  </div>
+  <div class="tabcontent" name="XMLConfigContent">
 <div class="listingblock">
 <div class="content">
 <pre class="CodeRay highlight"><code data-lang="xml"><span class="tag">&lt;bean</span> <span class="attribute-name">id</span>=<span class="string"><span class="delimiter">&quot;</span><span class="content">reader</span><span class="delimiter">&quot;</span></span> <span class="attribute-name">class</span>=<span class="string"><span class="delimiter">&quot;</span><span class="content">org.mybatis.spring.batch.MyBatisCursorItemReader</span><span class="delimiter">&quot;</span></span>
@@ -1419,6 +1632,8 @@ ItemProcessorでのデータベースアクセスは<code>BATCH</code>となる�
       <span class="attribute-name">p:statementId</span>=<span class="string"><span class="delimiter">&quot;</span><span class="content">yyy</span><span class="delimiter">&quot;</span></span>
       <span class="attribute-name">p:sqlSessionTemplate-ref</span>=<span class="string"><span class="delimiter">&quot;</span><span class="content">batchModeSqlSessionTemplate</span><span class="delimiter">&quot;</span></span><span class="tag">/&gt;</span></code></pre>
 </div>
+</div>
+  </div>
 </div>
 </td>
 </tr>
@@ -1433,12 +1648,48 @@ ItemProcessorでのデータベースアクセスは<code>BATCH</code>となる�
 TERASOLUNA Batch 5.xでは、タスクレットモデルでMapperインタフェースを利用してデータベースアクセスする場合はCursorを利用することを基本とする。<br>
 Cursor同様に大量データを処理するうえで、ResultHandlerを利用することも有効である。
 ResultHandlerについては、TERASOLUNA Server 5.x 開発ガイドラインの
-<a href="https://terasolunaorg.github.io/guideline/5.7.1.RELEASE/ja/ArchitectureInDetail/DataAccessDetail/DataAccessMyBatis3.html#resulthandler">ResultHandlerの実装</a>を参照。</p>
+<a href="https://terasolunaorg.github.io/guideline/5.9.0.RELEASE/ja/ArchitectureInDetail/DataAccessDetail/DataAccessMyBatis3.html#resulthandler">ResultHandlerの実装</a>を参照。</p>
 </dd>
 </dl>
 </div>
+<div class="tabbox">
+  <input type="radio" name="tabgroup050210" class="JavaConfigTab" id="tabgroup050210_1" checked><label for="tabgroup050210_1" class="tab">JavaConfig</label>
+  <input type="radio" name="tabgroup050210" class="XMLConfigTab" id="tabgroup050210_2"><label for="tabgroup050210_2" class="tab">XMLConfig</label>
+  <div class="tabcontent" name="JavaConfigContent">
 <div class="listingblock">
-<div class="title">Bean定義</div>
+<div class="content">
+<pre class="CodeRay highlight"><code data-lang="java"><span class="annotation">@Configuration</span>
+<span class="annotation">@Import</span>(JobBaseContextConfig.class)
+<span class="annotation">@ComponentScan</span>({ <span class="string"><span class="delimiter">&quot;</span><span class="content">org.terasoluna.batch.functionaltest.app.common</span><span class="delimiter">&quot;</span></span>,
+        <span class="string"><span class="delimiter">&quot;</span><span class="content">org.terasoluna.batch.functionaltest.ch05.dbaccess</span><span class="delimiter">&quot;</span></span> })
+<span class="annotation">@MapperScan</span>(basePackages = {
+        <span class="string"><span class="delimiter">&quot;</span><span class="content">org.terasoluna.batch.functionaltest.ch05.dbaccess.repository</span><span class="delimiter">&quot;</span></span>,
+        <span class="string"><span class="delimiter">&quot;</span><span class="content">org.terasoluna.batch.functionaltest.app.repository</span><span class="delimiter">&quot;</span></span> }, sqlSessionFactoryRef = <span class="string"><span class="delimiter">&quot;</span><span class="content">jobSqlSessionFactory</span><span class="delimiter">&quot;</span></span>) <span class="comment">// (1)</span>
+<span class="directive">public</span> <span class="type">class</span> <span class="class">JobSalesPlanCursorTaskletConfig</span> {
+
+    <span class="annotation">@Bean</span>
+    <span class="directive">public</span> Step step01(JobRepository jobRepository,
+                       SalesPlanCursorTasklet tasklet,
+                       <span class="annotation">@Qualifier</span>(<span class="string"><span class="delimiter">&quot;</span><span class="content">jobTransactionManager</span><span class="delimiter">&quot;</span></span>) PlatformTransactionManager transactionManager) {
+        <span class="keyword">return</span> <span class="keyword">new</span> StepBuilder(<span class="string"><span class="delimiter">&quot;</span><span class="content">jobSalesPlanCursorTasklet.step01</span><span class="delimiter">&quot;</span></span>,
+                jobRepository)
+                .tasklet(tasklet, transactionManager)
+                .build();
+    }
+
+    <span class="annotation">@Bean</span>
+    <span class="directive">public</span> Job jobSalesPlanCursorTasklet(JobRepository jobRepository,
+                                         Step step01) {
+        <span class="keyword">return</span> <span class="keyword">new</span> JobBuilder(<span class="string"><span class="delimiter">&quot;</span><span class="content">jobSalesPlanCursorTasklet</span><span class="delimiter">&quot;</span></span>, jobRepository)
+                .start(step01)
+                .build();
+    }
+}</code></pre>
+</div>
+</div>
+  </div>
+  <div class="tabcontent" name="XMLConfigContent">
+<div class="listingblock">
 <div class="content">
 <pre class="CodeRay highlight"><code data-lang="xml"><span class="comment">&lt;!-- (1) --&gt;</span>
 <span class="tag">&lt;mybatis:scan</span>
@@ -1451,6 +1702,8 @@ ResultHandlerについては、TERASOLUNA Server 5.x 開発ガイドラインの
         <span class="tag">&lt;/batch:step&gt;</span>
     <span class="tag">&lt;/batch:job&gt;</span></code></pre>
 </div>
+</div>
+  </div>
 </div>
 <div class="listingblock">
 <div class="title">Mapper XML</div>
@@ -1660,8 +1913,58 @@ MyBatis-Springが提供する<code>MyBatisBatchItemWriter</code>によるデー�
 </dd>
 </dl>
 </div>
+<div class="tabbox">
+  <input type="radio" name="tabgroup050211" class="JavaConfigTab" id="tabgroup050211_1" checked><label for="tabgroup050211_1" class="tab">JavaConfig</label>
+  <input type="radio" name="tabgroup050211" class="XMLConfigTab" id="tabgroup050211_2"><label for="tabgroup050211_2" class="tab">XMLConfig</label>
+  <div class="tabcontent" name="JavaConfigContent">
 <div class="listingblock">
-<div class="title">Bean定義</div>
+<div class="content">
+<pre class="CodeRay highlight"><code data-lang="java"><span class="annotation">@Configuration</span>
+<span class="annotation">@Import</span>(JobBaseContextConfig.class)
+<span class="annotation">@ComponentScan</span>(<span class="string"><span class="delimiter">&quot;</span><span class="content">org.terasoluna.batch.functionaltest.app.common</span><span class="delimiter">&quot;</span></span>)
+<span class="annotation">@MapperScan</span>(basePackages = <span class="string"><span class="delimiter">&quot;</span><span class="content">org.terasoluna.batch.functionaltest.app.repository.performance</span><span class="delimiter">&quot;</span></span>,
+                            sqlSessionFactoryRef = <span class="string"><span class="delimiter">&quot;</span><span class="content">jobSqlSessionFactory</span><span class="delimiter">&quot;</span></span>) <span class="comment">// (1)</span>
+<span class="directive">public</span> <span class="type">class</span> <span class="class">DBAccessByMaybatisScanConfig</span> {
+    <span class="comment">// omitted</span>
+    <span class="comment">// (2)</span>
+    <span class="annotation">@Bean</span>
+    <span class="directive">public</span> MyBatisBatchItemWriter&lt;SalesPerformanceSummary&gt; writer(
+            <span class="annotation">@Qualifier</span>(<span class="string"><span class="delimiter">&quot;</span><span class="content">jobSqlSessionFactory</span><span class="delimiter">&quot;</span></span>) SqlSessionFactory jobSqlSessionFactory,
+            SqlSessionTemplate batchModeSqlSessionTemplate) {
+        <span class="keyword">return</span> <span class="keyword">new</span> MyBatisBatchItemWriterBuilder&lt;SalesPerformanceSummary&gt;()
+                .sqlSessionFactory(jobSqlSessionFactory) <span class="comment">// (4)</span>
+                .statementId(
+                        <span class="string"><span class="delimiter">&quot;</span><span class="content">org.terasoluna.batch.functionaltest.app.repository.performance.SalesPerformanceSummaryRepository.create</span><span class="delimiter">&quot;</span></span>) <span class="comment">// (3)</span>
+                .sqlSessionTemplate(batchModeSqlSessionTemplate)
+                .build();
+    }
+
+    <span class="annotation">@Bean</span>
+    <span class="directive">public</span> Step step01(JobRepository jobRepository,
+                       <span class="annotation">@Qualifier</span>(<span class="string"><span class="delimiter">&quot;</span><span class="content">jobTransactionManager</span><span class="delimiter">&quot;</span></span>) PlatformTransactionManager transactionManager,
+                       ItemReader&lt;SalesPerformanceSummary&gt; reader,
+                       ItemWriter&lt;SalesPerformanceSummary&gt; writer) {
+        <span class="keyword">return</span> <span class="keyword">new</span> StepBuilder(<span class="string"><span class="delimiter">&quot;</span><span class="content">DBAccessByMaybatisScan.step01</span><span class="delimiter">&quot;</span></span>,
+                jobRepository)
+                .&lt;SalesPerformanceSummary, SalesPerformanceSummary&gt; chunk(<span class="integer">10</span>, transactionManager)
+                .reader(reader)
+                .writer(writer) <span class="comment">// (5)</span>
+                .build();
+    }
+
+    <span class="annotation">@Bean</span>
+    <span class="directive">public</span> Job DBAccessByMaybatisScan(JobRepository jobRepository,
+                                            Step step01,
+                                            JobExecutionLoggingListener listener) {
+        <span class="keyword">return</span> <span class="keyword">new</span> JobBuilder(<span class="string"><span class="delimiter">&quot;</span><span class="content">DBAccessByMaybatisScan</span><span class="delimiter">&quot;</span></span>,
+                jobRepository).start(step01).listener(listener).build();
+    }
+}</code></pre>
+</div>
+</div>
+  </div>
+  <div class="tabcontent" name="XMLConfigContent">
+<div class="listingblock">
 <div class="content">
 <pre class="CodeRay highlight"><code data-lang="xml"><span class="comment">&lt;!-- (1) --&gt;</span>
 <span class="tag">&lt;mybatis:scan</span> <span class="attribute-name">base-package</span>=<span class="string"><span class="delimiter">&quot;</span><span class="content">org.terasoluna.batch.functionaltest.app.repository.performance</span><span class="delimiter">&quot;</span></span>
@@ -1684,6 +1987,8 @@ MyBatis-Springが提供する<code>MyBatisBatchItemWriter</code>によるデー�
     <span class="comment">&lt;!-- omitted --&gt;</span>
 <span class="tag">&lt;/batch:job&gt;</span></code></pre>
 </div>
+</div>
+  </div>
 </div>
 <div class="listingblock">
 <div class="title">Mapper XML</div>
@@ -1741,16 +2046,16 @@ MyBatis-Springが提供する<code>MyBatisBatchItemWriter</code>によるデー�
 </tr>
 <tr>
 <td class="tableblock halign-left valign-top"><p class="tableblock">(3)</p></td>
-<td class="tableblock halign-left valign-top"><p class="tableblock"><code>statementId</code>属性に、(7)で定義しているSQLのIDを(6)の<code>namespace</code> + <code>&lt;メソッド名&gt;</code>で指定する。</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><code>MyBatisBatchItemWriterBuilderのstatementIdメソッド/&lt;bean&gt;要素のstatementId属性</code>に、(7)で定義しているSQLのIDを(6)の<code>namespace</code> + <code>&lt;メソッド名&gt;</code>で指定する。</p></td>
 </tr>
 <tr>
 <td class="tableblock halign-left valign-top"><p class="tableblock">(4)</p></td>
-<td class="tableblock halign-left valign-top"><p class="tableblock"><code>sqlSessionTemplate-ref</code>属性に、アクセスするデータベースの<code>SessionTemplate</code>を指定する。<br>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><code>MyBatisBatchItemWriterBuilderのsqlSessionFactoryメソッド/&lt;bean&gt;要素のsqlSessionTemplate-ref属性</code>に、アクセスするデータベースの<code>SessionTemplate</code>を指定する。<br>
 指定する<code>SessionTemplate</code>は、<code>executorType</code>が<code>BATCH</code>に設定されていることが必須である。</p></td>
 </tr>
 <tr>
 <td class="tableblock halign-left valign-top"><p class="tableblock">(5)</p></td>
-<td class="tableblock halign-left valign-top"><p class="tableblock">(2)で定義した<code>MyBatisBatchItemWriter</code>を<code>writer</code>属性に指定する。</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">(2)で定義した<code>MyBatisBatchItemWriter</code>を<code>StepBuilderのwriterメソッド/&lt;batch:chunk&gt;要素のwriter属性</code>に指定する。</p></td>
 </tr>
 <tr>
 <td class="tableblock halign-left valign-top"><p class="tableblock">(6)</p></td>
@@ -1776,8 +2081,61 @@ MyBatis-Springが提供する<code>MyBatisBatchItemWriter</code>によるデー�
 </dd>
 </dl>
 </div>
+<div class="tabbox">
+  <input type="radio" name="tabgroup050212" class="JavaConfigTab" id="tabgroup050212_1" checked><label for="tabgroup050212_1" class="tab">JavaConfig</label>
+  <input type="radio" name="tabgroup050212" class="XMLConfigTab" id="tabgroup050212_2"><label for="tabgroup050212_2" class="tab">XMLConfig</label>
+  <div class="tabcontent" name="JavaConfigContent">
 <div class="listingblock">
-<div class="title">Bean定義</div>
+<div class="content">
+<pre class="CodeRay highlight"><code data-lang="java"><span class="annotation">@Configuration</span>
+<span class="annotation">@Import</span>(JobBaseContextConfig.class)
+<span class="annotation">@ComponentScan</span>(value = {<span class="string"><span class="delimiter">&quot;</span><span class="content">org.terasoluna.batch.functionaltest.app.plan</span><span class="delimiter">&quot;</span></span>,
+    <span class="string"><span class="delimiter">&quot;</span><span class="content">org.terasoluna.batch.functionaltest.ch04.listener</span><span class="delimiter">&quot;</span></span>}, scopedProxy = ScopedProxyMode.TARGET_CLASS)
+<span class="annotation">@MapperScan</span>(basePackages = <span class="string"><span class="delimiter">&quot;</span><span class="content">org.terasoluna.batch.functionaltest.app.repository.plan</span><span class="delimiter">&quot;</span></span>, sqlSessionFactoryRef = <span class="string"><span class="delimiter">&quot;</span><span class="content">jobSqlSessionFactory</span><span class="delimiter">&quot;</span></span>) <span class="comment">// (1)</span>
+<span class="directive">public</span> <span class="type">class</span> <span class="class">TaskletJobWithListenerConfig</span> {
+    <span class="comment">// omitted</span>
+
+    <span class="comment">// (2)</span>
+    <span class="annotation">@Bean</span>
+    <span class="directive">public</span> MyBatisBatchItemWriter&lt;SalesPlanDetail&gt; writer(
+            <span class="annotation">@Qualifier</span>(<span class="string"><span class="delimiter">&quot;</span><span class="content">jobSqlSessionFactory</span><span class="delimiter">&quot;</span></span>) SqlSessionFactory jobSqlSessionFactory,
+            SqlSessionTemplate batchModeSqlSessionTemplate) {
+        <span class="keyword">return</span> <span class="keyword">new</span> MyBatisBatchItemWriterBuilder&lt;SalesPlanDetail&gt;()
+                .sqlSessionFactory(jobSqlSessionFactory) <span class="comment">// (4)</span>
+                .statementId(
+                        <span class="string"><span class="delimiter">&quot;</span><span class="content">org.terasoluna.batch.functionaltest.app.repository.plan.SalesPlanDetailRepository.create</span><span class="delimiter">&quot;</span></span>) <span class="comment">// (3)</span>
+                .sqlSessionTemplate(batchModeSqlSessionTemplate)
+                .build();
+    }
+
+    <span class="annotation">@Bean</span>
+    <span class="directive">public</span> Step jobScopeStep01(JobRepository jobRepository,
+                       <span class="annotation">@Qualifier</span>(<span class="string"><span class="delimiter">&quot;</span><span class="content">jobTransactionManager</span><span class="delimiter">&quot;</span></span>) PlatformTransactionManager transactionManager,
+                       SalesPlanDetailRegisterTasklet salesPlanDetailRegisterTasklet) {
+        <span class="keyword">return</span> <span class="keyword">new</span> StepBuilder(<span class="string"><span class="delimiter">&quot;</span><span class="content">taskletJobWithListenerWithinJobScope.step01</span><span class="delimiter">&quot;</span></span>,
+                jobRepository)
+                .tasklet(salesPlanDetailRegisterTasklet, transactionManager)
+                .build();
+    }
+
+    <span class="annotation">@Bean</span>
+    <span class="directive">public</span> Job taskletJobWithListenerWithinJobScope(JobRepository jobRepository,
+                                            Step jobScopeStep01,
+                                            <span class="annotation">@Qualifier</span>(<span class="string"><span class="delimiter">&quot;</span><span class="content">allProcessListener</span><span class="delimiter">&quot;</span></span>) JobExecutionListener listener) {
+        <span class="keyword">return</span> <span class="keyword">new</span> JobBuilder(<span class="string"><span class="delimiter">&quot;</span><span class="content">taskletJobWithListenerWithinJobScope</span><span class="delimiter">&quot;</span></span>,
+                jobRepository)
+                .start(jobScopeStep01)
+                .listener(listener)
+                .build();
+    }
+
+    <span class="comment">// omitted</span>
+}</code></pre>
+</div>
+</div>
+  </div>
+  <div class="tabcontent" name="XMLConfigContent">
+<div class="listingblock">
 <div class="content">
 <pre class="CodeRay highlight"><code data-lang="xml"><span class="comment">&lt;!-- (1) --&gt;</span>
 <span class="tag">&lt;mybatis:scan</span> <span class="attribute-name">base-package</span>=<span class="string"><span class="delimiter">&quot;</span><span class="content">org.terasoluna.batch.functionaltest.app.repository.plan</span><span class="delimiter">&quot;</span></span>
@@ -1795,6 +2153,8 @@ MyBatis-Springが提供する<code>MyBatisBatchItemWriter</code>によるデー�
     <span class="comment">&lt;!-- omitted. --&gt;</span>
 <span class="tag">&lt;/batch:job&gt;</span></code></pre>
 </div>
+</div>
+  </div>
 </div>
 <div class="listingblock">
 <div class="title">Mapper XML</div>
@@ -1894,11 +2254,11 @@ MyBatis-Springが提供する<code>MyBatisBatchItemWriter</code>によるデー�
 </tr>
 <tr>
 <td class="tableblock halign-left valign-top"><p class="tableblock">(3)</p></td>
-<td class="tableblock halign-left valign-top"><p class="tableblock"><code>statementId</code>属性に、(6)で定義しているSQLのIDを(5)の<code>namespace</code> + <code>&lt;メソッド名&gt;</code>で指定する。</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><code>MyBatisBatchItemWriterBuilderのstatementIdメソッド/&lt;bean&gt;要素のstatementId属性</code>に、(7)で定義しているSQLのIDを(6)の<code>namespace</code> + <code>&lt;メソッド名&gt;</code>で指定する。</p></td>
 </tr>
 <tr>
 <td class="tableblock halign-left valign-top"><p class="tableblock">(4)</p></td>
-<td class="tableblock halign-left valign-top"><p class="tableblock"><code>sqlSessionTemplate-ref</code>属性に、アクセスするデータベースの<code>SessionTemplate</code>を指定する。<br>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><code>MyBatisBatchItemWriterBuilderのsqlSessionFactoryメソッド/&lt;bean&gt;要素のsqlSessionTemplate-ref属性</code>に、アクセスするデータベースの<code>SessionTemplate</code>を指定する。<br>
 指定する<code>SessionTemplate</code>は、<code>executorType</code>が<code>BATCH</code>に設定されていることが必須である。</p></td>
 </tr>
 <tr>
@@ -2029,8 +2389,44 @@ ItemWriterとは異なる更新処理をするためにItemProcessorで個別に
 }</code></pre>
 </div>
 </div>
+<div class="tabbox">
+  <input type="radio" name="tabgroup050213" class="JavaConfigTab" id="tabgroup050213_1" checked><label for="tabgroup050213_1" class="tab">JavaConfig</label>
+  <input type="radio" name="tabgroup050213" class="XMLConfigTab" id="tabgroup050213_2"><label for="tabgroup050213_2" class="tab">XMLConfig</label>
+  <div class="tabcontent" name="JavaConfigContent">
 <div class="listingblock">
-<div class="title">Bean定義</div>
+<div class="content">
+<pre class="CodeRay highlight"><code data-lang="java"><span class="annotation">@Configuration</span>
+<span class="annotation">@Import</span>(JobBaseContextConfig.class)
+<span class="annotation">@ComponentScan</span>(value = { <span class="string"><span class="delimiter">&quot;</span><span class="content">org.terasoluna.batch.functionaltest.app.common</span><span class="delimiter">&quot;</span></span>,
+        <span class="string"><span class="delimiter">&quot;</span><span class="content">org.terasoluna.batch.functionaltest.ch05.exclusivecontrol</span><span class="delimiter">&quot;</span></span>}, scopedProxy = ScopedProxyMode.TARGET_CLASS)
+<span class="annotation">@MapperScan</span>(basePackages = <span class="string"><span class="delimiter">&quot;</span><span class="content">org.terasoluna.batch.functionaltest.ch05.exclusivecontrol.repository</span><span class="delimiter">&quot;</span></span>, sqlSessionFactoryRef = <span class="string"><span class="delimiter">&quot;</span><span class="content">jobSqlSessionFactory</span><span class="delimiter">&quot;</span></span>) <span class="comment">// (4)</span>
+<span class="directive">public</span> <span class="type">class</span> <span class="class">TaskletOptimisticLockCheckJobConfig</span> {
+
+    <span class="annotation">@Bean</span>
+    <span class="directive">public</span> Step step01(JobRepository jobRepository,
+                       <span class="annotation">@Qualifier</span>(<span class="string"><span class="delimiter">&quot;</span><span class="content">jobTransactionManager</span><span class="delimiter">&quot;</span></span>) PlatformTransactionManager transactionManager,
+                       OptimisticLockTasklet optimisticLockTasklet) {
+        <span class="keyword">return</span> <span class="keyword">new</span> StepBuilder(<span class="string"><span class="delimiter">&quot;</span><span class="content">taskletOptimisticLockCheckJob.step01</span><span class="delimiter">&quot;</span></span>,
+                jobRepository)
+                .tasklet(optimisticLockTasklet, transactionManager) <span class="comment">// (5)</span>
+                .build();
+    }
+
+    <span class="annotation">@Bean</span>
+    <span class="directive">public</span> Job taskletOptimisticLockCheckJob(JobRepository jobRepository,
+                                            Step step01,
+                                            JobExecutionLoggingListener listener) {
+        <span class="keyword">return</span> <span class="keyword">new</span> JobBuilder(<span class="string"><span class="delimiter">&quot;</span><span class="content">taskletOptimisticLockCheckJob</span><span class="delimiter">&quot;</span></span>,jobRepository)
+                .start(step01)
+                .listener(listener)
+                .build();
+    }
+}</code></pre>
+</div>
+</div>
+  </div>
+  <div class="tabcontent" name="XMLConfigContent">
+<div class="listingblock">
 <div class="content">
 <pre class="CodeRay highlight"><code data-lang="xml"><span class="comment">&lt;!-- (4) --&gt;</span>
 <span class="tag">&lt;mybatis:scan</span>
@@ -2045,6 +2441,8 @@ ItemWriterとは異なる更新処理をするためにItemProcessorで個別に
     <span class="tag">&lt;/batch:step&gt;</span>
 <span class="tag">&lt;/batch:job&gt;</span></code></pre>
 </div>
+</div>
+  </div>
 </div>
 <div class="paragraph">
 <p>MapperインタフェースとMapper XMLは省略する。</p>
@@ -2077,7 +2475,7 @@ ItemWriterとは異なる更新処理をするためにItemProcessorで個別に
 <tr>
 <td class="tableblock halign-left valign-top"><p class="tableblock">(4)</p></td>
 <td class="tableblock halign-left valign-top"><p class="tableblock">Mapper XMLの登録を行う。<br>
-<code>factory-ref</code>属性に<code>REUSE</code>設定されている<code>jobSqlSessionFactory</code>を指定する。</p></td>
+<code>@MapperScanのsqlSessionFactoryRef属性/&lt;mybatis:scan&gt;要素のfactory-ref属性</code>に<code>REUSE</code>設定されている<code>jobSqlSessionFactory</code>を指定する。</p></td>
 </tr>
 <tr>
 <td class="tableblock halign-left valign-top"><p class="tableblock">(5)</p></td>
@@ -2201,8 +2599,58 @@ ItemWriterとは異なる更新処理をするためにItemProcessorで個別に
 }</code></pre>
 </div>
 </div>
+<div class="tabbox">
+  <input type="radio" name="tabgroup050214" class="JavaConfigTab" id="tabgroup050214_1" checked><label for="tabgroup050214_1" class="tab">JavaConfig</label>
+  <input type="radio" name="tabgroup050214" class="XMLConfigTab" id="tabgroup050214_2"><label for="tabgroup050214_2" class="tab">XMLConfig</label>
+  <div class="tabcontent" name="JavaConfigContent">
 <div class="listingblock">
-<div class="title">Bean定義</div>
+<div class="content">
+<pre class="CodeRay highlight"><code data-lang="java"><span class="annotation">@Configuration</span>
+<span class="annotation">@Import</span>(JobBaseContextConfig.class)
+<span class="annotation">@ComponentScan</span>({ <span class="string"><span class="delimiter">&quot;</span><span class="content">org.terasoluna.batch.functionaltest.app.common</span><span class="delimiter">&quot;</span></span>,
+        <span class="string"><span class="delimiter">&quot;</span><span class="content">org.terasoluna.batch.functionaltest.ch05.dbaccess</span><span class="delimiter">&quot;</span></span> })
+<span class="annotation">@MapperScan</span>(basePackages = {
+        <span class="string"><span class="delimiter">&quot;</span><span class="content">org.terasoluna.batch.functionaltest.app.repository</span><span class="delimiter">&quot;</span></span>,
+        <span class="string"><span class="delimiter">&quot;</span><span class="content">org.terasoluna.batch.functionaltest.ch05.dbaccess.repository</span><span class="delimiter">&quot;</span></span> }, sqlSessionTemplateRef = <span class="string"><span class="delimiter">&quot;</span><span class="content">batchModeSqlSessionTemplate</span><span class="delimiter">&quot;</span></span>) <span class="comment">// (8)</span>
+<span class="directive">public</span> <span class="type">class</span> <span class="class">DBAccessByItemListenerConfig</span> {
+
+    <span class="comment">// omitted</span>
+
+    <span class="comment">// (9)</span>
+    <span class="annotation">@Bean</span>
+    <span class="directive">public</span> CacheSetListener cacheSetListener() {
+        <span class="keyword">return</span> <span class="keyword">new</span> CacheSetListener();
+    }
+
+    <span class="annotation">@Bean</span>
+    <span class="directive">public</span> Step step01(JobRepository jobRepository,
+                       <span class="annotation">@Qualifier</span>(<span class="string"><span class="delimiter">&quot;</span><span class="content">jobTransactionManager</span><span class="delimiter">&quot;</span></span>) PlatformTransactionManager transactionManager,
+                       ItemReader&lt;SalesPerformanceDetail&gt; reader,
+                       <span class="annotation">@Qualifier</span>(<span class="string"><span class="delimiter">&quot;</span><span class="content">updateItemFromDBProcessor</span><span class="delimiter">&quot;</span></span>) ItemProcessor&lt;SalesPerformanceDetail, SalesPlanDetail&gt; processor,
+                       ItemWriter&lt;SalesPlanDetail&gt; writer,
+                       CacheSetListener cacheSetListener) {
+        <span class="keyword">return</span> <span class="keyword">new</span> StepBuilder(<span class="string"><span class="delimiter">&quot;</span><span class="content">DBAccessByItemListener.step01</span><span class="delimiter">&quot;</span></span>,
+                jobRepository)
+                .&lt;SalesPerformanceDetail, SalesPlanDetail&gt; chunk(<span class="integer">10</span>, transactionManager)
+                .listener(cacheSetListener) <span class="comment">// (11)</span>
+                .reader(reader).processor(processor) <span class="comment">// (10)</span>
+                .writer(writer)
+                .build();
+    }
+
+    <span class="annotation">@Bean</span>
+    <span class="directive">public</span> Job DBAccessByItemListener(JobRepository jobRepository,
+                                            Step step01,
+                                            JobExecutionLoggingListener listener) {
+        <span class="keyword">return</span> <span class="keyword">new</span> JobBuilder(<span class="string"><span class="delimiter">&quot;</span><span class="content">DBAccessByItemListener</span><span class="delimiter">&quot;</span></span>,
+                jobRepository).start(step01).listener(listener).build();
+    }
+}</code></pre>
+</div>
+</div>
+  </div>
+  <div class="tabcontent" name="XMLConfigContent">
+<div class="listingblock">
 <div class="content">
 <pre class="CodeRay highlight"><code data-lang="xml"><span class="comment">&lt;!-- omitted --&gt;</span>
 
@@ -2230,6 +2678,8 @@ ItemWriterとは異なる更新処理をするためにItemProcessorで個別に
     <span class="tag">&lt;/batch:step&gt;</span>
 <span class="tag">&lt;/batch:job&gt;</span></code></pre>
 </div>
+</div>
+  </div>
 </div>
 <table class="tableblock frame-all grid-all stretch">
 <caption class="title">表 14. 説明</caption>
@@ -2276,7 +2726,7 @@ ItemWriterとは異なる更新処理をするためにItemProcessorで個別に
 <tr>
 <td class="tableblock halign-left valign-top"><p class="tableblock">(8)</p></td>
 <td class="tableblock halign-left valign-top"><p class="tableblock">Mapper XMLの登録を行う。<br>
-<code>template-ref</code>属性に<code>BATCH</code>が設定されている<code>batchModeSqlSessionTemplate</code>を指定する。</p></td>
+<code>@MapperScanのsqlSessionTemplateRef属性/&lt;mybatis:scan&gt;要素のtemplate-ref属性</code>に<code>BATCH</code>が設定されている<code>batchModeSqlSessionTemplate</code>を指定する。</p></td>
 </tr>
 <tr>
 <td class="tableblock halign-left valign-top"><p class="tableblock">(9)</p></td>
@@ -2427,8 +2877,93 @@ ItemWriterとは異なる更新処理をするためにItemProcessorで個別に
 <span class="tag">&lt;/mapper&gt;</span></code></pre>
 </div>
 </div>
+<div class="tabbox">
+  <input type="radio" name="tabgroup050215" class="JavaConfigTab" id="tabgroup050215_1" checked><label for="tabgroup050215_1" class="tab">JavaConfig</label>
+  <input type="radio" name="tabgroup050215" class="XMLConfigTab" id="tabgroup050215_2"><label for="tabgroup050215_2" class="tab">XMLConfig</label>
+  <div class="tabcontent" name="JavaConfigContent">
 <div class="listingblock">
-<div class="title"><code>CompositeItemWriter</code>の適用例</div>
+<div class="content">
+<pre class="CodeRay highlight"><code data-lang="java"><span class="annotation">@Configuration</span>
+<span class="annotation">@Import</span>(JobBaseContextConfig.class)
+<span class="annotation">@ComponentScan</span>(value = { <span class="string"><span class="delimiter">&quot;</span><span class="content">org.terasoluna.batch.functionaltest.app.common</span><span class="delimiter">&quot;</span></span>,
+        <span class="string"><span class="delimiter">&quot;</span><span class="content">org.terasoluna.batch.functionaltest.ch05.dbaccess</span><span class="delimiter">&quot;</span></span> }, scopedProxy = ScopedProxyMode.TARGET_CLASS)
+<span class="annotation">@MapperScan</span>(basePackages = {
+        <span class="string"><span class="delimiter">&quot;</span><span class="content">org.terasoluna.batch.functionaltest.app.repository</span><span class="delimiter">&quot;</span></span>,
+        <span class="string"><span class="delimiter">&quot;</span><span class="content">org.terasoluna.batch.functionaltest.ch05.dbaccess.repository</span><span class="delimiter">&quot;</span></span> }, sqlSessionTemplateRef = <span class="string"><span class="delimiter">&quot;</span><span class="content">batchModeSqlSessionTemplate</span><span class="delimiter">&quot;</span></span>)
+<span class="directive">public</span> <span class="type">class</span> <span class="class">UseCompositeItemWriterConfig</span> {
+
+    <span class="annotation">@Bean</span>
+    <span class="directive">public</span> MyBatisCursorItemReader&lt;SalesPlanDetail&gt; reader(
+            <span class="annotation">@Qualifier</span>(<span class="string"><span class="delimiter">&quot;</span><span class="content">jobSqlSessionFactory</span><span class="delimiter">&quot;</span></span>) SqlSessionFactory jobSqlSessionFactory) {
+        <span class="keyword">return</span> <span class="keyword">new</span> MyBatisCursorItemReaderBuilder&lt;SalesPlanDetail&gt;()
+                .sqlSessionFactory(jobSqlSessionFactory)
+                .queryId(
+                        <span class="string"><span class="delimiter">&quot;</span><span class="content">org.terasoluna.batch.functionaltest.ch05.dbaccess.repository.SalesRepository.findAll</span><span class="delimiter">&quot;</span></span>)
+                .build();
+    }
+
+    <span class="comment">// (8)</span>
+    <span class="annotation">@Bean</span>
+    <span class="directive">public</span> MyBatisBatchItemWriter&lt;SalesDTO&gt; planWriter(
+            <span class="annotation">@Qualifier</span>(<span class="string"><span class="delimiter">&quot;</span><span class="content">jobSqlSessionFactory</span><span class="delimiter">&quot;</span></span>) SqlSessionFactory jobSqlSessionFactory,
+            <span class="annotation">@Qualifier</span>(<span class="string"><span class="delimiter">&quot;</span><span class="content">batchModeSqlSessionTemplate</span><span class="delimiter">&quot;</span></span>) SqlSessionTemplate batchModeSqlSessionTemplate) {
+        <span class="keyword">return</span> <span class="keyword">new</span> MyBatisBatchItemWriterBuilder&lt;SalesDTO&gt;()
+                .sqlSessionFactory(jobSqlSessionFactory)
+                .statementId(
+                        <span class="string"><span class="delimiter">&quot;</span><span class="content">org.terasoluna.batch.functionaltest.ch05.dbaccess.repository.SalesRepository.update</span><span class="delimiter">&quot;</span></span>)
+                .sqlSessionTemplate(batchModeSqlSessionTemplate)
+                .build();
+    }
+
+    <span class="comment">// (9)</span>
+    <span class="annotation">@Bean</span>
+    <span class="directive">public</span> MyBatisBatchItemWriter&lt;SalesDTO&gt; performanceWriter(
+            <span class="annotation">@Qualifier</span>(<span class="string"><span class="delimiter">&quot;</span><span class="content">jobSqlSessionFactory</span><span class="delimiter">&quot;</span></span>) SqlSessionFactory jobSqlSessionFactory,
+            <span class="annotation">@Qualifier</span>(<span class="string"><span class="delimiter">&quot;</span><span class="content">batchModeSqlSessionTemplate</span><span class="delimiter">&quot;</span></span>) SqlSessionTemplate batchModeSqlSessionTemplate) {
+        <span class="keyword">return</span> <span class="keyword">new</span> MyBatisBatchItemWriterBuilder&lt;SalesDTO&gt;()
+                .sqlSessionFactory(jobSqlSessionFactory)
+                .statementId(
+                        <span class="string"><span class="delimiter">&quot;</span><span class="content">org.terasoluna.batch.functionaltest.ch05.dbaccess.repository.SalesRepository.create</span><span class="delimiter">&quot;</span></span>)
+                .sqlSessionTemplate(batchModeSqlSessionTemplate)
+                .build();
+    }
+
+    <span class="comment">// (10)</span>
+    <span class="annotation">@Bean</span>
+    <span class="directive">public</span> CompositeItemWriter&lt;SalesDTO&gt; writer(
+            <span class="annotation">@Qualifier</span>(<span class="string"><span class="delimiter">&quot;</span><span class="content">performanceWriter</span><span class="delimiter">&quot;</span></span>) MyBatisBatchItemWriter&lt;SalesDTO&gt; performanceWriter,
+            <span class="annotation">@Qualifier</span>(<span class="string"><span class="delimiter">&quot;</span><span class="content">planWriter</span><span class="delimiter">&quot;</span></span>) MyBatisBatchItemWriter&lt;SalesDTO&gt; planWriter) {
+        <span class="keyword">return</span> <span class="keyword">new</span> CompositeItemWriter&lt;SalesDTO&gt;(performanceWriter, planWriter); <span class="comment">// (11)</span>
+    }
+
+    <span class="annotation">@Bean</span>
+    <span class="directive">public</span> Step step01(JobRepository jobRepository,
+                       <span class="annotation">@Qualifier</span>(<span class="string"><span class="delimiter">&quot;</span><span class="content">jobTransactionManager</span><span class="delimiter">&quot;</span></span>) PlatformTransactionManager transactionManager,
+                       <span class="annotation">@Qualifier</span>(<span class="string"><span class="delimiter">&quot;</span><span class="content">reader</span><span class="delimiter">&quot;</span></span>) ItemReader&lt;SalesPlanDetail&gt; reader,
+                       <span class="annotation">@Qualifier</span>(<span class="string"><span class="delimiter">&quot;</span><span class="content">salesItemProcessor</span><span class="delimiter">&quot;</span></span>) ItemProcessor&lt;SalesPlanDetail, SalesDTO&gt; processor,
+                       <span class="annotation">@Qualifier</span>(<span class="string"><span class="delimiter">&quot;</span><span class="content">writer</span><span class="delimiter">&quot;</span></span>) ItemWriter&lt;SalesDTO&gt; writer) {
+        <span class="keyword">return</span> <span class="keyword">new</span> StepBuilder(<span class="string"><span class="delimiter">&quot;</span><span class="content">useCompositeItemWriter.step01</span><span class="delimiter">&quot;</span></span>,
+                jobRepository)
+                .&lt;SalesPlanDetail, SalesDTO&gt; chunk(<span class="integer">3</span>, transactionManager)
+                .reader(reader).processor(processor)
+                .writer(writer) <span class="comment">// (12)</span>
+                .build();
+    }
+
+    <span class="annotation">@Bean</span>
+    <span class="directive">public</span> Job useCompositeItemWriter(JobRepository jobRepository,
+                                            Step step01,
+                                            JobExecutionLoggingListener listener) {
+        <span class="keyword">return</span> <span class="keyword">new</span> JobBuilder(<span class="string"><span class="delimiter">&quot;</span><span class="content">useCompositeItemWriter</span><span class="delimiter">&quot;</span></span>,
+                jobRepository).start(step01).listener(listener).build();
+    }
+
+}</code></pre>
+</div>
+</div>
+  </div>
+  <div class="tabcontent" name="XMLConfigContent">
+<div class="listingblock">
 <div class="content">
 <pre class="CodeRay highlight"><code data-lang="xml"><span class="comment">&lt;!-- reader using MyBatisCursorItemReader --&gt;</span>
 <span class="tag">&lt;bean</span> <span class="attribute-name">id</span>=<span class="string"><span class="delimiter">&quot;</span><span class="content">reader</span><span class="delimiter">&quot;</span></span> <span class="attribute-name">class</span>=<span class="string"><span class="delimiter">&quot;</span><span class="content">org.mybatis.spring.batch.MyBatisCursorItemReader</span><span class="delimiter">&quot;</span></span>
@@ -2468,6 +3003,8 @@ ItemWriterとは異なる更新処理をするためにItemProcessorで個別に
     <span class="tag">&lt;/batch:step&gt;</span>
 <span class="tag">&lt;/batch:job&gt;</span></code></pre>
 </div>
+</div>
+  </div>
 </div>
 <table class="tableblock frame-all grid-all stretch">
 <caption class="title">表 15. 説明</caption>
@@ -2523,11 +3060,11 @@ ItemWriterとは異なる更新処理をするためにItemProcessorで個別に
 </tr>
 <tr>
 <td class="tableblock halign-left valign-top"><p class="tableblock">(11)</p></td>
-<td class="tableblock halign-left valign-top"><p class="tableblock"><code>&lt;list&gt;</code>要素内に(8),(9)を設定する。指定した順番にItemWriterが実行される。</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><code>CompositeItemWriterのコンストラクタの引数/&lt;list&gt;要素内</code>に(8),(9)を設定する。指定した順番にItemWriterが実行される。</p></td>
 </tr>
 <tr>
 <td class="tableblock halign-left valign-top"><p class="tableblock">(12)</p></td>
-<td class="tableblock halign-left valign-top"><p class="tableblock">チャンクの<code>writer</code>属性に(10)で定義したBeanを指定する。<code>processor</code>属性には(1)のItemProcessorを指定する。</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><code>StepBuilderのwriterメソッド/&lt;batch:chunk&gt;要素のwriter属性</code>に(10)で定義したBeanを指定する。<code>processor</code>属性には(1)のItemProcessorを指定する。</p></td>
 </tr>
 </tbody>
 </table>
@@ -2559,7 +3096,7 @@ MyBatisBatchItemWriterとFlatFileItemWriterを設定することで、データ�
 
   <div class="common-bg">
     <div class="information">
-      TERASOLUNA Batch Framework for Java (5.x) Development Guideline - version 5.5.0.RELEASE, 2023-3-31, commit-id:f6da76a
+      TERASOLUNA Batch Framework for Java (5.x) Development Guideline - version 5.6.0.RELEASE, 2023-3-31, commit-id:f5cbeda
     </div>
     <div class="index">
       <a href="index.html">&gt; INDEX</a>
@@ -2568,7 +3105,7 @@ MyBatisBatchItemWriterとFlatFileItemWriterを設定することで、データ�
 
   <div class="footer-bg">
     <div class="copyright">
-      &copy; Copyright 2017 NTT DATA Corporation. &copy; Copyright 2017 NTT Corporation.
+      &copy; Copyright 2017 NTT DATA Group Corporation. &copy; Copyright 2017 NTT Corporation.
     </div>
   </div>
 

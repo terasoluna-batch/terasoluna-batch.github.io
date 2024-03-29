@@ -14,7 +14,7 @@
 
 <div class="common-bg">
   <div class="information">
-    TERASOLUNA Batch Framework for Java (5.x) Development Guideline - version 5.5.0.RELEASE, 2023-3-31, commit-id:f6da76a
+    TERASOLUNA Batch Framework for Java (5.x) Development Guideline - version 5.6.0.RELEASE, 2023-3-31, commit-id:f5cbeda
   </div>
   <div class="index">
     <a href="index.html">&gt; INDEX</a>
@@ -304,12 +304,12 @@ Webリクエスト送信により直ちに実行するため、起動までの�
 <div class="paragraph">
 <p>「ジョブ起動時の異常」は Spring MVCコントローラ内で発生する例外として検知できる。
 ここでは説明を割愛するので、別途 TERASOLUNA Server 5.x 開発ガイドラインの
-<a href="https://terasolunaorg.github.io/guideline/5.7.1.RELEASE/ja/ArchitectureInDetail/WebServiceDetail/REST.html#resthowtouseexceptionhandling">例外のハンドリングの実装</a>を参照。</p>
+<a href="https://terasolunaorg.github.io/guideline/5.9.0.RELEASE/ja/ArchitectureInDetail/WebServiceDetail/REST.html#resthowtouseexceptionhandling">例外のハンドリングの実装</a>を参照。</p>
 </div>
 <div class="paragraph">
 <p>また、ジョブパラメータとして利用するリクエストの入力チェックは必要に応じて Spring MVC のコントローラ内で行うこと。<br>
 具体的な実装方法については、TERASOLUNA Server 5.x 開発ガイドラインの
-<a href="https://terasolunaorg.github.io/guideline/5.7.1.RELEASE/ja/ArchitectureInDetail/WebApplicationDetail/Validation.html">入力チェック</a>を参照。</p>
+<a href="https://terasolunaorg.github.io/guideline/5.9.0.RELEASE/ja/ArchitectureInDetail/WebApplicationDetail/Validation.html">入力チェック</a>を参照。</p>
 </div>
 </td>
 </tr>
@@ -441,6 +441,10 @@ Spring プロファイルが非同期実行時に指定される<code>async</cod
 <td class="tableblock halign-left valign-top"><p class="tableblock">(5)</p></td>
 <td class="tableblock halign-left valign-top"><p class="tableblock"><code>ContextLoaderListener</code>により、Webアプリケーション内で共有される親コンテキストとなる。</p></td>
 </tr>
+<tr>
+<td class="tableblock halign-left valign-top"><p class="tableblock">(6)</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><code>JavaConfig</code>のみ、共通Bean定義ファイルからインポートされる定義ファイル。</p></td>
+</tr>
 </tbody>
 </table>
 </div>
@@ -571,10 +575,6 @@ Spring MVCコントローラが、<code>JobOperator</code>によりジョブを�
 <td class="tableblock halign-left valign-top"><p class="tableblock">ジョブ名</p></td>
 <td class="tableblock halign-left valign-top"><p class="tableblock">job01</p></td>
 </tr>
-<tr>
-<td class="tableblock halign-left valign-top"><p class="tableblock">ジョブパラメータ</p></td>
-<td class="tableblock halign-left valign-top"><p class="tableblock">param1=value1</p></td>
-</tr>
 </tbody>
 </table>
 <div class="admonitionblock caution">
@@ -602,7 +602,7 @@ Spring MVCコントローラが、<code>JobOperator</code>によりジョブを�
 <div class="title">Webアプリケーションの実装</div>
 <p>TERASOLUNA Server 5.xが提供するブランクプロジェクトを用い、Webアプリケーションの実装方法を説明する。
 詳細は、TERASOLUNA Server 5.x 開発ガイドラインの
-<a href="https://terasolunaorg.github.io/guideline/5.7.1.RELEASE/ja/ImplementationAtEachLayer/CreateWebApplicationProject.html">Webアプリケーション向け開発プロジェクトの作成</a>を参照。</p>
+<a href="https://terasolunaorg.github.io/guideline/5.9.0.RELEASE/ja/ImplementationAtEachLayer/CreateWebApplicationProject.html">Webアプリケーション向け開発プロジェクトの作成</a>を参照。</p>
 </div>
 <div class="paragraph">
 <p>ここでは非同期実行アプリケーションプロジェクトと同様、以下の名称で作成したものとして説明する。</p>
@@ -791,7 +791,7 @@ Webアプリケーションとは別プロジェクトとする場合はこの�
 <p>ここではWebアプリケーションとして、以下TERASOLUNA Server 5.x 開発ガイドラインを参考に、RESTful Webサービスを作成する。</p>
 </div>
 <div class="paragraph">
-<p><a href="https://terasolunaorg.github.io/guideline/5.7.1.RELEASE/ja/ArchitectureInDetail/WebServiceDetail/REST.html#restful-web-servicespring-mvc">RESTful Web Serviceで必要となるSpring MVCのコンポーネントを有効化するための設定</a></p>
+<p><a href="https://terasolunaorg.github.io/guideline/5.9.0.RELEASE/ja/ArchitectureInDetail/WebServiceDetail/REST.html#restful-web-servicespring-mvc">RESTful Web Serviceで必要となるSpring MVCのコンポーネントを有効化するための設定</a></p>
 </div>
 <div class="sect3">
 <h4 id="Ch04_AsyncJobWithWeb_HowToUse_WebApp_Config"><a class="anchor" href="#Ch04_AsyncJobWithWeb_HowToUse_WebApp_Config"></a>Webアプリケーションの設定</h4>
@@ -813,11 +813,25 @@ Webアプリケーションとは別プロジェクトとする場合はこの�
 </tr>
 </table>
 </div>
+<div class="tabbox">
+  <input type="radio" name="tabgroup040402" class="JavaConfigTab" id="tabgroup040402_1" checked><label for="tabgroup040402_1" class="tab">JavaConfig</label>
+  <input type="radio" name="tabgroup040402" class="XMLConfigTab" id="tabgroup040402_2"><label for="tabgroup040402_2" class="tab">XMLConfig</label>
+  <div class="tabcontent" name="JavaConfigContent">
 <div class="imageblock">
 <div class="content">
 <img src="./images/Ch04_AsyncJobWithWebContainer_AppendBeanDefinitionsOnBlank.png" alt="AppendBeanDefinitionsOnBlank">
 </div>
 <div class="title">図 7. ブランクプロジェクトから追加・削除するBean定義ファイル</div>
+</div>
+  </div>
+  <div class="tabcontent" name="XMLConfigContent">
+<div class="imageblock">
+<div class="content">
+<img src="./images/Ch04_AsyncJobWithWebContainer_AppendBeanDefinitionsOnBlank_XMLConfig.png" alt="AppendBeanDefinitionsOnBlankXMLConfig">
+</div>
+<div class="title">図 8. ブランクプロジェクトから追加・削除するBean定義ファイル</div>
+</div>
+  </div>
 </div>
 <table class="tableblock frame-all grid-all stretch">
 <caption class="title">表 7. 追加・削除するBean定義ファイル</caption>
@@ -834,72 +848,97 @@ Webアプリケーションとは別プロジェクトとする場合はこの�
 <tbody>
 <tr>
 <td class="tableblock halign-left valign-top"><p class="tableblock">(1)</p></td>
-<td class="tableblock halign-left valign-top"><p class="tableblock">spring-mvc.xmlは(2)を作成するため、不要となるので削除する。</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">(2)を作成するため、不要となるので削除する。</p></td>
 </tr>
 <tr>
 <td class="tableblock halign-left valign-top"><p class="tableblock">(2)</p></td>
-<td class="tableblock halign-left valign-top"><p class="tableblock">RESTful Web Service用のspring-mvc-rest.xmlを作成する。必要となる定義の記述例を以下に示す。</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><code>RESTful Web Service</code>用の<code>SpringMvcRestConfig.java/spring-mvc-rest.xml</code>を作成する。必要となる定義の記述例を以下に示す。</p></td>
 </tr>
 </tbody>
 </table>
 <div class="tabbox">
-  <input type="radio" name="tabgroup040402" class="JavaConfigTab" id="tabgroup040402_1" checked><label for="tabgroup040402_1" class="tab">JavaConfig</label>
-  <input type="radio" name="tabgroup040402" class="XMLConfigTab" id="tabgroup040402_2"><label for="tabgroup040402_2" class="tab">XMLConfig</label>
+    <input type="radio" name="tabgroup040403" class="JavaConfigTab" id="tabgroup040403_1" checked><label for="tabgroup040403_1" class="tab">JavaConfig</label>
+    <input type="radio" name="tabgroup040403" class="XMLConfigTab" id="tabgroup040403_2"><label for="tabgroup040403_2" class="tab">XMLConfig</label>
   <div class="tabcontent" name="JavaConfigContent">
 <div class="listingblock">
-<div class="title">asyncapp/asyncapp-web/src/main/resources/META-INF/spring/spring-mvc-rest.xml の記述例</div>
+<div class="title">asyncapp/asyncapp-web/src/main/java/org/terasoluna/batch/sample/config/web/SpringMvcRestConfig.java</div>
 <div class="content">
-<pre class="CodeRay highlight"><code data-lang="xml"><span class="comment">&lt;!-- omitted --&gt;</span>
-<span class="comment">&lt;!-- (1) --&gt;</span>
-<span class="tag">&lt;bean</span> <span class="attribute-name">class</span>=<span class="string"><span class="delimiter">&quot;</span><span class="content">org.terasoluna.batch.sample.config.LaunchContextConfig</span><span class="delimiter">&quot;</span></span><span class="tag">/&gt;</span>
+<pre class="CodeRay highlight"><code data-lang="java"><span class="annotation">@Configuration</span>
+<span class="annotation">@Import</span>(LaunchContextConfig.class) <span class="comment">// (1)</span>
+<span class="annotation">@EnableAspectJAutoProxy</span>
+<span class="annotation">@ComponentScan</span>(<span class="string"><span class="delimiter">&quot;</span><span class="content">org.terasoluna.batch.sample.app.api</span><span class="delimiter">&quot;</span></span>) <span class="comment">// (2)</span>
+<span class="annotation">@EnableWebMvc</span>
+<span class="directive">public</span> <span class="type">class</span> <span class="class">SpringMvcRestConfig</span> <span class="directive">implements</span> WebMvcConfigurer {
 
-<span class="tag">&lt;bean</span> <span class="attribute-name">id</span>=<span class="string"><span class="delimiter">&quot;</span><span class="content">jsonMessageConverter</span><span class="delimiter">&quot;</span></span>
-      <span class="attribute-name">class</span>=<span class="string"><span class="delimiter">&quot;</span><span class="content">org.springframework.http.converter.json.MappingJackson2HttpMessageConverter</span><span class="delimiter">&quot;</span></span>
-      <span class="attribute-name">p:objectMapper-ref</span>=<span class="string"><span class="delimiter">&quot;</span><span class="content">objectMapper</span><span class="delimiter">&quot;</span></span><span class="tag">/&gt;</span>
+    <span class="annotation">@Bean</span>
+    <span class="directive">public</span> <span class="directive">static</span> PropertySourcesPlaceholderConfigurer propertySourcesPlaceholderConfigurer(
+            <span class="annotation">@Value</span>(<span class="string"><span class="delimiter">&quot;</span><span class="content">classpath*:/META-INF/spring/*.properties</span><span class="delimiter">&quot;</span></span>) Resource... properties) {
+        PropertySourcesPlaceholderConfigurer bean = <span class="keyword">new</span> PropertySourcesPlaceholderConfigurer();
+        bean.setLocations(properties);
+        <span class="keyword">return</span> bean;
+    }
 
-<span class="tag">&lt;bean</span> <span class="attribute-name">id</span>=<span class="string"><span class="delimiter">&quot;</span><span class="content">objectMapper</span><span class="delimiter">&quot;</span></span>
-      <span class="attribute-name">class</span>=<span class="string"><span class="delimiter">&quot;</span><span class="content">org.springframework.http.converter.json.Jackson2ObjectMapperFactoryBean</span><span class="delimiter">&quot;</span></span><span class="tag">&gt;</span>
-  <span class="tag">&lt;property</span> <span class="attribute-name">name</span>=<span class="string"><span class="delimiter">&quot;</span><span class="content">dateFormat</span><span class="delimiter">&quot;</span></span><span class="tag">&gt;</span>
-      <span class="tag">&lt;bean</span> <span class="attribute-name">class</span>=<span class="string"><span class="delimiter">&quot;</span><span class="content">com.fasterxml.jackson.databind.util.StdDateFormat</span><span class="delimiter">&quot;</span></span><span class="tag">/&gt;</span>
-  <span class="tag">&lt;/property&gt;</span>
-<span class="tag">&lt;/bean&gt;</span>
+    <span class="annotation">@Bean</span>(<span class="string"><span class="delimiter">&quot;</span><span class="content">jsonMessageConverter</span><span class="delimiter">&quot;</span></span>)
+    <span class="directive">public</span> MappingJackson2HttpMessageConverter jsonMessageConverter(
+            ObjectMapper objectMapper) {
+        MappingJackson2HttpMessageConverter bean = <span class="keyword">new</span> MappingJackson2HttpMessageConverter();
+        bean.setObjectMapper(objectMapper);
+        <span class="keyword">return</span> bean;
+    }
 
-<span class="tag">&lt;mvc:annotation-driven&gt;</span>
-  <span class="tag">&lt;mvc:message-converters</span> <span class="attribute-name">register-defaults</span>=<span class="string"><span class="delimiter">&quot;</span><span class="content">false</span><span class="delimiter">&quot;</span></span><span class="tag">&gt;</span>
-    <span class="tag">&lt;ref</span> <span class="attribute-name">bean</span>=<span class="string"><span class="delimiter">&quot;</span><span class="content">jsonMessageConverter</span><span class="delimiter">&quot;</span></span><span class="tag">/&gt;</span>
-  <span class="tag">&lt;/mvc:message-converters&gt;</span>
-<span class="tag">&lt;/mvc:annotation-driven&gt;</span>
+    <span class="annotation">@Bean</span>(<span class="string"><span class="delimiter">&quot;</span><span class="content">objectMapper</span><span class="delimiter">&quot;</span></span>)
+    <span class="directive">public</span> ObjectMapper objectMapper() {
+        Jackson2ObjectMapperFactoryBean bean = <span class="keyword">new</span> Jackson2ObjectMapperFactoryBean();
+        bean.setDateFormat(stdDateFormat());
+        bean.afterPropertiesSet();
+        <span class="keyword">return</span> bean.getObject();
+    }
 
-<span class="tag">&lt;mvc:default-servlet-handler</span><span class="tag">/&gt;</span>
+    <span class="annotation">@Bean</span>
+    <span class="directive">public</span> StdDateFormat stdDateFormat() {
+        <span class="keyword">return</span> <span class="keyword">new</span> StdDateFormat();
+    }
 
-<span class="comment">&lt;!-- (2) --&gt;</span>
-<span class="tag">&lt;context:component-scan</span> <span class="attribute-name">base-package</span>=<span class="string"><span class="delimiter">&quot;</span><span class="content">org.terasoluna.batch.sample.app.api</span><span class="delimiter">&quot;</span></span><span class="tag">/&gt;</span>
+    <span class="comment">// (3)</span>
+    <span class="annotation">@Bean</span>
+    <span class="directive">public</span> AutomaticJobRegistrar automaticJobRegistrar(JobRegistry jobRegistry,
+           ApplicationContextFactory<span class="type">[]</span> applicationContextFactories) <span class="directive">throws</span> <span class="exception">Exception</span> {
+        <span class="directive">final</span> AutomaticJobRegistrar automaticJobRegistrar = <span class="keyword">new</span> AutomaticJobRegistrar();
+        <span class="directive">final</span> DefaultJobLoader defaultJobLoader = <span class="keyword">new</span> DefaultJobLoader();
+        defaultJobLoader.setJobRegistry(jobRegistry);
+        automaticJobRegistrar.setApplicationContextFactories(applicationContextFactories);
+        automaticJobRegistrar.setJobLoader(defaultJobLoader);
+        automaticJobRegistrar.afterPropertiesSet();
+        <span class="keyword">return</span> automaticJobRegistrar;
+    }
 
-<span class="comment">&lt;!-- (3) --&gt;</span>
-<span class="tag">&lt;bean</span> <span class="attribute-name">class</span>=<span class="string"><span class="delimiter">&quot;</span><span class="content">org.springframework.batch.core.configuration.support.AutomaticJobRegistrar</span><span class="delimiter">&quot;</span></span><span class="tag">&gt;</span>
-    <span class="tag">&lt;property</span> <span class="attribute-name">name</span>=<span class="string"><span class="delimiter">&quot;</span><span class="content">applicationContextFactories</span><span class="delimiter">&quot;</span></span><span class="tag">&gt;</span>
-        <span class="tag">&lt;bean</span> <span class="attribute-name">class</span>=<span class="string"><span class="delimiter">&quot;</span><span class="content">org.springframework.batch.core.configuration.support.ClasspathXmlApplicationContextsFactoryBean</span><span class="delimiter">&quot;</span></span><span class="tag">&gt;</span>
-            <span class="tag">&lt;property</span> <span class="attribute-name">name</span>=<span class="string"><span class="delimiter">&quot;</span><span class="content">resources</span><span class="delimiter">&quot;</span></span><span class="tag">&gt;</span>
-                <span class="tag">&lt;list&gt;</span>
-                  <span class="tag">&lt;value&gt;</span>classpath:/META-INF/jobs/**/*.xml<span class="tag">&lt;/value&gt;</span>
-                <span class="tag">&lt;/list&gt;</span>
-            <span class="tag">&lt;/property&gt;</span>
-        <span class="tag">&lt;/bean&gt;</span>
-    <span class="tag">&lt;/property&gt;</span>
-    <span class="tag">&lt;property</span> <span class="attribute-name">name</span>=<span class="string"><span class="delimiter">&quot;</span><span class="content">jobLoader</span><span class="delimiter">&quot;</span></span><span class="tag">&gt;</span>
-        <span class="tag">&lt;bean</span> <span class="attribute-name">class</span>=<span class="string"><span class="delimiter">&quot;</span><span class="content">org.springframework.batch.core.configuration.support.DefaultJobLoader</span><span class="delimiter">&quot;</span></span>
-              <span class="attribute-name">p:jobRegistry-ref</span>=<span class="string"><span class="delimiter">&quot;</span><span class="content">jobRegistry</span><span class="delimiter">&quot;</span></span><span class="tag">/&gt;</span>
-    <span class="tag">&lt;/property&gt;</span>
-<span class="tag">&lt;/bean&gt;</span>
+    <span class="annotation">@Bean</span>
+    <span class="directive">public</span> ApplicationContextFactory<span class="type">[]</span> applicationContextFactories(
+        <span class="directive">final</span> ApplicationContext ctx) <span class="directive">throws</span> <span class="exception">IOException</span> {
+            <span class="keyword">return</span> <span class="keyword">new</span> ApplicationContextFactoryHelper(ctx).load(
+                   <span class="string"><span class="delimiter">&quot;</span><span class="content">classpath:org/terasoluna/batch/sample/jobs/*.class</span><span class="delimiter">&quot;</span></span>);
+    }
 
-<span class="comment">&lt;!-- (4) --&gt;</span>
-<span class="tag">&lt;task:executor</span> <span class="attribute-name">id</span>=<span class="string"><span class="delimiter">&quot;</span><span class="content">taskExecutor</span><span class="delimiter">&quot;</span></span> <span class="attribute-name">pool-size</span>=<span class="string"><span class="delimiter">&quot;</span><span class="content">3</span><span class="delimiter">&quot;</span></span> <span class="attribute-name">queue-capacity</span>=<span class="string"><span class="delimiter">&quot;</span><span class="content">10</span><span class="delimiter">&quot;</span></span><span class="tag">/&gt;</span>
+    <span class="comment">// (4)</span>
+    <span class="annotation">@Bean</span>
+    <span class="directive">public</span> TaskExecutor taskExecutor() {
+        ThreadPoolTaskExecutor taskExecutor = <span class="keyword">new</span> ThreadPoolTaskExecutor();
+        taskExecutor.setCorePoolSize(<span class="integer">3</span>);
+        taskExecutor.setMaxPoolSize(<span class="integer">3</span>);
+        taskExecutor.setQueueCapacity(<span class="integer">10</span>);
+        <span class="keyword">return</span> taskExecutor;
+    }
 
-<span class="comment">&lt;!-- (5) --&gt;</span>
-<span class="tag">&lt;bean</span> <span class="attribute-name">id</span>=<span class="string"><span class="delimiter">&quot;</span><span class="content">jobLauncher</span><span class="delimiter">&quot;</span></span> <span class="attribute-name">class</span>=<span class="string"><span class="delimiter">&quot;</span><span class="content">org.springframework.batch.core.launch.support.SimpleJobLauncher</span><span class="delimiter">&quot;</span></span>
-      <span class="attribute-name">p:jobRepository-ref</span>=<span class="string"><span class="delimiter">&quot;</span><span class="content">jobRepository</span><span class="delimiter">&quot;</span></span>
-      <span class="attribute-name">p:taskExecutor-ref</span>=<span class="string"><span class="delimiter">&quot;</span><span class="content">taskExecutor</span><span class="delimiter">&quot;</span></span><span class="tag">/&gt;</span>
-<span class="comment">&lt;!-- omitted --&gt;</span></code></pre>
+    <span class="comment">// (5)</span>
+    <span class="annotation">@Bean</span>
+    <span class="directive">public</span> JobLauncher jobLauncher(JobRepository jobRepository,
+        TaskExecutor taskExecutor) {
+        TaskExecutorJobLauncher jobLauncher = <span class="keyword">new</span> TaskExecutorJobLauncher();
+        jobLauncher.setJobRepository(jobRepository);
+        jobLauncher.setTaskExecutor(taskExecutor);
+        <span class="keyword">return</span> jobLauncher;
+    }
+}</code></pre>
 </div>
 </div>
   </div>
@@ -954,7 +993,7 @@ Webアプリケーションとは別プロジェクトとする場合はこの�
 <span class="tag">&lt;task:executor</span> <span class="attribute-name">id</span>=<span class="string"><span class="delimiter">&quot;</span><span class="content">taskExecutor</span><span class="delimiter">&quot;</span></span> <span class="attribute-name">pool-size</span>=<span class="string"><span class="delimiter">&quot;</span><span class="content">3</span><span class="delimiter">&quot;</span></span> <span class="attribute-name">queue-capacity</span>=<span class="string"><span class="delimiter">&quot;</span><span class="content">10</span><span class="delimiter">&quot;</span></span><span class="tag">/&gt;</span>
 
 <span class="comment">&lt;!-- (5) --&gt;</span>
-<span class="tag">&lt;bean</span> <span class="attribute-name">id</span>=<span class="string"><span class="delimiter">&quot;</span><span class="content">jobLauncher</span><span class="delimiter">&quot;</span></span> <span class="attribute-name">class</span>=<span class="string"><span class="delimiter">&quot;</span><span class="content">org.springframework.batch.core.launch.support.SimpleJobLauncher</span><span class="delimiter">&quot;</span></span>
+<span class="tag">&lt;bean</span> <span class="attribute-name">id</span>=<span class="string"><span class="delimiter">&quot;</span><span class="content">jobLauncher</span><span class="delimiter">&quot;</span></span> <span class="attribute-name">class</span>=<span class="string"><span class="delimiter">&quot;</span><span class="content">org.springframework.batch.core.launch.support.TaskExecutorJobLauncher</span><span class="delimiter">&quot;</span></span>
       <span class="attribute-name">p:jobRepository-ref</span>=<span class="string"><span class="delimiter">&quot;</span><span class="content">jobRepository</span><span class="delimiter">&quot;</span></span>
       <span class="attribute-name">p:taskExecutor-ref</span>=<span class="string"><span class="delimiter">&quot;</span><span class="content">taskExecutor</span><span class="delimiter">&quot;</span></span><span class="tag">/&gt;</span>
 <span class="comment">&lt;!-- omitted --&gt;</span></code></pre>
@@ -962,10 +1001,80 @@ Webアプリケーションとは別プロジェクトとする場合はこの�
 </div>
   </div>
 </div>
+<div class="tabbox">
+  <input type="radio" name="tabgroup040404" class="JavaConfigTab" id="tabgroup040404_1" checked><label for="tabgroup040404_1" class="tab">JavaConfig</label>
+  <input type="radio" name="tabgroup040404" class="XMLConfigTab" id="tabgroup040404_2"><label for="tabgroup040404_2" class="tab">XMLConfig</label>
+  <div class="tabcontent" name="JavaConfigContent">
 <div class="listingblock">
 <div class="title">asyncapp/asyncapp-web/src/main/webapp/WEB-INF/web.xml の記述例</div>
 <div class="content">
 <pre class="CodeRay highlight"><code data-lang="xml"><span class="comment">&lt;!-- omitted --&gt;</span>
+<span class="tag">&lt;context-param&gt;</span>
+    <span class="tag">&lt;param-name&gt;</span>contextClass<span class="tag">&lt;/param-name&gt;</span>
+    <span class="tag">&lt;param-value&gt;</span>
+        org.springframework.web.context.support.AnnotationConfigWebApplicationContext
+    <span class="tag">&lt;/param-value&gt;</span>
+<span class="tag">&lt;/context-param&gt;</span>
+
+<span class="tag">&lt;listener&gt;</span>
+    <span class="tag">&lt;listener-class&gt;</span>org.springframework.web.context.ContextLoaderListener<span class="tag">&lt;/listener-class&gt;</span>
+<span class="tag">&lt;/listener&gt;</span>
+<span class="tag">&lt;context-param&gt;</span>
+    <span class="tag">&lt;param-name&gt;</span>contextConfigLocation<span class="tag">&lt;/param-name&gt;</span>
+    <span class="comment">&lt;!-- Root ApplicationContext --&gt;</span>
+    <span class="tag">&lt;param-value&gt;</span>
+        org.terasoluna.batch.sample.config.app.ApplicationContextConfig
+    <span class="tag">&lt;/param-value&gt;</span>
+<span class="tag">&lt;/context-param&gt;</span>
+
+<span class="tag">&lt;servlet&gt;</span>
+    <span class="tag">&lt;servlet-name&gt;</span>restApiServlet<span class="tag">&lt;/servlet-name&gt;</span>
+    <span class="tag">&lt;servlet-class&gt;</span>org.springframework.web.servlet.DispatcherServlet<span class="tag">&lt;/servlet-class&gt;</span>
+    <span class="tag">&lt;init-param&gt;</span>
+        <span class="tag">&lt;param-name&gt;</span>contextClass<span class="tag">&lt;/param-name&gt;</span>
+        <span class="tag">&lt;param-value&gt;</span>
+          org.springframework.web.context.support.AnnotationConfigWebApplicationContext
+        <span class="tag">&lt;/param-value&gt;</span>
+    <span class="tag">&lt;/init-param&gt;</span>
+    <span class="tag">&lt;init-param&gt;</span>
+        <span class="tag">&lt;param-name&gt;</span>contextConfigLocation<span class="tag">&lt;/param-name&gt;</span>
+        <span class="comment">&lt;!-- (6) --&gt;</span>
+        <span class="tag">&lt;param-value&gt;</span>
+          org.terasoluna.batch.sample.config.web.SpringMvcRestConfig
+        <span class="tag">&lt;/param-value&gt;</span>
+    <span class="tag">&lt;/init-param&gt;</span>
+    <span class="comment">&lt;!-- (7) --&gt;</span>
+    <span class="tag">&lt;init-param&gt;</span>
+        <span class="tag">&lt;param-name&gt;</span>spring.profiles.active<span class="tag">&lt;/param-name&gt;</span>
+        <span class="tag">&lt;param-value&gt;</span>async<span class="tag">&lt;/param-value&gt;</span>
+    <span class="tag">&lt;/init-param&gt;</span>
+    <span class="tag">&lt;load-on-startup&gt;</span>1<span class="tag">&lt;/load-on-startup&gt;</span>
+<span class="tag">&lt;/servlet&gt;</span>
+
+<span class="tag">&lt;servlet-mapping&gt;</span>
+    <span class="tag">&lt;servlet-name&gt;</span>restApiServlet<span class="tag">&lt;/servlet-name&gt;</span>
+    <span class="tag">&lt;url-pattern&gt;</span>/api/v1/*<span class="tag">&lt;/url-pattern&gt;</span>
+<span class="tag">&lt;/servlet-mapping&gt;</span>
+<span class="comment">&lt;!-- omitted --&gt;</span></code></pre>
+</div>
+</div>
+  </div>
+  <div class="tabcontent" name="XMLConfigContent">
+<div class="listingblock">
+<div class="title">asyncapp/asyncapp-web/src/main/webapp/WEB-INF/web.xml の記述例</div>
+<div class="content">
+<pre class="CodeRay highlight"><code data-lang="xml"><span class="comment">&lt;!-- omitted --&gt;</span>
+<span class="tag">&lt;listener&gt;</span>
+    <span class="tag">&lt;listener-class&gt;</span>org.springframework.web.context.ContextLoaderListener<span class="tag">&lt;/listener-class&gt;</span>
+<span class="tag">&lt;/listener&gt;</span>
+<span class="tag">&lt;context-param&gt;</span>
+    <span class="tag">&lt;param-name&gt;</span>contextConfigLocation<span class="tag">&lt;/param-name&gt;</span>
+    <span class="comment">&lt;!-- Root ApplicationContext --&gt;</span>
+    <span class="tag">&lt;param-value&gt;</span>
+        classpath*:META-INF/spring/applicationContext.xml
+    <span class="tag">&lt;/param-value&gt;</span>
+<span class="tag">&lt;/context-param&gt;</span>
+
 <span class="tag">&lt;servlet&gt;</span>
     <span class="tag">&lt;servlet-name&gt;</span>restApiServlet<span class="tag">&lt;/servlet-name&gt;</span>
     <span class="tag">&lt;servlet-class&gt;</span>org.springframework.web.servlet.DispatcherServlet<span class="tag">&lt;/servlet-class&gt;</span>
@@ -988,6 +1097,8 @@ Webアプリケーションとは別プロジェクトとする場合はこの�
 <span class="tag">&lt;/servlet-mapping&gt;</span>
 <span class="comment">&lt;!-- omitted --&gt;</span></code></pre>
 </div>
+</div>
+  </div>
 </div>
 <table class="tableblock frame-all grid-all stretch">
 <caption class="title">表 8. RESTful Web Service の有効化例</caption>
@@ -1032,7 +1143,7 @@ JobLauncherの<code>TaskExecutor</code>に<code>AsyncTaskExecutor</code>実装�
 <tr>
 <td class="tableblock halign-left valign-top"><p class="tableblock">(6)</p></td>
 <td class="tableblock halign-left valign-top"><p class="tableblock"><code>DispatcherServlet</code>が読み込むBean定義として、<br>
-上述で記載した<code>spring-mvc-rest.xml</code>を指定する。</p></td>
+上述で記載した<code>SpringMvcRestConfig.java/spring-mvc-rest.xml</code>を指定する。</p></td>
 </tr>
 <tr>
 <td class="tableblock halign-left valign-top"><p class="tableblock">(7)</p></td>
@@ -1251,27 +1362,6 @@ Webクライアントから別途リクエストを送信する必要がある�
 ここでは簡単のため、<code>JobOperator</code>をコントローラにインジェクションし、ジョブの起動や実行状態の取得を行う。
 もちろんTERASOLUNA Server 5.xに従って、コントローラからServiceをはさんで<code>JobOperator</code>を起動してもよい。</p>
 </div>
-<div class="admonitionblock tip">
-<table>
-<tr>
-<td class="icon">
-<i class="fa icon-tip" title="Tip"></i>
-</td>
-<td class="content">
-<div class="title">ジョブ起動時に渡されるジョブパラメータについて</div>
-<div class="paragraph">
-<p>起動時に<code>JobOperator#start()</code>の第二引数で渡されるジョブパラメータは<code>String</code>である。
-ジョブパラメータが複数ある場合、同期実行と同様に空白区切りで渡す必要がある。
-具体的には以下の形式をとる。<br>
-<code>{ジョブパラメータ1}={値1} {ジョブパラメータ2}={値2},&#8230;&#8203;</code></p>
-</div>
-<div class="paragraph">
-<p>これは、<a href="Ch04_AsyncJobWithDB.html#Ch04_AsyncJobWithDB">"非同期実行(DBポーリング)"</a>におけるジョブパラメータの指定方法と同様である。</p>
-</div>
-</td>
-</tr>
-</table>
-</div>
 <div class="listingblock">
 <div class="title">コントローラ実装例</div>
 <div class="content">
@@ -1297,15 +1387,31 @@ Webクライアントから別途リクエストを送信する必要がある�
     <span class="directive">public</span> ResponseEntity&lt;JobOperationResource&gt; launch(<span class="annotation">@PathVariable</span>(<span class="string"><span class="delimiter">&quot;</span><span class="content">jobName</span><span class="delimiter">&quot;</span></span>) <span class="predefined-type">String</span> jobName,
             <span class="annotation">@RequestBody</span> JobOperationResource requestResource) {
 
+        <span class="predefined-type">String</span> jobParams = requestResource.getJobParams();
         JobOperationResource responseResource = <span class="keyword">new</span> JobOperationResource();
         responseResource.setJobName(jobName);
+        responseResource.setJobParams(jobParams);
+        <span class="predefined-type">Properties</span> properties = <span class="keyword">new</span> <span class="predefined-type">Properties</span>();
         <span class="keyword">if</span>(jobParams == <span class="predefined-constant">null</span>){
             requestResource.setJobParams(<span class="string"><span class="delimiter">&quot;</span><span class="delimiter">&quot;</span></span>);
+        } <span class="keyword">else</span> {
+            <span class="keyword">if</span> (jobParams.contains(<span class="string"><span class="delimiter">&quot;</span><span class="content">,</span><span class="delimiter">&quot;</span></span>)) {
+                jobParams = jobParams.replace(<span class="string"><span class="delimiter">&quot;</span><span class="content">,</span><span class="delimiter">&quot;</span></span>, <span class="string"><span class="delimiter">&quot;</span><span class="content"> </span><span class="delimiter">&quot;</span></span>);
+                requestResource.setJobParams(jobParams);
+            }
+            <span class="keyword">if</span> (!jobParams.isEmpty()) {
+                <span class="predefined-type">String</span><span class="type">[]</span> keyValuePairs = jobParams.split(<span class="string"><span class="delimiter">&quot;</span><span class="content"> </span><span class="delimiter">&quot;</span></span>);
+                <span class="keyword">for</span> (<span class="predefined-type">String</span> string : keyValuePairs) {
+                    <span class="predefined-type">String</span><span class="type">[]</span> keyValuePair = string.split(<span class="string"><span class="delimiter">&quot;</span><span class="content">=</span><span class="delimiter">&quot;</span></span>);
+                    properties.setProperty(keyValuePair[<span class="integer">0</span>], keyValuePair[<span class="integer">1</span>]);
+                }
+            }
         }
         <span class="keyword">try</span> {
             <span class="comment">// (3)</span>
-            <span class="predefined-type">Long</span> jobExecutionId = jobOperator.start(jobName, requestResource.getJobParams());
+            <span class="predefined-type">Long</span> jobExecutionId = jobOperator.start(jobName, properties);
             responseResource.setJobExecutionId(jobExecutionId);
+            responseResource.setResultMessage(<span class="string"><span class="delimiter">&quot;</span><span class="content">Job launching task is scheduled.</span><span class="delimiter">&quot;</span></span>);
             <span class="keyword">return</span> ResponseEntity.ok().body(responseResource);
         } <span class="keyword">catch</span> (NoSuchJobException | JobInstanceAlreadyExistsException | JobParametersInvalidException e) {
             responseResource.setError(e);
@@ -1402,12 +1508,14 @@ JobControllerの実装も下記のように変更している。<br></p>
 <p>パラメータを複数指定する場合の区切り文字を、カンマから空白文字に変更</p>
 </li>
 <li>
-<p>パラメータのnullチェックを、別途実装するように変更</p>
+<p>パラメータのnullチェックを、別途実装するように変更
+詳細は、<a href="https://github.com/spring-projects/spring-batch/issues/2122">Spring Batch/BATCH-1461</a>を参照されたい。</p>
+</li>
+<li>
+<p>パラメータをStringからPropertiesに変換処理を追加し、startメソッドに渡す。
+詳細は、<a href="https://github.com/spring-projects/spring-batch/issues/4304">Spring Batch/BATCH-4304</a>を参照されたい。</p>
 </li>
 </ul>
-</div>
-<div class="paragraph">
-<p>詳細は、<a href="https://github.com/spring-projects/spring-batch/issues/2122">Spring Batch/BATCH-1461</a>を参照されたい。</p>
 </div>
 </td>
 </tr>
@@ -1476,7 +1584,7 @@ RDBMSスキーマ初期化もそれぞれ異なるモジュールの設定に応
 そのため、ここでは以下方法によりCSRF対策を無効化した前提で説明している。</p>
 </div>
 <div class="paragraph">
-<p><a href="https://terasolunaorg.github.io/guideline/5.7.1.RELEASE/ja/ArchitectureInDetail/WebServiceDetail/REST.html#csrf">CSRF対策</a></p>
+<p><a href="https://terasolunaorg.github.io/guideline/5.9.0.RELEASE/ja/ArchitectureInDetail/WebServiceDetail/REST.html#csrf">CSRF対策</a></p>
 </div>
 <div class="paragraph">
 <p>ここで作成されるWebアプリケーションはインターネット上には公開されず、CSRFを攻撃手段として
@@ -1547,58 +1655,61 @@ $</code></pre>
 <div class="content">
 <pre class="CodeRay highlight"><code data-lang="console">$ curl -v \
   -H &quot;Accept: application/json&quot; -H &quot;Content-type: application/json&quot; \
-  -d '{&quot;jobParams&quot;: &quot;param1=value1&quot;}' \
-  http://localhost:8080/asyncapp-web/api/v1/job/job01
-* timeout on name lookup is not supported
-*   Trying 127.0.0.1...
-* TCP_NODELAY set
+  -d '{}' \
+  http://localhost:8088/asyncapp-web/api/v1/job/job01
+  % Total    % Received % Xferd  Average Speed   Time    Time     Time  Current
+                                 Dload  Upload   Total   Spent    Left  Speed
+  0     0    0     0    0     0      0      0 --:--:-- --:--:-- --:--:--     0
+* Trying 127.0.0.1:8088...
 * Connected to localhost (127.0.0.1) port 8088 (#0)
 &gt; POST /asyncapp-web/api/v1/job/job01 HTTP/1.1
 &gt; Host: localhost:8088
-&gt; User-Agent: curl/7.51.0
+&gt; User-Agent: curl/7.88.1
 &gt; Accept: application/json
 &gt; Content-type: application/json
 &gt; Content-Length: 30
 &gt;
-* upload completely sent off: 30 out of 30 bytes
+} [30 bytes data]
 &lt; HTTP/1.1 200
-&lt; X-Track: 0267db93977b4552880a4704cf3e4565
-&lt; Content-Type: application/json;charset=UTF-8
+&lt; Content-Type: application/json
 &lt; Transfer-Encoding: chunked
-&lt; Date: Fri, 10 Feb 2017 13:55:46 GMT
+&lt; Date: Mon, 22 Jan 2024 02:39:04 GMT
 &lt;
-{&quot;jobName&quot;:&quot;job01&quot;,&quot;jobParams&quot;:null,&quot;jobExecutionId&quot;:3,&quot;error&quot;:null,&quot;errorMessag
-e&quot;:null}* Curl_http_done: called premature == 0
+{ [94 bytes data]
+100   118    0    88  100    30    112     38 --:--:-- --:--:-- --:--:--   150
+{&quot;jobName&quot;:&quot;job01&quot;,&quot;jobParams&quot;:null,&quot;jobExecutionId&quot;:1,&quot;errorMessage&quot;:null,&quot;error&quot;:null}
 * Connection #0 to host localhost left intact
 $</code></pre>
 </div>
 </div>
 <div class="paragraph">
-<p>上記より、ジョブ実行ID:<code>jobExecutionId = 3</code>として、ジョブが実行されていることが確認できる。<br>
+<p>上記より、ジョブ実行ID:<code>jobExecutionId = 1</code>として、ジョブが実行されていることが確認できる。<br>
 続けてこのジョブ実行IDを使用し、ジョブの実行結果を取得する。</p>
 </div>
 <div class="listingblock">
 <div class="content">
-<pre class="CodeRay highlight"><code data-lang="console">$ curl -v http://localhost:8080/asyncapp-web/api/v1/job/3
-* timeout on name lookup is not supported
-*   Trying 127.0.0.1...
-* TCP_NODELAY set
+<pre class="CodeRay highlight"><code data-lang="console">$ curl -v http://localhost:8088/asyncapp-web/api/v1/job/1
+  % Total    % Received % Xferd  Average Speed   Time    Time     Time  Current
+                                 Dload  Upload   Total   Spent    Left  Speed
+  0     0    0     0    0     0      0      0 --:--:-- --:--:-- --:--:--     0
+* Trying 127.0.0.1:8088...
 * Connected to localhost (127.0.0.1) port 8088 (#0)
-&gt; GET /asyncapp-web/api/v1/job/3 HTTP/1.1
+&gt; GET /asyncapp-web/api/v1/job/1 HTTP/1.1
 &gt; Host: localhost:8088
-&gt; User-Agent: curl/7.51.0
+&gt; User-Agent: curl/7.88.1
 &gt; Accept: */*
 &gt;
 &lt; HTTP/1.1 200
-&lt; X-Track: 7d94bf4d383745efb20cbf37cb6a8e13
-&lt; Content-Type: application/json;charset=UTF-8
+&lt; Content-Type: application/json
 &lt; Transfer-Encoding: chunked
-&lt; Date: Fri, 10 Feb 2017 14:07:44 GMT
+&lt; Date: Mon, 22 Jan 2024 02:39:26 GMT
 &lt;
-{&quot;jobExecutionId&quot;:3,&quot;jobName&quot;:&quot;job01&quot;,&quot;stepExecutions&quot;:[{&quot;stepExecutionId&quot;:5,&quot;st
-epName&quot;:&quot;job01.step01&quot;,&quot;status&quot;:&quot;COMPLETED&quot;,&quot;failureExceptions&quot;:[]}],&quot;status&quot;:&quot;C
-OMPLETED&quot;,&quot;exitStatus&quot;:&quot;exitCode=COMPLETED;exitDescription=&quot;,&quot;errorMessage&quot;:null
-}* Curl_http_done: called premature == 0
+{ [310 bytes data]
+100   303    0   303    0     0   2126      0 --:--:-- --:--:-- --:--:--  2118
+{&quot;jobExecutionId&quot;:1,&quot;jobName&quot;:&quot;job01&quot;,&quot;stepExecutionId&quot;:null,&quot;stepName&quot;:null,&quot;stepExecutions&quot;:
+[{&quot;stepExecutionId&quot;:1,&quot;stepName&quot;:&quot;job01.step01&quot;,&quot;status&quot;:&quot;COMPLETED&quot;,&quot;failureExceptions&quot;:[]}],
+&quot;status&quot;:&quot;COMPLETED&quot;,&quot;exitStatus&quot;:&quot;exitCode=COMPLETED;exitDescription=&quot;,&quot;errorMessage&quot;:null,
+&quot;failureExceptions&quot;:[]}
 * Connection #0 to host localhost left intact
 $</code></pre>
 </div>
@@ -1784,7 +1895,7 @@ curlコマンドでHTTPステータスのみを確認する場合は<code>curl -
 
   <div class="common-bg">
     <div class="information">
-      TERASOLUNA Batch Framework for Java (5.x) Development Guideline - version 5.5.0.RELEASE, 2023-3-31, commit-id:f6da76a
+      TERASOLUNA Batch Framework for Java (5.x) Development Guideline - version 5.6.0.RELEASE, 2023-3-31, commit-id:f5cbeda
     </div>
     <div class="index">
       <a href="index.html">&gt; INDEX</a>
@@ -1793,7 +1904,7 @@ curlコマンドでHTTPステータスのみを確認する場合は<code>curl -
 
   <div class="footer-bg">
     <div class="copyright">
-      &copy; Copyright 2017 NTT DATA Corporation. &copy; Copyright 2017 NTT Corporation.
+      &copy; Copyright 2017 NTT DATA Group Corporation. &copy; Copyright 2017 NTT Corporation.
     </div>
   </div>
 

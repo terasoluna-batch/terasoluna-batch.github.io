@@ -14,7 +14,7 @@
 
 <div class="common-bg">
   <div class="information">
-    TERASOLUNA Batch Framework for Java (5.x) Development Guideline - version 5.5.0.RELEASE, 2023-3-31, commit-id:f6da76a
+    TERASOLUNA Batch Framework for Java (5.x) Development Guideline - version 5.6.0.RELEASE, 2023-3-31, commit-id:f5cbeda
   </div>
   <div class="index">
     <a href="index.html">&gt; INDEX</a>
@@ -646,6 +646,126 @@ Beanのプロパティとレコード内の各項目とのマッピングは<cod
 <div class="paragraph">
 <p>上記のファイルを読む込むための設定は以下のとおり。</p>
 </div>
+<div class="tabbox">
+  <input type="radio" name="tabgroup050301" class="JavaConfigTab" id="tabgroup050301_1" checked><label for="tabgroup050301_1" class="tab">JavaConfig</label>
+  <input type="radio" name="tabgroup050301" class="XMLConfigTab" id="tabgroup050301_2"><label for="tabgroup050301_2" class="tab">XMLConfig</label>
+  <div class="tabcontent" name="JavaConfigContent">
+<div class="listingblock">
+<div class="title">Bean定義例</div>
+<div class="content">
+<pre class="CodeRay highlight"><code data-lang="java"><span class="annotation">@Bean</span>
+<span class="annotation">@StepScope</span>
+<span class="directive">public</span> FlatFileItemReader&lt;SalesPlanDetail&gt; reader(
+        <span class="annotation">@Value</span>(<span class="string"><span class="delimiter">&quot;</span><span class="content">#{jobParameters['inputFile']}</span><span class="delimiter">&quot;</span></span>) <span class="predefined-type">File</span> inputFile) {
+    <span class="directive">final</span> DelimitedLineTokenizer tokenizer = <span class="keyword">new</span> DelimitedLineTokenizer(); <span class="comment">// (5)</span>
+    tokenizer.setNames(<span class="string"><span class="delimiter">&quot;</span><span class="content">branchId</span><span class="delimiter">&quot;</span></span>, <span class="string"><span class="delimiter">&quot;</span><span class="content">year</span><span class="delimiter">&quot;</span></span>, <span class="string"><span class="delimiter">&quot;</span><span class="content">month</span><span class="delimiter">&quot;</span></span>, <span class="string"><span class="delimiter">&quot;</span><span class="content">customerId</span><span class="delimiter">&quot;</span></span>, <span class="string"><span class="delimiter">&quot;</span><span class="content">amount</span><span class="delimiter">&quot;</span></span>); <span class="comment">// (6)</span>
+    tokenizer.setDelimiter(<span class="string"><span class="delimiter">&quot;</span><span class="content">,</span><span class="delimiter">&quot;</span></span>); <span class="comment">// (7)</span>
+    tokenizer.setQuoteCharacter(<span class="string"><span class="delimiter">'</span><span class="content">&quot;</span><span class="delimiter">'</span></span>); <span class="comment">// (8)</span>
+    <span class="directive">final</span> BeanWrapperFieldSetMapper&lt;SalesPlanDetail&gt; fieldSetMapper = <span class="keyword">new</span> BeanWrapperFieldSetMapper&lt;&gt;(); <span class="comment">// (9)</span>
+    fieldSetMapper.setTargetType(SalesPlanDetail.class);
+    <span class="directive">final</span> DefaultLineMapper&lt;SalesPlanDetail&gt; lineMapper = <span class="keyword">new</span> DefaultLineMapper&lt;&gt;(); <span class="comment">// (4)</span>
+    lineMapper.setLineTokenizer(tokenizer);
+    lineMapper.setFieldSetMapper(fieldSetMapper);
+    <span class="keyword">return</span> <span class="keyword">new</span> FlatFileItemReaderBuilder&lt;SalesPlanDetail&gt;()
+            .name(ClassUtils.getShortName(FlatFileItemReader.class))
+            .resource(<span class="keyword">new</span> FileSystemResource(inputFile)) <span class="comment">// (1)</span>
+            .lineMapper(lineMapper)
+            .encoding(<span class="string"><span class="delimiter">&quot;</span><span class="content">MS932</span><span class="delimiter">&quot;</span></span>) <span class="comment">// (2)</span>
+            .strict(<span class="predefined-constant">true</span>) <span class="comment">// (3)</span>
+            .build();
+}</code></pre>
+</div>
+</div>
+<div class="admonitionblock note">
+<table>
+<tr>
+<td class="icon">
+<i class="fa icon-note" title="Note"></i>
+</td>
+<td class="content">
+<div class="title">FlatFileItemReaderBuilderクラスでのnameメソッドの使用</div>
+<div class="paragraph">
+<p><code>FlatFileItemReaderBuilder</code>は、<code>FlatFileItemReader</code>を生成するBuilderクラスである。</p>
+</div>
+<div class="paragraph">
+<p>本章で登場する以下のBuilderクラスでは、デフォルトで<code>name</code>メソッドの使用が必須となっている。</p>
+</div>
+<div class="ulist">
+<ul>
+<li>
+<p><code>FlatFileItemReaderBuilder</code> / <code>FlatFileItemWriterBuilder</code></p>
+</li>
+<li>
+<p><code>MultiResourceItemReaderBuilder</code> / <code>MultiResourceItemWriterBuilder</code></p>
+</li>
+<li>
+<p><code>StaxEventItemReaderBuilder</code> / <code>StaxEventItemWriterBuilder</code></p>
+</li>
+</ul>
+</div>
+<div class="paragraph">
+<p><code>name</code>メソッドでは、<code>ExecutionContext</code>に実行状態を保存する際のキー名を引数に設定する。キー名は、特段の理由がないかぎり、<code>ItemStreamSupport</code>のサブクラス名を指定する。<code>ItemStreamSupport</code>のサブクラスとは、Builderクラスで生成するクラスのことである。</p>
+</div>
+<div class="paragraph">
+<p><strong>nameメソッドでItemStreamSupportのサブクラス名を指定する理由</strong></p>
+</div>
+<div class="paragraph">
+<p><code>ExecutionContext</code>やログに出力される名前を、その出力元のクラス名と一致させておくことで、トレーサビリティを担保する。これは障害解析時等に、原因箇所特定の手がかりとするためである。</p>
+</div>
+<div class="paragraph">
+<p><strong>FlatFileItemReaderBuilderでの設定例</strong></p>
+</div>
+<div class="paragraph">
+<p><code>ItemStreamSupport</code>のサブクラス名は<code>org.springframework.batch.item.file.FlatFileItemReader</code>の短縮名、すなわち<code>"FlatFileItemReader"</code>となる。下記のように設定する。</p>
+</div>
+<div class="listingblock">
+<div class="content">
+<pre class="CodeRay highlight"><code data-lang="java"><span class="keyword">return</span> <span class="keyword">new</span> FlatFileItemReaderBuilder&lt;SalesPlanDetail&gt;()
+  .name(ClassUtils.getShortName(FlatFileItemReader.class))</code></pre>
+</div>
+</div>
+<div class="paragraph">
+<p>なお、Builderクラスを使用せず直接<code>FlatFileItemReader</code>をnewしたときも、デフォルトでコンストラクタ内で<code>ItemStreamSupport</code>のサブクラス名（<code>"FlatFileItemReader"</code>）が設定される（以下）。</p>
+</div>
+<div class="listingblock">
+<div class="title">org.springframework.batch.item.file.FlatFileItemReaderのコンストラクタ</div>
+<div class="content">
+<pre class="CodeRay highlight"><code data-lang="java"><span class="directive">public</span> FlatFileItemReader() {
+  setName(ClassUtils.getShortName(FlatFileItemReader.class));
+}</code></pre>
+</div>
+</div>
+<div class="paragraph">
+<p><code>name</code>メソッドについては以下の公式リファレンスを参照のこと。</p>
+</div>
+<div class="ulist">
+<ul>
+<li>
+<p><a href="https://spring.pleiades.io/spring-batch/docs/current/api/org/springframework/batch/item/file/builder/FlatFileItemReaderBuilder.html#name(java.lang.String)">クラス FlatFileItemReaderBuilder&lt;T&gt;</a></p>
+</li>
+<li>
+<p><a href="https://spring.pleiades.io/spring-batch/docs/current/api/org/springframework/batch/item/file/builder/FlatFileItemWriterBuilder.html#name(java.lang.String)">クラス FlatFileItemWriterBuilder&lt;T&gt;</a></p>
+</li>
+<li>
+<p><a href="https://spring.pleiades.io/spring-batch/docs/current/api/org/springframework/batch/item/file/builder/MultiResourceItemReaderBuilder.html#name(java.lang.String)">クラス MultiResourceItemReaderBuilder&lt;T&gt;</a></p>
+</li>
+<li>
+<p><a href="https://spring.pleiades.io/spring-batch/docs/current/api/org/springframework/batch/item/file/builder/MultiResourceItemWriterBuilder.html#name(java.lang.String)">クラス MultiResourceItemWriterBuilder&lt;T&gt;</a></p>
+</li>
+<li>
+<p><a href="https://spring.pleiades.io/spring-batch/docs/current/api/org/springframework/batch/item/xml/builder/StaxEventItemReaderBuilder.html#name(java.lang.String)">クラス StaxEventItemReaderBuilder&lt;T&gt;</a></p>
+</li>
+<li>
+<p><a href="https://spring.pleiades.io/spring-batch/docs/current/api/org/springframework/batch/item/xml/builder/StaxEventItemWriterBuilder.html#name(java.lang.String)">クラス StaxEventItemWriterBuilder&lt;T&gt;</a></p>
+</li>
+</ul>
+</div>
+</td>
+</tr>
+</table>
+</div>
+  </div>
+  <div class="tabcontent" name="XMLConfigContent">
 <div class="listingblock">
 <div class="title">Bean定義例</div>
 <div class="content">
@@ -672,6 +792,8 @@ Beanのプロパティとレコード内の各項目とのマッピングは<cod
   <span class="tag">&lt;/property&gt;</span>
 <span class="tag">&lt;/bean&gt;</span></code></pre>
 </div>
+</div>
+  </div>
 </div>
 <table class="tableblock frame-all grid-all stretch">
 <caption class="title">表 7. 設定内容の項目一覧</caption>
@@ -793,6 +915,18 @@ CSV形式の一般的書式とされるRFC-4180の仕様に定義されている
 <div class="paragraph">
 <p>TSVファイルの読み込みを行う場合には、区切り文字にタブを設定することで実現可能である。</p>
 </div>
+<div class="tabbox">
+  <input type="radio" name="tabgroup050302" class="JavaConfigTab" id="tabgroup050302_1" checked><label for="tabgroup050302_1" class="tab">JavaConfig</label>
+  <input type="radio" name="tabgroup050302" class="XMLConfigTab" id="tabgroup050302_2"><label for="tabgroup050302_2" class="tab">XMLConfig</label>
+  <div class="tabcontent" name="JavaConfigContent">
+<div class="listingblock">
+<div class="title">TSVファイル読み込み時:区切り文字設定例(定数による設定)</div>
+<div class="content">
+<pre class="CodeRay highlight"><code data-lang="java">tokenizer.setDelimiter(DelimitedLineTokenizer.DELIMITER_TAB);</code></pre>
+</div>
+</div>
+  </div>
+  <div class="tabcontent" name="XMLConfigContent">
 <div class="listingblock">
 <div class="title">TSVファイル読み込み時:区切り文字設定例(定数による設定)</div>
 <div class="content">
@@ -810,6 +944,8 @@ CSV形式の一般的書式とされるRFC-4180の仕様に定義されている
 <div class="content">
 <pre class="CodeRay highlight"><code data-lang="xml"><span class="tag">&lt;property</span> <span class="attribute-name">name</span>=<span class="string"><span class="delimiter">&quot;</span><span class="content">delimiter</span><span class="delimiter">&quot;</span></span> <span class="attribute-name">value</span>=<span class="string"><span class="delimiter">&quot;</span><span class="entity">&amp;#09;</span><span class="delimiter">&quot;</span></span><span class="tag">/&gt;</span></code></pre>
 </div>
+</div>
+  </div>
 </div>
 </td>
 </tr>
@@ -864,6 +1000,41 @@ CSV形式の一般的書式とされるRFC-4180の仕様に定義されている
 <div class="paragraph">
 <p>上記のファイルを書き出すための設定は以下のとおり。</p>
 </div>
+<div class="tabbox">
+  <input type="radio" name="tabgroup050303" class="JavaConfigTab" id="tabgroup050303_1" checked><label for="tabgroup050303_1" class="tab">JavaConfig</label>
+  <input type="radio" name="tabgroup050303" class="XMLConfigTab" id="tabgroup050303_2"><label for="tabgroup050303_2" class="tab">XMLConfig</label>
+  <div class="tabcontent" name="JavaConfigContent">
+<div class="listingblock">
+<div class="title">Bean定義例</div>
+<div class="content">
+<pre class="CodeRay highlight"><code data-lang="java"><span class="comment">// Writer</span>
+<span class="annotation">@Bean</span>
+<span class="annotation">@StepScope</span>
+<span class="directive">public</span> FlatFileItemWriter&lt;Customer&gt; writer(
+        <span class="annotation">@Value</span>(<span class="string"><span class="delimiter">&quot;</span><span class="content">#{jobParameters['outputFile']}</span><span class="delimiter">&quot;</span></span>) <span class="predefined-type">File</span> outputFile) {
+    <span class="directive">final</span> BeanWrapperFieldExtractor&lt;Customer&gt; fieldExtractor = <span class="keyword">new</span> BeanWrapperFieldExtractor&lt;&gt;(); <span class="comment">// (10)</span>
+    fieldExtractor.setNames(
+            <span class="keyword">new</span> <span class="predefined-type">String</span><span class="type">[]</span> { <span class="string"><span class="delimiter">&quot;</span><span class="content">customerId</span><span class="delimiter">&quot;</span></span>, <span class="string"><span class="delimiter">&quot;</span><span class="content">customerName</span><span class="delimiter">&quot;</span></span>, <span class="string"><span class="delimiter">&quot;</span><span class="content">customerAddress</span><span class="delimiter">&quot;</span></span>,
+                    <span class="string"><span class="delimiter">&quot;</span><span class="content">customerTel</span><span class="delimiter">&quot;</span></span>, <span class="string"><span class="delimiter">&quot;</span><span class="content">chargeBranchId</span><span class="delimiter">&quot;</span></span> }); <span class="comment">// (11)</span>
+    <span class="directive">final</span> DelimitedLineAggregator&lt;Customer&gt; lineAggregator = <span class="keyword">new</span> DelimitedLineAggregator&lt;&gt;(); <span class="comment">// (8)</span>
+    lineAggregator.setDelimiter(<span class="string"><span class="delimiter">&quot;</span><span class="content">,</span><span class="delimiter">&quot;</span></span>); <span class="comment">// (9)</span>
+    lineAggregator.setFieldExtractor(fieldExtractor);
+    <span class="keyword">return</span> <span class="keyword">new</span> FlatFileItemWriterBuilder&lt;Customer&gt;()
+            .name(ClassUtils.getShortName(FlatFileItemWriter.class))
+            .resource(<span class="keyword">new</span> FileSystemResource(outputFile)) <span class="comment">// (1)</span>
+            .encoding(<span class="string"><span class="delimiter">&quot;</span><span class="content">MS932</span><span class="delimiter">&quot;</span></span>) <span class="comment">// (2)</span>
+            .lineSeparator(<span class="string"><span class="delimiter">&quot;</span><span class="char">\n</span><span class="delimiter">&quot;</span></span>) <span class="comment">// (3)</span>
+            .append(<span class="predefined-constant">true</span>) <span class="comment">// (4)</span>
+            .shouldDeleteIfExists(<span class="predefined-constant">false</span>) <span class="comment">// (5)</span>
+            .shouldDeleteIfEmpty(<span class="predefined-constant">false</span>) <span class="comment">// (6)</span>
+            .transactional(<span class="predefined-constant">true</span>) <span class="comment">// (7)</span>
+            .lineAggregator(lineAggregator)
+            .build();
+}</code></pre>
+</div>
+</div>
+  </div>
+  <div class="tabcontent" name="XMLConfigContent">
 <div class="listingblock">
 <div class="title">Bean定義例</div>
 <div class="content">
@@ -890,6 +1061,8 @@ CSV形式の一般的書式とされるRFC-4180の仕様に定義されている
   <span class="tag">&lt;/property&gt;</span>
 <span class="tag">&lt;/bean&gt;</span></code></pre>
 </div>
+</div>
+  </div>
 </div>
 <table class="tableblock frame-all grid-all stretch">
 <caption class="title">表 8. 設定内容の項目一覧</caption>
@@ -1009,6 +1182,22 @@ falseの場合、既にファイルが存在すれば例外をスローする。
 <div class="paragraph">
 <p>FlatFileItemWriterは、以下のような組み合わせでプロパティ設定を行った場合に意図しないファイル削除が行われてしまう。</p>
 </div>
+<div class="tabbox">
+  <input type="radio" name="tabgroup050304" class="JavaConfigTab" id="tabgroup050304_1" checked><label for="tabgroup050304_1" class="tab">JavaConfig</label>
+  <input type="radio" name="tabgroup050304" class="XMLConfigTab" id="tabgroup050304_2"><label for="tabgroup050304_2" class="tab">XMLConfig</label>
+  <div class="tabcontent" name="JavaConfigContent">
+<div class="ulist">
+<ul>
+<li>
+<p><code>.shouldDeleteIfExists(true)</code></p>
+</li>
+<li>
+<p><code>.shouldDeleteIfEmpty(false)</code></p>
+</li>
+</ul>
+</div>
+  </div>
+  <div class="tabcontent" name="XMLConfigContent">
 <div class="ulist">
 <ul>
 <li>
@@ -1018,6 +1207,8 @@ falseの場合、既にファイルが存在すれば例外をスローする。
 <p><code>p:shouldDeleteIfExists="false"</code></p>
 </li>
 </ul>
+</div>
+  </div>
 </div>
 <div class="paragraph">
 <p>理由は以下の通りである。<br>
@@ -1097,6 +1288,22 @@ shouldDeleteIfEmptyにtrueを設定すると、出力件数が0件の場合に�
 <pre class="CodeRay highlight"><code data-lang="java"><span class="comment">// 上記の例と同様</span></code></pre>
 </div>
 </div>
+<div class="tabbox">
+  <input type="radio" name="tabgroup050305" class="JavaConfigTab" id="tabgroup050305_1" checked><label for="tabgroup050305_1" class="tab">JavaConfig</label>
+  <input type="radio" name="tabgroup050305" class="XMLConfigTab" id="tabgroup050305_2"><label for="tabgroup050305_2" class="tab">XMLConfig</label>
+  <div class="tabcontent" name="JavaConfigContent">
+<div class="listingblock">
+<div class="title">Bean定義例(lineAggregatorの設定のみ)</div>
+<div class="content">
+<pre class="CodeRay highlight"><code data-lang="java"><span class="directive">final</span> EnclosableDelimitedLineAggregator&lt;SalesPlanDetail&gt; lineAggregator = <span class="keyword">new</span> EnclosableDelimitedLineAggregator&lt;&gt;(); <span class="comment">// (1)</span>
+lineAggregator.setDelimiter(<span class="string"><span class="delimiter">'</span><span class="content">,</span><span class="delimiter">'</span></span>); <span class="comment">// (2)</span>
+lineAggregator.setEnclosure(<span class="string"><span class="delimiter">'</span><span class="content">&quot;</span><span class="delimiter">'</span></span>); <span class="comment">// (3)</span>
+lineAggregator.setAllEnclosing(<span class="predefined-constant">true</span>); <span class="comment">// (4)</span>
+lineAggregator.setFieldExtractor(fieldExtractor);</code></pre>
+</div>
+</div>
+  </div>
+  <div class="tabcontent" name="XMLConfigContent">
 <div class="listingblock">
 <div class="title">Bean定義例(lineAggregatorの設定のみ)</div>
 <div class="content">
@@ -1112,6 +1319,8 @@ shouldDeleteIfEmptyにtrueを設定すると、出力件数が0件の場合に�
   <span class="tag">&lt;/bean&gt;</span>
 <span class="tag">&lt;/property&gt;</span></code></pre>
 </div>
+</div>
+  </div>
 </div>
 <table class="tableblock frame-all grid-all stretch">
 <caption class="title">表 9. 設定内容の項目一覧</caption>
@@ -1210,6 +1419,18 @@ falseの場合フィールド内に行頭復帰(CR)、改行(LF)、区切り文�
 <div class="paragraph">
 <p>TSVファイルの出力を行う場合には、区切り文字にタブを設定することで実現可能である。</p>
 </div>
+<div class="tabbox">
+  <input type="radio" name="tabgroup050306" class="JavaConfigTab" id="tabgroup050306_1" checked><label for="tabgroup050306_1" class="tab">JavaConfig</label>
+  <input type="radio" name="tabgroup050306" class="XMLConfigTab" id="tabgroup050306_2"><label for="tabgroup050306_2" class="tab">XMLConfig</label>
+  <div class="tabcontent" name="JavaConfigContent">
+<div class="listingblock">
+<div class="title">TSVファイル出力時の区切り文字設定例(定数による設定)</div>
+<div class="content">
+<pre class="CodeRay highlight"><code data-lang="java">tokenizer.setDelimiter(DelimitedLineTokenizer.DELIMITER_TAB);</code></pre>
+</div>
+</div>
+  </div>
+  <div class="tabcontent" name="XMLConfigContent">
 <div class="listingblock">
 <div class="title">TSVファイル出力時の区切り文字設定例(定数による設定)</div>
 <div class="content">
@@ -1227,6 +1448,8 @@ falseの場合フィールド内に行頭復帰(CR)、改行(LF)、区切り文�
 <div class="content">
 <pre class="CodeRay highlight"><code data-lang="xml"><span class="tag">&lt;property</span> <span class="attribute-name">name</span>=<span class="string"><span class="delimiter">&quot;</span><span class="content">delimiter</span><span class="delimiter">&quot;</span></span> <span class="attribute-name">value</span>=<span class="string"><span class="delimiter">&quot;</span><span class="entity">&amp;#09;</span><span class="delimiter">&quot;</span></span><span class="tag">/&gt;</span></code></pre>
 </div>
+</div>
+  </div>
 </div>
 </td>
 </tr>
@@ -1329,6 +1552,40 @@ falseの場合フィールド内に行頭復帰(CR)、改行(LF)、区切り文�
 <div class="paragraph">
 <p>上記のファイルを読む込むための設定は以下のとおり。</p>
 </div>
+<div class="tabbox">
+  <input type="radio" name="tabgroup050307" class="JavaConfigTab" id="tabgroup050307_1" checked><label for="tabgroup050307_1" class="tab">JavaConfig</label>
+  <input type="radio" name="tabgroup050307" class="XMLConfigTab" id="tabgroup050307_2"><label for="tabgroup050307_2" class="tab">XMLConfig</label>
+  <div class="tabcontent" name="JavaConfigContent">
+<div class="listingblock">
+<div class="title">Bean定義例</div>
+<div class="content">
+<pre class="CodeRay highlight"><code data-lang="java"><span class="annotation">@Bean</span>
+<span class="annotation">@StepScope</span>
+<span class="directive">public</span> FlatFileItemReader&lt;SalesPlanDetail&gt; reader(
+        <span class="annotation">@Value</span>(<span class="string"><span class="delimiter">&quot;</span><span class="content">#{jobParameters['inputFile']}</span><span class="delimiter">&quot;</span></span>) Resource inputFile) {
+    BufferedReaderFactory  bufferedReaderFactory = <span class="keyword">new</span> DefaultBufferedReaderFactory(); <span class="comment">// (4)</span>
+    Range<span class="type">[]</span> ranges = <span class="keyword">new</span> Range<span class="type">[]</span> {<span class="keyword">new</span> Range(<span class="integer">1</span>, <span class="integer">6</span>), <span class="keyword">new</span> Range(<span class="integer">7</span>, <span class="integer">10</span>), <span class="keyword">new</span> Range(<span class="integer">11</span>, <span class="integer">12</span>), <span class="keyword">new</span> Range(<span class="integer">13</span>, <span class="integer">22</span>), <span class="keyword">new</span> Range(<span class="integer">23</span>, <span class="integer">32</span>)}; <span class="comment">// (8)</span>
+    <span class="directive">final</span> FixedByteLengthLineTokenizer tokenizer = <span class="keyword">new</span> FixedByteLengthLineTokenizer(<span class="predefined-type">Charset</span>.forName(<span class="string"><span class="delimiter">&quot;</span><span class="content">MS932</span><span class="delimiter">&quot;</span></span>), ranges); <span class="comment">// (6)(9)</span>
+    tokenizer.setNames(<span class="string"><span class="delimiter">&quot;</span><span class="content">branchId</span><span class="delimiter">&quot;</span></span>, <span class="string"><span class="delimiter">&quot;</span><span class="content">year</span><span class="delimiter">&quot;</span></span>, <span class="string"><span class="delimiter">&quot;</span><span class="content">month</span><span class="delimiter">&quot;</span></span>, <span class="string"><span class="delimiter">&quot;</span><span class="content">customerId</span><span class="delimiter">&quot;</span></span>, <span class="string"><span class="delimiter">&quot;</span><span class="content">amount</span><span class="delimiter">&quot;</span></span>); <span class="comment">// (7)</span>
+    <span class="directive">final</span> BeanWrapperFieldSetMapper&lt;SalesPlanDetail&gt; fieldSetMapper = <span class="keyword">new</span> BeanWrapperFieldSetMapper&lt;&gt;(); <span class="comment">// (10)</span>
+    fieldSetMapper.setTargetType(SalesPlanDetail.class);
+    <span class="directive">final</span> DefaultLineMapper&lt;SalesPlanDetail&gt; lineMapper = <span class="keyword">new</span> DefaultLineMapper&lt;&gt;(); <span class="comment">// (5)</span>
+    lineMapper.setLineTokenizer(tokenizer); <span class="comment">// (6)</span>
+    lineMapper.setFieldSetMapper(fieldSetMapper);
+    FileSystemResourceLoader loader = <span class="keyword">new</span> FileSystemResourceLoader();
+    <span class="keyword">return</span> <span class="keyword">new</span> FlatFileItemReaderBuilder&lt;SalesPlanDetail&gt;()
+            .name(ClassUtils.getShortName(FlatFileItemReader.class))
+            .resource(inputFile) <span class="comment">// (1)</span>
+            .encoding(<span class="string"><span class="delimiter">&quot;</span><span class="content">MS932</span><span class="delimiter">&quot;</span></span>) <span class="comment">// (2)</span>
+            .strict(<span class="predefined-constant">true</span>) <span class="comment">// (3)</span>
+            .bufferedReaderFactory(bufferedReaderFactory) <span class="comment">// (4)</span>
+            .lineMapper(lineMapper) <span class="comment">// (5)</span>
+            .build();
+}</code></pre>
+</div>
+</div>
+  </div>
+  <div class="tabcontent" name="XMLConfigContent">
 <div class="listingblock">
 <div class="title">Bean定義例</div>
 <div class="content">
@@ -1360,6 +1617,8 @@ falseの場合フィールド内に行頭復帰(CR)、改行(LF)、区切り文�
     <span class="tag">&lt;/property&gt;</span>
 <span class="tag">&lt;/bean&gt;</span></code></pre>
 </div>
+</div>
+  </div>
 </div>
 <table class="tableblock frame-all grid-all stretch">
 <caption class="title">表 11. 設定内容の項目一覧</caption>
@@ -1442,7 +1701,7 @@ falseの場合フィールド内に行頭復帰(CR)、改行(LF)、区切り文�
 <td class="tableblock halign-left valign-top"><p class="tableblock">ranges<br>
 (コンストラクタ引数)</p></td>
 <td class="tableblock halign-left valign-top"><p class="tableblock">区切り位置を設定する。レコードの先頭から区切り位置をカンマ区切りで設定する。<br>
-各区切り位置の単位はバイトであり、<code>開始位置-終了位置</code>形式で指定する。<br>
+各区切り位置の単位はバイトであり、<code>開始位置,終了位置(JavaConfig)/開始位置-終了位置(XMLConfig)</code>形式で指定する。<br>
 区切り位置を設定した順番でレコードから指定された範囲を取得し、<code>FieldSet</code>に格納される。<br>
 (6)のnamesを指定した場合は区切り位置を設定した順番でnamesと対応付けて<code>FieldSet</code>に格納される。</p></td>
 <td class="tableblock halign-left valign-top"><p class="tableblock"><span class="icon"><i class="fa fa-check"></i></span></p></td>
@@ -1520,6 +1779,17 @@ falseの場合フィールド内に行頭復帰(CR)、改行(LF)、区切り文�
 <div class="paragraph">
 <p><code>FixedByteLengthBufferedReaderFactory</code>の定義方法を以下に示す。</p>
 </div>
+<div class="tabbox">
+  <input type="radio" name="tabgroup050308" class="JavaConfigTab" id="tabgroup050308_1" checked><label for="tabgroup050308_1" class="tab">JavaConfig</label>
+  <input type="radio" name="tabgroup050308" class="XMLConfigTab" id="tabgroup050308_2"><label for="tabgroup050308_2" class="tab">XMLConfig</label>
+  <div class="tabcontent" name="JavaConfigContent">
+<div class="listingblock">
+<div class="content">
+<pre class="CodeRay highlight"><code data-lang="java">FixedByteLengthBufferedReaderFactory bufferedReaderFactory = <span class="keyword">new</span> FixedByteLengthBufferedReaderFactory(<span class="integer">32</span>); <span class="comment">// (1)</span></code></pre>
+</div>
+</div>
+  </div>
+  <div class="tabcontent" name="XMLConfigContent">
 <div class="listingblock">
 <div class="content">
 <pre class="CodeRay highlight"><code data-lang="xml"><span class="tag">&lt;property</span> <span class="attribute-name">name</span>=<span class="string"><span class="delimiter">&quot;</span><span class="content">bufferedReaderFactory</span><span class="delimiter">&quot;</span></span><span class="tag">&gt;</span>
@@ -1527,6 +1797,8 @@ falseの場合フィールド内に行頭復帰(CR)、改行(LF)、区切り文�
         <span class="attribute-name">c:byteLength</span>=<span class="string"><span class="delimiter">&quot;</span><span class="content">32</span><span class="delimiter">&quot;</span></span><span class="tag">/&gt;</span>  <span class="comment">&lt;!-- (1) --&gt;</span>
 <span class="tag">&lt;/property&gt;</span></code></pre>
 </div>
+</div>
+  </div>
 </div>
 <table class="tableblock frame-all grid-all stretch">
 <caption class="title">表 12. 設定内容の項目一覧</caption>
@@ -1734,6 +2006,39 @@ FieldSetMapperの実装については、<a href="#Ch05_FileAccess_HowToExtend">
 <div class="paragraph">
 <p>上記のファイルを書き出すための設定は以下のとおり。</p>
 </div>
+<div class="tabbox">
+  <input type="radio" name="tabgroup050309" class="JavaConfigTab" id="tabgroup050309_1" checked><label for="tabgroup050309_1" class="tab">JavaConfig</label>
+  <input type="radio" name="tabgroup050309" class="XMLConfigTab" id="tabgroup050309_2"><label for="tabgroup050309_2" class="tab">XMLConfig</label>
+  <div class="tabcontent" name="JavaConfigContent">
+<div class="listingblock">
+<div class="title">Bean定義</div>
+<div class="content">
+<pre class="CodeRay highlight"><code data-lang="java"><span class="annotation">@Bean</span>
+<span class="annotation">@StepScope</span>
+<span class="directive">public</span> FlatFileItemWriter&lt;SalesPlanDetail&gt; writer(
+        <span class="annotation">@Value</span>(<span class="string"><span class="delimiter">&quot;</span><span class="content">#{jobParameters['outputFile']}</span><span class="delimiter">&quot;</span></span>) <span class="predefined-type">File</span> outputFile) {
+    <span class="directive">final</span> BeanWrapperFieldExtractor&lt;SalesPlanDetail&gt; fieldExtractor = <span class="keyword">new</span> BeanWrapperFieldExtractor&lt;&gt;(); <span class="comment">// (10)</span>
+    fieldExtractor.setNames(
+            <span class="keyword">new</span> <span class="predefined-type">String</span><span class="type">[]</span> { <span class="string"><span class="delimiter">&quot;</span><span class="content">branchId</span><span class="delimiter">&quot;</span></span>, <span class="string"><span class="delimiter">&quot;</span><span class="content">year</span><span class="delimiter">&quot;</span></span>, <span class="string"><span class="delimiter">&quot;</span><span class="content">month</span><span class="delimiter">&quot;</span></span>, <span class="string"><span class="delimiter">&quot;</span><span class="content">customerId</span><span class="delimiter">&quot;</span></span>, <span class="string"><span class="delimiter">&quot;</span><span class="content">amount</span><span class="delimiter">&quot;</span></span> });
+    <span class="directive">final</span> FormatterLineAggregator&lt;SalesPlanDetail&gt; lineAggregator = <span class="keyword">new</span> FormatterLineAggregator&lt;&gt;(); <span class="comment">// (8)</span>
+    lineAggregator.setFormat(<span class="string"><span class="delimiter">&quot;</span><span class="content">%6s%4s%2s%10s%10s</span><span class="delimiter">&quot;</span></span>); <span class="comment">// (9)</span>
+    lineAggregator.setFieldExtractor(fieldExtractor);
+    <span class="keyword">return</span> <span class="keyword">new</span> FlatFileItemWriterBuilder&lt;SalesPlanDetail&gt;()
+            .name(ClassUtils.getShortName(FlatFileItemWriter.class))
+            .resource(<span class="keyword">new</span> FileSystemResource(outputFile)) <span class="comment">// (1)</span>
+            .encoding(<span class="string"><span class="delimiter">&quot;</span><span class="content">MS932</span><span class="delimiter">&quot;</span></span>) <span class="comment">// (2)</span>
+            .lineSeparator(<span class="string"><span class="delimiter">&quot;</span><span class="char">\n</span><span class="delimiter">&quot;</span></span>) <span class="comment">// (3)</span>
+            .append(<span class="predefined-constant">true</span>) <span class="comment">// (4)</span>
+            .shouldDeleteIfExists(<span class="predefined-constant">false</span>) <span class="comment">// (5)</span>
+            .shouldDeleteIfEmpty(<span class="predefined-constant">false</span>) <span class="comment">// (6)</span>
+            .transactional(<span class="predefined-constant">true</span>) <span class="comment">// (7)</span>
+            .lineAggregator(lineAggregator)
+            .build();
+}</code></pre>
+</div>
+</div>
+  </div>
+  <div class="tabcontent" name="XMLConfigContent">
 <div class="listingblock">
 <div class="title">Bean定義</div>
 <div class="content">
@@ -1759,6 +2064,8 @@ FieldSetMapperの実装については、<a href="#Ch05_FileAccess_HowToExtend">
     <span class="tag">&lt;/property&gt;</span>
 <span class="tag">&lt;/bean&gt;</span></code></pre>
 </div>
+</div>
+  </div>
 </div>
 <table class="tableblock frame-all grid-all stretch">
 <caption class="title">表 14. 設定内容の項目一覧</caption>
@@ -1941,6 +2248,21 @@ falseの場合、既にファイルが存在すれば例外をスローする。
 <div class="paragraph">
 <p>出力ファイルの使用は上記の例と同様。</p>
 </div>
+<div class="tabbox">
+  <input type="radio" name="tabgroup050310" class="JavaConfigTab" id="tabgroup050310_1" checked><label for="tabgroup050310_1" class="tab">JavaConfig</label>
+  <input type="radio" name="tabgroup050310" class="XMLConfigTab" id="tabgroup050310_2"><label for="tabgroup050310_2" class="tab">XMLConfig</label>
+  <div class="tabcontent" name="JavaConfigContent">
+<div class="listingblock">
+<div class="title">Bean定義(lineAggregatorの設定のみ)</div>
+<div class="content">
+<pre class="CodeRay highlight"><code data-lang="java"><span class="directive">final</span> FormatterLineAggregator&lt;SalesPlanDetail&gt; lineAggregator = <span class="keyword">new</span> FormatterLineAggregator&lt;&gt;(); <span class="comment">// (1)</span>
+lineAggregator.setFormat(<span class="string"><span class="delimiter">&quot;</span><span class="content">%s%4s%2s%s%10s</span><span class="delimiter">&quot;</span></span>); <span class="comment">// (2)</span>
+<span class="directive">final</span> SalesPlanFixedLengthFieldExtractor fieldExtractor = <span class="keyword">new</span> SalesPlanFixedLengthFieldExtractor(); <span class="comment">// (3)</span>
+lineAggregator.setFieldExtractor(fieldExtractor);</code></pre>
+</div>
+</div>
+  </div>
+  <div class="tabcontent" name="XMLConfigContent">
 <div class="listingblock">
 <div class="title">Bean定義(lineAggregatorの設定のみ)</div>
 <div class="content">
@@ -1953,6 +2275,8 @@ falseの場合、既にファイルが存在すれば例外をスローする。
     <span class="tag">&lt;/bean&gt;</span>
 <span class="tag">&lt;/property&gt;</span></code></pre>
 </div>
+</div>
+  </div>
 </div>
 <table class="tableblock frame-all grid-all stretch">
 <caption class="title">表 15. 設定内容の項目一覧</caption>
@@ -2136,6 +2460,29 @@ Summary3:6,000,000,000</code></pre>
 <div class="paragraph">
 <p>上記のファイルを読む込むための設定は以下のとおり。</p>
 </div>
+<div class="tabbox">
+  <input type="radio" name="tabgroup050311" class="JavaConfigTab" id="tabgroup050311_1" checked><label for="tabgroup050311_1" class="tab">JavaConfig</label>
+  <input type="radio" name="tabgroup050311" class="XMLConfigTab" id="tabgroup050311_2"><label for="tabgroup050311_2" class="tab">XMLConfig</label>
+  <div class="tabcontent" name="JavaConfigContent">
+<div class="listingblock">
+<div class="title">Bean定義</div>
+<div class="content">
+<pre class="CodeRay highlight"><code data-lang="java"><span class="annotation">@Bean</span>
+<span class="annotation">@StepScope</span>
+<span class="directive">public</span> FlatFileItemReader&lt;<span class="predefined-type">String</span>&gt; reader(
+        <span class="annotation">@Value</span>(<span class="string"><span class="delimiter">&quot;</span><span class="content">#{jobParameters['inputFile']}</span><span class="delimiter">&quot;</span></span>) <span class="predefined-type">File</span> inputFile) {
+    <span class="directive">final</span> FlatFileItemReader&lt;<span class="predefined-type">String</span>&gt; reader = <span class="keyword">new</span> FlatFileItemReader&lt;&gt;();
+    <span class="directive">final</span> PassThroughLineMapper lineMapper = <span class="keyword">new</span> PassThroughLineMapper(); <span class="comment">// (4)</span>
+    reader.setResource(<span class="keyword">new</span> FileSystemResource(inputFile)); <span class="comment">// (1)</span>
+    reader.setEncoding(<span class="string"><span class="delimiter">&quot;</span><span class="content">MS932</span><span class="delimiter">&quot;</span></span>); <span class="comment">// (2)</span>
+    reader.setStrict(<span class="predefined-constant">true</span>); <span class="comment">// (3)</span>
+    reader.setLineMapper(lineMapper);
+    <span class="keyword">return</span> reader;
+}</code></pre>
+</div>
+</div>
+  </div>
+  <div class="tabcontent" name="XMLConfigContent">
 <div class="listingblock">
 <div class="title">Bean定義</div>
 <div class="content">
@@ -2150,6 +2497,8 @@ Summary3:6,000,000,000</code></pre>
     <span class="tag">&lt;/property&gt;</span>
 <span class="tag">&lt;/bean&gt;</span></code></pre>
 </div>
+</div>
+  </div>
 </div>
 <table class="tableblock frame-all grid-all stretch">
 <caption class="title">表 17. 設定内容の項目一覧</caption>
@@ -2216,6 +2565,35 @@ Summary2:5,000,000,000
 Summary3:6,000,000,000</code></pre>
 </div>
 </div>
+<div class="tabbox">
+  <input type="radio" name="tabgroup050312" class="JavaConfigTab" id="tabgroup050312_1" checked><label for="tabgroup050312_1" class="tab">JavaConfig</label>
+  <input type="radio" name="tabgroup050312" class="XMLConfigTab" id="tabgroup050312_2"><label for="tabgroup050312_2" class="tab">XMLConfig</label>
+  <div class="tabcontent" name="JavaConfigContent">
+<div class="listingblock">
+<div class="title">Bean定義</div>
+<div class="content">
+<pre class="CodeRay highlight"><code data-lang="java"><span class="comment">// Writer</span>
+<span class="annotation">@Bean</span>
+<span class="annotation">@StepScope</span>
+<span class="directive">public</span> FlatFileItemWriter&lt;SalesPlanDetail&gt; writer(
+        <span class="annotation">@Value</span>(<span class="string"><span class="delimiter">&quot;</span><span class="content">#{jobParameters['outputFile']}</span><span class="delimiter">&quot;</span></span>) <span class="predefined-type">File</span> outputFile) {
+    <span class="directive">final</span> PassThroughLineAggregator&lt;SalesPlanDetail&gt; lineAggregator = <span class="keyword">new</span> PassThroughLineAggregator&lt;&gt;(); <span class="comment">// (8)</span>
+    <span class="keyword">return</span> <span class="keyword">new</span> FlatFileItemWriterBuilder&lt;SalesPlanDetail&gt;()
+            .name(ClassUtils.getShortName(FlatFileItemWriter.class))
+            .resource(<span class="keyword">new</span> FileSystemResource(outputFile)) <span class="comment">// (1)</span>
+            .encoding(<span class="string"><span class="delimiter">&quot;</span><span class="content">MS932</span><span class="delimiter">&quot;</span></span>) <span class="comment">// (2)</span>
+            .lineSeparator(<span class="string"><span class="delimiter">&quot;</span><span class="char">\n</span><span class="delimiter">&quot;</span></span>) <span class="comment">// (3)</span>
+            .append(<span class="predefined-constant">true</span>) <span class="comment">// (4)</span>
+            .shouldDeleteIfExists(<span class="predefined-constant">false</span>) <span class="comment">// (5)</span>
+            .shouldDeleteIfEmpty(<span class="predefined-constant">false</span>) <span class="comment">// (6)</span>
+            .transactional(<span class="predefined-constant">false</span>) <span class="comment">// (7)</span>
+            .lineAggregator(lineAggregator)
+            .build();
+}</code></pre>
+</div>
+</div>
+  </div>
+  <div class="tabcontent" name="XMLConfigContent">
 <div class="listingblock">
 <div class="title">Bean定義</div>
 <div class="content">
@@ -2235,6 +2613,8 @@ Summary3:6,000,000,000</code></pre>
     <span class="tag">&lt;/property&gt;</span>
 <span class="tag">&lt;/bean&gt;</span></code></pre>
 </div>
+</div>
+  </div>
 </div>
 <table class="tableblock frame-all grid-all stretch">
 <caption class="title">表 18. 設定内容の項目一覧</caption>
@@ -2363,6 +2743,28 @@ branchId,year,month,customerId,amount
 <div class="paragraph">
 <p>上記のファイルを読む込むための設定は以下のとおり。</p>
 </div>
+<div class="tabbox">
+  <input type="radio" name="tabgroup050313" class="JavaConfigTab" id="tabgroup050313_1" checked><label for="tabgroup050313_1" class="tab">JavaConfig</label>
+  <input type="radio" name="tabgroup050313" class="XMLConfigTab" id="tabgroup050313_2"><label for="tabgroup050313_2" class="tab">XMLConfig</label>
+  <div class="tabcontent" name="JavaConfigContent">
+<div class="listingblock">
+<div class="title">linesToSkipによる読み飛ばし</div>
+<div class="content">
+<pre class="CodeRay highlight"><code data-lang="java"><span class="annotation">@Bean</span>
+<span class="annotation">@StepScope</span>
+<span class="directive">public</span> FlatFileItemReader&lt;SalesPlanDetail&gt; reader(
+        <span class="annotation">@Value</span>(<span class="string"><span class="delimiter">&quot;</span><span class="content">#{jobParameters['inputFile']}</span><span class="delimiter">&quot;</span></span>) <span class="predefined-type">File</span> inputFile) {
+    <span class="directive">final</span> FlatFileItemReader&lt;SalesPlanDetail&gt; reader = <span class="keyword">new</span> FlatFileItemReader&lt;&gt;();
+    <span class="comment">// omitted settings</span>
+    reader.setResource(<span class="keyword">new</span> FileSystemResource(inputFile));
+    reader.setLineMapper(lineMapper);
+    reader.setLinesToSkip(<span class="integer">2</span>); <span class="comment">// (1)</span>
+    <span class="keyword">return</span> reader;
+}</code></pre>
+</div>
+</div>
+  </div>
+  <div class="tabcontent" name="XMLConfigContent">
 <div class="listingblock">
 <div class="title">linesToSkipによる読み飛ばし</div>
 <div class="content">
@@ -2375,6 +2777,8 @@ branchId,year,month,customerId,amount
     <span class="tag">&lt;/property&gt;</span>
 <span class="tag">&lt;/bean&gt;</span></code></pre>
 </div>
+</div>
+  </div>
 </div>
 <table class="tableblock frame-all grid-all stretch">
 <caption class="title">表 19. 設定内容の項目一覧</caption>
@@ -2570,6 +2974,64 @@ tail -n +`expr ${header} + 1` ${input} | head -n -${footer} &gt; ${output}</code
 <div class="paragraph">
 <p>ヘッダレコードの情報を取り出す際の実装例を示す。</p>
 </div>
+<div class="tabbox">
+  <input type="radio" name="tabgroup050314" class="JavaConfigTab" id="tabgroup050314_1" checked><label for="tabgroup050314_1" class="tab">JavaConfig</label>
+  <input type="radio" name="tabgroup050314" class="XMLConfigTab" id="tabgroup050314_2"><label for="tabgroup050314_2" class="tab">XMLConfig</label>
+  <div class="tabcontent" name="JavaConfigContent">
+<div class="listingblock">
+<div class="title">Bean定義</div>
+<div class="content">
+<pre class="CodeRay highlight"><code data-lang="java"><span class="annotation">@Bean</span>
+<span class="directive">public</span> HoldHeaderLineCallbackHandler lineCallbackHandler() {
+    <span class="keyword">return</span> <span class="keyword">new</span> HoldHeaderLineCallbackHandler();
+}
+
+<span class="annotation">@Bean</span>
+<span class="annotation">@StepScope</span>
+<span class="directive">public</span> FlatFileItemReader&lt;SalesPlanDetail&gt; reader(
+        <span class="annotation">@Value</span>(<span class="string"><span class="delimiter">&quot;</span><span class="content">#{jobParameters['inputFile']}</span><span class="delimiter">&quot;</span></span>) <span class="predefined-type">File</span> inputFile,
+        HoldHeaderLineCallbackHandler lineCallbackHandler) {
+    <span class="directive">final</span> FlatFileItemReader&lt;SalesPlanDetail&gt; reader = <span class="keyword">new</span> FlatFileItemReader&lt;&gt;();
+    <span class="comment">// omitted settings</span>
+    reader.setLinesToSkip(<span class="integer">2</span>); <span class="comment">// (1)</span>
+    reader.setSkippedLinesCallback(lineCallbackHandler); <span class="comment">// (2)</span>
+    reader.setResource(<span class="keyword">new</span> FileSystemResource(inputFile));
+    reader.setLineMapper(lineMapper);
+    <span class="keyword">return</span> reader;
+}
+
+<span class="annotation">@Bean</span>
+<span class="directive">public</span> Step step01(JobRepository jobRepository,
+                   <span class="annotation">@Qualifier</span>(<span class="string"><span class="delimiter">&quot;</span><span class="content">jobTransactionManager</span><span class="delimiter">&quot;</span></span>) PlatformTransactionManager transactionManager,
+                   ItemReader&lt;SalesPlanDetail&gt; reader,
+                   ItemWriter&lt;SalesPlanDetail&gt; writer,
+                   LoggingHeaderRecordItemProcessor processor,
+                   LoggingItemReaderListener loggingItemReaderListener,
+                   HoldHeaderLineCallbackHandler lineCallbackHandler) {
+    <span class="keyword">return</span> <span class="keyword">new</span> StepBuilder(<span class="string"><span class="delimiter">&quot;</span><span class="content">jobReadCsvSkipAndReferHeader.step01</span><span class="delimiter">&quot;</span></span>,
+            jobRepository)
+            .&lt;SalesPlanDetail, SalesPlanDetail&gt; chunk(<span class="integer">10</span>, transactionManager)
+            .reader(reader)
+            .processor(processor)
+            .listener(loggingItemReaderListener)
+            .listener(lineCallbackHandler) <span class="comment">// (3)</span>
+            .writer(writer)
+            .build();
+}
+
+<span class="annotation">@Bean</span>
+<span class="directive">public</span> Job jobReadCsvSkipAndReferHeader(JobRepository jobRepository,
+                                        Step step01,
+                                        JobExecutionLoggingListener listener) {
+    <span class="keyword">return</span> <span class="keyword">new</span> JobBuilder(<span class="string"><span class="delimiter">&quot;</span><span class="content">jobReadCsvSkipAndReferHeader</span><span class="delimiter">&quot;</span></span>, jobRepository)
+            .start(step01)
+            .listener(listener)
+            .build();
+}</code></pre>
+</div>
+</div>
+  </div>
+  <div class="tabcontent" name="XMLConfigContent">
 <div class="listingblock">
 <div class="title">Bean定義</div>
 <div class="content">
@@ -2600,6 +3062,8 @@ tail -n +`expr ${header} + 1` ${input} | head -n -${footer} &gt; ${output}</code
     <span class="tag">&lt;/batch:step&gt;</span>
 <span class="tag">&lt;/batch:job&gt;</span></code></pre>
 </div>
+</div>
+  </div>
 </div>
 <table class="tableblock frame-all grid-all stretch">
 <caption class="title">表 21. 設定内容の項目一覧</caption>
@@ -2655,7 +3119,7 @@ tail -n +`expr ${header} + 1` ${input} | head -n -${footer} &gt; ${output}</code
 <td class="content">
 <div class="title">リスナー設定について</div>
 <div class="paragraph">
-<p>下記の2つの場合は自動で<code>Listener</code>として登録されないため、ジョブ定義時に<code>Listeners</code>にも定義を追加する必要がある。<br>
+<p>下記の2つの場合は自動で<code>Listener</code>として登録されないため、ジョブ定義時に<code>listenerメソッド/&lt;batch:listeners&gt;</code>にも定義を追加する必要がある。<br>
 (リスナの定義を追加しないと、<code>StepExecutionListener#beforeStep()</code>が実行されない)</p>
 </div>
 <div class="ulist">
@@ -2668,23 +3132,64 @@ tail -n +`expr ${header} + 1` ${input} | head -n -${footer} &gt; ${output}</code
 </li>
 </ul>
 </div>
+<div class="tabbox">
+  <input type="radio" name="tabgroup050315" class="JavaConfigTab" id="tabgroup050315_1" checked><label for="tabgroup050315_1" class="tab">JavaConfig</label>
+  <input type="radio" name="tabgroup050315" class="XMLConfigTab" id="tabgroup050315_2"><label for="tabgroup050315_2" class="tab">XMLConfig</label>
+  <div class="tabcontent" name="JavaConfigContent">
 <div class="listingblock">
 <div class="content">
-<pre class="CodeRay highlight"><code data-lang="xml">    <span class="tag">&lt;batch:job</span> <span class="attribute-name">id</span>=<span class="string"><span class="delimiter">&quot;</span><span class="content">jobReadCsvSkipAndReferHeader</span><span class="delimiter">&quot;</span></span> <span class="attribute-name">job-repository</span>=<span class="string"><span class="delimiter">&quot;</span><span class="content">jobRepository</span><span class="delimiter">&quot;</span></span><span class="tag">&gt;</span>
-        <span class="tag">&lt;batch:step</span> <span class="attribute-name">id</span>=<span class="string"><span class="delimiter">&quot;</span><span class="content">jobReadCsvSkipAndReferHeader.step01</span><span class="delimiter">&quot;</span></span><span class="tag">&gt;</span>
-            <span class="tag">&lt;batch:tasklet</span> <span class="attribute-name">transaction-manager</span>=<span class="string"><span class="delimiter">&quot;</span><span class="content">jobTransactionManager</span><span class="delimiter">&quot;</span></span><span class="tag">&gt;</span>
-                <span class="tag">&lt;batch:chunk</span> <span class="attribute-name">reader</span>=<span class="string"><span class="delimiter">&quot;</span><span class="content">reader</span><span class="delimiter">&quot;</span></span>
-                             <span class="attribute-name">processor</span>=<span class="string"><span class="delimiter">&quot;</span><span class="content">loggingHeaderRecordItemProcessor</span><span class="delimiter">&quot;</span></span>
-                             <span class="attribute-name">writer</span>=<span class="string"><span class="delimiter">&quot;</span><span class="content">writer</span><span class="delimiter">&quot;</span></span> <span class="attribute-name">commit-interval</span>=<span class="string"><span class="delimiter">&quot;</span><span class="content">10</span><span class="delimiter">&quot;</span></span><span class="tag">/&gt;</span>
-                <span class="tag">&lt;batch:listeners&gt;</span>
-                    <span class="tag">&lt;batch:listener</span> <span class="attribute-name">ref</span>=<span class="string"><span class="delimiter">&quot;</span><span class="content">loggingItemReaderListener</span><span class="delimiter">&quot;</span></span><span class="tag">/&gt;</span>
-                    <span class="comment">&lt;!-- mandatory --&gt;</span>
-                    <span class="tag">&lt;batch:listener</span> <span class="attribute-name">ref</span>=<span class="string"><span class="delimiter">&quot;</span><span class="content">lineCallbackHandler</span><span class="delimiter">&quot;</span></span><span class="tag">/&gt;</span>
-                <span class="tag">&lt;/batch:listeners&gt;</span>
-            <span class="tag">&lt;/batch:tasklet&gt;</span>
-        <span class="tag">&lt;/batch:step&gt;</span>
-    <span class="tag">&lt;/batch:job&gt;</span></code></pre>
+<pre class="CodeRay highlight"><code data-lang="java"><span class="annotation">@Bean</span>
+<span class="directive">public</span> Step step01(JobRepository jobRepository,
+                   <span class="annotation">@Qualifier</span>(<span class="string"><span class="delimiter">&quot;</span><span class="content">jobTransactionManager</span><span class="delimiter">&quot;</span></span>) PlatformTransactionManager transactionManager,
+                   ItemReader&lt;SalesPlanDetail&gt; reader,
+                   ItemWriter&lt;SalesPlanDetail&gt; writer,
+                   LoggingHeaderRecordItemProcessor processor,
+                   LoggingItemReaderListener loggingItemReaderListener,
+                   HoldHeaderLineCallbackHandler lineCallbackHandler) {
+    <span class="keyword">return</span> <span class="keyword">new</span> StepBuilder(<span class="string"><span class="delimiter">&quot;</span><span class="content">jobReadCsvSkipAndReferHeader.step01</span><span class="delimiter">&quot;</span></span>,
+            jobRepository)
+            .&lt;SalesPlanDetail, SalesPlanDetail&gt; chunk(<span class="integer">10</span>, transactionManager)
+            .reader(reader)
+            .processor(processor)
+            .listener(loggingItemReaderListener)
+            <span class="comment">// manantory</span>
+            .listener(lineCallbackHandler)
+            .writer(writer)
+            .build();
+}
+
+<span class="annotation">@Bean</span>
+<span class="directive">public</span> Job jobReadCsvSkipAndReferHeader(JobRepository jobRepository,
+                                        Step step01,
+                                        JobExecutionLoggingListener listener) {
+    <span class="keyword">return</span> <span class="keyword">new</span> JobBuilder(<span class="string"><span class="delimiter">&quot;</span><span class="content">jobReadCsvSkipAndReferHeader</span><span class="delimiter">&quot;</span></span>, jobRepository)
+            .start(step01)
+            .listener(listener)
+            .build();
+}</code></pre>
 </div>
+</div>
+  </div>
+  <div class="tabcontent" name="XMLConfigContent">
+<div class="listingblock">
+<div class="content">
+<pre class="CodeRay highlight"><code data-lang="xml"><span class="tag">&lt;batch:job</span> <span class="attribute-name">id</span>=<span class="string"><span class="delimiter">&quot;</span><span class="content">jobReadCsvSkipAndReferHeader</span><span class="delimiter">&quot;</span></span> <span class="attribute-name">job-repository</span>=<span class="string"><span class="delimiter">&quot;</span><span class="content">jobRepository</span><span class="delimiter">&quot;</span></span><span class="tag">&gt;</span>
+    <span class="tag">&lt;batch:step</span> <span class="attribute-name">id</span>=<span class="string"><span class="delimiter">&quot;</span><span class="content">jobReadCsvSkipAndReferHeader.step01</span><span class="delimiter">&quot;</span></span><span class="tag">&gt;</span>
+        <span class="tag">&lt;batch:tasklet</span> <span class="attribute-name">transaction-manager</span>=<span class="string"><span class="delimiter">&quot;</span><span class="content">jobTransactionManager</span><span class="delimiter">&quot;</span></span><span class="tag">&gt;</span>
+            <span class="tag">&lt;batch:chunk</span> <span class="attribute-name">reader</span>=<span class="string"><span class="delimiter">&quot;</span><span class="content">reader</span><span class="delimiter">&quot;</span></span>
+                         <span class="attribute-name">processor</span>=<span class="string"><span class="delimiter">&quot;</span><span class="content">loggingHeaderRecordItemProcessor</span><span class="delimiter">&quot;</span></span>
+                         <span class="attribute-name">writer</span>=<span class="string"><span class="delimiter">&quot;</span><span class="content">writer</span><span class="delimiter">&quot;</span></span> <span class="attribute-name">commit-interval</span>=<span class="string"><span class="delimiter">&quot;</span><span class="content">10</span><span class="delimiter">&quot;</span></span><span class="tag">/&gt;</span>
+            <span class="tag">&lt;batch:listeners&gt;</span>
+                <span class="tag">&lt;batch:listener</span> <span class="attribute-name">ref</span>=<span class="string"><span class="delimiter">&quot;</span><span class="content">loggingItemReaderListener</span><span class="delimiter">&quot;</span></span><span class="tag">/&gt;</span>
+                <span class="comment">&lt;!-- mandatory --&gt;</span>
+                <span class="tag">&lt;batch:listener</span> <span class="attribute-name">ref</span>=<span class="string"><span class="delimiter">&quot;</span><span class="content">lineCallbackHandler</span><span class="delimiter">&quot;</span></span><span class="tag">/&gt;</span>
+            <span class="tag">&lt;/batch:listeners&gt;</span>
+        <span class="tag">&lt;/batch:tasklet&gt;</span>
+    <span class="tag">&lt;/batch:step&gt;</span>
+<span class="tag">&lt;/batch:job&gt;</span></code></pre>
+</div>
+</div>
+  </div>
 </div>
 </td>
 </tr>
@@ -3126,6 +3631,96 @@ total of amounts,6000000000</code></pre>
 </li>
 </ul>
 </div>
+<div class="tabbox">
+  <input type="radio" name="tabgroup050316" class="JavaConfigTab" id="tabgroup050316_1" checked><label for="tabgroup050316_1" class="tab">JavaConfig</label>
+  <input type="radio" name="tabgroup050316" class="XMLConfigTab" id="tabgroup050316_2"><label for="tabgroup050316_2" class="tab">XMLConfig</label>
+  <div class="tabcontent" name="JavaConfigContent">
+<div class="listingblock">
+<div class="title">Bean定義</div>
+<div class="content">
+<pre class="CodeRay highlight"><code data-lang="java"><span class="comment">// (1)</span>
+<span class="annotation">@Bean</span>
+<span class="annotation">@StepScope</span>
+<span class="directive">public</span> FlatFileItemReader&lt;SalesPlanDetailFooter&gt; footerReader(
+        <span class="annotation">@Value</span>(<span class="string"><span class="delimiter">&quot;</span><span class="content">#{jobParameters['footerInputFile']}</span><span class="delimiter">&quot;</span></span>) <span class="predefined-type">File</span> inputFile) {
+    <span class="comment">// omitted other settings</span>
+    <span class="directive">final</span> DefaultLineMapper&lt;SalesPlanDetailFooter&gt; lineMapper = <span class="keyword">new</span> DefaultLineMapper&lt;&gt;();
+    <span class="comment">// omitted other settings</span>
+    reader.setResource(<span class="keyword">new</span> FileSystemResource(inputFile));
+    reader.setLineMapper(lineMapper);
+    <span class="keyword">return</span> reader;
+}
+
+<span class="comment">// (2)</span>
+<span class="annotation">@Bean</span>
+<span class="annotation">@StepScope</span>
+<span class="directive">public</span> FlatFileItemReader&lt;SalesPlanDetail&gt; dataReader(
+        <span class="annotation">@Value</span>(<span class="string"><span class="delimiter">&quot;</span><span class="content">#{jobParameters['dataInputFile']}</span><span class="delimiter">&quot;</span></span>) <span class="predefined-type">File</span> inputFile) {
+    <span class="comment">// omitted other settings</span>
+    <span class="directive">final</span> DefaultLineMapper&lt;SalesPlanDetail&gt; lineMapper = <span class="keyword">new</span> DefaultLineMapper&lt;&gt;();
+    <span class="comment">// omitted other settings</span>
+    reader.setResource(<span class="keyword">new</span> FileSystemResource(inputFile));
+    reader.setLineMapper(lineMapper);
+    <span class="keyword">return</span> reader;
+}
+
+<span class="annotation">@Bean</span>
+<span class="annotation">@StepScope</span>
+<span class="directive">public</span> FlatFileItemWriter&lt;SalesPlanDetail&gt; writer(
+        <span class="annotation">@Value</span>(<span class="string"><span class="delimiter">&quot;</span><span class="content">#{jobParameters['outputFile']}</span><span class="delimiter">&quot;</span></span>) <span class="predefined-type">File</span> outputFile,
+        WriteFooterFlatFileFooterCallback writeFooterFlatFileFooterCallback) {
+    <span class="comment">// omitted other settings</span>
+}
+
+<span class="comment">// Tasklet for reading footer records</span>
+<span class="annotation">@Bean</span>
+<span class="annotation">@JobScope</span>
+<span class="directive">public</span> ReadFooterTasklet readFooterTasklet() {
+    <span class="keyword">return</span> <span class="keyword">new</span> ReadFooterTasklet();
+}
+
+<span class="comment">// (3)</span>
+<span class="annotation">@Bean</span>
+<span class="directive">public</span> Step step01(JobRepository jobRepository,
+                   <span class="annotation">@Qualifier</span>(<span class="string"><span class="delimiter">&quot;</span><span class="content">jobTransactionManager</span><span class="delimiter">&quot;</span></span>) PlatformTransactionManager transactionManager,
+                   ReadFooterTasklet readFooterTasklet) {
+    <span class="keyword">return</span> <span class="keyword">new</span> StepBuilder(<span class="string"><span class="delimiter">&quot;</span><span class="content">jobReadAndWriteCsvWithFooter.step01</span><span class="delimiter">&quot;</span></span>, jobRepository)
+            .tasklet(readFooterTasklet, transactionManager)
+            .build();
+}
+
+<span class="comment">// (4)</span>
+<span class="annotation">@Bean</span>
+<span class="directive">public</span> Step step02(JobRepository jobRepository,
+                   <span class="annotation">@Qualifier</span>(<span class="string"><span class="delimiter">&quot;</span><span class="content">jobTransactionManager</span><span class="delimiter">&quot;</span></span>) PlatformTransactionManager transactionManager,
+                   ItemReader&lt;SalesPlanDetail&gt; dataReader,
+                   ItemWriter&lt;SalesPlanDetail&gt; writer) {
+    <span class="keyword">return</span> <span class="keyword">new</span> StepBuilder(<span class="string"><span class="delimiter">&quot;</span><span class="content">jobReadAndWriteCsvWithFooter.step02</span><span class="delimiter">&quot;</span></span>, jobRepository)
+            .&lt;SalesPlanDetail, SalesPlanDetail&gt; chunk(<span class="integer">10</span>, transactionManager)
+            .reader(dataReader)
+            .writer(writer)
+            .build();
+}
+
+<span class="annotation">@Bean</span>
+<span class="directive">public</span> Job jobReadAndWriteCsvWithFooter(JobRepository jobRepository,
+                                        Step step01,
+                                        Step step02,
+                                        JobExecutionLoggingListener jobExecutionLoggingListener,
+                                        ReadFooterTasklet readFooterTasklet,
+                                        WriteFooterFlatFileFooterCallback writeFooterFlatFileFooterCallback) {
+    <span class="keyword">return</span> <span class="keyword">new</span> JobBuilder(<span class="string"><span class="delimiter">&quot;</span><span class="content">jobReadAndWriteCsvWithFooter</span><span class="delimiter">&quot;</span></span>, jobRepository)
+            .start(step01)
+            .next(step02)
+            .listener(jobExecutionLoggingListener)
+            .listener(readFooterTasklet) <span class="comment">// (5)</span>
+            .listener(writeFooterFlatFileFooterCallback)
+            .build();
+}</code></pre>
+</div>
+</div>
+  </div>
+  <div class="tabcontent" name="XMLConfigContent">
 <div class="listingblock">
 <div class="title">Bean定義</div>
 <div class="content">
@@ -3177,6 +3772,8 @@ total of amounts,6000000000</code></pre>
     <span class="tag">&lt;/batch:listeners&gt;</span>
 <span class="tag">&lt;/batch:job&gt;</span></code></pre>
 </div>
+</div>
+  </div>
 </div>
 <table class="tableblock frame-all grid-all stretch">
 <caption class="title">表 24. 設定内容の項目一覧</caption>
@@ -3412,6 +4009,32 @@ total of amounts,6000000000</code></pre>
 </tr>
 </tbody>
 </table>
+<div class="tabbox">
+  <input type="radio" name="tabgroup050317" class="JavaConfigTab" id="tabgroup050317_1" checked><label for="tabgroup050317_1" class="tab">JavaConfig</label>
+  <input type="radio" name="tabgroup050317" class="XMLConfigTab" id="tabgroup050317_2"><label for="tabgroup050317_2" class="tab">XMLConfig</label>
+  <div class="tabcontent" name="JavaConfigContent">
+<div class="listingblock">
+<div class="title">Bean定義</div>
+<div class="content">
+<pre class="CodeRay highlight"><code data-lang="java"><span class="annotation">@Bean</span>
+<span class="annotation">@StepScope</span>
+<span class="directive">public</span> FlatFileItemWriter&lt;Customer&gt; writer(
+        <span class="annotation">@Value</span>(<span class="string"><span class="delimiter">&quot;</span><span class="content">#{jobParameters['outputFile']}</span><span class="delimiter">&quot;</span></span>) <span class="predefined-type">File</span> outputFile,
+        WriteHeaderFlatFileFooterCallback writeHeaderFlatFileFooterCallback) {
+    <span class="comment">// omitted settings</span>
+    <span class="keyword">return</span> <span class="keyword">new</span> FlatFileItemWriterBuilder&lt;Customer&gt;()
+            .name(ClassUtils.getShortName(FlatFileItemWriter.class))
+            .headerCallback(writeHeaderFlatFileFooterCallback) <span class="comment">// (1)</span>
+            .lineSeparator(<span class="string"><span class="delimiter">&quot;</span><span class="char">\n</span><span class="delimiter">&quot;</span></span>) <span class="comment">// (2)</span>
+            .resource(<span class="keyword">new</span> FileSystemResource(outputFile))
+            .transactional(<span class="predefined-constant">false</span>)
+            .lineAggregator(lineAggregator)
+            .build();
+}</code></pre>
+</div>
+</div>
+  </div>
+  <div class="tabcontent" name="XMLConfigContent">
 <div class="listingblock">
 <div class="title">Bean定義</div>
 <div class="content">
@@ -3426,6 +4049,8 @@ total of amounts,6000000000</code></pre>
     <span class="tag">&lt;/property&gt;</span>
 <span class="tag">&lt;/bean&gt;</span></code></pre>
 </div>
+</div>
+  </div>
 </div>
 <table class="tableblock frame-all grid-all stretch">
 <caption class="title">表 27. 設定内容の項目一覧</caption>
@@ -3593,6 +4218,31 @@ total of amounts,6000000000</code></pre>
 </tr>
 </tbody>
 </table>
+<div class="tabbox">
+  <input type="radio" name="tabgroup050318" class="JavaConfigTab" id="tabgroup050318_1" checked><label for="tabgroup050318_1" class="tab">JavaConfig</label>
+  <input type="radio" name="tabgroup050318" class="XMLConfigTab" id="tabgroup050318_2"><label for="tabgroup050318_2" class="tab">XMLConfig</label>
+  <div class="tabcontent" name="JavaConfigContent">
+<div class="listingblock">
+<div class="title">Bean定義</div>
+<div class="content">
+<pre class="CodeRay highlight"><code data-lang="java"><span class="annotation">@Bean</span>
+<span class="annotation">@StepScope</span>
+<span class="directive">public</span> FlatFileItemWriter&lt;SalesPlanDetail&gt; writer(
+        <span class="annotation">@Value</span>(<span class="string"><span class="delimiter">&quot;</span><span class="content">#{jobParameters['outputFile']}</span><span class="delimiter">&quot;</span></span>) <span class="predefined-type">File</span> outputFile,
+        WriteFooterFlatFileFooterCallback writeFooterFlatFileFooterCallback) {
+    <span class="comment">// omitted settings</span>
+    <span class="keyword">return</span> <span class="keyword">new</span> FlatFileItemWriterBuilder&lt;SalesPlanDetail&gt;()
+            .name(ClassUtils.getShortName(FlatFileItemWriter.class))
+            .resource(<span class="keyword">new</span> FileSystemResource(outputFile))
+            .footerCallback(writeFooterFlatFileFooterCallback) <span class="comment">// (1)</span>
+            .transactional(<span class="predefined-constant">false</span>)
+            .lineAggregator(lineAggregator)
+            .build();
+}</code></pre>
+</div>
+</div>
+  </div>
+  <div class="tabcontent" name="XMLConfigContent">
 <div class="listingblock">
 <div class="title">Bean定義</div>
 <div class="content">
@@ -3605,6 +4255,8 @@ total of amounts,6000000000</code></pre>
     <span class="tag">&lt;/property&gt;</span>
 <span class="tag">&lt;/bean&gt;</span></code></pre>
 </div>
+</div>
+  </div>
 </div>
 <table class="tableblock frame-all grid-all stretch">
 <caption class="title">表 29. 設定内容の項目一覧</caption>
@@ -3686,6 +4338,37 @@ sales_plan_detail_02.csv
 sales_plan_detail_03.csv</code></pre>
 </div>
 </div>
+<div class="tabbox">
+  <input type="radio" name="tabgroup050319" class="JavaConfigTab" id="tabgroup050319_1" checked><label for="tabgroup050319_1" class="tab">JavaConfig</label>
+  <input type="radio" name="tabgroup050319" class="XMLConfigTab" id="tabgroup050319_2"><label for="tabgroup050319_2" class="tab">XMLConfig</label>
+  <div class="tabcontent" name="JavaConfigContent">
+<div class="listingblock">
+<div class="title">Bean定義</div>
+<div class="content">
+<pre class="CodeRay highlight"><code data-lang="java"><span class="annotation">@Bean</span>
+<span class="annotation">@StepScope</span>
+<span class="directive">public</span> MultiResourceItemReader&lt;SalesPlanDetail&gt; multiResourceReader(
+        <span class="annotation">@Value</span>(<span class="string"><span class="delimiter">&quot;</span><span class="content">file:input/sales_plan_detail_*.csv</span><span class="delimiter">&quot;</span></span>) Resource<span class="type">[]</span> resources,
+        FlatFileItemReader&lt;SalesPlanDetail&gt; reader) {
+    <span class="keyword">return</span> <span class="keyword">new</span> MultiResourceItemReaderBuilder&lt;SalesPlanDetail&gt;()
+    .name(ClassUtils.getShortName(MultiResourceItemReader.class))
+    .resources(resources) <span class="comment">// (1)</span>
+    .delegate(reader) <span class="comment">// (2)</span>
+    .build();
+}
+
+<span class="comment">// (3)</span>
+<span class="annotation">@Bean</span>
+<span class="directive">public</span> FlatFileItemReader&lt;SalesPlanDetail&gt; reader() {
+    <span class="directive">final</span> FlatFileItemReader&lt;SalesPlanDetail&gt; reader = <span class="keyword">new</span> FlatFileItemReader&lt;&gt;();
+    <span class="comment">// omitted settings</span>
+    reader.setLineMapper(lineMapper);
+    <span class="keyword">return</span> reader;
+}</code></pre>
+</div>
+</div>
+  </div>
+  <div class="tabcontent" name="XMLConfigContent">
 <div class="listingblock">
 <div class="title">Bean定義</div>
 <div class="content">
@@ -3704,6 +4387,8 @@ sales_plan_detail_03.csv</code></pre>
     <span class="tag">&lt;/property&gt;</span>
 <span class="tag">&lt;/bean&gt;</span></code></pre>
 </div>
+</div>
+  </div>
 </div>
 <table class="tableblock frame-all grid-all stretch">
 <caption class="title">表 30. 設定内容の項目一覧</caption>
@@ -3835,6 +4520,50 @@ sales_plan_detail_03.csv</code></pre>
 </li>
 </ul>
 </div>
+<div class="tabbox">
+  <input type="radio" name="tabgroup050320" class="JavaConfigTab" id="tabgroup050320_1" checked><label for="tabgroup050320_1" class="tab">JavaConfig</label>
+  <input type="radio" name="tabgroup050320" class="XMLConfigTab" id="tabgroup050320_2"><label for="tabgroup050320_2" class="tab">XMLConfig</label>
+  <div class="tabcontent" name="JavaConfigContent">
+<div class="listingblock">
+<div class="title">Bean定義</div>
+<div class="content">
+<pre class="CodeRay highlight"><code data-lang="java"><span class="annotation">@Bean</span>
+<span class="annotation">@StepScope</span>
+<span class="directive">public</span> MultiResourceItemWriter&lt;Customer&gt; multiResourceItemWriter(
+        <span class="annotation">@Value</span>(<span class="string"><span class="delimiter">&quot;</span><span class="content">#{jobParameters['outputDir']}</span><span class="delimiter">&quot;</span></span>) <span class="predefined-type">File</span> outputDir,
+        CustomerListResourceSuffixCreator customerListResourceSuffixCreator,
+        FlatFileItemWriter&lt;Customer&gt; writer) {
+    <span class="keyword">return</span> <span class="keyword">new</span> MultiResourceItemWriterBuilder&lt;Customer&gt;()
+            .name(ClassUtils.getShortName(MultiResourceItemWriter.class))
+            .resource(<span class="keyword">new</span> FileSystemResource(outputDir)) <span class="comment">// (1)</span>
+            .resourceSuffixCreator(customerListResourceSuffixCreator) <span class="comment">// (2)</span>
+            .delegate(writer) <span class="comment">// (3)</span>
+            .itemCountLimitPerResource(<span class="integer">4</span>) <span class="comment">// (4)</span>
+            .build();
+}
+
+<span class="comment">// (5)</span>
+<span class="annotation">@Bean</span>
+<span class="directive">public</span> FlatFileItemWriter&lt;Customer&gt; writer() {
+    <span class="comment">// omitted settings</span>
+    <span class="directive">final</span> DelimitedLineAggregator&lt;Customer&gt; lineAggregator = <span class="keyword">new</span> DelimitedLineAggregator&lt;&gt;();
+    lineAggregator.setFieldExtractor(fieldExtractor);
+    <span class="keyword">return</span> <span class="keyword">new</span> FlatFileItemWriterBuilder&lt;Customer&gt;()
+            .name(ClassUtils.getShortName(FlatFileItemWriter.class))
+            .transactional(<span class="predefined-constant">false</span>)
+            .lineAggregator(lineAggregator)
+            .build();
+}
+
+<span class="comment">// (6)</span>
+<span class="annotation">@Bean</span>
+<span class="directive">public</span> CustomerListResourceSuffixCreator customerListResourceSuffixCreator() {
+    <span class="keyword">return</span> <span class="keyword">new</span> CustomerListResourceSuffixCreator();
+}</code></pre>
+</div>
+</div>
+  </div>
+  <div class="tabcontent" name="XMLConfigContent">
 <div class="listingblock">
 <div class="title">Bean定義</div>
 <div class="content">
@@ -3858,6 +4587,8 @@ sales_plan_detail_03.csv</code></pre>
 <span class="tag">&lt;bean</span> <span class="attribute-name">id</span>=<span class="string"><span class="delimiter">&quot;</span><span class="content">customerListResourceSuffixCreator</span><span class="delimiter">&quot;</span></span>
       <span class="attribute-name">class</span>=<span class="string"><span class="delimiter">&quot;</span><span class="content">org.terasoluna.batch.functionaltest.ch05.fileaccess.module.CustomerListResourceSuffixCreator</span><span class="delimiter">&quot;</span></span><span class="tag">/&gt;</span>  <span class="comment">&lt;!-- (6) --&gt;</span></code></pre>
 </div>
+</div>
+  </div>
 </div>
 <table class="tableblock frame-all grid-all stretch">
 <caption class="title">表 31. 設定内容の項目一覧</caption>
@@ -4279,6 +5010,43 @@ Summary Branch Id : 02,,,2100</code></pre>
 </tr>
 </tbody>
 </table>
+<div class="tabbox">
+  <input type="radio" name="tabgroup050321" class="JavaConfigTab" id="tabgroup050321_1" checked><label for="tabgroup050321_1" class="tab">JavaConfig</label>
+  <input type="radio" name="tabgroup050321" class="XMLConfigTab" id="tabgroup050321_2"><label for="tabgroup050321_2" class="tab">XMLConfig</label>
+  <div class="tabcontent" name="JavaConfigContent">
+<div class="listingblock">
+<div class="title">Bean定義</div>
+<div class="content">
+<pre class="CodeRay highlight"><code data-lang="java"><span class="comment">// (1)</span>
+<span class="annotation">@Bean</span>
+<span class="directive">public</span> SingleItemPeekableItemReader&lt;SalesPerformanceDetail&gt; reader(
+        FlatFileItemReader&lt;SalesPerformanceDetail&gt; delegateReader) {
+    <span class="keyword">return</span> <span class="keyword">new</span> SingleItemPeekableItemReaderBuilder&lt;SalesPerformanceDetail&gt;()
+            .delegate(delegateReader) <span class="comment">// (2)</span>
+            .build();
+}
+
+<span class="comment">// (3)</span>
+<span class="annotation">@Bean</span>
+<span class="annotation">@StepScope</span>
+<span class="directive">public</span> FlatFileItemReader&lt;SalesPerformanceDetail&gt; delegateReader(
+        <span class="annotation">@Value</span>(<span class="string"><span class="delimiter">&quot;</span><span class="content">#{jobParameters['inputFile']}</span><span class="delimiter">&quot;</span></span>) <span class="predefined-type">File</span> inputFile) {
+    FlatFileItemReader&lt;SalesPerformanceDetail&gt; delegateReader = <span class="keyword">new</span> FlatFileItemReader&lt;&gt;();
+    DefaultLineMapper&lt;SalesPerformanceDetail&gt; lineMapper = <span class="keyword">new</span> DefaultLineMapper&lt;&gt;();
+    DelimitedLineTokenizer lineTokenizer = <span class="keyword">new</span> DelimitedLineTokenizer();
+    lineTokenizer.setNames(<span class="string"><span class="delimiter">&quot;</span><span class="content">branchId</span><span class="delimiter">&quot;</span></span>, <span class="string"><span class="delimiter">&quot;</span><span class="content">year</span><span class="delimiter">&quot;</span></span>, <span class="string"><span class="delimiter">&quot;</span><span class="content">month</span><span class="delimiter">&quot;</span></span>, <span class="string"><span class="delimiter">&quot;</span><span class="content">customerId</span><span class="delimiter">&quot;</span></span>, <span class="string"><span class="delimiter">&quot;</span><span class="content">amount</span><span class="delimiter">&quot;</span></span>);
+    BeanWrapperFieldSetMapper&lt;SalesPerformanceDetail&gt; fieldSetMapper = <span class="keyword">new</span> BeanWrapperFieldSetMapper&lt;&gt;();
+    fieldSetMapper.setTargetType(SalesPerformanceDetail.class);
+    lineMapper.setLineTokenizer(lineTokenizer);
+    lineMapper.setFieldSetMapper(fieldSetMapper);
+    delegateReader.setLineMapper(lineMapper);
+    delegateReader.setResource(<span class="keyword">new</span> FileSystemResource(inputFile));
+    <span class="keyword">return</span> delegateReader;
+}</code></pre>
+</div>
+</div>
+  </div>
+  <div class="tabcontent" name="XMLConfigContent">
 <div class="listingblock">
 <div class="title">Bean定義</div>
 <div class="content">
@@ -4305,6 +5073,8 @@ Summary Branch Id : 02,,,2100</code></pre>
     <span class="tag">&lt;/property&gt;</span>
 <span class="tag">&lt;/bean&gt;</span></code></pre>
 </div>
+</div>
+  </div>
 </div>
 <table class="tableblock frame-all grid-all stretch">
 <caption class="title">表 34. 設定内容の項目一覧</caption>
@@ -4686,7 +5456,7 @@ encoding属性が宣言されていない場合はUTF-8で読み込みが行わ�
 Spring Batch 4.3.0以降では<code>StaxEventItemReader</code>にencodingプロパティが追加され、デフォルト値を含め上記の表の仕様に変更された。</p>
 </div>
 <div class="paragraph">
-<p>TERASOLUNA Batch 5.4.0はSpring Batch 5.0.0を利用しているため、TERASOLUNA Batch 5.3.1以前からのバージョンアップを行った場合は、
+<p>TERASOLUNA Batch 5.4.0はSpring Batch 5.1.0を利用しているため、TERASOLUNA Batch 5.3.1以前からのバージョンアップを行った場合は、
 エンコーディングを明示的に指定しないと読み込みに利用されるエンコーディングが変化してしまう可能性があるため注意すること。</p>
 </div>
 </td>
@@ -4962,6 +5732,37 @@ XML要素とJavaBeanプロパティが同じの場合、<code>name</code>属性�
 <div class="paragraph">
 <p>上記のファイルを読む込むための設定は以下のとおり。</p>
 </div>
+<div class="tabbox">
+  <input type="radio" name="tabgroup050322" class="JavaConfigTab" id="tabgroup050322_1" checked><label for="tabgroup050322_1" class="tab">JavaConfig</label>
+  <input type="radio" name="tabgroup050322" class="XMLConfigTab" id="tabgroup050322_2"><label for="tabgroup050322_2" class="tab">XMLConfig</label>
+  <div class="tabcontent" name="JavaConfigContent">
+<div class="listingblock">
+<div class="title">Bean定義</div>
+<div class="content">
+<pre class="CodeRay highlight"><code data-lang="java"><span class="annotation">@Bean</span>
+<span class="annotation">@StepScope</span>
+<span class="directive">public</span> StaxEventItemReader&lt;Customer&gt; reader(
+        <span class="annotation">@Value</span>(<span class="string"><span class="delimiter">&quot;</span><span class="content">#{jobParameters['inputFile']}</span><span class="delimiter">&quot;</span></span>) <span class="predefined-type">File</span> inputFile, <span class="comment">// (1)</span>
+        <span class="annotation">@Value</span>(<span class="string"><span class="delimiter">&quot;</span><span class="content">file:/usr/local/terasoluna/functionaltest/files/test/input/ch05/fileaccess/customer.xsd</span><span class="delimiter">&quot;</span></span>) Resource schemaResoure, <span class="comment">// (6)</span>
+        CustomerValidationEventHandler customerValidationEventHandler) <span class="directive">throws</span> <span class="exception">Exception</span> {
+    Jaxb2Marshaller unmarshaller = <span class="keyword">new</span> Jaxb2Marshaller(); <span class="comment">// (5)</span>
+    unmarshaller.setSchema(schemaREsource)); <span class="comment">// (6)</span>
+    unmarshaller.setValidationEventHandler(customerValidationEventHandler); <span class="comment">// (7)</span>
+    unmarshaller.setClassesToBeBound(Customer.class); <span class="comment">// (8)</span>
+    unmarshaller.afterPropertiesSet();
+    <span class="keyword">return</span> <span class="keyword">new</span> StaxEventItemReaderBuilder&lt;Customer&gt;()
+            .name(ClassUtils.getShortName(StaxEventItemReader.class))
+            .unmarshaller(unmarshaller)
+            .resource(<span class="keyword">new</span> FileSystemResource(inputFile)) <span class="comment">// (1)</span>
+            .encoding(<span class="string"><span class="delimiter">&quot;</span><span class="content">UTF-8</span><span class="delimiter">&quot;</span></span>) <span class="comment">// (2)</span>
+            .addFragmentRootElements(<span class="string"><span class="delimiter">&quot;</span><span class="content">customer</span><span class="delimiter">&quot;</span></span>) <span class="comment">// (3)</span>
+            .strict(<span class="predefined-constant">true</span>) <span class="comment">// (4)</span>
+            .build();
+}</code></pre>
+</div>
+</div>
+  </div>
+  <div class="tabcontent" name="XMLConfigContent">
 <div class="listingblock">
 <div class="title">Bean定義</div>
 <div class="content">
@@ -4974,7 +5775,7 @@ XML要素とJavaBeanプロパティが同じの場合、<code>name</code>属性�
     <span class="tag">&lt;property</span> <span class="attribute-name">name</span>=<span class="string"><span class="delimiter">&quot;</span><span class="content">unmarshaller</span><span class="delimiter">&quot;</span></span><span class="tag">&gt;</span>  <span class="comment">&lt;!-- (5) --&gt;</span>
         <span class="comment">&lt;!-- (6) (7) --&gt;</span>
         <span class="tag">&lt;bean</span> <span class="attribute-name">class</span>=<span class="string"><span class="delimiter">&quot;</span><span class="content">org.springframework.oxm.jaxb.Jaxb2Marshaller</span><span class="delimiter">&quot;</span></span>
-              <span class="attribute-name">p:schema</span>=<span class="string"><span class="delimiter">&quot;</span><span class="content">file:files/test/input/ch05/fileaccess/customer.xsd</span><span class="delimiter">&quot;</span></span>
+              <span class="attribute-name">p:schema</span>=<span class="string"><span class="delimiter">&quot;</span><span class="content">file:/usr/local/terasoluna/functionaltest/files/test/input/ch05/fileaccess/customer.xsd</span><span class="delimiter">&quot;</span></span>
               <span class="attribute-name">p:validationEventHandler-ref</span>=<span class="string"><span class="delimiter">&quot;</span><span class="content">customerValidationEventHandler</span><span class="delimiter">&quot;</span></span><span class="tag">&gt;</span>
             <span class="tag">&lt;property</span> <span class="attribute-name">name</span>=<span class="string"><span class="delimiter">&quot;</span><span class="content">classesToBeBound</span><span class="delimiter">&quot;</span></span><span class="tag">&gt;</span>  <span class="comment">&lt;!-- (8) --&gt;</span>
                 <span class="tag">&lt;list&gt;</span>
@@ -4985,6 +5786,8 @@ XML要素とJavaBeanプロパティが同じの場合、<code>name</code>属性�
     <span class="tag">&lt;/property&gt;</span>
 <span class="tag">&lt;/bean&gt;</span></code></pre>
 </div>
+</div>
+  </div>
 </div>
 <table class="tableblock frame-all grid-all stretch">
 <caption class="title">表 40. 設定内容の項目一覧</caption>
@@ -5048,6 +5851,9 @@ JAXBを利用する場合は、<code>org.springframework.oxm.jaxb.Jaxb2Marshalle
 <td class="tableblock halign-left valign-top"><p class="tableblock">(6)</p></td>
 <td class="tableblock halign-left valign-top"><p class="tableblock">schema</p></td>
 <td class="tableblock halign-left valign-top"><p class="tableblock">バリデーションにて使用するスキーマファイルを設定する。<br>
+この例では、スキーマファイルの場所は<code>@Value</code>にファイルパス（絶対パス）で指定し、インジェクションする方式とする。<br>
+これ以外にもファイルの場所の指定方法はいくつかのバリエーションが考えられるが、詳細説明は割愛する（ファイルパスではなくクラスパスで指定する、パス情報をプロパティファイルに定義する、等）。<br>
+開発案件のルールやアプリケーション実行環境を考慮して最適な方式を検討すること。<br>
 スキーマファイルの記述例は後述する。</p></td>
 <td class="tableblock halign-left valign-top"></td>
 <td class="tableblock halign-left valign-top"></td>
@@ -5401,6 +6207,20 @@ Spring Frameworkが提供するライブラリであるSpring Object/XML Marshal
 <div class="paragraph">
 <p>これを回避し、フォーマット済みの出力を行うためには、以下のように<code>marshallerProperties</code>に設定すればよい。</p>
 </div>
+<div class="tabbox">
+  <input type="radio" name="tabgroup050323" class="JavaConfigTab" id="tabgroup050323_1" checked><label for="tabgroup050323_1" class="tab">JavaConfig</label>
+  <input type="radio" name="tabgroup050323" class="XMLConfigTab" id="tabgroup050323_2"><label for="tabgroup050323_2" class="tab">XMLConfig</label>
+  <div class="tabcontent" name="JavaConfigContent">
+<div class="listingblock">
+<div class="content">
+<pre class="CodeRay highlight"><code data-lang="java">Jaxb2Marshaller marshaller = <span class="keyword">new</span> Jaxb2Marshaller();
+marshaller.setClassesToBeBound(CustomerToJaxb.class);
+marshaller.setMarshallerProperties(<span class="predefined-type">Map</span>.of(<span class="string"><span class="delimiter">&quot;</span><span class="content">javax.xml.bind.Marshaller.JAXB_FORMATTED_OUTPUT</span><span class="delimiter">&quot;</span></span>, <span class="predefined-constant">true</span>));
+marshaller.afterPropertiesSet();</code></pre>
+</div>
+</div>
+  </div>
+  <div class="tabcontent" name="XMLConfigContent">
 <div class="listingblock">
 <div class="content">
 <pre class="CodeRay highlight"><code data-lang="xml"><span class="tag">&lt;property</span> <span class="attribute-name">name</span>=<span class="string"><span class="delimiter">&quot;</span><span class="content">marshaller</span><span class="delimiter">&quot;</span></span><span class="tag">&gt;</span>
@@ -5422,6 +6242,8 @@ Spring Frameworkが提供するライブラリであるSpring Object/XML Marshal
     <span class="tag">&lt;/bean&gt;</span>
 <span class="tag">&lt;/property&gt;</span></code></pre>
 </div>
+</div>
+  </div>
 </div>
 </td>
 </tr>
@@ -5484,6 +6306,36 @@ Spring Frameworkが提供するライブラリであるSpring Object/XML Marshal
 <div class="paragraph">
 <p>上記のファイルを書き出すための設定は以下のとおり。</p>
 </div>
+<div class="tabbox">
+  <input type="radio" name="tabgroup050324" class="JavaConfigTab" id="tabgroup050324_1" checked><label for="tabgroup050324_1" class="tab">JavaConfig</label>
+  <input type="radio" name="tabgroup050324" class="XMLConfigTab" id="tabgroup050324_2"><label for="tabgroup050324_2" class="tab">XMLConfig</label>
+  <div class="tabcontent" name="JavaConfigContent">
+<div class="listingblock">
+<div class="title">Bean定義</div>
+<div class="content">
+<pre class="CodeRay highlight"><code data-lang="java"><span class="annotation">@Bean</span>
+<span class="annotation">@StepScope</span>
+<span class="directive">public</span> StaxEventItemWriter&lt;Customer&gt; writer(
+        <span class="annotation">@Value</span>(<span class="string"><span class="delimiter">&quot;</span><span class="content">#{jobParameters['outputFile']}</span><span class="delimiter">&quot;</span></span>) <span class="predefined-type">File</span> outputFile) <span class="directive">throws</span> <span class="exception">Exception</span> {
+    Jaxb2Marshaller marshaller = <span class="keyword">new</span> Jaxb2Marshaller(); <span class="comment">// (8)</span>
+    marshaller.setClassesToBeBound(CustomerToJaxb.class); <span class="comment">// (9)</span>
+    marshaller.afterPropertiesSet();
+    <span class="keyword">return</span> <span class="keyword">new</span> StaxEventItemWriterBuilder&lt;Customer&gt;()
+            .name(ClassUtils.getShortName(StaxEventItemWriter.class))
+            .resource(<span class="keyword">new</span> FileSystemResource(outputFile)) <span class="comment">// (1)</span>
+            .encoding(<span class="string"><span class="delimiter">&quot;</span><span class="content">MS932</span><span class="delimiter">&quot;</span></span>) <span class="comment">// (2)</span>
+            .rootTagName(<span class="string"><span class="delimiter">&quot;</span><span class="content">records</span><span class="delimiter">&quot;</span></span>) <span class="comment">// (3)</span>
+            .overwriteOutput(<span class="predefined-constant">true</span>) <span class="comment">// (4)</span>
+            .shouldDeleteIfEmpty(<span class="predefined-constant">false</span>) <span class="comment">// (5)</span>
+            .transactional(<span class="predefined-constant">true</span>) <span class="comment">// (6)</span>
+            .standalone(<span class="predefined-constant">false</span>) <span class="comment">// (7)</span>
+            .marshaller(marshaller)
+            .build();
+}</code></pre>
+</div>
+</div>
+  </div>
+  <div class="tabcontent" name="XMLConfigContent">
 <div class="listingblock">
 <div class="title">Bean定義</div>
 <div class="content">
@@ -5508,6 +6360,8 @@ Spring Frameworkが提供するライブラリであるSpring Object/XML Marshal
     <span class="tag">&lt;/property&gt;</span>
 <span class="tag">&lt;/bean&gt;</span></code></pre>
 </div>
+</div>
+  </div>
 </div>
 <table class="tableblock frame-all grid-all stretch">
 <caption class="title">表 45. 設定内容の項目一覧</caption>
@@ -5659,6 +6513,30 @@ JAXBを利用する場合は、<code>org.springframework.oxm.jaxb.Jaxb2Marshalle
 <div class="paragraph">
 <p>上記のようなファイルを出力する設定を以下に示す。</p>
 </div>
+<div class="tabbox">
+  <input type="radio" name="tabgroup050325" class="JavaConfigTab" id="tabgroup050325_1" checked><label for="tabgroup050325_1" class="tab">JavaConfig</label>
+  <input type="radio" name="tabgroup050325" class="XMLConfigTab" id="tabgroup050325_2"><label for="tabgroup050325_2" class="tab">XMLConfig</label>
+  <div class="tabcontent" name="JavaConfigContent">
+<div class="listingblock">
+<div class="title">Bean定義</div>
+<div class="content">
+<pre class="CodeRay highlight"><code data-lang="java"><span class="directive">public</span> StaxEventItemWriter&lt;Customer&gt; writer(
+        <span class="annotation">@Value</span>(<span class="string"><span class="delimiter">&quot;</span><span class="content">#{jobParameters['outputFile']}</span><span class="delimiter">&quot;</span></span>) <span class="predefined-type">File</span> outputFile,
+        WriteHeaderStaxWriterCallback writeHeaderStaxWriterCallback,
+        WriteFooterStaxWriterCallback writeFooterStaxWriterCallback) <span class="directive">throws</span> <span class="exception">Exception</span> {
+    <span class="comment">// ommited settings</span>
+    <span class="keyword">return</span> <span class="keyword">new</span> StaxEventItemWriterBuilder&lt;Customer&gt;()
+            .name(ClassUtils.getShortName(StaxEventItemWriter.class))
+            .resource(<span class="keyword">new</span> FileSystemResource(outputFile))
+            .headerCallback(writeHeaderStaxWriterCallback) <span class="comment">// (1)</span>
+            .footerCallback(writeFooterStaxWriterCallback) <span class="comment">// (2)</span>
+            .marshaller(marshaller)
+            .build();
+}</code></pre>
+</div>
+</div>
+  </div>
+  <div class="tabcontent" name="XMLConfigContent">
 <div class="listingblock">
 <div class="title">Bean定義</div>
 <div class="content">
@@ -5673,6 +6551,8 @@ JAXBを利用する場合は、<code>org.springframework.oxm.jaxb.Jaxb2Marshalle
     <span class="tag">&lt;/property&gt;</span>
 <span class="tag">&lt;/bean&gt;</span></code></pre>
 </div>
+</div>
+  </div>
 </div>
 <table class="tableblock frame-all grid-all stretch">
 <caption class="title">表 46. 設定内容の項目一覧</caption>
@@ -5843,7 +6723,7 @@ JAXBを利用する場合は、<code>org.springframework.oxm.jaxb.Jaxb2Marshalle
 <div class="title">マルチフォーマットファイルを読み込む際のレコードにかかるフォーマットの制約</div>
 <div class="paragraph">
 <p>マルチフォーマットファイルを読み込むためには、レコード区分がAntPathMatcherによるパターンマッチで判別可能なフォーマットでなければならない。
-詳細は<code><a href="https://docs.spring.io/spring-batch/docs/5.0.0/api/org/springframework/batch/support/PatternMatcher.html">PatternMatcher</a></code>のAPIドキュメントを参照。</p>
+詳細は<code><a href="https://docs.spring.io/spring-batch/docs/5.1.0/api/org/springframework/batch/support/PatternMatcher.html">PatternMatcher</a></code>のAPIドキュメントを参照。</p>
 </div>
 </td>
 </tr>
@@ -6053,6 +6933,109 @@ E,3,9,4500000000</code></pre>
 <div class="paragraph">
 <p>上記のファイルを読む込むための設定は以下のとおり。</p>
 </div>
+<div class="tabbox">
+  <input type="radio" name="tabgroup050326" class="JavaConfigTab" id="tabgroup050326_1" checked><label for="tabgroup050326_1" class="tab">JavaConfig</label>
+  <input type="radio" name="tabgroup050326" class="XMLConfigTab" id="tabgroup050326_2"><label for="tabgroup050326_2" class="tab">XMLConfig</label>
+  <div class="tabcontent" name="JavaConfigContent">
+<div class="listingblock">
+<div class="title">Bean定義例</div>
+<div class="content">
+<pre class="CodeRay highlight"><code data-lang="java"><span class="comment">// (1)</span>
+<span class="annotation">@Bean</span>
+<span class="directive">public</span> DelimitedLineTokenizer headerDelimitedLineTokenizer() {
+    DelimitedLineTokenizer headerDelimitedLineTokenizer = <span class="keyword">new</span> DelimitedLineTokenizer();
+    headerDelimitedLineTokenizer.setNames(<span class="string"><span class="delimiter">&quot;</span><span class="content">record</span><span class="delimiter">&quot;</span></span>, <span class="string"><span class="delimiter">&quot;</span><span class="content">description</span><span class="delimiter">&quot;</span></span>);
+    <span class="keyword">return</span> headerDelimitedLineTokenizer;
+}
+
+<span class="annotation">@Bean</span>
+<span class="directive">public</span> DelimitedLineTokenizer dataDelimitedLineTokenizer() {
+    DelimitedLineTokenizer dataDelimitedLineTokenizer = <span class="keyword">new</span> DelimitedLineTokenizer();
+    dataDelimitedLineTokenizer.setNames(<span class="string"><span class="delimiter">&quot;</span><span class="content">record</span><span class="delimiter">&quot;</span></span>, <span class="string"><span class="delimiter">&quot;</span><span class="content">branchId</span><span class="delimiter">&quot;</span></span>, <span class="string"><span class="delimiter">&quot;</span><span class="content">year</span><span class="delimiter">&quot;</span></span>, <span class="string"><span class="delimiter">&quot;</span><span class="content">month</span><span class="delimiter">&quot;</span></span>, <span class="string"><span class="delimiter">&quot;</span><span class="content">customerId</span><span class="delimiter">&quot;</span></span>, <span class="string"><span class="delimiter">&quot;</span><span class="content">amount</span><span class="delimiter">&quot;</span></span>);
+    <span class="keyword">return</span> dataDelimitedLineTokenizer;
+}
+
+<span class="annotation">@Bean</span>
+<span class="directive">public</span> DelimitedLineTokenizer trailerDelimitedLineTokenizer() {
+    DelimitedLineTokenizer trailerDelimitedLineTokenizer = <span class="keyword">new</span> DelimitedLineTokenizer();
+    trailerDelimitedLineTokenizer.setNames(<span class="string"><span class="delimiter">&quot;</span><span class="content">record</span><span class="delimiter">&quot;</span></span>, <span class="string"><span class="delimiter">&quot;</span><span class="content">branchId</span><span class="delimiter">&quot;</span></span>, <span class="string"><span class="delimiter">&quot;</span><span class="content">number</span><span class="delimiter">&quot;</span></span>, <span class="string"><span class="delimiter">&quot;</span><span class="content">total</span><span class="delimiter">&quot;</span></span>);
+    <span class="keyword">return</span> trailerDelimitedLineTokenizer;
+}
+
+<span class="annotation">@Bean</span>
+<span class="directive">public</span> DelimitedLineTokenizer endDelimitedLineTokenizer() {
+    DelimitedLineTokenizer endDelimitedLineTokenizer = <span class="keyword">new</span> DelimitedLineTokenizer();
+    endDelimitedLineTokenizer.setNames(<span class="string"><span class="delimiter">&quot;</span><span class="content">record</span><span class="delimiter">&quot;</span></span>, <span class="string"><span class="delimiter">&quot;</span><span class="content">headNum</span><span class="delimiter">&quot;</span></span>, <span class="string"><span class="delimiter">&quot;</span><span class="content">trailerNum</span><span class="delimiter">&quot;</span></span>, <span class="string"><span class="delimiter">&quot;</span><span class="content">total</span><span class="delimiter">&quot;</span></span>);
+    <span class="keyword">return</span> endDelimitedLineTokenizer;
+}
+
+<span class="comment">// (2)</span>
+<span class="annotation">@Bean</span>
+<span class="directive">public</span> BeanWrapperFieldSetMapper&lt;SalesPlanDetailHeader&gt; headerBeanWrapperFieldSetMapper() {
+    BeanWrapperFieldSetMapper&lt;SalesPlanDetailHeader&gt; headerBeanWrapperFieldSetMapper = <span class="keyword">new</span> BeanWrapperFieldSetMapper&lt;&gt;();
+    headerBeanWrapperFieldSetMapper.setTargetType(SalesPlanDetailHeader.class);
+    <span class="keyword">return</span> headerBeanWrapperFieldSetMapper;
+}
+
+<span class="annotation">@Bean</span>
+<span class="directive">public</span> BeanWrapperFieldSetMapper&lt;SalesPlanDetailData&gt; dataBeanWrapperFieldSetMapper() {
+    BeanWrapperFieldSetMapper&lt;SalesPlanDetailData&gt; dataBeanWrapperFieldSetMapper = <span class="keyword">new</span> BeanWrapperFieldSetMapper&lt;&gt;();
+    dataBeanWrapperFieldSetMapper.setTargetType(SalesPlanDetailData.class);
+    <span class="keyword">return</span> dataBeanWrapperFieldSetMapper;
+}
+
+<span class="annotation">@Bean</span>
+<span class="directive">public</span> BeanWrapperFieldSetMapper&lt;SalesPlanDetailTrailer&gt; trailerBeanWrapperFieldSetMapper() {
+    BeanWrapperFieldSetMapper&lt;SalesPlanDetailTrailer&gt; trailerBeanWrapperFieldSetMapper = <span class="keyword">new</span> BeanWrapperFieldSetMapper&lt;&gt;();
+    trailerBeanWrapperFieldSetMapper.setTargetType(SalesPlanDetailTrailer.class);
+    <span class="keyword">return</span> trailerBeanWrapperFieldSetMapper;
+}
+
+<span class="annotation">@Bean</span>
+<span class="directive">public</span> BeanWrapperFieldSetMapper&lt;SalesPlanDetailEnd&gt; endBeanWrapperFieldSetMapper() {
+    BeanWrapperFieldSetMapper&lt;SalesPlanDetailEnd&gt; endBeanWrapperFieldSetMapper = <span class="keyword">new</span> BeanWrapperFieldSetMapper&lt;&gt;();
+    endBeanWrapperFieldSetMapper.setTargetType(SalesPlanDetailEnd.class);
+    <span class="keyword">return</span> endBeanWrapperFieldSetMapper;
+}
+
+<span class="annotation">@Bean</span>
+<span class="annotation">@StepScope</span>
+<span class="directive">public</span> FlatFileItemReader reader(
+        <span class="annotation">@Value</span>(<span class="string"><span class="delimiter">&quot;</span><span class="content">#{jobParameters['inputFile']}</span><span class="delimiter">&quot;</span></span>) <span class="predefined-type">File</span> inputFile,
+        LineTokenizer headerDelimitedLineTokenizer,
+        LineTokenizer dataDelimitedLineTokenizer,
+        LineTokenizer trailerDelimitedLineTokenizer,
+        LineTokenizer endDelimitedLineTokenizer,
+        FieldSetMapper&lt;SalesPlanDetailHeader&gt; headerBeanWrapperFieldSetMapper,
+        FieldSetMapper&lt;SalesPlanDetailData&gt; dataBeanWrapperFieldSetMapper,
+        FieldSetMapper&lt;SalesPlanDetailTrailer&gt; trailerBeanWrapperFieldSetMapper,
+        FieldSetMapper&lt;SalesPlanDetailEnd&gt; endBeanWrapperFieldSetMapper) {
+
+    <span class="predefined-type">Map</span>&lt;<span class="predefined-type">String</span>, LineTokenizer&gt; tokenizers = <span class="keyword">new</span> <span class="predefined-type">HashMap</span>&lt;&gt;(); <span class="comment">// (4)</span>
+    tokenizers.put(<span class="string"><span class="delimiter">&quot;</span><span class="content">H*</span><span class="delimiter">&quot;</span></span>, headerDelimitedLineTokenizer);
+    tokenizers.put(<span class="string"><span class="delimiter">&quot;</span><span class="content">D*</span><span class="delimiter">&quot;</span></span>, dataDelimitedLineTokenizer);
+    tokenizers.put(<span class="string"><span class="delimiter">&quot;</span><span class="content">T*</span><span class="delimiter">&quot;</span></span>, trailerDelimitedLineTokenizer);
+    tokenizers.put(<span class="string"><span class="delimiter">&quot;</span><span class="content">E*</span><span class="delimiter">&quot;</span></span>, endDelimitedLineTokenizer);
+
+    <span class="predefined-type">Map</span>&lt;<span class="predefined-type">String</span>, FieldSetMapper&gt; fieldSetMappers = <span class="keyword">new</span> <span class="predefined-type">HashMap</span>&lt;&gt;(); <span class="comment">// (5)</span>
+    fieldSetMappers.put(<span class="string"><span class="delimiter">&quot;</span><span class="content">H*</span><span class="delimiter">&quot;</span></span>, headerBeanWrapperFieldSetMapper);
+    fieldSetMappers.put(<span class="string"><span class="delimiter">&quot;</span><span class="content">D*</span><span class="delimiter">&quot;</span></span>, dataBeanWrapperFieldSetMapper);
+    fieldSetMappers.put(<span class="string"><span class="delimiter">&quot;</span><span class="content">T*</span><span class="delimiter">&quot;</span></span>, trailerBeanWrapperFieldSetMapper);
+    fieldSetMappers.put(<span class="string"><span class="delimiter">&quot;</span><span class="content">E*</span><span class="delimiter">&quot;</span></span>, endBeanWrapperFieldSetMapper);
+
+    <span class="directive">final</span> PatternMatchingCompositeLineMapper lineMapper = <span class="keyword">new</span> PatternMatchingCompositeLineMapper(); <span class="comment">// (3)</span>
+    lineMapper.setTokenizers(tokenizers);
+    lineMapper.setFieldSetMappers(fieldSetMappers);
+
+    <span class="directive">final</span> FlatFileItemReader reader = <span class="keyword">new</span> FlatFileItemReader();
+    reader.setResource(<span class="keyword">new</span> FileSystemResource(inputFile));
+    reader.setLineMapper(lineMapper);
+    <span class="keyword">return</span> reader;
+}</code></pre>
+</div>
+</div>
+  </div>
+  <div class="tabcontent" name="XMLConfigContent">
 <div class="listingblock">
 <div class="title">Bean定義例</div>
 <div class="content">
@@ -6115,6 +7098,8 @@ E,3,9,4500000000</code></pre>
     <span class="tag">&lt;/property&gt;</span>
 <span class="tag">&lt;/bean&gt;</span></code></pre>
 </div>
+</div>
+  </div>
 </div>
 <table class="tableblock frame-all grid-all stretch">
 <caption class="title">表 49. 設定内容の項目一覧</caption>
@@ -6248,6 +7233,65 @@ E,3,9,4500000000</code></pre>
 <p>上記のファイルを出力するための設定は以下のとおり。
 <code>ItemProcessor</code>の定義例をBean定義例の後に示す。</p>
 </div>
+<div class="tabbox">
+  <input type="radio" name="tabgroup050327" class="JavaConfigTab" id="tabgroup050327_1" checked><label for="tabgroup050327_1" class="tab">JavaConfig</label>
+  <input type="radio" name="tabgroup050327" class="XMLConfigTab" id="tabgroup050327_2"><label for="tabgroup050327_2" class="tab">XMLConfig</label>
+  <div class="tabcontent" name="JavaConfigContent">
+<div class="listingblock">
+<div class="title">Bean定義例</div>
+<div class="content">
+<pre class="CodeRay highlight"><code data-lang="java"><span class="comment">// (1)</span>
+<span class="annotation">@Bean</span>
+<span class="directive">public</span> DelimitedLineAggregator&lt;SalesPlanDetailMultiFormatRecord&gt; headerDelimitedLineAggregator() {
+    DelimitedLineAggregator&lt;SalesPlanDetailMultiFormatRecord&gt; headerDelimitedLineAggregator = <span class="keyword">new</span> DelimitedLineAggregator&lt;&gt;();
+    BeanWrapperFieldExtractor&lt;SalesPlanDetailMultiFormatRecord&gt; fieldExtractor = <span class="keyword">new</span> BeanWrapperFieldExtractor&lt;&gt;();
+    fieldExtractor.setNames(<span class="keyword">new</span> <span class="predefined-type">String</span><span class="type">[]</span> {<span class="string"><span class="delimiter">&quot;</span><span class="content">record</span><span class="delimiter">&quot;</span></span>, <span class="string"><span class="delimiter">&quot;</span><span class="content">description</span><span class="delimiter">&quot;</span></span>});
+    headerDelimitedLineAggregator.setFieldExtractor(fieldExtractor);
+    <span class="keyword">return</span> headerDelimitedLineAggregator;
+}
+
+<span class="annotation">@Bean</span>
+<span class="directive">public</span> DelimitedLineAggregator&lt;SalesPlanDetailMultiFormatRecord&gt; dataDelimitedLineAggregator() {
+    DelimitedLineAggregator&lt;SalesPlanDetailMultiFormatRecord&gt; dataDelimitedLineAggregator = <span class="keyword">new</span> DelimitedLineAggregator&lt;&gt;();
+    BeanWrapperFieldExtractor&lt;SalesPlanDetailMultiFormatRecord&gt; fieldExtractor = <span class="keyword">new</span> BeanWrapperFieldExtractor&lt;&gt;();
+    fieldExtractor.setNames(<span class="keyword">new</span> <span class="predefined-type">String</span><span class="type">[]</span> {<span class="string"><span class="delimiter">&quot;</span><span class="content">record</span><span class="delimiter">&quot;</span></span>, <span class="string"><span class="delimiter">&quot;</span><span class="content">branchId</span><span class="delimiter">&quot;</span></span>, <span class="string"><span class="delimiter">&quot;</span><span class="content">year</span><span class="delimiter">&quot;</span></span>, <span class="string"><span class="delimiter">&quot;</span><span class="content">month</span><span class="delimiter">&quot;</span></span>, <span class="string"><span class="delimiter">&quot;</span><span class="content">customerId</span><span class="delimiter">&quot;</span></span>, <span class="string"><span class="delimiter">&quot;</span><span class="content">amount</span><span class="delimiter">&quot;</span></span>});
+    dataDelimitedLineAggregator.setFieldExtractor(fieldExtractor);
+    <span class="keyword">return</span> dataDelimitedLineAggregator;
+}
+
+<span class="annotation">@Bean</span>
+<span class="directive">public</span> DelimitedLineAggregator&lt;SalesPlanDetailMultiFormatRecord&gt; trailerDelimitedLineAggregator() {
+    DelimitedLineAggregator&lt;SalesPlanDetailMultiFormatRecord&gt; trailerDelimitedLineAggregator = <span class="keyword">new</span> DelimitedLineAggregator&lt;&gt;();
+    BeanWrapperFieldExtractor&lt;SalesPlanDetailMultiFormatRecord&gt; fieldExtractor = <span class="keyword">new</span> BeanWrapperFieldExtractor&lt;&gt;();
+    fieldExtractor.setNames(<span class="keyword">new</span> <span class="predefined-type">String</span><span class="type">[]</span> {<span class="string"><span class="delimiter">&quot;</span><span class="content">record</span><span class="delimiter">&quot;</span></span>, <span class="string"><span class="delimiter">&quot;</span><span class="content">branchId</span><span class="delimiter">&quot;</span></span>, <span class="string"><span class="delimiter">&quot;</span><span class="content">number</span><span class="delimiter">&quot;</span></span>, <span class="string"><span class="delimiter">&quot;</span><span class="content">total</span><span class="delimiter">&quot;</span></span>});
+    trailerDelimitedLineAggregator.setFieldExtractor(fieldExtractor);
+    <span class="keyword">return</span> trailerDelimitedLineAggregator;
+}
+
+<span class="annotation">@Bean</span>
+<span class="directive">public</span> DelimitedLineAggregator&lt;SalesPlanDetailMultiFormatRecord&gt; endDelimitedLineAggregator() {
+    DelimitedLineAggregator&lt;SalesPlanDetailMultiFormatRecord&gt; endDelimitedLineAggregator = <span class="keyword">new</span> DelimitedLineAggregator&lt;&gt;();
+    BeanWrapperFieldExtractor&lt;SalesPlanDetailMultiFormatRecord&gt; fieldExtractor = <span class="keyword">new</span> BeanWrapperFieldExtractor&lt;&gt;();
+    fieldExtractor.setNames(<span class="keyword">new</span> <span class="predefined-type">String</span><span class="type">[]</span> {<span class="string"><span class="delimiter">&quot;</span><span class="content">record</span><span class="delimiter">&quot;</span></span>, <span class="string"><span class="delimiter">&quot;</span><span class="content">headNum</span><span class="delimiter">&quot;</span></span>, <span class="string"><span class="delimiter">&quot;</span><span class="content">trailerNum</span><span class="delimiter">&quot;</span></span>, <span class="string"><span class="delimiter">&quot;</span><span class="content">total</span><span class="delimiter">&quot;</span></span>});
+    endDelimitedLineAggregator.setFieldExtractor(fieldExtractor);
+    <span class="keyword">return</span> endDelimitedLineAggregator;
+}
+
+<span class="annotation">@Bean</span>
+<span class="annotation">@StepScope</span>
+<span class="directive">public</span> FlatFileItemWriter writer(
+        <span class="annotation">@Value</span>(<span class="string"><span class="delimiter">&quot;</span><span class="content">#{jobParameters['outputFile']}</span><span class="delimiter">&quot;</span></span>) <span class="predefined-type">File</span> outputFile) {
+    PassThroughLineAggregator lineAggregator = <span class="keyword">new</span> PassThroughLineAggregator(); <span class="comment">// (2)</span>
+    <span class="keyword">return</span> <span class="keyword">new</span> FlatFileItemWriterBuilder&lt;SalesPlanDetail&gt;()
+            .name(ClassUtils.getShortName(FlatFileItemWriter.class))
+            .resource(<span class="keyword">new</span> FileSystemResource(outputFile))
+            .lineAggregator(lineAggregator)
+            .build();
+}</code></pre>
+</div>
+</div>
+  </div>
+  <div class="tabcontent" name="XMLConfigContent">
 <div class="listingblock">
 <div class="title">Bean定義例</div>
 <div class="content">
@@ -6292,6 +7336,8 @@ E,3,9,4500000000</code></pre>
     <span class="tag">&lt;/property&gt;</span>
 <span class="tag">&lt;/bean&gt;</span></code></pre>
 </div>
+</div>
+  </div>
 </div>
 <table class="tableblock frame-all grid-all stretch">
 <caption class="title">表 50. 設定内容の項目一覧</caption>
@@ -6423,7 +7469,7 @@ E,3,9,4500000000</code></pre>
 
   <div class="common-bg">
     <div class="information">
-      TERASOLUNA Batch Framework for Java (5.x) Development Guideline - version 5.5.0.RELEASE, 2023-3-31, commit-id:f6da76a
+      TERASOLUNA Batch Framework for Java (5.x) Development Guideline - version 5.6.0.RELEASE, 2023-3-31, commit-id:f5cbeda
     </div>
     <div class="index">
       <a href="index.html">&gt; INDEX</a>
@@ -6432,7 +7478,7 @@ E,3,9,4500000000</code></pre>
 
   <div class="footer-bg">
     <div class="copyright">
-      &copy; Copyright 2017 NTT DATA Corporation. &copy; Copyright 2017 NTT Corporation.
+      &copy; Copyright 2017 NTT DATA Group Corporation. &copy; Copyright 2017 NTT Corporation.
     </div>
   </div>
 

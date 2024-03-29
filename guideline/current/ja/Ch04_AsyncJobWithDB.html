@@ -14,7 +14,7 @@
 
 <div class="common-bg">
   <div class="information">
-    TERASOLUNA Batch Framework for Java (5.x) Development Guideline - version 5.5.0.RELEASE, 2023-3-31, commit-id:f6da76a
+    TERASOLUNA Batch Framework for Java (5.x) Development Guideline - version 5.6.0.RELEASE, 2023-3-31, commit-id:f5cbeda
   </div>
   <div class="index">
     <a href="index.html">&gt; INDEX</a>
@@ -1046,6 +1046,7 @@ async-batch-daemon.polling-stop-file-path=/tmp/stop-async-batch-daemon</code></p
   <div class="tabcontent" name="JavaConfigContent">
 <div class="paragraph">
 <p>非同期実行する対象のジョブは、<code>AsyncBatchDaemonConfig.java</code>の<code>automaticJobRegistrar</code>に設定する。<br>
+<code>ApplicationContextFactoryHelper</code> は JavaConfigで <code>ApplicationContextFactory</code> の生成を補助するヘルパクラスである。コンストラクタには各ジョブで親となる共通定義の <code>ApplicationContext</code> を指定する。<br>
 以下に初期設定を示す。</p>
 </div>
 <div class="listingblock">
@@ -1053,19 +1054,24 @@ async-batch-daemon.polling-stop-file-path=/tmp/stop-async-batch-daemon</code></p
 <div class="content">
 <pre class="CodeRay highlight"><code data-lang="java"><span class="annotation">@Bean</span>
 <span class="directive">public</span> AutomaticJobRegistrar automaticJobRegistrar(JobRegistry jobRegistry,
-                                                   ApplicationContextFactory<span class="type">[]</span> applicationContextFactories) <span class="directive">throws</span> <span class="exception">Exception</span> {
+        ApplicationContextFactory<span class="type">[]</span> applicationContextFactories) <span class="directive">throws</span> <span class="exception">Exception</span> {
     <span class="directive">final</span> AutomaticJobRegistrar automaticJobRegistrar = <span class="keyword">new</span> AutomaticJobRegistrar();
     <span class="directive">final</span> DefaultJobLoader defaultJobLoader = <span class="keyword">new</span> DefaultJobLoader();
     defaultJobLoader.setJobRegistry(jobRegistry);
-    automaticJobRegistrar.setApplicationContextFactories(applicationContextFactories);
+    automaticJobRegistrar.setApplicationContextFactories(
+            applicationContextFactories);
     automaticJobRegistrar.setJobLoader(defaultJobLoader);
     automaticJobRegistrar.afterPropertiesSet();
     <span class="keyword">return</span> automaticJobRegistrar;
 }
 
 <span class="annotation">@Bean</span>
-<span class="directive">public</span> ApplicationContextFactory<span class="type">[]</span> applicationContextFactories(<span class="directive">final</span> ApplicationContext ctx) <span class="directive">throws</span> <span class="exception">IOException</span> {
-    <span class="keyword">return</span> <span class="keyword">new</span> ApplicationContextFactoryHelper(ctx).load(<span class="string"><span class="delimiter">&quot;</span><span class="content">classpath:/META-INF/jobs/**/*.xml</span><span class="delimiter">&quot;</span></span>); <span class="comment">// (1)</span>
+<span class="directive">public</span> ApplicationContextFactory<span class="type">[]</span> applicationContextFactories(
+        <span class="directive">final</span> ApplicationContext ctx) <span class="directive">throws</span> <span class="exception">IOException</span> {
+    <span class="keyword">return</span> <span class="keyword">new</span> ApplicationContextFactoryHelper(ctx).load(
+            <span class="string"><span class="delimiter">&quot;</span><span class="content">classpath:org/terasoluna/batch/jobs/**/*.class</span><span class="delimiter">&quot;</span></span>, <span class="comment">// For all (1)</span>
+            <span class="string"><span class="delimiter">&quot;</span><span class="content">classpath:org/terasoluna/batch/jobs/async/**/*.class</span><span class="delimiter">&quot;</span></span>, <span class="comment">// For the async directory and below (2)</span>
+            <span class="string"><span class="delimiter">&quot;</span><span class="content">classpath:org/terasoluna/batch/jobs/CASE100/SpecialJob.class</span><span class="delimiter">&quot;</span></span>); <span class="comment">// For a specific job (3)</span>
 }</code></pre>
 </div>
 </div>
@@ -1084,51 +1090,18 @@ async-batch-daemon.polling-stop-file-path=/tmp/stop-async-batch-daemon</code></p
 <tbody>
 <tr>
 <td class="tableblock halign-left valign-top"><p class="tableblock">(1)</p></td>
-<td class="tableblock halign-left valign-top"><p class="tableblock">非同期実行するジョブBean定義のパス。<br>
-<code>ApplicationContextFactoryHelper</code> は JavaConfigで <code>ApplicationContextFactory</code> の生成を補助するヘルパクラスである。コンストラクタには各ジョブで親となる共通定義の <code>ApplicationContext</code> を指定する。</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">jarの中に存在するジョブ定義がすべて非同期実行することを前提に設計・実装される場合は、このように指定できる。</p></td>
+</tr>
+<tr>
+<td class="tableblock halign-left valign-top"><p class="tableblock">(2)</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">jarの中に非同期で実行することを想定していないジョブが存在する場合は、非同期実行を想定しているジョブのみが読み込まれるように指定すること。</p></td>
+</tr>
+<tr>
+<td class="tableblock halign-left valign-top"><p class="tableblock">(3)</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">特定のジョブのみが非同期実行対象の場合はジョブ定義単体で指定すること。</p></td>
 </tr>
 </tbody>
 </table>
-<div class="admonitionblock warning">
-<table>
-<tr>
-<td class="icon">
-<i class="fa icon-warning" title="Warning"></i>
-</td>
-<td class="content">
-<div class="title">登録ジョブの絞込みについて</div>
-<div class="paragraph">
-<p>登録するジョブは、非同期実行することを前提に設計・実装されたジョブを指定すること。
-非同期で実行することを想定していないジョブを含めて指定すると、ジョブ登録時に意図しない参照により例外が発生することもあるので注意すること。</p>
-</div>
-<div class="listingblock">
-<div class="title">絞込の例</div>
-<div class="content">
-<pre class="CodeRay highlight"><code data-lang="java"><span class="annotation">@Bean</span>
-<span class="directive">public</span> AutomaticJobRegistrar automaticJobRegistrar(JobRegistry jobRegistry,
-                                                   ApplicationContextFactory<span class="type">[]</span> applicationContextFactories) <span class="directive">throws</span> <span class="exception">Exception</span> {
-    <span class="directive">final</span> AutomaticJobRegistrar automaticJobRegistrar = <span class="keyword">new</span> AutomaticJobRegistrar();
-    <span class="directive">final</span> DefaultJobLoader defaultJobLoader = <span class="keyword">new</span> DefaultJobLoader();
-    defaultJobLoader.setJobRegistry(jobRegistry);
-    automaticJobRegistrar.setApplicationContextFactories(applicationContextFactories);
-    automaticJobRegistrar.setJobLoader(defaultJobLoader);
-    automaticJobRegistrar.afterPropertiesSet();
-    <span class="keyword">return</span> automaticJobRegistrar;
-}
-
-<span class="annotation">@Bean</span>
-<span class="directive">public</span> ApplicationContextFactory<span class="type">[]</span> applicationContextFactories(<span class="directive">final</span> ApplicationContext ctx) <span class="directive">throws</span> <span class="exception">IOException</span> {
-    <span class="keyword">return</span> <span class="keyword">new</span> ApplicationContextFactoryHelper(ctx).load(
-        <span class="string"><span class="delimiter">&quot;</span><span class="content">classpath:/META-INF/jobs/aysnc/**/*.xml</span><span class="delimiter">&quot;</span></span>, <span class="comment">// For the async directory and below</span>
-        <span class="string"><span class="delimiter">&quot;</span><span class="content">classpath:/META-INF/jobs/CASE100/SpecialJob.xml</span><span class="delimiter">&quot;</span></span> <span class="comment">// For a specific job</span>
-        );
-}</code></pre>
-</div>
-</div>
-</td>
-</tr>
-</table>
-</div>
   </div>
   <div class="tabcontent" name="XMLConfigContent">
 <div class="paragraph">
@@ -1144,7 +1117,12 @@ async-batch-daemon.polling-stop-file-path=/tmp/stop-async-batch-daemon</code></p
         <span class="tag">&lt;bean</span> <span class="attribute-name">class</span>=<span class="string"><span class="delimiter">&quot;</span><span class="content">org.springframework.batch.core.configuration.support.ClasspathXmlApplicationContextsFactoryBean</span><span class="delimiter">&quot;</span></span><span class="tag">&gt;</span>
             <span class="tag">&lt;property</span> <span class="attribute-name">name</span>=<span class="string"><span class="delimiter">&quot;</span><span class="content">resources</span><span class="delimiter">&quot;</span></span><span class="tag">&gt;</span>
                 <span class="tag">&lt;list&gt;</span>
-                    <span class="tag">&lt;value&gt;</span>classpath:/META-INF/jobs/**/*.xml<span class="tag">&lt;/value&gt;</span>  <span class="comment">&lt;!-- (1) --&gt;</span>
+                    <span class="comment">&lt;!-- For all --&gt;</span>
+                    <span class="tag">&lt;value&gt;</span>classpath:/META-INF/jobs/**/*.xml<span class="tag">&lt;/value&gt;</span> <span class="comment">&lt;!-- (1) --&gt;</span>
+                    <span class="comment">&lt;!-- For the async directory and below --&gt;</span>
+                    <span class="tag">&lt;value&gt;</span>classpath:/META-INF/jobs/async/**/*.xml<span class="tag">&lt;/value&gt;</span> <span class="comment">&lt;!-- (2) --&gt;</span>
+                    <span class="comment">&lt;!-- For a specific job --&gt;</span>
+                    <span class="tag">&lt;value&gt;</span>classpath:/META-INF/jobs/CASE100/SpecialJob.xml<span class="tag">&lt;/value&gt;</span> <span class="comment">&lt;!-- (3) --&gt;</span>
                 <span class="tag">&lt;/list&gt;</span>
             <span class="tag">&lt;/property&gt;</span>
         <span class="tag">&lt;/bean&gt;</span>
@@ -1171,50 +1149,18 @@ async-batch-daemon.polling-stop-file-path=/tmp/stop-async-batch-daemon</code></p
 <tbody>
 <tr>
 <td class="tableblock halign-left valign-top"><p class="tableblock">(1)</p></td>
-<td class="tableblock halign-left valign-top"><p class="tableblock">非同期実行するジョブBean定義のパス。</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">jarの中に存在するジョブ定義がすべて非同期実行することを前提に設計・実装される場合は、このように指定できる。</p></td>
+</tr>
+<tr>
+<td class="tableblock halign-left valign-top"><p class="tableblock">(2)</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">jarの中に非同期で実行することを想定していないジョブが存在する場合は、非同期実行を想定しているジョブのみが読み込まれるように指定すること。</p></td>
+</tr>
+<tr>
+<td class="tableblock halign-left valign-top"><p class="tableblock">(3)</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">特定のジョブのみが非同期実行対象の場合はジョブ定義単体で指定すること。</p></td>
 </tr>
 </tbody>
 </table>
-<div class="admonitionblock warning">
-<table>
-<tr>
-<td class="icon">
-<i class="fa icon-warning" title="Warning"></i>
-</td>
-<td class="content">
-<div class="title">登録ジョブの絞込みについて</div>
-<div class="paragraph">
-<p>登録するジョブは、非同期実行することを前提に設計・実装されたジョブを指定すること。
-非同期で実行することを想定していないジョブを含めて指定すると、ジョブ登録時に意図しない参照により例外が発生することもあるので注意すること。</p>
-</div>
-<div class="listingblock">
-<div class="title">絞込の例</div>
-<div class="content">
-<pre class="CodeRay highlight"><code data-lang="xml"><span class="tag">&lt;bean</span> <span class="attribute-name">id</span>=<span class="string"><span class="delimiter">&quot;</span><span class="content">automaticJobRegistrar</span><span class="delimiter">&quot;</span></span>
-      <span class="attribute-name">class</span>=<span class="string"><span class="delimiter">&quot;</span><span class="content">org.springframework.batch.core.configuration.support.AutomaticJobRegistrar</span><span class="delimiter">&quot;</span></span><span class="tag">&gt;</span>
-    <span class="tag">&lt;property</span> <span class="attribute-name">name</span>=<span class="string"><span class="delimiter">&quot;</span><span class="content">applicationContextFactories</span><span class="delimiter">&quot;</span></span><span class="tag">&gt;</span>
-        <span class="tag">&lt;bean</span> <span class="attribute-name">class</span>=<span class="string"><span class="delimiter">&quot;</span><span class="content">org.springframework.batch.core.configuration.support.ClasspathXmlApplicationContextsFactoryBean</span><span class="delimiter">&quot;</span></span><span class="tag">&gt;</span>
-            <span class="tag">&lt;property</span> <span class="attribute-name">name</span>=<span class="string"><span class="delimiter">&quot;</span><span class="content">resources</span><span class="delimiter">&quot;</span></span><span class="tag">&gt;</span>
-                <span class="tag">&lt;list&gt;</span>
-                    <span class="comment">&lt;!-- For the async directory and below --&gt;</span>
-                    <span class="tag">&lt;value&gt;</span>classpath:/META-INF/jobs/aysnc/**/*.xml<span class="tag">&lt;/value&gt;</span>
-                    <span class="comment">&lt;!-- For a specific job --&gt;</span>
-                    <span class="tag">&lt;value&gt;</span>classpath:/META-INF/jobs/CASE100/SpecialJob.xml<span class="tag">&lt;/value&gt;</span>
-                <span class="tag">&lt;/list&gt;</span>
-            <span class="tag">&lt;/property&gt;</span>
-        <span class="tag">&lt;/bean&gt;</span>
-    <span class="tag">&lt;/property&gt;</span>
-    <span class="tag">&lt;property</span> <span class="attribute-name">name</span>=<span class="string"><span class="delimiter">&quot;</span><span class="content">jobLoader</span><span class="delimiter">&quot;</span></span><span class="tag">&gt;</span>
-        <span class="tag">&lt;bean</span> <span class="attribute-name">class</span>=<span class="string"><span class="delimiter">&quot;</span><span class="content">org.springframework.batch.core.configuration.support.DefaultJobLoader</span><span class="delimiter">&quot;</span></span>
-            <span class="attribute-name">p:jobRegistry-ref</span>=<span class="string"><span class="delimiter">&quot;</span><span class="content">jobRegistry</span><span class="delimiter">&quot;</span></span> <span class="tag">/&gt;</span>
-    <span class="tag">&lt;/property&gt;</span>
-<span class="tag">&lt;/bean&gt;</span></code></pre>
-</div>
-</div>
-</td>
-</tr>
-</table>
-</div>
   </div>
 </div>
 <div class="admonitionblock tip">
@@ -2276,7 +2222,7 @@ $ java -cp dependency/* org.terasoluna.batch.async.db.AsyncBatchDaemon</code></p
 
   <div class="common-bg">
     <div class="information">
-      TERASOLUNA Batch Framework for Java (5.x) Development Guideline - version 5.5.0.RELEASE, 2023-3-31, commit-id:f6da76a
+      TERASOLUNA Batch Framework for Java (5.x) Development Guideline - version 5.6.0.RELEASE, 2023-3-31, commit-id:f5cbeda
     </div>
     <div class="index">
       <a href="index.html">&gt; INDEX</a>
@@ -2285,7 +2231,7 @@ $ java -cp dependency/* org.terasoluna.batch.async.db.AsyncBatchDaemon</code></p
 
   <div class="footer-bg">
     <div class="copyright">
-      &copy; Copyright 2017 NTT DATA Corporation. &copy; Copyright 2017 NTT Corporation.
+      &copy; Copyright 2017 NTT DATA Group Corporation. &copy; Copyright 2017 NTT Corporation.
     </div>
   </div>
 

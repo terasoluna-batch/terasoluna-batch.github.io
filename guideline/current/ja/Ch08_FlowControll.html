@@ -14,7 +14,7 @@
 
 <div class="common-bg">
   <div class="information">
-    TERASOLUNA Batch Framework for Java (5.x) Development Guideline - version 5.5.0.RELEASE, 2023-3-31, commit-id:f6da76a
+    TERASOLUNA Batch Framework for Java (5.x) Development Guideline - version 5.6.0.RELEASE, 2023-3-31, commit-id:f5cbeda
   </div>
   <div class="index">
     <a href="index.html">&gt; INDEX</a>
@@ -337,8 +337,68 @@
 <div class="paragraph">
 <p>ここでは3つのステップからなるジョブのシーケンシャルフローを設定する。</p>
 </div>
+<div class="tabbox">
+  <input type="radio" name="tabgroup080101" class="JavaConfigTab" id="tabgroup080101_1" checked><label for="tabgroup080101_1" class="tab">JavaConfig</label>
+  <input type="radio" name="tabgroup080101" class="XMLConfigTab" id="tabgroup080101_2"><label for="tabgroup080101_2" class="tab">XMLConfig</label>
+  <div class="tabcontent" name="JavaConfigContent">
 <div class="listingblock">
-<div class="title">Bean定義</div>
+<div class="content">
+<pre class="CodeRay highlight"><code data-lang="java"><span class="comment">// tasklet definition is omitted.</span>
+
+TaskletStepBuilder parentStepBuilder(<span class="predefined-type">String</span> stepName,
+                                     JobRepository jobRepository,
+                                     SequentialFlowTasklet tasklet,
+                                     PlatformTransactionManager transactionManager) {
+    <span class="keyword">return</span> <span class="keyword">new</span> StepBuilder(stepName, jobRepository)
+            .tasklet(tasklet, transactionManager);
+}
+
+<span class="annotation">@Bean</span>
+<span class="directive">public</span> Step step01(JobRepository jobRepository,
+                   SequentialFlowTasklet tasklet,
+                   <span class="annotation">@Qualifier</span>(<span class="string"><span class="delimiter">&quot;</span><span class="content">jobTransactionManager</span><span class="delimiter">&quot;</span></span>) PlatformTransactionManager transactionManager) {
+    <span class="keyword">return</span> parentStepBuilder(<span class="string"><span class="delimiter">&quot;</span><span class="content">jobSequentialFlow.step1</span><span class="delimiter">&quot;</span></span>, jobRepository,
+            tasklet, transactionManager)
+            .build();
+}
+
+<span class="annotation">@Bean</span>
+<span class="directive">public</span> Step step02(JobRepository jobRepository,
+                   SequentialFlowTasklet tasklet,
+                   <span class="annotation">@Qualifier</span>(<span class="string"><span class="delimiter">&quot;</span><span class="content">jobTransactionManager</span><span class="delimiter">&quot;</span></span>) PlatformTransactionManager transactionManager) {
+    <span class="keyword">return</span> parentStepBuilder(<span class="string"><span class="delimiter">&quot;</span><span class="content">jobSequentialFlow.step2</span><span class="delimiter">&quot;</span></span>, jobRepository,
+            tasklet, transactionManager)
+            .build();
+}
+
+<span class="annotation">@Bean</span>
+<span class="directive">public</span> Step step03(JobRepository jobRepository,
+                   SequentialFlowTasklet tasklet,
+                   <span class="annotation">@Qualifier</span>(<span class="string"><span class="delimiter">&quot;</span><span class="content">jobTransactionManager</span><span class="delimiter">&quot;</span></span>) PlatformTransactionManager transactionManager) {
+    <span class="keyword">return</span> parentStepBuilder(<span class="string"><span class="delimiter">&quot;</span><span class="content">jobSequentialFlow.step3</span><span class="delimiter">&quot;</span></span>, jobRepository,
+            tasklet, transactionManager)
+            .build();
+}
+
+<span class="annotation">@Bean</span>
+<span class="directive">public</span> Job jobSequentialFlow(JobRepository jobRepository,
+                             Step step01, Step step02, Step step03) {
+    Flow flow = <span class="keyword">new</span> FlowBuilder&lt;Flow&gt;(<span class="string"><span class="delimiter">&quot;</span><span class="content">jobSequentialFlow</span><span class="delimiter">&quot;</span></span>)
+            .from(step01)
+            .next(step02) <span class="comment">// (1)</span>
+            .next(step03) <span class="comment">// (1)</span>
+            .build(); <span class="comment">// (2)</span>
+
+    <span class="keyword">return</span> <span class="keyword">new</span> JobBuilder(<span class="string"><span class="delimiter">&quot;</span><span class="content">jobSequentialFlow</span><span class="delimiter">&quot;</span></span>, jobRepository)
+            .start(flow)
+            .end()
+            .build();
+}</code></pre>
+</div>
+</div>
+  </div>
+  <div class="tabcontent" name="XMLConfigContent">
+<div class="listingblock">
 <div class="content">
 <pre class="CodeRay highlight"><code data-lang="xml"><span class="comment">&lt;!-- tasklet definition is omitted. --&gt;</span>
 
@@ -356,6 +416,8 @@
 <span class="tag">&lt;/batch:job&gt;</span></code></pre>
 </div>
 </div>
+  </div>
+</div>
 <table class="tableblock frame-all grid-all stretch">
 <colgroup>
 <col style="width: 10%;">
@@ -370,12 +432,12 @@
 <tbody>
 <tr>
 <td class="tableblock halign-left valign-top"><p class="tableblock">(1)</p></td>
-<td class="tableblock halign-left valign-top"><p class="tableblock"><code>&lt;batch:step&gt;</code>で、このステップの正常終了後に起動する後続ステップを指定する。<br>
-<code>next</code>属性に後続ステップの<code>id</code>を設定する。</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><code>FlowBuilderのnextメソッド/&lt;batch:step&gt;</code>で、このステップの正常終了後に起動する後続ステップを指定する。<br>
+<code>nextメソッドの引数step/next属性</code>に後続ステップのidを設定する。</p></td>
 </tr>
 <tr>
 <td class="tableblock halign-left valign-top"><p class="tableblock">(2)</p></td>
-<td class="tableblock halign-left valign-top"><p class="tableblock">フローの末端になるステップには、<code>next</code>属性は不要となる。</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">フローの末端になるステップには、<code>nextメソッド/next属性</code>は不要となる。</p></td>
 </tr>
 </tbody>
 </table>
@@ -390,12 +452,68 @@
 <i class="fa icon-note" title="Note"></i>
 </td>
 <td class="content">
-<div class="title">&lt;batch:flow&gt;を使った定義方法</div>
+<div class="title">Flow/&lt;batch:flow&gt;を使った定義方法</div>
 <div class="paragraph">
-<p>前述の例では<code>&lt;batch:job&gt;</code>内に直接フローを定義した。
-<code>&lt;batch:flow&gt;</code>を利用して、フロー定義を外部に切り出すこともできる。
-以下に<code>&lt;batch:flow&gt;</code>を利用した場合の例を示す。</p>
+<p>前述の例では<code>jobSequentialFlowメソッド/&lt;batch:job&gt;</code>内に直接フローを定義した。
+<code>Bean定義したFlow/&lt;batch:flow&gt;</code>を利用して、フロー定義を外部に切り出すこともできる。
+以下に<code>Bean定義したFlow/&lt;batch:flow&gt;</code>を利用した場合の例を示す。</p>
 </div>
+<div class="tabbox">
+  <input type="radio" name="tabgroup080102" class="JavaConfigTab" id="tabgroup080102_1" checked><label for="tabgroup080102_1" class="tab">JavaConfig</label>
+  <input type="radio" name="tabgroup080102" class="XMLConfigTab" id="tabgroup080102_2"><label for="tabgroup080102_2" class="tab">XMLConfig</label>
+  <div class="tabcontent" name="JavaConfigContent">
+<div class="listingblock">
+<div class="content">
+<pre class="CodeRay highlight"><code data-lang="java"><span class="annotation">@Bean</span>
+<span class="directive">public</span> Step step01outer(JobRepository jobRepository,
+                        SequentialFlowTasklet tasklet,
+                        <span class="annotation">@Qualifier</span>(<span class="string"><span class="delimiter">&quot;</span><span class="content">jobTransactionManager</span><span class="delimiter">&quot;</span></span>) PlatformTransactionManager transactionManager) {
+    <span class="keyword">return</span> parentStepBuilder(<span class="string"><span class="delimiter">&quot;</span><span class="content">jobSequentialOuterFlow.step1</span><span class="delimiter">&quot;</span></span>, jobRepository,
+            tasklet, transactionManager)
+            .build();
+}
+
+<span class="annotation">@Bean</span>
+<span class="directive">public</span> Step step02outer(JobRepository jobRepository,
+                        SequentialFlowTasklet tasklet,
+                        <span class="annotation">@Qualifier</span>(<span class="string"><span class="delimiter">&quot;</span><span class="content">jobTransactionManager</span><span class="delimiter">&quot;</span></span>) PlatformTransactionManager transactionManager) {
+    <span class="keyword">return</span> parentStepBuilder(<span class="string"><span class="delimiter">&quot;</span><span class="content">jobSequentialOuterFlow.step2</span><span class="delimiter">&quot;</span></span>, jobRepository,
+            tasklet, transactionManager)
+            .build();
+}
+
+<span class="annotation">@Bean</span>
+<span class="directive">public</span> Step step03outer(JobRepository jobRepository,
+                        SequentialFlowTasklet tasklet,
+                        <span class="annotation">@Qualifier</span>(<span class="string"><span class="delimiter">&quot;</span><span class="content">jobTransactionManager</span><span class="delimiter">&quot;</span></span>) PlatformTransactionManager transactionManager) {
+    <span class="keyword">return</span> parentStepBuilder(<span class="string"><span class="delimiter">&quot;</span><span class="content">jobSequentialOuterFlow.step3</span><span class="delimiter">&quot;</span></span>, jobRepository,
+            tasklet, transactionManager)
+            .build();
+}
+
+<span class="comment">// (2)</span>
+<span class="annotation">@Bean</span>
+<span class="directive">public</span> Flow outerFlow(Step step01outer, Step step02outer,
+                      Step step03outer) {
+    <span class="keyword">return</span> <span class="keyword">new</span> FlowBuilder&lt;Flow&gt;(<span class="string"><span class="delimiter">&quot;</span><span class="content">outerFlow</span><span class="delimiter">&quot;</span></span>)
+            .from(step01outer)
+            .next(step02outer)
+            .next(step03outer)
+            .build();
+}
+
+<span class="annotation">@Bean</span>
+<span class="directive">public</span> Job jobSequentialOuterFlow(JobRepository jobRepository,
+                                  Flow outerFlow) {
+    <span class="keyword">return</span> <span class="keyword">new</span> JobBuilder(<span class="string"><span class="delimiter">&quot;</span><span class="content">jobSequentialOuterFlow</span><span class="delimiter">&quot;</span></span>, jobRepository)
+            .start(outerFlow) <span class="comment">// (1)</span>
+            .end()
+            .build();
+}</code></pre>
+</div>
+</div>
+  </div>
+  <div class="tabcontent" name="XMLConfigContent">
 <div class="listingblock">
 <div class="content">
 <pre class="CodeRay highlight"><code data-lang="xml"><span class="tag">&lt;batch:job</span> <span class="attribute-name">id</span>=<span class="string"><span class="delimiter">&quot;</span><span class="content">jobSequentialOuterFlow</span><span class="delimiter">&quot;</span></span> <span class="attribute-name">job-repository</span>=<span class="string"><span class="delimiter">&quot;</span><span class="content">jobRepository</span><span class="delimiter">&quot;</span></span><span class="tag">&gt;</span>
@@ -415,6 +533,8 @@
 <span class="tag">&lt;/batch:flow&gt;</span></code></pre>
 </div>
 </div>
+  </div>
+</div>
 <table class="tableblock frame-all grid-all stretch">
 <colgroup>
 <col style="width: 10%;">
@@ -429,7 +549,7 @@
 <tbody>
 <tr>
 <td class="tableblock halign-left valign-top"><p class="tableblock">(1)</p></td>
-<td class="tableblock halign-left valign-top"><p class="tableblock"><code>parent</code>属性に(2)で定義したフローのidを設定する。</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><code>JobBuilderのstartメソッド/parent属性</code>に(2)で定義したフローのidを設定する。</p></td>
 </tr>
 <tr>
 <td class="tableblock halign-left valign-top"><p class="tableblock">(2)</p></td>
@@ -564,8 +684,56 @@
 }</code></pre>
 </div>
 </div>
+<div class="tabbox">
+  <input type="radio" name="tabgroup080103" class="JavaConfigTab" id="tabgroup080103_1" checked><label for="tabgroup080103_1" class="tab">JavaConfig</label>
+  <input type="radio" name="tabgroup080103" class="XMLConfigTab" id="tabgroup080103_2"><label for="tabgroup080103_2" class="tab">XMLConfig</label>
+  <div class="tabcontent" name="JavaConfigContent">
 <div class="listingblock">
-<div class="title">ジョブBean定義の記述例</div>
+<div class="content">
+<pre class="CodeRay highlight"><code data-lang="java"><span class="comment">// import,annotation,component-scan definitions are omitted</span>
+
+<span class="comment">// (3)</span>
+<span class="annotation">@Bean</span>
+ExecutionContextPromotionListener executionContextPromotionListener() {
+    ExecutionContextPromotionListener listener = <span class="keyword">new</span> ExecutionContextPromotionListener();
+    listener.setKeys(<span class="keyword">new</span> <span class="predefined-type">String</span><span class="type">[]</span> { <span class="string"><span class="delimiter">&quot;</span><span class="content">promotion</span><span class="delimiter">&quot;</span></span> });
+    listener.setStrict(<span class="predefined-constant">true</span>);
+    <span class="keyword">return</span> listener;
+}
+
+<span class="annotation">@Bean</span>
+<span class="directive">public</span> Step step1(JobRepository jobRepository,
+                  <span class="annotation">@Qualifier</span>(<span class="string"><span class="delimiter">&quot;</span><span class="content">savePromotionalTasklet</span><span class="delimiter">&quot;</span></span>) SavePromotionalTasklet tasklet,
+                  <span class="annotation">@Qualifier</span>(<span class="string"><span class="delimiter">&quot;</span><span class="content">executionContextPromotionListener</span><span class="delimiter">&quot;</span></span>) ExecutionContextPromotionListener listener,
+                  <span class="annotation">@Qualifier</span>(<span class="string"><span class="delimiter">&quot;</span><span class="content">jobTransactionManager</span><span class="delimiter">&quot;</span></span>) PlatformTransactionManager transactionManager) {
+    <span class="keyword">return</span> <span class="keyword">new</span> StepBuilder(<span class="string"><span class="delimiter">&quot;</span><span class="content">jobPromotionalFlow.step1</span><span class="delimiter">&quot;</span></span>, jobRepository)
+            .tasklet(tasklet, transactionManager)
+            .listener(listener)
+            .build();
+}
+
+<span class="annotation">@Bean</span>
+<span class="directive">public</span> Step step2(JobRepository jobRepository,
+                  <span class="annotation">@Qualifier</span>(<span class="string"><span class="delimiter">&quot;</span><span class="content">confirmPromotionalTasklet</span><span class="delimiter">&quot;</span></span>) ConfirmPromotionalTasklet tasklet,
+                  <span class="annotation">@Qualifier</span>(<span class="string"><span class="delimiter">&quot;</span><span class="content">jobTransactionManager</span><span class="delimiter">&quot;</span></span>) PlatformTransactionManager transactionManager) {
+    <span class="keyword">return</span> <span class="keyword">new</span> StepBuilder(<span class="string"><span class="delimiter">&quot;</span><span class="content">jobPromotionalFlow.step2</span><span class="delimiter">&quot;</span></span>, jobRepository)
+            .tasklet(tasklet, transactionManager)
+            .build();
+}
+
+<span class="annotation">@Bean</span>
+<span class="directive">public</span> Job jobPromotionalFlow(JobRepository jobRepository,
+                              Step step1, Step step2) {
+    <span class="keyword">return</span> <span class="keyword">new</span> JobBuilder(<span class="string"><span class="delimiter">&quot;</span><span class="content">jobPromotionalFlow</span><span class="delimiter">&quot;</span></span>, jobRepository)
+            .start(step1)
+            .next(step2)
+            .build();
+}</code></pre>
+</div>
+</div>
+  </div>
+  <div class="tabcontent" name="XMLConfigContent">
+<div class="listingblock">
 <div class="content">
 <pre class="CodeRay highlight"><code data-lang="xml"><span class="comment">&lt;!-- import,annotation,component-scan definitions are omitted --&gt;</span>
 
@@ -589,6 +757,8 @@
 <span class="tag">&lt;/batch:job&gt;</span>
 <span class="comment">&lt;!-- omitted --&gt;</span></code></pre>
 </div>
+</div>
+  </div>
 </div>
 <table class="tableblock frame-all grid-all stretch">
 <caption class="title">表 1. 実装内容の説明</caption>
@@ -619,8 +789,8 @@
 <td class="tableblock halign-left valign-top"><p class="tableblock">(3)</p></td>
 <td class="tableblock halign-left valign-top"><p class="tableblock"><code>ExecutionContextPromotionListener</code>を用い、
 ステップ実行コンテキストからジョブ実行コンテキストに受け渡しデータを移す。<br>
-<code>keys</code>属性には(1)で指定した受け渡しキーを指定する。<br>
-<code>strict</code>属性に<code>true</code>を設定することにより、ステップ実行コンテキストに存在しない場合は<code>IllegalArgumentException</code>がスローされる。
+<code>setKeysメソッド/keys属性</code>には(1)で指定した受け渡しキーを指定する。<br>
+<code>setStrictメソッド/strict属性</code>に<code>true</code>を設定することにより、ステップ実行コンテキストに存在しない場合は<code>IllegalArgumentException</code>がスローされる。
 <code>false</code>の場合は受け渡しデータがなくても処理が継続する。</p></td>
 </tr>
 </tbody>
@@ -698,8 +868,73 @@
 }</code></pre>
 </div>
 </div>
+<div class="tabbox">
+  <input type="radio" name="tabgroup080104" class="JavaConfigTab" id="tabgroup080104_1" checked><label for="tabgroup080104_1" class="tab">JavaConfig</label>
+  <input type="radio" name="tabgroup080104" class="XMLConfigTab" id="tabgroup080104_2"><label for="tabgroup080104_2" class="tab">XMLConfig</label>
+  <div class="tabcontent" name="JavaConfigContent">
 <div class="listingblock">
-<div class="title">ジョブBean定義の記述例</div>
+<div class="content">
+<pre class="CodeRay highlight"><code data-lang="java"><span class="comment">// (3)</span>
+<span class="annotation">@Bean</span>
+ExecutionContextPromotionListener executionContextPromotionListener() {
+    ExecutionContextPromotionListener listener = <span class="keyword">new</span> ExecutionContextPromotionListener();
+    listener.setKeys(<span class="keyword">new</span> <span class="predefined-type">String</span><span class="type">[]</span> { <span class="string"><span class="delimiter">&quot;</span><span class="content">promotion</span><span class="delimiter">&quot;</span></span> });
+    listener.setStrict(<span class="predefined-constant">true</span>);
+    <span class="keyword">return</span> listener;
+}
+
+<span class="annotation">@Bean</span>
+<span class="directive">public</span> Step step1(JobRepository jobRepository,
+                  <span class="annotation">@Qualifier</span>(<span class="string"><span class="delimiter">&quot;</span><span class="content">executionContextPromotionListener</span><span class="delimiter">&quot;</span></span>) ExecutionContextPromotionListener listener,
+                  <span class="annotation">@Qualifier</span>(<span class="string"><span class="delimiter">&quot;</span><span class="content">listItemReader</span><span class="delimiter">&quot;</span></span>) ListItemReader&lt;<span class="predefined-type">String</span>&gt; reader,
+                  <span class="annotation">@Qualifier</span>(<span class="string"><span class="delimiter">&quot;</span><span class="content">promotionSourceItemProcessor</span><span class="delimiter">&quot;</span></span>) ItemProcessor&lt;<span class="predefined-type">String</span>, <span class="predefined-type">String</span>&gt; processor,
+                  <span class="annotation">@Qualifier</span>(<span class="string"><span class="delimiter">&quot;</span><span class="content">promotionLogItemWriter</span><span class="delimiter">&quot;</span></span>) ItemWriter&lt;<span class="predefined-type">String</span>&gt; writer,
+                  <span class="annotation">@Qualifier</span>(<span class="string"><span class="delimiter">&quot;</span><span class="content">jobTransactionManager</span><span class="delimiter">&quot;</span></span>) PlatformTransactionManager transactionManager) {
+    SimpleStepBuilder&lt;<span class="predefined-type">String</span>, <span class="predefined-type">String</span>&gt; builder
+            = parentStepBuilder(<span class="string"><span class="delimiter">&quot;</span><span class="content">jobChunkPromotionalFlow.step1</span><span class="delimiter">&quot;</span></span>,
+            jobRepository, reader, processor, writer, transactionManager);
+    builder.listener(listener);
+    <span class="keyword">return</span> builder.build();
+}
+
+<span class="annotation">@Bean</span>
+<span class="directive">public</span> Step step2(JobRepository jobRepository,
+                  <span class="annotation">@Qualifier</span>(<span class="string"><span class="delimiter">&quot;</span><span class="content">listItemReader</span><span class="delimiter">&quot;</span></span>) ListItemReader&lt;<span class="predefined-type">String</span>&gt; reader,
+                  <span class="annotation">@Qualifier</span>(<span class="string"><span class="delimiter">&quot;</span><span class="content">promotionTargetItemProcessor</span><span class="delimiter">&quot;</span></span>) ItemProcessor&lt;<span class="predefined-type">String</span>, <span class="predefined-type">String</span>&gt; processor,
+                  <span class="annotation">@Qualifier</span>(<span class="string"><span class="delimiter">&quot;</span><span class="content">promotionLogItemWriter</span><span class="delimiter">&quot;</span></span>) ItemWriter&lt;<span class="predefined-type">String</span>&gt; writer,
+                  <span class="annotation">@Qualifier</span>(<span class="string"><span class="delimiter">&quot;</span><span class="content">jobTransactionManager</span><span class="delimiter">&quot;</span></span>) PlatformTransactionManager transactionManager) {
+    SimpleStepBuilder&lt;<span class="predefined-type">String</span>, <span class="predefined-type">String</span>&gt; builder
+            = parentStepBuilder(<span class="string"><span class="delimiter">&quot;</span><span class="content">jobChunkPromotionalFlow.step2</span><span class="delimiter">&quot;</span></span>,
+            jobRepository, reader, processor, writer, transactionManager);
+    <span class="keyword">return</span> builder.build();
+}
+
+<span class="annotation">@Bean</span>
+<span class="directive">public</span> Job jobChunkPromotionalFlow(JobRepository jobRepository,
+                                   Step step1, Step step2) {
+    <span class="keyword">return</span> <span class="keyword">new</span> JobBuilder(<span class="string"><span class="delimiter">&quot;</span><span class="content">jobChunkPromotionalFlow</span><span class="delimiter">&quot;</span></span>, jobRepository)
+            .start(step1)
+            .next(step2)
+            .build();
+}
+
+SimpleStepBuilder&lt;<span class="predefined-type">String</span>, <span class="predefined-type">String</span>&gt; parentStepBuilder(<span class="predefined-type">String</span> stepName,
+                                                    JobRepository jobRepository,
+                                                    ListItemReader&lt;<span class="predefined-type">String</span>&gt; reader,
+                                                    ItemProcessor&lt;<span class="predefined-type">String</span>, <span class="predefined-type">String</span>&gt; processor,
+                                                    ItemWriter&lt;<span class="predefined-type">String</span>&gt; writer,
+                                                    PlatformTransactionManager transactionManager) {
+    <span class="keyword">return</span> <span class="keyword">new</span> StepBuilder(stepName, jobRepository)
+            .&lt;<span class="predefined-type">String</span>, <span class="predefined-type">String</span>&gt; chunk(<span class="integer">1</span>, transactionManager)
+            .reader(reader)
+            .processor(processor)
+            .writer(writer);
+}</code></pre>
+</div>
+</div>
+  </div>
+  <div class="tabcontent" name="XMLConfigContent">
+<div class="listingblock">
 <div class="content">
 <pre class="CodeRay highlight"><code data-lang="xml"><span class="comment">&lt;!-- import,annotation,component-scan definitions are omitted --&gt;</span>
 <span class="tag">&lt;batch:job</span> <span class="attribute-name">id</span>=<span class="string"><span class="delimiter">&quot;</span><span class="content">jobChunkPromotionalFlow</span><span class="delimiter">&quot;</span></span> <span class="attribute-name">job-repository</span>=<span class="string"><span class="delimiter">&quot;</span><span class="content">jobRepository</span><span class="delimiter">&quot;</span></span><span class="tag">&gt;</span>
@@ -719,6 +954,8 @@
 
 <span class="comment">&lt;!-- step definitions are omitted. --&gt;</span></code></pre>
 </div>
+</div>
+  </div>
 </div>
 <table class="tableblock frame-all grid-all stretch">
 <caption class="title">表 2. 実装内容の説明</caption>
@@ -786,8 +1023,58 @@
 <p>条件分岐は先行ステップの実行結果となる終了コードを受けて、複数の後続ステップから1つを選択して継続実行させることを言う。<br>
 いずれの後続ステップを実行させずにジョブを停止させる場合は後述の<a href="#Ch08_FlowControll_HowToExtend_StopConfig">"停止条件"</a>を参照。</p>
 </div>
+<div class="tabbox">
+  <input type="radio" name="tabgroup080105" class="JavaConfigTab" id="tabgroup080105_1" checked><label for="tabgroup080105_1" class="tab">JavaConfig</label>
+  <input type="radio" name="tabgroup080105" class="XMLConfigTab" id="tabgroup080105_2"><label for="tabgroup080105_2" class="tab">XMLConfig</label>
+  <div class="tabcontent" name="JavaConfigContent">
 <div class="listingblock">
-<div class="title">ジョブBean定義記述例</div>
+<div class="content">
+<pre class="CodeRay highlight"><code data-lang="java"><span class="annotation">@Bean</span>
+<span class="directive">public</span> Step stepA(JobRepository jobRepository,
+                  SequentialFlowTasklet tasklet,
+                  ChangeExitCodeReturnListener listener,
+                  <span class="annotation">@Qualifier</span>(<span class="string"><span class="delimiter">&quot;</span><span class="content">jobTransactionManager</span><span class="delimiter">&quot;</span></span>) PlatformTransactionManager transactionManager) {
+    <span class="keyword">return</span> parentStepBuilder(<span class="string"><span class="delimiter">&quot;</span><span class="content">jobConditionalFlow.stepA</span><span class="delimiter">&quot;</span></span>, jobRepository,
+            tasklet, listener, transactionManager)
+            .build();
+}
+
+<span class="annotation">@Bean</span>
+<span class="directive">public</span> Step stepB(JobRepository jobRepository,
+                  SequentialFlowTasklet tasklet,
+                  ChangeExitCodeReturnListener listener,
+                  <span class="annotation">@Qualifier</span>(<span class="string"><span class="delimiter">&quot;</span><span class="content">jobTransactionManager</span><span class="delimiter">&quot;</span></span>) PlatformTransactionManager transactionManager) {
+    <span class="keyword">return</span> parentStepBuilder(<span class="string"><span class="delimiter">&quot;</span><span class="content">jobConditionalFlow.stepB</span><span class="delimiter">&quot;</span></span>, jobRepository,
+            tasklet, listener, transactionManager)
+            .build();
+}
+
+<span class="annotation">@Bean</span>
+<span class="directive">public</span> Step stepC(JobRepository jobRepository,
+                  SequentialFlowTasklet tasklet,
+                  ChangeExitCodeReturnListener listener,
+                  <span class="annotation">@Qualifier</span>(<span class="string"><span class="delimiter">&quot;</span><span class="content">jobTransactionManager</span><span class="delimiter">&quot;</span></span>) PlatformTransactionManager transactionManager) {
+    <span class="keyword">return</span> parentStepBuilder(<span class="string"><span class="delimiter">&quot;</span><span class="content">jobConditionalFlow.stepC</span><span class="delimiter">&quot;</span></span>, jobRepository,
+            tasklet, listener, transactionManager)
+            .build();
+}
+
+<span class="annotation">@Bean</span>
+<span class="directive">public</span> Job jobConditionalFlow(JobRepository jobRepository, Step stepA,
+                              Step stepB, Step stepC) {
+    <span class="keyword">return</span> <span class="keyword">new</span> JobBuilder(<span class="string"><span class="delimiter">&quot;</span><span class="content">jobConditionalFlow</span><span class="delimiter">&quot;</span></span>, jobRepository)
+            .start(stepA)
+            .on(FlowExecutionStatus.COMPLETED.getName()).to(stepB) <span class="comment">// (1) (2)</span>
+            .from(stepA)
+            .on(FlowExecutionStatus.FAILED.getName()).to(stepC) <span class="comment">// (1) (3)</span>
+            .end()
+            .build();
+}</code></pre>
+</div>
+</div>
+  </div>
+  <div class="tabcontent" name="XMLConfigContent">
+<div class="listingblock">
 <div class="content">
 <pre class="CodeRay highlight"><code data-lang="xml"><span class="tag">&lt;batch:job</span> <span class="attribute-name">id</span>=<span class="string"><span class="delimiter">&quot;</span><span class="content">jobConditionalFlow</span><span class="delimiter">&quot;</span></span> <span class="attribute-name">job-repository</span>=<span class="string"><span class="delimiter">&quot;</span><span class="content">jobRepository</span><span class="delimiter">&quot;</span></span><span class="tag">&gt;</span>
     <span class="tag">&lt;batch:step</span> <span class="attribute-name">id</span>=<span class="string"><span class="delimiter">&quot;</span><span class="content">jobConditionalFlow.stepA</span><span class="delimiter">&quot;</span></span> <span class="attribute-name">parent</span>=<span class="string"><span class="delimiter">&quot;</span><span class="content">conditionalFlow.parentStep</span><span class="delimiter">&quot;</span></span><span class="tag">&gt;</span>
@@ -801,6 +1088,8 @@
     <span class="tag">&lt;batch:step</span> <span class="attribute-name">id</span>=<span class="string"><span class="delimiter">&quot;</span><span class="content">jobConditionalFlow.stepC</span><span class="delimiter">&quot;</span></span> <span class="attribute-name">parent</span>=<span class="string"><span class="delimiter">&quot;</span><span class="content">conditionalFlow.parentStep</span><span class="delimiter">&quot;</span></span><span class="tag">/&gt;</span>
 <span class="tag">&lt;/batch:job&gt;</span></code></pre>
 </div>
+</div>
+  </div>
 </div>
 <table class="tableblock frame-all grid-all stretch">
 <caption class="title">表 3. 実装内容の説明</caption>
@@ -817,9 +1106,9 @@
 <tbody>
 <tr>
 <td class="tableblock halign-left valign-top"><p class="tableblock">(1)</p></td>
-<td class="tableblock halign-left valign-top"><p class="tableblock">シーケンシャルフローのように<code>&lt;batch:step&gt;</code>要素内に<code>next</code>属性を指定させず、
-<code>&lt;batch:next&gt;</code>を複数置くことで、<code>to</code>属性で指定される後続ステップに振り分けることができる。<br>
-<code>on</code>には遷移条件となるステップの終了コードを指定する。</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">シーケンシャルフローのように<code>nextメソッド/next属性</code>を指定させず、
+<code>nextメソッド/&lt;batch:next&gt;要素</code>を複数置くことで、<code>toメソッド/to属性</code>で指定される後続ステップに振り分けることができる。<br>
+<code>onメソッド/on属性</code>には遷移条件となるステップの終了コードを指定する。</p></td>
 </tr>
 <tr>
 <td class="tableblock halign-left valign-top"><p class="tableblock">(2)</p></td>
@@ -876,8 +1165,87 @@
 <p>これらの終了コードが先行ステップに該当する場合は後続ステップが実行されない。<br>
 また、同一ステップ内にそれぞれ複数指定が可能である。</p>
 </div>
+<div class="tabbox">
+  <input type="radio" name="tabgroup080106" class="JavaConfigTab" id="tabgroup080106_1" checked><label for="tabgroup080106_1" class="tab">JavaConfig</label>
+  <input type="radio" name="tabgroup080106" class="XMLConfigTab" id="tabgroup080106_2"><label for="tabgroup080106_2" class="tab">XMLConfig</label>
+  <div class="tabcontent" name="JavaConfigContent">
 <div class="listingblock">
-<div class="title">ジョブBean定義記述例</div>
+<div class="content">
+<pre class="CodeRay highlight"><code data-lang="java">TaskletStepBuilder parentStepBuilder(<span class="predefined-type">String</span> stepName,
+                                     JobRepository jobRepository,
+                                     SequentialFlowTasklet tasklet,
+                                     ChangeExitCodeReturnListener listener,
+                                     PlatformTransactionManager transactionManager) {
+    <span class="keyword">return</span> <span class="keyword">new</span> StepBuilder(stepName, jobRepository)
+            .listener(listener)
+            .tasklet(tasklet, transactionManager);
+}
+
+<span class="annotation">@Bean</span>
+<span class="directive">public</span> Step step1(JobRepository jobRepository,
+                  <span class="annotation">@Qualifier</span>(<span class="string"><span class="delimiter">&quot;</span><span class="content">stopFlowTasklet</span><span class="delimiter">&quot;</span></span>) SequentialFlowTasklet tasklet,
+                  <span class="annotation">@Qualifier</span>(<span class="string"><span class="delimiter">&quot;</span><span class="content">changeExitCodeReturnListener</span><span class="delimiter">&quot;</span></span>) ChangeExitCodeReturnListener listener,
+                  <span class="annotation">@Qualifier</span>(<span class="string"><span class="delimiter">&quot;</span><span class="content">jobTransactionManager</span><span class="delimiter">&quot;</span></span>) PlatformTransactionManager transactionManager) {
+    <span class="keyword">return</span> parentStepBuilder(<span class="string"><span class="delimiter">&quot;</span><span class="content">jobStopFlow.step1</span><span class="delimiter">&quot;</span></span>, jobRepository, tasklet,
+            listener, transactionManager)
+            .build();
+}
+
+<span class="annotation">@Bean</span>
+<span class="directive">public</span> Step step2(JobRepository jobRepository,
+                  <span class="annotation">@Qualifier</span>(<span class="string"><span class="delimiter">&quot;</span><span class="content">stopFlowTasklet</span><span class="delimiter">&quot;</span></span>) SequentialFlowTasklet tasklet,
+                  <span class="annotation">@Qualifier</span>(<span class="string"><span class="delimiter">&quot;</span><span class="content">changeExitCodeReturnListener</span><span class="delimiter">&quot;</span></span>) ChangeExitCodeReturnListener listener,
+                  <span class="annotation">@Qualifier</span>(<span class="string"><span class="delimiter">&quot;</span><span class="content">jobTransactionManager</span><span class="delimiter">&quot;</span></span>) PlatformTransactionManager transactionManager) {
+    <span class="keyword">return</span> parentStepBuilder(<span class="string"><span class="delimiter">&quot;</span><span class="content">jobStopFlow.step2</span><span class="delimiter">&quot;</span></span>, jobRepository, tasklet,
+            listener, transactionManager)
+            .build();
+}
+
+<span class="annotation">@Bean</span>
+<span class="directive">public</span> Step step3(JobRepository jobRepository,
+                  <span class="annotation">@Qualifier</span>(<span class="string"><span class="delimiter">&quot;</span><span class="content">stopFlowTasklet</span><span class="delimiter">&quot;</span></span>) SequentialFlowTasklet tasklet,
+                  <span class="annotation">@Qualifier</span>(<span class="string"><span class="delimiter">&quot;</span><span class="content">changeExitCodeReturnListener</span><span class="delimiter">&quot;</span></span>) ChangeExitCodeReturnListener listener,
+                  <span class="annotation">@Qualifier</span>(<span class="string"><span class="delimiter">&quot;</span><span class="content">jobTransactionManager</span><span class="delimiter">&quot;</span></span>) PlatformTransactionManager transactionManager) {
+    <span class="keyword">return</span> parentStepBuilder(<span class="string"><span class="delimiter">&quot;</span><span class="content">jobStopFlow.step3</span><span class="delimiter">&quot;</span></span>, jobRepository, tasklet,
+            listener, transactionManager)
+            .build();
+}
+
+<span class="annotation">@Bean</span>
+<span class="directive">public</span> Step step4(JobRepository jobRepository,
+                  <span class="annotation">@Qualifier</span>(<span class="string"><span class="delimiter">&quot;</span><span class="content">stopFlowTasklet</span><span class="delimiter">&quot;</span></span>) SequentialFlowTasklet tasklet,
+                  <span class="annotation">@Qualifier</span>(<span class="string"><span class="delimiter">&quot;</span><span class="content">changeExitCodeReturnListener</span><span class="delimiter">&quot;</span></span>) ChangeExitCodeReturnListener listener,
+                  <span class="annotation">@Qualifier</span>(<span class="string"><span class="delimiter">&quot;</span><span class="content">jobTransactionManager</span><span class="delimiter">&quot;</span></span>) PlatformTransactionManager transactionManager) {
+    <span class="keyword">return</span> parentStepBuilder(<span class="string"><span class="delimiter">&quot;</span><span class="content">jobStopFlow.step4</span><span class="delimiter">&quot;</span></span>, jobRepository, tasklet,
+            listener, transactionManager)
+            .build();
+}
+
+<span class="annotation">@Bean</span>
+<span class="directive">public</span> Job jobStopFlow(JobRepository jobRepository,
+                       <span class="annotation">@Qualifier</span>(<span class="string"><span class="delimiter">&quot;</span><span class="content">jobExitCodeChangeListener</span><span class="delimiter">&quot;</span></span>) JobExitCodeChangeListener listener,
+                       Step step1, Step step2, Step step3, Step step4) {
+    <span class="keyword">return</span> <span class="keyword">new</span> JobBuilder(<span class="string"><span class="delimiter">&quot;</span><span class="content">jobStopFlow</span><span class="delimiter">&quot;</span></span>, jobRepository)
+            .start(step1)
+            .listener(listener)
+            .on(<span class="string"><span class="delimiter">&quot;</span><span class="content">END_WITH_NO_EXIT_CODE</span><span class="delimiter">&quot;</span></span>).end()
+            .from(step1).on(<span class="string"><span class="delimiter">&quot;</span><span class="content">END_WITH_EXIT_CODE</span><span class="delimiter">&quot;</span></span>).end(<span class="string"><span class="delimiter">&quot;</span><span class="content">COMPLETED_CUSTOM</span><span class="delimiter">&quot;</span></span>)
+            .from(step1).on(<span class="string"><span class="delimiter">&quot;</span><span class="content">*</span><span class="delimiter">&quot;</span></span>).to(step2)
+            .from(step2).on(<span class="string"><span class="delimiter">&quot;</span><span class="content">FORCE_FAIL_WITH_NO_EXIT_CODE</span><span class="delimiter">&quot;</span></span>).fail()
+            .from(step2).on(<span class="string"><span class="delimiter">&quot;</span><span class="content">FORCE_FAIL_WITH_EXIT_CODE</span><span class="delimiter">&quot;</span></span>).fail()
+            .from(step2).on(<span class="string"><span class="delimiter">&quot;</span><span class="content">*</span><span class="delimiter">&quot;</span></span>).to(step3)
+            .from(step3).on(<span class="string"><span class="delimiter">&quot;</span><span class="content">FORCE_STOP</span><span class="delimiter">&quot;</span></span>).stopAndRestart(step4)
+            .from(step3).on(<span class="string"><span class="delimiter">&quot;</span><span class="content">FORCE_STOP_WITH_EXIT_CODE</span><span class="delimiter">&quot;</span></span>)
+            .stopAndRestart(step4)
+            .from(step3).on(<span class="string"><span class="delimiter">&quot;</span><span class="content">*</span><span class="delimiter">&quot;</span></span>).to(step4)
+            .end()
+            .build();
+}</code></pre>
+</div>
+</div>
+  </div>
+  <div class="tabcontent" name="XMLConfigContent">
+<div class="listingblock">
 <div class="content">
 <pre class="CodeRay highlight"><code data-lang="xml"><span class="tag">&lt;batch:job</span> <span class="attribute-name">id</span>=<span class="string"><span class="delimiter">&quot;</span><span class="content">jobStopFlow</span><span class="delimiter">&quot;</span></span> <span class="attribute-name">job-repository</span>=<span class="string"><span class="delimiter">&quot;</span><span class="content">jobRepository</span><span class="delimiter">&quot;</span></span><span class="tag">&gt;</span>
     <span class="tag">&lt;batch:step</span> <span class="attribute-name">id</span>=<span class="string"><span class="delimiter">&quot;</span><span class="content">jobStopFlow.step1</span><span class="delimiter">&quot;</span></span> <span class="attribute-name">parent</span>=<span class="string"><span class="delimiter">&quot;</span><span class="content">stopFlow.parentStep</span><span class="delimiter">&quot;</span></span><span class="tag">&gt;</span>
@@ -904,6 +1272,8 @@
 <span class="tag">&lt;/batch:job&gt;</span></code></pre>
 </div>
 </div>
+  </div>
+</div>
 <table class="tableblock frame-all grid-all stretch">
 <caption class="title">表 4. ジョブの停止の設定内容説明</caption>
 <colgroup>
@@ -919,27 +1289,27 @@
 <tbody>
 <tr>
 <td class="tableblock halign-left valign-top"><p class="tableblock">(1)</p></td>
-<td class="tableblock halign-left valign-top"><p class="tableblock"><code>&lt;batch:end&gt;</code>の<code>on</code>属性とステップ終了コードが一致した場合、ジョブは正常終了
+<td class="tableblock halign-left valign-top"><p class="tableblock"><code>onメソッドの引数pattern/&lt;batch:end&gt;要素のon属性</code>とステップ終了コードが一致した場合、ジョブは正常終了
 (ステータス：<code>COMPLETED</code>)として<code>JobRepository</code>に記録される。<br>
-<code>exit-code</code>属性を付与した場合、ジョブの終了コードをデフォルトの<code>COMPLETED</code>からカスタマイズすることができる。</p></td>
+<code>endメソッドの引数status/exit-code属性</code>を付与した場合、ジョブの終了コードをデフォルトの<code>COMPLETED</code>からカスタマイズすることができる。</p></td>
 </tr>
 <tr>
 <td class="tableblock halign-left valign-top"><p class="tableblock">(2)</p></td>
-<td class="tableblock halign-left valign-top"><p class="tableblock"><code>&lt;batch:next&gt;</code>の<code>on</code>属性にワイルドカード(<code>*</code>)を指定することで、<code>end</code>、<code>fail</code>、
+<td class="tableblock halign-left valign-top"><p class="tableblock"><code>onメソッドの引数pattern/&lt;batch:next&gt;要素のon属性</code>にワイルドカード(<code>*</code>)を指定することで、<code>end</code>、<code>fail</code>、
 <code>stop</code>いずれの終了コードにも該当しない場合に後続ジョブを継続させることができる。<br>
 ここではステップ要素内の最後に記述しているが、終了コードの一致条件が先に評価されるため、
 要素の並び順はステップ要素内であれば任意である。</p></td>
 </tr>
 <tr>
 <td class="tableblock halign-left valign-top"><p class="tableblock">(3)</p></td>
-<td class="tableblock halign-left valign-top"><p class="tableblock"><code>&lt;batch:fail&gt;</code>を使用した場合、ジョブは異常終了(ステータス：<code>FAILED</code>)として<code>JobRepository</code>に記録される。<br>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><code>failメソッド/&lt;batch:fail&gt;要素</code>を使用した場合、ジョブは異常終了(ステータス：<code>FAILED</code>)として<code>JobRepository</code>に記録される。<br>
 <code>&lt;batch:end&gt;</code>と同様、<code>exit-code</code>属性を付与することで、ジョブの終了コードをデフォルトの<code>FAILED</code>からカスタマイズすることができる。</p></td>
 </tr>
 <tr>
 <td class="tableblock halign-left valign-top"><p class="tableblock">(4)</p></td>
-<td class="tableblock halign-left valign-top"><p class="tableblock"><code>&lt;batch:stop&gt;</code>を使用した場合、ステップの正常終了時にジョブは中断(ステータス：<code>STOPPED</code>)として<code>JobRepository</code>に記録される。<br>
-<code>restart</code>属性はリスタート時に中断状態からジョブが再開されるステップを指定する。<br>
-<code>&lt;batch:end&gt;</code>と同様、<code>exit-code</code>属性を付与することができるが、空白文字列を指定すること。(後述のコラムを参照)</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><code>stopAndRestartメソッド/&lt;batch:stop&gt;要素</code>を使用した場合、ステップの正常終了時にジョブは中断(ステータス：<code>STOPPED</code>)として<code>JobRepository</code>に記録される。<br>
+<code>stopAndRestartメソッドの引数restart/restart属性</code>はリスタート時に中断状態からジョブが再開されるステップを指定する。<br>
+XMLConfigでは<code>&lt;batch:end&gt;</code>と同様、<code>exit-code</code>属性を付与することができるが、空白文字列を指定すること。(後述のコラムを参照)</p></td>
 </tr>
 </tbody>
 </table>
@@ -965,7 +1335,7 @@
 <i class="fa icon-warning" title="Warning"></i>
 </td>
 <td class="content">
-<div class="title">&lt;batch:stop&gt;でexit-codeに空文字列を指定すること。</div>
+<div class="title">XMLConfigを使用する場合は、&lt;batch:stop&gt;でexit-codeに空文字列を指定すること。</div>
 <div class="listingblock">
 <div class="content">
 <pre class="CodeRay highlight"><code data-lang="xml"><span class="tag">&lt;step</span> <span class="attribute-name">id</span>=<span class="string"><span class="delimiter">&quot;</span><span class="content">step1</span><span class="delimiter">&quot;</span></span> <span class="attribute-name">parent</span>=<span class="string"><span class="delimiter">&quot;</span><span class="content">s1</span><span class="delimiter">&quot;</span></span><span class="tag">&gt;</span>
@@ -977,7 +1347,7 @@
 </div>
 <div class="paragraph">
 <p>上記はstep1が正常終了した際ジョブは停止状態となり、再度リスタート実行時にstep2を実行させることを意図したフロー制御になっている。<br>
-しかし、Spring Batchの不具合により、現在意図したとおりに動作しない。<br>
+しかし、XMLConfigを使用する場合は、Spring Batchの不具合により、現在意図したとおりに動作しない。<br>
 リスタート後にstep2が実行されることがなく、ジョブの終了コードは<code>NOOP</code>となり、ステータスが<code>COMPLETED</code>となる。</p>
 </div>
 <div class="paragraph">
@@ -1001,7 +1371,7 @@
 
   <div class="common-bg">
     <div class="information">
-      TERASOLUNA Batch Framework for Java (5.x) Development Guideline - version 5.5.0.RELEASE, 2023-3-31, commit-id:f6da76a
+      TERASOLUNA Batch Framework for Java (5.x) Development Guideline - version 5.6.0.RELEASE, 2023-3-31, commit-id:f5cbeda
     </div>
     <div class="index">
       <a href="index.html">&gt; INDEX</a>
@@ -1010,7 +1380,7 @@
 
   <div class="footer-bg">
     <div class="copyright">
-      &copy; Copyright 2017 NTT DATA Corporation. &copy; Copyright 2017 NTT Corporation.
+      &copy; Copyright 2017 NTT DATA Group Corporation. &copy; Copyright 2017 NTT Corporation.
     </div>
   </div>
 

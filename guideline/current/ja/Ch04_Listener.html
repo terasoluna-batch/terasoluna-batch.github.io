@@ -14,7 +14,7 @@
 
 <div class="common-bg">
   <div class="information">
-    TERASOLUNA Batch Framework for Java (5.x) Development Guideline - version 5.5.0.RELEASE, 2023-3-31, commit-id:f6da76a
+    TERASOLUNA Batch Framework for Java (5.x) Development Guideline - version 5.6.0.RELEASE, 2023-3-31, commit-id:f5cbeda
   </div>
   <div class="index">
     <a href="index.html">&gt; INDEX</a>
@@ -387,6 +387,44 @@ Spring Batchはチャンク処理中にエラーが発生した場合、<code>Ch
 }</code></pre>
 </div>
 </div>
+<div class="tabbox">
+  <input type="radio" name="tabgroup040501" class="JavaConfigTab" id="tabgroup040501_1" checked><label for="tabgroup040501_1" class="tab">JavaConfig</label>
+  <input type="radio" name="tabgroup040501" class="XMLConfigTab" id="tabgroup040501_2"><label for="tabgroup040501_2" class="tab">XMLConfig</label>
+  <div class="tabcontent" name="JavaConfigContent">
+<div class="listingblock">
+<div class="title">リスナーの設定例</div>
+<div class="content">
+<pre class="CodeRay highlight"><code data-lang="java"><span class="annotation">@Bean</span>
+<span class="directive">public</span> Step step01(JobRepository jobRepository,
+                   <span class="annotation">@Qualifier</span>(<span class="string"><span class="delimiter">&quot;</span><span class="content">jobTransactionManager</span><span class="delimiter">&quot;</span></span>) PlatformTransactionManager transactionManager,
+                   ItemReader&lt;SalesPlanDetail&gt; reader,
+                   ItemWriter&lt;SalesPlanDetail&gt; writer,
+                   AmountCheckProcessor processor,
+                   <span class="annotation">@Qualifier</span>(<span class="string"><span class="delimiter">&quot;</span><span class="content">loggingEachProcessInStepListener</span><span class="delimiter">&quot;</span></span>) StepExecutionListener listener) {
+    <span class="keyword">return</span> <span class="keyword">new</span> StepBuilder(<span class="string"><span class="delimiter">&quot;</span><span class="content">chunkJobWithListener.step01</span><span class="delimiter">&quot;</span></span>,
+                jobRepository)
+            .&lt;SalesPlanDetail, SalesPlanDetail&gt; chunk(<span class="integer">10</span>, transactionManager)
+            .reader(reader)
+            .processor(processor)
+            .writer(writer)
+            .listener(listener)
+            .build();
+}
+
+<span class="annotation">@Bean</span>
+<span class="directive">public</span> Job chunkJobWithListener(JobRepository jobRepository,
+                                        Step step01,
+                                        <span class="annotation">@Qualifier</span>(<span class="string"><span class="delimiter">&quot;</span><span class="content">jobExecutionLoggingListener</span><span class="delimiter">&quot;</span></span>) JobExecutionLoggingListener listener) {
+    <span class="keyword">return</span> <span class="keyword">new</span> JobBuilder(<span class="string"><span class="delimiter">&quot;</span><span class="content">chunkJobWithListener</span><span class="delimiter">&quot;</span></span>,
+            jobRepository)
+            .start(step01)
+            .listener(listener) <span class="comment">// (4)</span>
+            .build();
+}</code></pre>
+</div>
+</div>
+  </div>
+  <div class="tabcontent" name="XMLConfigContent">
 <div class="listingblock">
 <div class="title">リスナーの設定例</div>
 <div class="content">
@@ -405,6 +443,8 @@ Spring Batchはチャンク処理中にエラーが発生した場合、<code>Ch
      <span class="tag">&lt;/batch:listeners&gt;</span>
  <span class="tag">&lt;/batch:job&gt;</span></code></pre>
 </div>
+</div>
+  </div>
 </div>
 <table class="tableblock frame-all grid-all stretch">
 <caption class="title">表 1. 説明</caption>
@@ -435,7 +475,7 @@ Spring Batchはチャンク処理中にエラーが発生した場合、<code>Ch
 </tr>
 <tr>
 <td class="tableblock halign-left valign-top"><p class="tableblock">(4)</p></td>
-<td class="tableblock halign-left valign-top"><p class="tableblock">Bean定義の<code>&lt;batch:listeners&gt;</code>要素で、(1)で実装したリスナーを設定する。<br>
+<td class="tableblock halign-left valign-top"><p class="tableblock">Bean定義の<code>JobBuilder/&lt;batch:listeners&gt;</code>要素で、(1)で実装したリスナーを設定する。<br>
 設定方法の詳細は、<a href="#Ch04_Listener_HowToUse_Configuration">リスナーの設定</a>で説明する。</p></td>
 </tr>
 </tbody>
@@ -567,6 +607,40 @@ Spring Batchはチャンク処理中にエラーが発生した場合、<code>Ch
 }</code></pre>
 </div>
 </div>
+<div class="tabbox">
+  <input type="radio" name="tabgroup040502" class="JavaConfigTab" id="tabgroup040502_1" checked><label for="tabgroup040502_1" class="tab">JavaConfig</label>
+  <input type="radio" name="tabgroup040502" class="XMLConfigTab" id="tabgroup040502_2"><label for="tabgroup040502_2" class="tab">XMLConfig</label>
+  <div class="tabcontent" name="JavaConfigContent">
+<div class="listingblock">
+<div class="title">リスナーの設定例</div>
+<div class="content">
+<pre class="CodeRay highlight"><code data-lang="java"><span class="annotation">@Bean</span>
+<span class="directive">public</span> Step step01(JobRepository jobRepository,
+                   <span class="annotation">@Qualifier</span>(<span class="string"><span class="delimiter">&quot;</span><span class="content">jobTransactionManager</span><span class="delimiter">&quot;</span></span>) PlatformTransactionManager transactionManager,
+                   ItemReader&lt;SalesPlanDetail&gt; reader,
+                   ItemWriter&lt;SalesPlanDetail&gt; writer,
+                   AnnotationAmountCheckProcessor annotationAmountCheckProcessor) {
+    <span class="keyword">return</span> <span class="keyword">new</span> StepBuilder(<span class="string"><span class="delimiter">&quot;</span><span class="content">chunkJobWithListenerAnnotation.step01</span><span class="delimiter">&quot;</span></span>,
+            jobRepository)
+            .&lt;SalesPlanDetail, SalesPlanDetail&gt; chunk(<span class="integer">10</span>, transactionManager)
+            .reader(reader)
+            .processor(annotationAmountCheckProcessor) <span class="comment">// (4)</span>
+            .writer(writer)
+            .build();
+}
+
+<span class="annotation">@Bean</span>
+<span class="directive">public</span> Job chunkJobWithListenerAnnotation(JobRepository jobRepository,
+                                        Step step01) {
+    <span class="keyword">return</span> <span class="keyword">new</span> JobBuilder(<span class="string"><span class="delimiter">&quot;</span><span class="content">chunkJobWithListenerAnnotation</span><span class="delimiter">&quot;</span></span>,
+            jobRepository)
+            .start(step01)
+            .build();
+}</code></pre>
+</div>
+</div>
+  </div>
+  <div class="tabcontent" name="XMLConfigContent">
 <div class="listingblock">
 <div class="title">リスナーの設定例</div>
 <div class="content">
@@ -580,6 +654,8 @@ Spring Batchはチャンク処理中にエラーが発生した場合、<code>Ch
     <span class="tag">&lt;/batch:step&gt;</span>
 <span class="tag">&lt;/batch:job&gt;</span></code></pre>
 </div>
+</div>
+  </div>
 </div>
 <table class="tableblock frame-all grid-all stretch">
 <caption class="title">表 3. 説明</caption>
@@ -611,8 +687,8 @@ Spring Batchはチャンク処理中にエラーが発生した場合、<code>Ch
 </tr>
 <tr>
 <td class="tableblock halign-left valign-top"><p class="tableblock">(4)</p></td>
-<td class="tableblock halign-left valign-top"><p class="tableblock">アノテーションでリスナー実装がされているItemProcessを<code>&lt;batch:chunk&gt;</code>要素に設定する。<br>
-リスナーインタフェースとは異なり、<code>&lt;batch:listener&gt;</code>要素で設定しなくても、自動的にリスナーが登録される。</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">アノテーションでリスナー実装がされているItemProcessorを<code>StepBuilder/&lt;batch:chunk&gt;</code>に対し設定する。<br>
+リスナーインタフェースとは異なり、<code>listenerメソッド/&lt;batch:listener&gt;</code>要素で設定しなくても、自動的にリスナーが登録される。</p></td>
 </tr>
 </tbody>
 </table>
@@ -660,6 +736,34 @@ Spring Batchはチャンク処理中にエラーが発生した場合、<code>Ch
 <div class="paragraph">
 <p>Tasklet実装へのアノテーションによるリスナー実装した場合、以下の設定では一切リスナーが起動しないため注意する。</p>
 </div>
+<div class="tabbox">
+  <input type="radio" name="tabgroup040503" class="JavaConfigTab" id="tabgroup040503_1" checked><label for="tabgroup040503_1" class="tab">JavaConfig</label>
+  <input type="radio" name="tabgroup040503" class="XMLConfigTab" id="tabgroup040503_2"><label for="tabgroup040503_2" class="tab">XMLConfig</label>
+  <div class="tabcontent" name="JavaConfigContent">
+<div class="listingblock">
+<div class="title">Taskletの場合</div>
+<div class="content">
+<pre class="CodeRay highlight"><code data-lang="java"><span class="annotation">@Bean</span>
+<span class="directive">public</span> Step step01(JobRepository jobRepository,
+                   <span class="annotation">@Qualifier</span>(<span class="string"><span class="delimiter">&quot;</span><span class="content">jobTransactionManager</span><span class="delimiter">&quot;</span></span>) PlatformTransactionManager transactionManager,
+                   AnnotationSalesPlanDetailRegisterTasklet tasklet) {
+    <span class="keyword">return</span> <span class="keyword">new</span> StepBuilder(<span class="string"><span class="delimiter">&quot;</span><span class="content">taskletJobWithListenerAnnotation.step01</span><span class="delimiter">&quot;</span></span>,
+            jobRepository)
+            .tasklet(tasklet, transactionManager)
+            .build();
+}
+ <span class="annotation">@Bean</span>
+<span class="directive">public</span> Job taskletJobWithListenerAnnotation(JobRepository jobRepository,
+                                        Step step01) {
+    <span class="keyword">return</span> <span class="keyword">new</span> JobBuilder(<span class="string"><span class="delimiter">&quot;</span><span class="content">taskletJobWithListenerAnnotation</span><span class="delimiter">&quot;</span></span>,
+            jobRepository)
+            .start(step01)
+            .build();
+}</code></pre>
+</div>
+</div>
+  </div>
+  <div class="tabcontent" name="XMLConfigContent">
 <div class="listingblock">
 <div class="title">Taskletの場合</div>
 <div class="content">
@@ -670,6 +774,8 @@ Spring Batchはチャンク処理中にエラーが発生した場合、<code>Ch
     <span class="tag">&lt;/batch:step&gt;</span>
 <span class="tag">&lt;/batch:job&gt;</span></code></pre>
 </div>
+</div>
+  </div>
 </div>
 <div class="paragraph">
 <p>タスクレットモデルの場合は、<a href="#Ch04_Listener_HowToUse_SelectionCriteria">インタフェースとアノテーションの使い分け</a>に従ってリスナーインタフェースを利用するのがよい。</p>
@@ -683,10 +789,124 @@ Spring Batchはチャンク処理中にエラーが発生した場合、<code>Ch
 <div class="sect2">
 <h3 id="Ch04_Listener_HowToUse_Configuration"><a class="anchor" href="#Ch04_Listener_HowToUse_Configuration"></a>リスナーの設定</h3>
 <div class="paragraph">
-<p>リスナーは、Bean定義の<code>&lt;batch:listeners&gt;</code>.<code>&lt;batch:listener&gt;</code>要素によって設定する。
-XMLスキーマ定義では様々な箇所に記述できるが、インタフェースの種類によっては意図とおり動作しないものが存在するため、
-以下の位置に設定すること。</p>
+<p>リスナーを設定する方法は、下記となる。</p>
 </div>
+<div class="ulist">
+<ul>
+<li>
+<p>JavaConfig : Builderの<code>listener()</code>メソッド</p>
+</li>
+<li>
+<p>XMLConfig : <code>&lt;batch:listener&gt;</code>要素</p>
+</li>
+</ul>
+</div>
+<div class="paragraph">
+<p>上記のメソッドもしくは要素を用いてリスナーを設定できる位置は複数あるが、設定可能なリスナーは各位置で決められている。</p>
+</div>
+<div class="paragraph">
+<p>リスナーの設定位置は以下を参照のこと。</p>
+</div>
+<div class="tabbox">
+  <input type="radio" name="tabgroup040504" class="JavaConfigTab" id="tabgroup040504_1" checked><label for="tabgroup040504_1" class="tab">JavaConfig</label>
+  <input type="radio" name="tabgroup040504" class="XMLConfigTab" id="tabgroup040504_2"><label for="tabgroup040504_2" class="tab">XMLConfig</label>
+  <div class="tabcontent" name="JavaConfigContent">
+<div class="listingblock">
+<div class="title">リスナーを設定する位置</div>
+<div class="content">
+<pre class="CodeRay highlight"><code data-lang="java"><span class="comment">// for chunk mode</span>
+<span class="annotation">@Bean</span>
+<span class="directive">public</span> Step step01(JobRepository jobRepository,
+                   <span class="annotation">@Qualifier</span>(<span class="string"><span class="delimiter">&quot;</span><span class="content">jobTransactionManager</span><span class="delimiter">&quot;</span></span>) PlatformTransactionManager transactionManager,
+                   ItemReader&lt;SalesPlanDetail&gt; reader,
+                   ItemWriter&lt;SalesPlanDetail&gt; writer,
+                   AmountCheckProcessor amountCheckProcessor,
+                   StepExecutionListener stepExecutionListener,
+                   ChunkListener chunkListener) {
+    <span class="keyword">return</span> <span class="keyword">new</span> StepBuilder(<span class="string"><span class="delimiter">&quot;</span><span class="content">chunkJob.step01</span><span class="delimiter">&quot;</span></span>, jobRepository)
+            .listener(stepExecutionListener) <span class="comment">// (5)</span>
+            .&lt;SalesPlanDetail, SalesPlanDetail&gt; chunk(<span class="integer">10</span>, transactionManager)
+            .listener(chunkListener) <span class="comment">// (1)</span>
+            .reader(reader) <span class="comment">// (2)</span>
+            .processor(amountCheckProcessor) <span class="comment">// (3)</span>
+            .writer(writer) <span class="comment">// (4)</span>
+            .build();
+}
+
+<span class="annotation">@Bean</span>
+<span class="directive">public</span> Job chunkJob(JobRepository jobRepository,
+                    Step step01,
+                    JobExecutionListener listener) {
+    <span class="keyword">return</span> <span class="keyword">new</span> JobBuilder(<span class="string"><span class="delimiter">&quot;</span><span class="content">chunkJob</span><span class="delimiter">&quot;</span></span>, jobRepository)
+            .start(step01)
+            .listener(listener) <span class="comment">// (6)</span>
+            .build();
+}
+
+<span class="comment">// for tasklet mode</span>
+<span class="annotation">@Bean</span>
+<span class="directive">public</span> Step step01(JobRepository jobRepository,
+                   <span class="annotation">@Qualifier</span>(<span class="string"><span class="delimiter">&quot;</span><span class="content">jobTransactionManager</span><span class="delimiter">&quot;</span></span>) PlatformTransactionManager transactionManager,
+                   SalesPlanDetailRegisterTasklet tasklet,
+                   StepExecutionListener listener) {
+    <span class="keyword">return</span> <span class="keyword">new</span> StepBuilder(<span class="string"><span class="delimiter">&quot;</span><span class="content">taskletJob.step01</span><span class="delimiter">&quot;</span></span>, jobRepository)
+            .listener(listener) <span class="comment">// (5)</span>
+            .tasklet(tasklet, transactionManager)
+            .build();
+}
+
+<span class="annotation">@Bean</span>
+<span class="directive">public</span> Job taskletJob(JobRepository jobRepository,
+                      Step step01,
+                      <span class="annotation">@Qualifier</span>(<span class="string"><span class="delimiter">&quot;</span><span class="content">jobExecutionListener</span><span class="delimiter">&quot;</span></span>) JobExecutionListener listener) {
+    <span class="keyword">return</span> <span class="keyword">new</span> JobBuilder(<span class="string"><span class="delimiter">&quot;</span><span class="content">taskletJob</span><span class="delimiter">&quot;</span></span>, jobRepository)
+            .start(step01)
+            .listener(listener) <span class="comment">// (6)</span>
+            .build();
+}</code></pre>
+</div>
+</div>
+<table class="tableblock frame-all grid-all stretch">
+<caption class="title">表 4. 設定値の説明</caption>
+<colgroup>
+<col style="width: 10%;">
+<col style="width: 90%;">
+</colgroup>
+<thead>
+<tr>
+<th class="tableblock halign-left valign-top">項番</th>
+<th class="tableblock halign-left valign-top">説明</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td class="tableblock halign-left valign-top"><p class="tableblock">(1)</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><a href="#Ch04_Listener_Overview_Types_ChunkListener">ChunkListener</a>に属するアノテーションによる実装を含んだコンポーネントを設定する。</p></td>
+</tr>
+<tr>
+<td class="tableblock halign-left valign-top"><p class="tableblock">(2)</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><a href="#Ch04_Listener_Overview_Types_ItemReadListener">ItemReadListener</a>に属するアノテーションによる実装を含んだコンポーネントを設定する。</p></td>
+</tr>
+<tr>
+<td class="tableblock halign-left valign-top"><p class="tableblock">(3)</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><a href="#Ch04_Listener_Overview_Types_ItemProcessListener">ItemProcessListener</a>に属するアノテーションによる実装を含んだコンポーネントを設定する。</p></td>
+</tr>
+<tr>
+<td class="tableblock halign-left valign-top"><p class="tableblock">(4)</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><a href="#Ch04_Listener_Overview_Types_ItemWriteListener">ItemWriteListener</a>に属するアノテーションによる実装を含んだコンポーネントを設定する。</p></td>
+</tr>
+<tr>
+<td class="tableblock halign-left valign-top"><p class="tableblock">(5)</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><a href="#Ch04_Listener_Overview_Types_StepExecutionListener">StepExecutionListener</a>に属するリスナーインタフェース実装を設定する。</p></td>
+</tr>
+<tr>
+<td class="tableblock halign-left valign-top"><p class="tableblock">(6)</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><a href="#Ch04_Listener_Overview_Types_JobListener">JobListener</a>に属するリスナーを設定する。</p></td>
+</tr>
+</tbody>
+</table>
+  </div>
+  <div class="tabcontent" name="XMLConfigContent">
 <div class="listingblock">
 <div class="title">リスナーを設定する位置</div>
 <div class="content">
@@ -723,7 +943,7 @@ XMLスキーマ定義では様々な箇所に記述できるが、インタフ�
 </div>
 </div>
 <table class="tableblock frame-all grid-all stretch">
-<caption class="title">表 4. 設定値の説明</caption>
+<caption class="title">表 5. 設定値の説明</caption>
 <colgroup>
 <col style="width: 10%;">
 <col style="width: 90%;">
@@ -752,6 +972,8 @@ XMLスキーマ定義では様々な箇所に記述できるが、インタフ�
 </tr>
 </tbody>
 </table>
+  </div>
+</div>
 <div class="sect3">
 <h4 id="Ch04_Listener_HowToUse_MultipleConfiguration"><a class="anchor" href="#Ch04_Listener_HowToUse_MultipleConfiguration"></a>複数リスナーの設定</h4>
 <div class="paragraph">
@@ -784,6 +1006,46 @@ XMLスキーマ定義では様々な箇所に記述できるが、インタフ�
 </li>
 </ul>
 </div>
+<div class="tabbox">
+  <input type="radio" name="tabgroup040505" class="JavaConfigTab" id="tabgroup040505_1" checked><label for="tabgroup040505_1" class="tab">JavaConfig</label>
+  <input type="radio" name="tabgroup040505" class="XMLConfigTab" id="tabgroup040505_2"><label for="tabgroup040505_2" class="tab">XMLConfig</label>
+  <div class="tabcontent" name="JavaConfigContent">
+<div class="listingblock">
+<div class="title">複数リスナーの設定例</div>
+<div class="content">
+<pre class="CodeRay highlight"><code data-lang="java"><span class="annotation">@Bean</span>
+<span class="directive">public</span> Step step01(JobRepository jobRepository,
+                   <span class="annotation">@Qualifier</span>(<span class="string"><span class="delimiter">&quot;</span><span class="content">jobTransactionManager</span><span class="delimiter">&quot;</span></span>) PlatformTransactionManager transactionManager,
+                   ItemReader&lt;SalesPlanDetail&gt; reader,
+                   ItemWriter&lt;SalesPlanDetail&gt; writer,
+                   AmountCheckProcessor processor,
+                   <span class="annotation">@Qualifier</span>(<span class="string"><span class="delimiter">&quot;</span><span class="content">listenerA</span><span class="delimiter">&quot;</span></span>) ItemProcessListener listenerA,
+                   <span class="annotation">@Qualifier</span>(<span class="string"><span class="delimiter">&quot;</span><span class="content">listenerB</span><span class="delimiter">&quot;</span></span>) ItemProcessListener listenerB) {
+    <span class="keyword">return</span> <span class="keyword">new</span> StepBuilder(<span class="string"><span class="delimiter">&quot;</span><span class="content">chunkJob.step01</span><span class="delimiter">&quot;</span></span>, jobRepository)
+            .&lt;SalesPlanDetail, SalesPlanDetail&gt; chunk(<span class="integer">10</span>, transactionManager)
+            .listener(listenerA)
+            .listener(listenerB)
+            .reader(reader)
+            .processor(processor)
+            .writer(writer)
+            .build();
+}
+
+<span class="annotation">@Bean</span>
+<span class="directive">public</span> Job taskletJob(JobRepository jobRepository,
+                      Step step01,
+                      <span class="annotation">@Qualifier</span>(<span class="string"><span class="delimiter">&quot;</span><span class="content">listenerC</span><span class="delimiter">&quot;</span></span>) JobExecutionListener listenerC,
+                      <span class="annotation">@Qualifier</span>(<span class="string"><span class="delimiter">&quot;</span><span class="content">listenerD</span><span class="delimiter">&quot;</span></span>) JobExecutionListener listenerD) {
+    <span class="keyword">return</span> <span class="keyword">new</span> JobBuilder(<span class="string"><span class="delimiter">&quot;</span><span class="content">taskletJob</span><span class="delimiter">&quot;</span></span>, jobRepository)
+            .start(step01)
+            .listener(listenerC)
+            .listener(listenerD)
+            .build();
+}</code></pre>
+</div>
+</div>
+  </div>
+  <div class="tabcontent" name="XMLConfigContent">
 <div class="listingblock">
 <div class="title">複数リスナーの設定例</div>
 <div class="content">
@@ -805,6 +1067,8 @@ XMLスキーマ定義では様々な箇所に記述できるが、インタフ�
     <span class="tag">&lt;/batch:listeners&gt;</span>
 <span class="tag">&lt;/batch:job&gt;</span></code></pre>
 </div>
+</div>
+  </div>
 </div>
 <div class="imageblock">
 <div class="content">
@@ -919,6 +1183,58 @@ XMLスキーマ定義では様々な箇所に記述できるが、インタフ�
 }</code></pre>
 </div>
 </div>
+<div class="tabbox">
+  <input type="radio" name="tabgroup040506" class="JavaConfigTab" id="tabgroup040506_1" checked><label for="tabgroup040506_1" class="tab">JavaConfig</label>
+  <input type="radio" name="tabgroup040506" class="XMLConfigTab" id="tabgroup040506_2"><label for="tabgroup040506_2" class="tab">XMLConfig</label>
+  <div class="tabcontent" name="JavaConfigContent">
+<div class="listingblock">
+<div class="title">リスナーの設定例</div>
+<div class="content">
+<pre class="CodeRay highlight"><code data-lang="java"><span class="annotation">@Bean</span>
+<span class="annotation">@StepScope</span>
+<span class="directive">public</span> LoggingReader reader(
+    <span class="annotation">@Value</span>(<span class="string"><span class="delimiter">&quot;</span><span class="content">#{jobParameters['inputFile']}</span><span class="delimiter">&quot;</span></span>) <span class="predefined-type">File</span> inputFile) { <span class="comment">// (3)</span>
+    LoggingReader reader = <span class="keyword">new</span> LoggingReader();
+    reader.setResource(<span class="keyword">new</span> FileSystemResource(inputFile));
+    <span class="keyword">return</span> reader;
+}
+
+<span class="annotation">@Bean</span>
+<span class="annotation">@StepScope</span>
+<span class="directive">public</span> LoggingWriter writer(
+    <span class="annotation">@Value</span>(<span class="string"><span class="delimiter">&quot;</span><span class="content">#{jobParameters['outputFile']}</span><span class="delimiter">&quot;</span></span>) <span class="predefined-type">File</span> outputFile) { <span class="comment">// (3)</span>
+    LoggingWriter writer = <span class="keyword">new</span> LoggingWriter();
+    writer.setResource(<span class="keyword">new</span> FileSystemResource(outputFile));
+    <span class="keyword">return</span> writer;
+}
+
+<span class="annotation">@Bean</span>
+<span class="directive">public</span> Step step01(JobRepository jobRepository,
+                   <span class="annotation">@Qualifier</span>(<span class="string"><span class="delimiter">&quot;</span><span class="content">jobTransactionManager</span><span class="delimiter">&quot;</span></span>) PlatformTransactionManager transactionManager,
+                   LoggingReader reader,
+                   LoggingWriter writer,
+                   CheckingJobParameterErrorStepExecutionListener listener) {
+    <span class="keyword">return</span> <span class="keyword">new</span> StepBuilder(<span class="string"><span class="delimiter">&quot;</span><span class="content">chunkJobWithAbortListener.step01</span><span class="delimiter">&quot;</span></span>,
+            jobRepository)
+            .listener(listener) <span class="comment">// (4)</span>
+            .&lt;LoggingReader, LoggingWriter&gt; chunk(<span class="integer">10</span>, transactionManager)
+            .reader(reader)
+            .writer(writer)
+            .build();
+}
+
+<span class="annotation">@Bean</span>
+<span class="directive">public</span> Job chunkJobWithAbortListener(JobRepository jobRepository,
+                                    Step step01) {
+    <span class="keyword">return</span> <span class="keyword">new</span> JobBuilder(<span class="string"><span class="delimiter">&quot;</span><span class="content">chunkJobWithAbortListener</span><span class="delimiter">&quot;</span></span>,
+            jobRepository)
+            .start(step01)
+            .build();
+}</code></pre>
+</div>
+</div>
+  </div>
+  <div class="tabcontent" name="XMLConfigContent">
 <div class="listingblock">
 <div class="title">リスナーの設定例</div>
 <div class="content">
@@ -939,8 +1255,10 @@ XMLスキーマ定義では様々な箇所に記述できるが、インタフ�
 <span class="tag">&lt;/batch:job&gt;</span></code></pre>
 </div>
 </div>
+  </div>
+</div>
 <table class="tableblock frame-all grid-all stretch">
-<caption class="title">表 5. 説明</caption>
+<caption class="title">表 6. 説明</caption>
 <colgroup>
 <col style="width: 10%;">
 <col style="width: 90%;">
@@ -981,7 +1299,7 @@ XMLスキーマ定義では様々な箇所に記述できるが、インタフ�
 
   <div class="common-bg">
     <div class="information">
-      TERASOLUNA Batch Framework for Java (5.x) Development Guideline - version 5.5.0.RELEASE, 2023-3-31, commit-id:f6da76a
+      TERASOLUNA Batch Framework for Java (5.x) Development Guideline - version 5.6.0.RELEASE, 2023-3-31, commit-id:f5cbeda
     </div>
     <div class="index">
       <a href="index.html">&gt; INDEX</a>
@@ -990,7 +1308,7 @@ XMLスキーマ定義では様々な箇所に記述できるが、インタフ�
 
   <div class="footer-bg">
     <div class="copyright">
-      &copy; Copyright 2017 NTT DATA Corporation. &copy; Copyright 2017 NTT Corporation.
+      &copy; Copyright 2017 NTT DATA Group Corporation. &copy; Copyright 2017 NTT Corporation.
     </div>
   </div>
 

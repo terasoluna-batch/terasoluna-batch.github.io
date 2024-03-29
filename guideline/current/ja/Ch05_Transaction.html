@@ -14,7 +14,7 @@
 
 <div class="common-bg">
   <div class="information">
-    TERASOLUNA Batch Framework for Java (5.x) Development Guideline - version 5.5.0.RELEASE, 2023-3-31, commit-id:f6da76a
+    TERASOLUNA Batch Framework for Java (5.x) Development Guideline - version 5.6.0.RELEASE, 2023-3-31, commit-id:f5cbeda
   </div>
   <div class="index">
     <a href="index.html">&gt; INDEX</a>
@@ -1127,8 +1127,40 @@ MyBatisのItemWriterについて、詳細は
 <p>チャンクモデルの場合は、中間コミット方式となり、Spring Batchにトランザクション制御を委ねる。
 ユーザにて制御することは一切行わないようにする。</p>
 </div>
+<div class="tabbox">
+  <input type="radio" name="tabgroup050102" class="JavaConfigTab" id="tabgroup050102_1" checked><label for="tabgroup050102_1" class="tab">JavaConfig</label>
+  <input type="radio" name="tabgroup050102" class="XMLConfigTab" id="tabgroup050102_2"><label for="tabgroup050102_2" class="tab">XMLConfig</label>
+  <div class="tabcontent" name="JavaConfigContent">
 <div class="listingblock">
-<div class="title">設定例(ジョブ定義)</div>
+<div class="content">
+<pre class="CodeRay highlight"><code data-lang="java"><span class="annotation">@Bean</span>
+<span class="directive">public</span> Step step01(JobRepository jobRepository,
+                   <span class="annotation">@Qualifier</span>(<span class="string"><span class="delimiter">&quot;</span><span class="content">jobTransactionManager</span><span class="delimiter">&quot;</span></span>) PlatformTransactionManager transactionManager,
+                   ItemReader&lt;SalesPlanDetail&gt; reader,
+                   ItemWriter&lt;SalesPlanDetail&gt; writer,
+                   LoggingItemReaderListener listener) {
+    <span class="keyword">return</span> <span class="keyword">new</span> StepBuilder(<span class="string"><span class="delimiter">&quot;</span><span class="content">jobSalesPlan01.step01</span><span class="delimiter">&quot;</span></span>, jobRepository)
+            .&lt;SalesPlanDetail, SalesPlanDetail&gt; chunk(<span class="integer">10</span>, <span class="comment">// (2)</span>
+                    transactionManager) <span class="comment">// (1)</span>
+            .reader(reader)
+            .writer(writer)
+            .listener(listener)
+            .build();
+}
+
+<span class="annotation">@Bean</span>
+<span class="directive">public</span> Job jobSalesPlan01(JobRepository jobRepository, Step step01,
+                          LoggingItemReaderListener listener) {
+    <span class="keyword">return</span> <span class="keyword">new</span> JobBuilder(<span class="string"><span class="delimiter">&quot;</span><span class="content">jobSalesPlan01</span><span class="delimiter">&quot;</span></span>, jobRepository)
+            .start(step01)
+            .listener(listener)
+            .build();
+}</code></pre>
+</div>
+</div>
+  </div>
+  <div class="tabcontent" name="XMLConfigContent">
+<div class="listingblock">
 <div class="content">
 <pre class="CodeRay highlight"><code data-lang="xml"><span class="tag">&lt;batch:job</span> <span class="attribute-name">id</span>=<span class="string"><span class="delimiter">&quot;</span><span class="content">jobSalesPlan01</span><span class="delimiter">&quot;</span></span> <span class="attribute-name">job-repository</span>=<span class="string"><span class="delimiter">&quot;</span><span class="content">jobRepository</span><span class="delimiter">&quot;</span></span><span class="tag">&gt;</span>
     <span class="tag">&lt;batch:step</span> <span class="attribute-name">id</span>=<span class="string"><span class="delimiter">&quot;</span><span class="content">jobSalesPlan01.step01</span><span class="delimiter">&quot;</span></span><span class="tag">&gt;</span>
@@ -1140,6 +1172,8 @@ MyBatisのItemWriterについて、詳細は
     <span class="tag">&lt;/batch:step&gt;</span>
 <span class="tag">&lt;/batch:job&gt;</span></code></pre>
 </div>
+</div>
+  </div>
 </div>
 <table class="tableblock frame-all grid-all stretch">
 <colgroup>
@@ -1155,12 +1189,12 @@ MyBatisのItemWriterについて、詳細は
 <tbody>
 <tr>
 <td class="tableblock halign-left valign-top"><p class="tableblock">(1)</p></td>
-<td class="tableblock halign-left valign-top"><p class="tableblock"><code>&lt;batch:tasklet&gt;</code>要素の<code>transaction-manager</code>属性に定義済みの<code>jobTransactionManager</code>を設定する。<br>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><code>StepBuilderのchunkメソッドの引数transactionManager/&lt;batch:tasklet&gt;要素のtransaction-manager属性</code>に定義済みの<code>jobTransactionManager</code>を設定する。<br>
 ここに設定したトランザクションマネージャで中間コミット方式のトランザクションを制御する。</p></td>
 </tr>
 <tr>
 <td class="tableblock halign-left valign-top"><p class="tableblock">(2)</p></td>
-<td class="tableblock halign-left valign-top"><p class="tableblock"><code>commit-interval</code>属性にチャンクサイズを設定する。この例では10件処理するごとに1回コミットが発行される。</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><code>StepBuilderのchunkメソッドの引数chunkSize/commit-interval属性</code>にチャンクサイズを設定する。この例では10件処理するごとに1回コミットが発行される。</p></td>
 </tr>
 </tbody>
 </table>
@@ -1178,8 +1212,34 @@ MyBatisのItemWriterについて、詳細は
 </dd>
 </dl>
 </div>
+<div class="tabbox">
+  <input type="radio" name="tabgroup050103" class="JavaConfigTab" id="tabgroup050103_1" checked><label for="tabgroup050103_1" class="tab">JavaConfig</label>
+  <input type="radio" name="tabgroup050103" class="XMLConfigTab" id="tabgroup050103_2"><label for="tabgroup050103_2" class="tab">XMLConfig</label>
+  <div class="tabcontent" name="JavaConfigContent">
 <div class="listingblock">
-<div class="title">設定例(ジョブ定義)</div>
+<div class="content">
+<pre class="CodeRay highlight"><code data-lang="java"><span class="annotation">@Bean</span>
+<span class="directive">public</span> Step step01(JobRepository jobRepository,
+                   <span class="annotation">@Qualifier</span>(<span class="string"><span class="delimiter">&quot;</span><span class="content">jobTransactionManager</span><span class="delimiter">&quot;</span></span>) PlatformTransactionManager transactionManager,
+                   Tasklet salesPlanSingleTranTask) {
+    <span class="keyword">return</span> <span class="keyword">new</span> StepBuilder(<span class="string"><span class="delimiter">&quot;</span><span class="content">jobSalesPlan01.step01</span><span class="delimiter">&quot;</span></span>, jobRepository)
+            .tasklet(salesPlanSingleTranTask, transactionManager) <span class="comment">// (1)</span>
+            .build();
+}
+
+<span class="annotation">@Bean</span>
+<span class="directive">public</span> Job jobSalesPlan01(JobRepository jobRepository, Step step01,
+                          LoggingItemReaderListener listener) {
+    <span class="keyword">return</span> <span class="keyword">new</span> JobBuilder(<span class="string"><span class="delimiter">&quot;</span><span class="content">jobSalesPlan01</span><span class="delimiter">&quot;</span></span>, jobRepository)
+            .start(step01)
+            .listener(listener)
+            .build();
+}</code></pre>
+</div>
+</div>
+  </div>
+  <div class="tabcontent" name="XMLConfigContent">
+<div class="listingblock">
 <div class="content">
 <pre class="CodeRay highlight"><code data-lang="xml"><span class="tag">&lt;batch:job</span> <span class="attribute-name">id</span>=<span class="string"><span class="delimiter">&quot;</span><span class="content">jobSalesPlan01</span><span class="delimiter">&quot;</span></span> <span class="attribute-name">job-repository</span>=<span class="string"><span class="delimiter">&quot;</span><span class="content">jobRepository</span><span class="delimiter">&quot;</span></span><span class="tag">&gt;</span>
     <span class="tag">&lt;batch:step</span> <span class="attribute-name">id</span>=<span class="string"><span class="delimiter">&quot;</span><span class="content">jobSalesPlan01.step01</span><span class="delimiter">&quot;</span></span><span class="tag">&gt;</span>
@@ -1189,6 +1249,8 @@ MyBatisのItemWriterについて、詳細は
     <span class="tag">&lt;/batch:step&gt;</span>
 <span class="tag">&lt;/batch:job&gt;</span></code></pre>
 </div>
+</div>
+  </div>
 </div>
 <table class="tableblock frame-all grid-all stretch">
 <colgroup>
@@ -1204,7 +1266,7 @@ MyBatisのItemWriterについて、詳細は
 <tbody>
 <tr>
 <td class="tableblock halign-left valign-top"><p class="tableblock">(1)</p></td>
-<td class="tableblock halign-left valign-top"><p class="tableblock"><code>&lt;batch:tasklet&gt;</code>要素の<code>transaction-manager</code>属性に定義済みの<code>jobTransactionManager</code>を設定する。<br>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><code>StepBuilderのtaskletメソッドの引数transactionManager/&lt;batch:tasklet&gt;要素のtransaction-manager属性</code>に定義済みの<code>jobTransactionManager</code>を設定する。<br>
 ここに設定したトランザクションマネージャで一括コミット方式のトランザクションを制御する。</p></td>
 </tr>
 </tbody>
@@ -1224,8 +1286,34 @@ MyBatisのItemWriterについて、詳細は
 </dd>
 </dl>
 </div>
+<div class="tabbox">
+  <input type="radio" name="tabgroup050104" class="JavaConfigTab" id="tabgroup050104_1" checked><label for="tabgroup050104_1" class="tab">JavaConfig</label>
+  <input type="radio" name="tabgroup050104" class="XMLConfigTab" id="tabgroup050104_2"><label for="tabgroup050104_2" class="tab">XMLConfig</label>
+  <div class="tabcontent" name="JavaConfigContent">
 <div class="listingblock">
-<div class="title">設定例(ジョブ定義)</div>
+<div class="content">
+<pre class="CodeRay highlight"><code data-lang="java"><span class="annotation">@Bean</span>
+<span class="directive">public</span> Step step01(JobRepository jobRepository,
+                   <span class="annotation">@Qualifier</span>(<span class="string"><span class="delimiter">&quot;</span><span class="content">jobResourcelessTransactionManager</span><span class="delimiter">&quot;</span></span>) PlatformTransactionManager transactionManager,
+                   Tasklet salesPlanSingleTranTask) {
+    <span class="keyword">return</span> <span class="keyword">new</span> StepBuilder(<span class="string"><span class="delimiter">&quot;</span><span class="content">jobSalesPlan01.step01</span><span class="delimiter">&quot;</span></span>, jobRepository)
+            .tasklet(salesPlanSingleTranTask, transactionManager) <span class="comment">// (1)</span>
+            .build();
+}
+
+<span class="annotation">@Bean</span>
+<span class="directive">public</span> Job jobSalesPlan01(JobRepository jobRepository, Step step01,
+                          LoggingItemReaderListener listener) {
+    <span class="keyword">return</span> <span class="keyword">new</span> JobBuilder(<span class="string"><span class="delimiter">&quot;</span><span class="content">jobSalesPlan01</span><span class="delimiter">&quot;</span></span>, jobRepository)
+            .start(step01)
+            .listener(listener)
+            .build();
+}</code></pre>
+</div>
+</div>
+  </div>
+  <div class="tabcontent" name="XMLConfigContent">
+<div class="listingblock">
 <div class="content">
 <pre class="CodeRay highlight"><code data-lang="xml"><span class="tag">&lt;batch:job</span> <span class="attribute-name">id</span>=<span class="string"><span class="delimiter">&quot;</span><span class="content">jobSalesPlan01</span><span class="delimiter">&quot;</span></span> <span class="attribute-name">job-repository</span>=<span class="string"><span class="delimiter">&quot;</span><span class="content">jobRepository</span><span class="delimiter">&quot;</span></span><span class="tag">&gt;</span>
     <span class="tag">&lt;batch:step</span> <span class="attribute-name">id</span>=<span class="string"><span class="delimiter">&quot;</span><span class="content">jobSalesPlan01.step01</span><span class="delimiter">&quot;</span></span><span class="tag">&gt;</span>
@@ -1235,6 +1323,8 @@ MyBatisのItemWriterについて、詳細は
     <span class="tag">&lt;/batch:step&gt;</span>
 <span class="tag">&lt;/batch:job&gt;</span></code></pre>
 </div>
+</div>
+  </div>
 </div>
 <div class="listingblock">
 <div class="title">実装例</div>
@@ -1261,6 +1351,7 @@ MyBatisのItemWriterについて、詳細は
 
         DefaultTransactionDefinition definition = <span class="keyword">new</span> DefaultTransactionDefinition();
         TransactionStatus status = <span class="predefined-constant">null</span>;
+        <span class="type">int</span> count = <span class="integer">0</span>;
 
         <span class="keyword">try</span> {
             <span class="comment">// omitted.</span>
@@ -1273,21 +1364,27 @@ MyBatisのItemWriterについて、詳細は
                     status = transactionManager.getTransaction(definition); <span class="comment">// (3)</span>
                 }
                 count++;
-
-                <span class="comment">// omitted.</span>
-
                 repository.create(item);
                 <span class="keyword">if</span> (count % CHUNK_SIZE == <span class="integer">0</span>) {
                     transactionManager.commit(status);  <span class="comment">// (4)</span>
                 }
             }
+            <span class="keyword">if</span> (status != <span class="predefined-constant">null</span> &amp;&amp; !status.isCompleted()) {
+                transactionManager.commit(status);    <span class="comment">// (5)</span>
+            }
         } <span class="keyword">catch</span> (<span class="exception">Exception</span> e) {
             logger.error(<span class="string"><span class="delimiter">&quot;</span><span class="content">Exception occurred while reading.</span><span class="delimiter">&quot;</span></span>, e);
-            transactionManager.rollback(status);    <span class="comment">// (5)</span>
+            <span class="keyword">if</span> (status != <span class="predefined-constant">null</span> &amp;&amp; !status.isCompleted()) {
+                    transactionManager.rollback(status);    <span class="comment">// (6)</span>
+            }
             <span class="keyword">throw</span> e;
         } <span class="keyword">finally</span> {
             <span class="keyword">if</span> (status != <span class="predefined-constant">null</span> &amp;&amp; !status.isCompleted()) {
-                transactionManager.commit(status);   <span class="comment">// (6)</span>
+                <span class="keyword">try</span> {
+                    transactionManager.rollback(status);    <span class="comment">// (7)</span>
+                } <span class="keyword">catch</span> (TransactionException e2) {
+                        logger.error(<span class="string"><span class="delimiter">&quot;</span><span class="content">TransactionException occurred while rollback.</span><span class="delimiter">&quot;</span></span>, e2);
+                }
             }
             itemReader.close();
         }
@@ -1311,7 +1408,7 @@ MyBatisのItemWriterについて、詳細は
 <tbody>
 <tr>
 <td class="tableblock halign-left valign-top"><p class="tableblock">(1)</p></td>
-<td class="tableblock halign-left valign-top"><p class="tableblock"><code>&lt;batch:tasklet&gt;</code>要素の<code>transaction-manager</code>属性に定義済みの<code>jobResourcelessTransactionManager</code>を設定する。</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><code>StepBuilderのtaskletメソッドの引数transactionManager/&lt;batch:tasklet&gt;要素のtransaction-manager属性</code>に定義済みの<code>jobResourcelessTransactionManager</code>を設定する。</p></td>
 </tr>
 <tr>
 <td class="tableblock halign-left valign-top"><p class="tableblock">(2)</p></td>
@@ -1328,11 +1425,15 @@ MyBatisのItemWriterについて、詳細は
 </tr>
 <tr>
 <td class="tableblock halign-left valign-top"><p class="tableblock">(5)</p></td>
-<td class="tableblock halign-left valign-top"><p class="tableblock">例外発生時にはトランザクションをロールバックする。</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">最後のチャンクについて、トランザクションをコミットする。</p></td>
 </tr>
 <tr>
 <td class="tableblock halign-left valign-top"><p class="tableblock">(6)</p></td>
-<td class="tableblock halign-left valign-top"><p class="tableblock">最後のチャンクについて、トランザクションをコミットする。</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">例外発生時にはトランザクションをロールバックする。</p></td>
+</tr>
+<tr>
+<td class="tableblock halign-left valign-top"><p class="tableblock">(7)</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">トランザクションが終わっていない場合、トランザクションをロールバックする。</p></td>
 </tr>
 </tbody>
 </table>
@@ -1382,15 +1483,38 @@ ItemWriterを利用することで実装がシンプルになる効果があり�
 <td class="content">
 <div class="title">ファイルしか扱わないジョブにおけるTransactionManagerの設定について</div>
 <div class="paragraph">
-<p>以下に示すジョブ定義のように、<code>batch:tasklet</code>の<code>transaction-manager</code>属性はxsdスキーマにおいて必須のため省略できない。</p>
+<p>以下に示すジョブ定義のように、<code>StepBuilderのchunkメソッドの引数transactionManager/batch:taskletのtransaction-manager属性</code>は必須のため省略できない。</p>
 </div>
+<div class="tabbox">
+  <input type="radio" name="tabgroup050105" class="JavaConfigTab" id="tabgroup050105_1" checked><label for="tabgroup050105_1" class="tab">JavaConfig</label>
+  <input type="radio" name="tabgroup050105" class="XMLConfigTab" id="tabgroup050105_2"><label for="tabgroup050105_2" class="tab">XMLConfig</label>
+  <div class="tabcontent" name="JavaConfigContent">
 <div class="listingblock">
-<div class="title">TransactionManager設定箇所の抜粋</div>
+<div class="content">
+<pre class="CodeRay highlight"><code data-lang="java"><span class="annotation">@Bean</span>
+<span class="directive">public</span> Step step01(JobRepository jobRepository,
+                   <span class="annotation">@Qualifier</span>(<span class="string"><span class="delimiter">&quot;</span><span class="content">jobTransactionManager</span><span class="delimiter">&quot;</span></span>) PlatformTransactionManager transactionManager,
+                   ItemReader&lt;SalesPlanDetail&gt; reader,
+                   ItemWriter&lt;SalesPlanDetail&gt; writer) {
+    <span class="keyword">return</span> <span class="keyword">new</span> StepBuilder(<span class="string"><span class="delimiter">&quot;</span><span class="content">jobSalesPlan01.step01</span><span class="delimiter">&quot;</span></span>, jobRepository)
+            .&lt;SalesPlanDetail, SalesPlanDetail&gt; chunk(<span class="integer">100</span>,
+                    transactionManager)
+            .reader(reader)
+            .writer(writer)
+            .build();
+}</code></pre>
+</div>
+</div>
+  </div>
+  <div class="tabcontent" name="XMLConfigContent">
+<div class="listingblock">
 <div class="content">
 <pre class="CodeRay highlight"><code data-lang="xml"><span class="tag">&lt;batch:tasklet</span> <span class="attribute-name">transaction-manager</span>=<span class="string"><span class="delimiter">&quot;</span><span class="content">jobTransactionManager</span><span class="delimiter">&quot;</span></span><span class="tag">&gt;</span>
 <span class="tag">&lt;batch:chunk</span> <span class="attribute-name">reader</span>=<span class="string"><span class="delimiter">&quot;</span><span class="content">reader</span><span class="delimiter">&quot;</span></span> <span class="attribute-name">writer</span>=<span class="string"><span class="delimiter">&quot;</span><span class="content">writer</span><span class="delimiter">&quot;</span></span> <span class="attribute-name">commit-interval</span>=<span class="string"><span class="delimiter">&quot;</span><span class="content">100</span><span class="delimiter">&quot;</span></span> <span class="tag">/&gt;</span>
 <span class="tag">&lt;/batch:tasklet&gt;</span></code></pre>
 </div>
+</div>
+  </div>
 </div>
 <div class="paragraph">
 <p>そのため、<code>jobTransactionManager</code>を常に指定すること。この時、以下の挙動となる。</p>
@@ -1427,13 +1551,36 @@ ItemWriterを利用することで実装がシンプルになる効果があり�
 <p>また、実害がある場合や空振りでも参照するトランザクションを発行したくない場合は、リソースを必要としない<code>ResourcelessTransactionManager</code>を使用することができる。
 <code>ResourcelessTransactionManager</code>は<code>LaunchContextConfig.java/launch-context.xml</code>に<code>jobResourcelessTransactionManager</code>として定義済みである。</p>
 </div>
+<div class="tabbox">
+  <input type="radio" name="tabgroup050106" class="JavaConfigTab" id="tabgroup050106_1" checked><label for="tabgroup050106_1" class="tab">JavaConfig</label>
+  <input type="radio" name="tabgroup050106" class="XMLConfigTab" id="tabgroup050106_2"><label for="tabgroup050106_2" class="tab">XMLConfig</label>
+  <div class="tabcontent" name="JavaConfigContent">
 <div class="listingblock">
-<div class="title">ResourcelessTransactionManagerの使用例</div>
+<div class="content">
+<pre class="CodeRay highlight"><code data-lang="java"><span class="annotation">@Bean</span>
+<span class="directive">public</span> Step step01(JobRepository jobRepository,
+                   <span class="annotation">@Qualifier</span>(<span class="string"><span class="delimiter">&quot;</span><span class="content">jobResourcelessTransactionManager</span><span class="delimiter">&quot;</span></span>) PlatformTransactionManager transactionManager,
+                   ItemReader&lt;SalesPlanDetail&gt; reader,
+                   ItemWriter&lt;SalesPlanDetail&gt; writer) {
+    <span class="keyword">return</span> <span class="keyword">new</span> StepBuilder(<span class="string"><span class="delimiter">&quot;</span><span class="content">jobSalesPlan01.step01</span><span class="delimiter">&quot;</span></span>, jobRepository)
+            .&lt;SalesPlanDetail, SalesPlanDetail&gt; chunk(<span class="integer">100</span>,
+                    transactionManager)
+            .reader(reader)
+            .writer(writer)
+            .build();
+}</code></pre>
+</div>
+</div>
+  </div>
+  <div class="tabcontent" name="XMLConfigContent">
+<div class="listingblock">
 <div class="content">
 <pre class="CodeRay highlight"><code data-lang="xml"><span class="tag">&lt;batch:tasklet</span> <span class="attribute-name">transaction-manager</span>=<span class="string"><span class="delimiter">&quot;</span><span class="content">jobResourcelessTransactionManager</span><span class="delimiter">&quot;</span></span><span class="tag">&gt;</span>
     <span class="tag">&lt;batch:chunk</span> <span class="attribute-name">reader</span>=<span class="string"><span class="delimiter">&quot;</span><span class="content">reader</span><span class="delimiter">&quot;</span></span> <span class="attribute-name">writer</span>=<span class="string"><span class="delimiter">&quot;</span><span class="content">writer</span><span class="delimiter">&quot;</span></span> <span class="attribute-name">commit-interval</span>=<span class="string"><span class="delimiter">&quot;</span><span class="content">100</span><span class="delimiter">&quot;</span></span> <span class="tag">/&gt;</span>
 <span class="tag">&lt;/batch:tasklet&gt;</span></code></pre>
 </div>
+</div>
+  </div>
 </div>
 </td>
 </tr>
@@ -1543,8 +1690,41 @@ ItemWriterを利用することで実装がシンプルになる効果があり�
 }</code></pre>
 </div>
 </div>
+<div class="tabbox">
+  <input type="radio" name="tabgroup050107" class="JavaConfigTab" id="tabgroup050107_1" checked><label for="tabgroup050107_1" class="tab">JavaConfig</label>
+  <input type="radio" name="tabgroup050107" class="XMLConfigTab" id="tabgroup050107_2"><label for="tabgroup050107_2" class="tab">XMLConfig</label>
+  <div class="tabcontent" name="JavaConfigContent">
 <div class="listingblock">
-<div class="title">一括取得するListenerの定義</div>
+<div class="content">
+<pre class="CodeRay highlight"><code data-lang="java"><span class="annotation">@Bean</span>
+<span class="directive">public</span> Step step01(JobRepository jobRepository,
+                   <span class="annotation">@Qualifier</span>(<span class="string"><span class="delimiter">&quot;</span><span class="content">jobTransactionManager</span><span class="delimiter">&quot;</span></span>) PlatformTransactionManager transactionManager,
+                   ItemReader&lt;Customer&gt; reader,
+                   ItemWriter&lt;Customer&gt; writer,
+                   RetrieveBranchFromContextItemProcessor processor,
+                   BranchMasterReadStepListener listener) {
+    <span class="keyword">return</span> <span class="keyword">new</span> StepBuilder(<span class="string"><span class="delimiter">&quot;</span><span class="content">outputAllCustomerList01.step01</span><span class="delimiter">&quot;</span></span>,
+            jobRepository)
+            .&lt;Customer, Customer&gt; chunk(<span class="integer">10</span>, transactionManager)
+            .reader(reader)
+            .processor(processor)
+            .listener(listener) <span class="comment">// (6)</span>
+            .writer(writer)
+            .build();
+}
+
+<span class="annotation">@Bean</span>
+<span class="directive">public</span> Job outputAllCustomerList01(JobRepository jobRepository,
+                                        Step step01) {
+    <span class="keyword">return</span> <span class="keyword">new</span> JobBuilder(<span class="string"><span class="delimiter">&quot;</span><span class="content">outputAllCustomerList01</span><span class="delimiter">&quot;</span></span>,jobRepository)
+            .start(step01)
+            .build();
+}</code></pre>
+</div>
+</div>
+  </div>
+  <div class="tabcontent" name="XMLConfigContent">
+<div class="listingblock">
 <div class="content">
 <pre class="CodeRay highlight"><code data-lang="xml"><span class="tag">&lt;batch:job</span> <span class="attribute-name">id</span>=<span class="string"><span class="delimiter">&quot;</span><span class="content">outputAllCustomerList01</span><span class="delimiter">&quot;</span></span> <span class="attribute-name">job-repository</span>=<span class="string"><span class="delimiter">&quot;</span><span class="content">jobRepository</span><span class="delimiter">&quot;</span></span><span class="tag">&gt;</span>
     <span class="tag">&lt;batch:step</span> <span class="attribute-name">id</span>=<span class="string"><span class="delimiter">&quot;</span><span class="content">outputAllCustomerList01.step01</span><span class="delimiter">&quot;</span></span><span class="tag">&gt;</span>
@@ -1559,6 +1739,8 @@ ItemWriterを利用することで実装がシンプルになる効果があり�
     <span class="tag">&lt;/batch:step&gt;</span>
 <span class="tag">&lt;/batch:job&gt;</span></code></pre>
 </div>
+</div>
+  </div>
 </div>
 <div class="listingblock">
 <div class="title">一括取得したデータを後続ステップのItemProcessorで参照する例</div>
@@ -1702,8 +1884,25 @@ ItemWriterを利用することで実装がシンプルになる効果があり�
 }</code></pre>
 </div>
 </div>
+<div class="tabbox">
+  <input type="radio" name="tabgroup050108" class="JavaConfigTab" id="tabgroup050108_1" checked><label for="tabgroup050108_1" class="tab">JavaConfig</label>
+  <input type="radio" name="tabgroup050108" class="XMLConfigTab" id="tabgroup050108_2"><label for="tabgroup050108_2" class="tab">XMLConfig</label>
+  <div class="tabcontent" name="JavaConfigContent">
 <div class="listingblock">
-<div class="title">都度取得用と業務処理用のItemProcessorの定義例</div>
+<div class="content">
+<pre class="CodeRay highlight"><code data-lang="java"><span class="annotation">@Bean</span>
+<span class="directive">public</span> CompositeItemProcessor&lt;Customer, CustomerWithBranch&gt; compositeItemProcessor(
+        RetrieveBranchFromRepositoryItemProcessor retrieveBranchFromRepositoryItemProcessor,
+        BusinessLogicItemProcessor businessLogicItemProcessor) {
+    <span class="keyword">return</span> <span class="keyword">new</span> CompositeItemProcessorBuilder&lt;Customer, CustomerWithBranch&gt;()
+            .delegates(retrieveBranchFromRepositoryItemProcessor, businessLogicItemProcessor) <span class="comment">// (4), (5)</span>
+            .build();
+}</code></pre>
+</div>
+</div>
+  </div>
+  <div class="tabcontent" name="XMLConfigContent">
+<div class="listingblock">
 <div class="content">
 <pre class="CodeRay highlight"><code data-lang="xml"><span class="tag">&lt;bean</span> <span class="attribute-name">id</span>=<span class="string"><span class="delimiter">&quot;</span><span class="content">compositeItemProcessor</span><span class="delimiter">&quot;</span></span>
       <span class="attribute-name">class</span>=<span class="string"><span class="delimiter">&quot;</span><span class="content">org.springframework.batch.item.support.CompositeItemProcessor</span><span class="delimiter">&quot;</span></span><span class="tag">&gt;</span>
@@ -1715,6 +1914,8 @@ ItemWriterを利用することで実装がシンプルになる効果があり�
     <span class="tag">&lt;/property&gt;</span>
 <span class="tag">&lt;/bean&gt;</span></code></pre>
 </div>
+</div>
+  </div>
 </div>
 <table class="tableblock frame-all grid-all stretch">
 <colgroup>
@@ -1896,8 +2097,45 @@ ItemWriterを利用することで実装がシンプルになる効果があり�
 <span class="tag">&lt;dependencies&gt;</span></code></pre>
 </div>
 </div>
+<div class="tabbox">
+  <input type="radio" name="tabgroup050109" class="JavaConfigTab" id="tabgroup050109_1" checked><label for="tabgroup050109_1" class="tab">JavaConfig</label>
+  <input type="radio" name="tabgroup050109" class="XMLConfigTab" id="tabgroup050109_2"><label for="tabgroup050109_2" class="tab">XMLConfig</label>
+  <div class="tabcontent" name="JavaConfigContent">
 <div class="listingblock">
-<div class="title">chainedTransactionManagerの使用例</div>
+<div class="content">
+<pre class="CodeRay highlight"><code data-lang="java"><span class="comment">// (2)</span>
+<span class="annotation">@Bean</span>
+<span class="directive">public</span> ChainedTransactionManager chainedTransactionManager(
+        <span class="annotation">@Qualifier</span>(<span class="string"><span class="delimiter">&quot;</span><span class="content">transactionManager1</span><span class="delimiter">&quot;</span></span>) PlatformTransactionManager transactionManager1,
+        <span class="annotation">@Qualifier</span>(<span class="string"><span class="delimiter">&quot;</span><span class="content">transactionManager2</span><span class="delimiter">&quot;</span></span>) PlatformTransactionManager transactionManager2) {
+    <span class="keyword">return</span> <span class="keyword">new</span> ChainedTransactionManager(transactionManager1, transactionManager2); <span class="comment">// (3)</span>
+}
+
+<span class="annotation">@Bean</span>
+<span class="directive">public</span> Step step01(JobRepository jobRepository,
+                <span class="annotation">@Qualifier</span>(<span class="string"><span class="delimiter">&quot;</span><span class="content">chainedTransactionManager</span><span class="delimiter">&quot;</span></span>) PlatformTransactionManager transactionManager, <span class="comment">// (4)</span>
+                ItemReader&lt;SalesPlanDetail&gt; reader,
+                ItemWriter&lt;SalesPlanDetail&gt; writer) {
+    <span class="keyword">return</span> <span class="keyword">new</span> StepBuilder(<span class="string"><span class="delimiter">&quot;</span><span class="content">jobSalesPlan01.step01</span><span class="delimiter">&quot;</span></span>,
+            jobRepository)
+            .&lt;SalesPlanDetail, SalesPlanDetail&gt; chunk(<span class="integer">10</span>, transactionManager)
+            .reader(reader)
+            .writer(writer)
+            .build();
+}
+
+<span class="annotation">@Bean</span>
+<span class="directive">public</span> Job jobSalesPlan01(JobRepository jobRepository,
+                                        Step step01) {
+    <span class="keyword">return</span> <span class="keyword">new</span> JobBuilder(<span class="string"><span class="delimiter">&quot;</span><span class="content">jobSalesPlan01</span><span class="delimiter">&quot;</span></span>, jobRepository)
+            .start(step01)
+            .build();
+}</code></pre>
+</div>
+</div>
+  </div>
+  <div class="tabcontent" name="XMLConfigContent">
+<div class="listingblock">
 <div class="content">
 <pre class="CodeRay highlight"><code data-lang="xml"><span class="comment">&lt;!-- Chained Transaction Manager --&gt;</span>
 <span class="comment">&lt;!-- (2) --&gt;</span>
@@ -1922,6 +2160,8 @@ ItemWriterを利用することで実装がシンプルになる効果があり�
 <span class="tag">&lt;/batch:job&gt;</span></code></pre>
 </div>
 </div>
+  </div>
+</div>
 <table class="tableblock frame-all grid-all stretch">
 <colgroup>
 <col style="width: 10%;">
@@ -1936,11 +2176,13 @@ ItemWriterを利用することで実装がシンプルになる効果があり�
 <tbody>
 <tr>
 <td class="tableblock halign-left valign-top"><p class="tableblock">(1)</p></td>
-<td class="tableblock halign-left valign-top"><p class="tableblock"><code>ChainedTransactionManager</code>を利用するために、依存関係を追加する。</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><code>ChainedTransactionManager</code> を利用するために、依存関係を追加する。</p></td>
 </tr>
 <tr>
 <td class="tableblock halign-left valign-top"><p class="tableblock">(2)</p></td>
-<td class="tableblock halign-left valign-top"><p class="tableblock"><code>ChainedTransactionManager</code>のBean定義を行う。</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><code>ChainedTransactionManager</code>のBean定義を行う。<br>
+尚、 <a href="https://github.com/spring-projects/spring-data-commons">spring-data-commons</a> 2.5.0で<code>ChainedTransactionManager</code>は非推奨であり、予告なく削除される場合があるため注意すること。<br>
+<a href="https://docs.spring.io/spring-data/commons/docs/current/api/org/springframework/data/transaction/ChainedTransactionManager.html">spring-data-commons/ChainedTransactionManager</a></p></td>
 </tr>
 <tr>
 <td class="tableblock halign-left valign-top"><p class="tableblock">(3)</p></td>
@@ -1948,7 +2190,7 @@ ItemWriterを利用することで実装がシンプルになる効果があり�
 </tr>
 <tr>
 <td class="tableblock halign-left valign-top"><p class="tableblock">(4)</p></td>
-<td class="tableblock halign-left valign-top"><p class="tableblock">ジョブが利用するトランザクションマネージャに(1)で定義したBeanIDを指定する。</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">ジョブが利用するトランザクションマネージャに(2)で定義したBeanIDを指定する。</p></td>
 </tr>
 </tbody>
 </table>
@@ -1989,7 +2231,7 @@ ItemWriterを利用することで実装がシンプルになる効果があり�
 
   <div class="common-bg">
     <div class="information">
-      TERASOLUNA Batch Framework for Java (5.x) Development Guideline - version 5.5.0.RELEASE, 2023-3-31, commit-id:f6da76a
+      TERASOLUNA Batch Framework for Java (5.x) Development Guideline - version 5.6.0.RELEASE, 2023-3-31, commit-id:f5cbeda
     </div>
     <div class="index">
       <a href="index.html">&gt; INDEX</a>
@@ -1998,7 +2240,7 @@ ItemWriterを利用することで実装がシンプルになる効果があり�
 
   <div class="footer-bg">
     <div class="copyright">
-      &copy; Copyright 2017 NTT DATA Corporation. &copy; Copyright 2017 NTT Corporation.
+      &copy; Copyright 2017 NTT DATA Group Corporation. &copy; Copyright 2017 NTT Corporation.
     </div>
   </div>
 

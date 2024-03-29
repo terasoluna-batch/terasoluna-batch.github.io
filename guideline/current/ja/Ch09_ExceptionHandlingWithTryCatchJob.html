@@ -14,7 +14,7 @@
 
 <div class="common-bg">
   <div class="information">
-    TERASOLUNA Batch Framework for Java (5.x) Development Guideline - version 5.5.0.RELEASE, 2023-3-31, commit-id:f6da76a
+    TERASOLUNA Batch Framework for Java (5.x) Development Guideline - version 5.6.0.RELEASE, 2023-3-31, commit-id:f5cbeda
   </div>
   <div class="index">
     <a href="index.html">&gt; INDEX</a>
@@ -838,6 +838,55 @@ errors.maxInteger=The {0} exceeds {1}.</code></pre>
 <div class="paragraph">
 <p>作成したリスナーを利用するためのジョブBean定義ファイルの設定を以下に示す。</p>
 </div>
+<div class="tabbox">
+  <input type="radio" name="tabgroup09040502" class="JavaConfigTab" id="tabgroup09040502_1" checked><label for="tabgroup09040502_1" class="tab">JavaConfig</label>
+  <input type="radio" name="tabgroup09040502" class="XMLConfigTab" id="tabgroup09040502_2"><label for="tabgroup09040502_2" class="tab">XMLConfig</label>
+  <div class="tabcontent" name="JavaConfigContent">
+<div class="listingblock">
+<div class="title">org.terasoluna.batch.tutorial.config.dbaccess.JobPointAddChunkConfig.java</div>
+<div class="content">
+<pre class="CodeRay highlight"><code data-lang="java"><span class="annotation">@Configuration</span>
+<span class="annotation">@Import</span>(JobBaseContextConfig.class)
+<span class="annotation">@PropertySource</span>(value = <span class="string"><span class="delimiter">&quot;</span><span class="content">classpath:batch-application.properties</span><span class="delimiter">&quot;</span></span>)
+<span class="annotation">@ComponentScan</span>({<span class="string"><span class="delimiter">&quot;</span><span class="content">org.terasoluna.batch.tutorial.dbaccess.chunk</span><span class="delimiter">&quot;</span></span>,
+    <span class="string"><span class="delimiter">&quot;</span><span class="content">org.terasoluna.batch.tutorial.common.listener</span><span class="delimiter">&quot;</span></span>}) <span class="comment">// (1)</span>
+<span class="annotation">@MapperScan</span>(basePackages = <span class="string"><span class="delimiter">&quot;</span><span class="content">org.terasoluna.batch.tutorial.common.repository</span><span class="delimiter">&quot;</span></span>, sqlSessionFactoryRef = <span class="string"><span class="delimiter">&quot;</span><span class="content">jobSqlSessionFactory</span><span class="delimiter">&quot;</span></span>)
+<span class="directive">public</span> <span class="type">class</span> <span class="class">JobPointAddChunkConfig</span> {
+
+    <span class="comment">// omitted</span>
+
+    <span class="annotation">@Bean</span>
+    <span class="directive">public</span> Step step01(JobRepository jobRepository,
+                       <span class="annotation">@Qualifier</span>(<span class="string"><span class="delimiter">&quot;</span><span class="content">jobTransactionManager</span><span class="delimiter">&quot;</span></span>) PlatformTransactionManager transactionManager,
+                       ItemReader&lt;MemberInfoDto&gt; reader,
+                       PointAddItemProcessor processor,
+                       ItemWriter&lt;MemberInfoDto&gt; writer,
+                       StepExitStatusChangeListener listener) {
+        <span class="keyword">return</span> <span class="keyword">new</span> StepBuilder(<span class="string"><span class="delimiter">&quot;</span><span class="content">jobPointAddChunk.step01</span><span class="delimiter">&quot;</span></span>,
+                jobRepository)
+                .listener(listener) <span class="comment">// (2)</span>
+                .&lt;MemberInfoDto, MemberInfoDto&gt;chunk(<span class="integer">10</span>,
+                        transactionManager)
+                .reader(reader)
+                .processor(processor)
+                .writer(writer)
+                .build();
+    }
+
+    <span class="annotation">@Bean</span>
+    <span class="directive">public</span> Job jobPointAddChunk(JobRepository jobRepository,
+                                             Step step01,
+                                             JobExitCodeChangeListener listener) {
+        <span class="keyword">return</span> <span class="keyword">new</span> JobBuilder(<span class="string"><span class="delimiter">&quot;</span><span class="content">jobPointAddChunk</span><span class="delimiter">&quot;</span></span>, jobRepository)
+                .start(step01)
+                .listener(listener) <span class="comment">// (3)</span>
+                .build();
+    }
+}</code></pre>
+</div>
+</div>
+  </div>
+  <div class="tabcontent" name="XMLConfigContent">
 <div class="listingblock">
 <div class="title">src/main/resources/META-INF/jobs/dbaccess/jobPointAddChunk.xml</div>
 <div class="content">
@@ -878,6 +927,8 @@ errors.maxInteger=The {0} exceeds {1}.</code></pre>
 
 <span class="tag">&lt;/beans&gt;</span></code></pre>
 </div>
+</div>
+  </div>
 </div>
 <table class="tableblock frame-all grid-all stretch">
 <caption class="title">表 5. 説明</caption>
@@ -936,8 +987,8 @@ errors.maxInteger=The {0} exceeds {1}.</code></pre>
 <p>終了コードのマッピングを追加で設定する。</p>
 </div>
 <div class="tabbox">
-  <input type="radio" name="tabgroup09040502" class="JavaConfigTab" id="tabgroup09040502_1" checked><label for="tabgroup09040502_1" class="tab">JavaConfig</label>
-  <input type="radio" name="tabgroup09040502" class="XMLConfigTab" id="tabgroup09040502_2"><label for="tabgroup09040502_2" class="tab">XMLConfig</label>
+  <input type="radio" name="tabgroup09040503" class="JavaConfigTab" id="tabgroup09040503_1" checked><label for="tabgroup09040503_1" class="tab">JavaConfig</label>
+  <input type="radio" name="tabgroup09040503" class="XMLConfigTab" id="tabgroup09040503_2"><label for="tabgroup09040503_2" class="tab">XMLConfig</label>
   <div class="tabcontent" name="JavaConfigContent">
 <div class="paragraph">
 <p><code>LaunchContextConfig.java</code>に以下のとおり、独自の終了コードを追加する。</p>
@@ -1181,11 +1232,11 @@ tutorial.insert-data.script=file:sqls/insert-member-info-error-data.sql</code></
 <div class="content">
 <pre class="CodeRay highlight"><code data-lang="console">(.. omitted)
 
-[2020/03/27 15:18:06] [main] [o.s.b.c.l.s.SimpleJobLauncher] [INFO ] Job: [FlowJob: [name=jobPointAddChunk]] launched with the following parameters: [{jsr_batch_run_id=190}]
+[2020/03/27 15:18:06] [main] [o.s.b.c.l.s.TaskExecutorJobLauncher] [INFO ] Job: [FlowJob: [name=jobPointAddChunk]] launched with the following parameters: [{jsr_batch_run_id=190}]
 [2020/03/27 15:18:07] [main] [o.s.b.c.j.SimpleStepHandler] [INFO ] Executing step: [jobPointAddChunk.step01]
 [2020/03/27 15:18:07] [main] [o.t.b.t.d.c.PointAddItemProcessor] [WARN ] The point exceeds 1000000.
 [2020/03/27 15:18:07] [main] [o.s.b.c.s.AbstractStep] [INFO ] Step: [jobPointAddChunk.step01] executed in 235ms
-[2020/03/27 15:18:07] [main] [o.s.b.c.l.s.SimpleJobLauncher] [INFO ] Job: [FlowJob: [name=jobPointAddChunk]] completed with the following parameters: [{jsr_batch_run_id=190}] and the following status: [COMPLETED] in 297ms</code></pre>
+[2020/03/27 15:18:07] [main] [o.s.b.c.l.s.TaskExecutorJobLauncher] [INFO ] Job: [FlowJob: [name=jobPointAddChunk]] completed with the following parameters: [{jsr_batch_run_id=190}] and the following status: [COMPLETED] in 297ms</code></pre>
 </div>
 </div>
 </div>
@@ -1417,8 +1468,8 @@ errors.maxInteger=The {0} exceeds {1}.</code></pre>
 </div>
 </div>
 <div class="tabbox">
-  <input type="radio" name="tabgroup09040503" class="JavaConfigTab" id="tabgroup09040503_1" checked><label for="tabgroup09040503_1" class="tab">JavaConfig</label>
-  <input type="radio" name="tabgroup09040503" class="XMLConfigTab" id="tabgroup09040503_2"><label for="tabgroup09040503_2" class="tab">XMLConfig</label>
+  <input type="radio" name="tabgroup09040504" class="JavaConfigTab" id="tabgroup09040504_1" checked><label for="tabgroup09040504_1" class="tab">JavaConfig</label>
+  <input type="radio" name="tabgroup09040504" class="XMLConfigTab" id="tabgroup09040504_2"><label for="tabgroup09040504_2" class="tab">XMLConfig</label>
   <div class="tabcontent" name="JavaConfigContent">
 <div class="listingblock">
 <div class="title">org.terasoluna.batch.tutorial.config.LaunchContextConfig.java</div>
@@ -1563,6 +1614,47 @@ errors.maxInteger=The {0} exceeds {1}.</code></pre>
 <div class="paragraph">
 <p>作成したリスナーを利用するためのジョブBean定義ファイルの設定を以下に示す。</p>
 </div>
+<div class="tabbox">
+  <input type="radio" name="tabgroup09040505" class="JavaConfigTab" id="tabgroup09040505_1" checked><label for="tabgroup09040505_1" class="tab">JavaConfig</label>
+  <input type="radio" name="tabgroup09040505" class="XMLConfigTab" id="tabgroup09040505_2"><label for="tabgroup09040505_2" class="tab">XMLConfig</label>
+  <div class="tabcontent" name="JavaConfigContent">
+<div class="listingblock">
+<div class="title">org.terasoluna.batch.tutorial.config.dbaccess.JobPointAddTaskletConfig.java</div>
+<div class="content">
+<pre class="CodeRay highlight"><code data-lang="java"><span class="annotation">@Configuration</span>
+<span class="annotation">@Import</span>(JobBaseContextConfig.class)
+<span class="annotation">@PropertySource</span>(value = <span class="string"><span class="delimiter">&quot;</span><span class="content">classpath:batch-application.properties</span><span class="delimiter">&quot;</span></span>)
+<span class="annotation">@ComponentScan</span>({<span class="string"><span class="delimiter">&quot;</span><span class="content">org.terasoluna.batch.tutorial.dbaccess.tasklet</span><span class="delimiter">&quot;</span></span>,
+    <span class="string"><span class="delimiter">&quot;</span><span class="content">org.terasoluna.batch.tutorial.common.listener</span><span class="delimiter">&quot;</span></span>}) <span class="comment">// (1)</span>
+<span class="annotation">@MapperScan</span>(basePackages = <span class="string"><span class="delimiter">&quot;</span><span class="content">org.terasoluna.batch.tutorial.common.repository</span><span class="delimiter">&quot;</span></span>, sqlSessionFactoryRef = <span class="string"><span class="delimiter">&quot;</span><span class="content">jobSqlSessionFactory</span><span class="delimiter">&quot;</span></span>)
+<span class="directive">public</span> <span class="type">class</span> <span class="class">JobPointAddTaskletConfig</span> {
+
+    <span class="comment">// omitted</span>
+
+    <span class="annotation">@Bean</span>
+    <span class="directive">public</span> Step step01(JobRepository jobRepository,
+                       <span class="annotation">@Qualifier</span>(<span class="string"><span class="delimiter">&quot;</span><span class="content">jobTransactionManager</span><span class="delimiter">&quot;</span></span>) PlatformTransactionManager transactionManager,
+                       PointAddTasklet tasklet) {
+        <span class="keyword">return</span> <span class="keyword">new</span> StepBuilder(<span class="string"><span class="delimiter">&quot;</span><span class="content">jobPointAddTasklet.step01</span><span class="delimiter">&quot;</span></span>,
+                jobRepository)
+                .tasklet(tasklet, transactionManager)
+                .build();
+    }
+
+    <span class="annotation">@Bean</span>
+    <span class="directive">public</span> Job jobPointAddTasklet(JobRepository jobRepository,
+                                             Step step01,
+                                             JobExitCodeChangeListener listener) {
+        <span class="keyword">return</span> <span class="keyword">new</span> JobBuilder(<span class="string"><span class="delimiter">&quot;</span><span class="content">jobPointAddTasklet</span><span class="delimiter">&quot;</span></span>, jobRepository)
+                .start(step01)
+                .listener(listener) <span class="comment">// (2)</span>
+                .build();
+    }
+}</code></pre>
+</div>
+</div>
+  </div>
+  <div class="tabcontent" name="XMLConfigContent">
 <div class="listingblock">
 <div class="title">src/main/resources/META-INF/jobs/dbaccess/jobPointAddTasklet.xml</div>
 <div class="content">
@@ -1598,6 +1690,8 @@ errors.maxInteger=The {0} exceeds {1}.</code></pre>
 <span class="tag">&lt;/beans&gt;</span></code></pre>
 </div>
 </div>
+  </div>
+</div>
 <table class="tableblock frame-all grid-all stretch">
 <caption class="title">表 10. 説明</caption>
 <colgroup>
@@ -1614,7 +1708,7 @@ errors.maxInteger=The {0} exceeds {1}.</code></pre>
 <tr>
 <td class="tableblock halign-left valign-top"><p class="tableblock">(1)</p></td>
 <td class="tableblock halign-left valign-top"><p class="tableblock">コンポーネントスキャン対象とするベースパッケージの設定を行う。<br>
-<code>base-package</code>属性に、<code>StepExecutionListener</code>および<code>JobExecutionListener</code>の実装クラスが格納されているパッケージを追加で指定する。</p></td>
+<code>basePackages属性/base-package属性</code>に、<code>StepExecutionListener</code>および<code>JobExecutionListener</code>の実装クラスが格納されているパッケージを追加で指定する。</p></td>
 </tr>
 <tr>
 <td class="tableblock halign-left valign-top"><p class="tableblock">(2)</p></td>
@@ -1634,8 +1728,8 @@ errors.maxInteger=The {0} exceeds {1}.</code></pre>
 <p>チャンクモデル/タスクレットモデルで共通して利用するため、既に実施している場合は読み飛ばしてよい。</p>
 </div>
 <div class="tabbox">
-  <input type="radio" name="tabgroup09040504" class="JavaConfigTab" id="tabgroup09040504_1" checked><label for="tabgroup09040504_1" class="tab">JavaConfig</label>
-  <input type="radio" name="tabgroup09040504" class="XMLConfigTab" id="tabgroup09040504_2"><label for="tabgroup09040504_2" class="tab">XMLConfig</label>
+  <input type="radio" name="tabgroup09040506" class="JavaConfigTab" id="tabgroup09040506_1" checked><label for="tabgroup09040506_1" class="tab">JavaConfig</label>
+  <input type="radio" name="tabgroup09040506" class="XMLConfigTab" id="tabgroup09040506_2"><label for="tabgroup09040506_2" class="tab">XMLConfig</label>
   <div class="tabcontent" name="JavaConfigContent">
 <div class="paragraph">
 <p><code>LaunchContextConfig.java</code>に以下のとおり、独自の終了コードを追加する。</p>
@@ -1908,11 +2002,11 @@ tutorial.insert-data.script=file:sqls/insert-member-info-error-data.sql</code></
 <div class="content">
 <pre class="CodeRay highlight"><code data-lang="console">(.. omitted)
 
-[2020/03/27 15:27:27] [main] [o.s.b.c.l.s.SimpleJobLauncher] [INFO ] Job: [FlowJob: [name=jobPointAddTasklet]] launched with the following parameters: [{jsr_batch_run_id=194}]
+[2020/03/27 15:27:27] [main] [o.s.b.c.l.s.TaskExecutorJobLauncher] [INFO ] Job: [FlowJob: [name=jobPointAddTasklet]] launched with the following parameters: [{jsr_batch_run_id=194}]
 [2020/03/27 15:27:27] [main] [o.s.b.c.j.SimpleStepHandler] [INFO ] Executing step: [jobPointAddTasklet.step01]
 [2020/03/27 15:27:27] [main] [o.t.b.t.d.t.PointAddTasklet] [WARN ] The point exceeds 1000000.
 [2020/03/27 15:27:27] [main] [o.s.b.c.s.AbstractStep] [INFO ] Step: [jobPointAddTasklet.step01] executed in 188ms
-[2020/03/27 15:27:27] [main] [o.s.b.c.l.s.SimpleJobLauncher] [INFO ] Job: [FlowJob: [name=jobPointAddTasklet]] completed with the following parameters: [{jsr_batch_run_id=194}] and the following status: [COMPLETED] in 250ms</code></pre>
+[2020/03/27 15:27:27] [main] [o.s.b.c.l.s.TaskExecutorJobLauncher] [INFO ] Job: [FlowJob: [name=jobPointAddTasklet]] completed with the following parameters: [{jsr_batch_run_id=194}] and the following status: [COMPLETED] in 250ms</code></pre>
 </div>
 </div>
 </div>
@@ -2107,7 +2201,7 @@ tutorial.insert-data.script=file:sqls/insert-member-info-error-data.sql</code></
 
   <div class="common-bg">
     <div class="information">
-      TERASOLUNA Batch Framework for Java (5.x) Development Guideline - version 5.5.0.RELEASE, 2023-3-31, commit-id:f6da76a
+      TERASOLUNA Batch Framework for Java (5.x) Development Guideline - version 5.6.0.RELEASE, 2023-3-31, commit-id:f5cbeda
     </div>
     <div class="index">
       <a href="index.html">&gt; INDEX</a>
@@ -2116,7 +2210,7 @@ tutorial.insert-data.script=file:sqls/insert-member-info-error-data.sql</code></
 
   <div class="footer-bg">
     <div class="copyright">
-      &copy; Copyright 2017 NTT DATA Corporation. &copy; Copyright 2017 NTT Corporation.
+      &copy; Copyright 2017 NTT DATA Group Corporation. &copy; Copyright 2017 NTT Corporation.
     </div>
   </div>
 

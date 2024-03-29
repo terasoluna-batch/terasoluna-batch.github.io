@@ -14,7 +14,7 @@
 
 <div class="common-bg">
   <div class="information">
-    TERASOLUNA Batch Framework for Java (5.x) Development Guideline - version 5.5.0.RELEASE, 2023-3-31, commit-id:f6da76a
+    TERASOLUNA Batch Framework for Java (5.x) Development Guideline - version 5.6.0.RELEASE, 2023-3-31, commit-id:f5cbeda
   </div>
   <div class="index">
     <a href="index.html">&gt; INDEX</a>
@@ -1481,9 +1481,9 @@ ItemProcessorの処理内で例外発生時に実行される<code>onProcessErro
 <dl>
 <dt class="hdlist1">ItemReaderでのスキップ</dt>
 <dd>
-<p><code>&lt;batch:chunk&gt;</code>の<code>skip-policy</code>属性にスキップ方法を指定する。
-<code>&lt;batch:skippable-exception-classes&gt;</code>に、スキップ対象とするItemReaderで発生する例外クラスを指定する。<br>
-<code>skip-policy</code>属性には、Spring Batchが提供している下記に示すいづれかのクラスを使用する。</p>
+<p><code>StepBuilderのskipPolicyメソッド/&lt;batch:chunk&gt;のskip-policy属性</code>にスキップ方法を指定する。
+<code>skipメソッド/&lt;batch:skippable-exception-classes&gt;</code>に、スキップ対象とするItemReaderで発生する例外クラスを指定する。<br>
+<code>skipPolicyメソッドの引数skipPolicy/skip-policy属性</code>には、Spring Batchが提供している下記に示すいづれかのクラスを使用する。</p>
 </dd>
 </dl>
 </div>
@@ -1545,8 +1545,34 @@ ItemProcessorの処理内で例外発生時に実行される<code>onProcessErro
 <div class="paragraph">
 <p><code>skip-policy</code>別に定義方法を示す。</p>
 </div>
+<div class="tabbox">
+  <input type="radio" name="tabgroup060201" class="JavaConfigTab" id="tabgroup060201_1" checked><label for="tabgroup060201_1" class="tab">JavaConfig</label>
+  <input type="radio" name="tabgroup060201" class="XMLConfigTab" id="tabgroup060201_2"><label for="tabgroup060201_2" class="tab">XMLConfig</label>
+  <div class="tabcontent" name="JavaConfigContent">
 <div class="listingblock">
-<div class="title">前提とするItemReaderの定義</div>
+<div class="content">
+<pre class="CodeRay highlight"><code data-lang="java"><span class="annotation">@Bean</span>
+<span class="annotation">@StepScope</span>
+<span class="directive">public</span> FlatFileItemReader&lt;SalesPerformanceDetail&gt; detailCSVReader(
+        <span class="annotation">@Value</span>(<span class="string"><span class="delimiter">&quot;</span><span class="content">#{jobParameters['inputFile']}</span><span class="delimiter">&quot;</span></span>) <span class="predefined-type">File</span> inputFile) {
+    <span class="directive">final</span> DelimitedLineTokenizer tokenizer = <span class="keyword">new</span> DelimitedLineTokenizer();
+    tokenizer.setNames(<span class="string"><span class="delimiter">&quot;</span><span class="content">branchId</span><span class="delimiter">&quot;</span></span>, <span class="string"><span class="delimiter">&quot;</span><span class="content">year</span><span class="delimiter">&quot;</span></span>, <span class="string"><span class="delimiter">&quot;</span><span class="content">month</span><span class="delimiter">&quot;</span></span>, <span class="string"><span class="delimiter">&quot;</span><span class="content">customerId</span><span class="delimiter">&quot;</span></span>, <span class="string"><span class="delimiter">&quot;</span><span class="content">amount</span><span class="delimiter">&quot;</span></span>);
+    <span class="directive">final</span> BeanWrapperFieldSetMapper&lt;SalesPerformanceDetail&gt; fieldSetMapper = <span class="keyword">new</span> BeanWrapperFieldSetMapper&lt;SalesPerformanceDetail&gt;();
+    fieldSetMapper.setTargetType(SalesPerformanceDetail.class);
+    <span class="directive">final</span> DefaultLineMapper&lt;SalesPerformanceDetail&gt; lineMapper = <span class="keyword">new</span> DefaultLineMapper&lt;SalesPerformanceDetail&gt;();
+    lineMapper.setLineTokenizer(tokenizer);
+    lineMapper.setFieldSetMapper(fieldSetMapper);
+    <span class="keyword">return</span> <span class="keyword">new</span> FlatFileItemReaderBuilder&lt;SalesPerformanceDetail&gt;()
+            .name(ClassUtils.getShortName(FlatFileItemReader.class))
+            .resource(<span class="keyword">new</span> FileSystemResource(inputFile))
+            .lineMapper(lineMapper)
+            .build();
+}</code></pre>
+</div>
+</div>
+  </div>
+  <div class="tabcontent" name="XMLConfigContent">
+<div class="listingblock">
 <div class="content">
 <pre class="CodeRay highlight"><code data-lang="xml"><span class="tag">&lt;bean</span> <span class="attribute-name">id</span>=<span class="string"><span class="delimiter">&quot;</span><span class="content">detailCSVReader</span><span class="delimiter">&quot;</span></span>
       <span class="attribute-name">class</span>=<span class="string"><span class="delimiter">&quot;</span><span class="content">org.springframework.batch.item.file.FlatFileItemReader</span><span class="delimiter">&quot;</span></span> <span class="attribute-name">scope</span>=<span class="string"><span class="delimiter">&quot;</span><span class="content">step</span><span class="delimiter">&quot;</span></span><span class="tag">&gt;</span>
@@ -1566,13 +1592,64 @@ ItemProcessorの処理内で例外発生時に実行される<code>onProcessErro
 <span class="tag">&lt;/bean&gt;</span></code></pre>
 </div>
 </div>
+  </div>
+</div>
 <div id="Ch06_ExceptionHandling_HowToUse_ContinuationPropriety_Skip_Chunk_AlwaysSkipItemSkipPolicy" class="dlist">
 <dl>
 <dt class="hdlist1">AlwaysSkipItemSkipPolicy</dt>
+<dd>
+<p>.AlwaysSkipItemSkipPolicyの指定例</p>
+</dd>
 </dl>
 </div>
+<div class="tabbox">
+  <input type="radio" name="tabgroup060202" class="JavaConfigTab" id="tabgroup060202_1" checked><label for="tabgroup060202_1" class="tab">JavaConfig</label>
+  <input type="radio" name="tabgroup060202" class="XMLConfigTab" id="tabgroup060202_2"><label for="tabgroup060202_2" class="tab">XMLConfig</label>
+  <div class="tabcontent" name="JavaConfigContent">
 <div class="listingblock">
-<div class="title">AlwaysSkipItemSkipPolicyの指定例</div>
+<div class="content">
+<pre class="CodeRay highlight"><code data-lang="java"><span class="comment">// (1)</span>
+<span class="annotation">@Bean</span>
+<span class="directive">public</span> AlwaysSkipItemSkipPolicy skipPolicy() {
+    AlwaysSkipItemSkipPolicy skipPolicy = <span class="keyword">new</span> AlwaysSkipItemSkipPolicy();
+    <span class="keyword">return</span> skipPolicy;
+}
+
+<span class="annotation">@Bean</span>
+<span class="directive">public</span> Step step01(JobRepository jobRepository,
+                   <span class="annotation">@Qualifier</span>(<span class="string"><span class="delimiter">&quot;</span><span class="content">jobTransactionManager</span><span class="delimiter">&quot;</span></span>) PlatformTransactionManager transactionManager,
+                   <span class="annotation">@Qualifier</span>(<span class="string"><span class="delimiter">&quot;</span><span class="content">detailCSVReader</span><span class="delimiter">&quot;</span></span>) ItemReader&lt;SalesPerformanceDetail&gt; reader,
+                   <span class="annotation">@Qualifier</span>(<span class="string"><span class="delimiter">&quot;</span><span class="content">amountCheckProcessor</span><span class="delimiter">&quot;</span></span>) ItemProcessor&lt;SalesPerformanceDetail, SalesPerformanceDetail&gt; processor,
+                   <span class="annotation">@Qualifier</span>(<span class="string"><span class="delimiter">&quot;</span><span class="content">detailWriter</span><span class="delimiter">&quot;</span></span>) ItemWriter&lt;SalesPerformanceDetail&gt; writer,
+                   AlwaysSkipItemSkipPolicy skipPolicy,
+                   SkipLoggingListener listener) {
+    <span class="keyword">return</span> <span class="keyword">new</span> StepBuilder(<span class="string"><span class="delimiter">&quot;</span><span class="content">jobSalesPerfAtSkipAllReadError.step01</span><span class="delimiter">&quot;</span></span>,
+            jobRepository)
+            .&lt;SalesPerformanceDetail, SalesPerformanceDetail&gt; chunk(<span class="integer">10</span>,
+                    transactionManager)
+            .reader(reader)
+            .processor(processor)
+            .writer(writer)
+            .faultTolerant()
+            .skipPolicy(skipPolicy) <span class="comment">// (2)</span>
+            .listener(listener)
+            .build();
+}
+
+<span class="annotation">@Bean</span>
+<span class="directive">public</span> Job jobSalesPerfAtSkipAllReadError(JobRepository jobRepository,
+                                          Step step01,
+                                          JobExecutionLoggingListener listener) {
+    <span class="keyword">return</span> <span class="keyword">new</span> JobBuilder(<span class="string"><span class="delimiter">&quot;</span><span class="content">jobSalesPerfAtSkipAllReadError</span><span class="delimiter">&quot;</span></span>, jobRepository)
+            .start(step01)
+            .listener(listener)
+            .build();
+}</code></pre>
+</div>
+</div>
+  </div>
+  <div class="tabcontent" name="XMLConfigContent">
+<div class="listingblock">
 <div class="content">
 <pre class="CodeRay highlight"><code data-lang="xml"><span class="comment">&lt;!-- (1) --&gt;</span>
 <span class="tag">&lt;bean</span> <span class="attribute-name">id</span>=<span class="string"><span class="delimiter">&quot;</span><span class="content">skipPolicy</span><span class="delimiter">&quot;</span></span>
@@ -1590,6 +1667,8 @@ ItemProcessorの処理内で例外発生時に実行される<code>onProcessErro
     <span class="tag">&lt;/batch:step&gt;</span>
 <span class="tag">&lt;/batch:job&gt;</span></code></pre>
 </div>
+</div>
+  </div>
 </div>
 <table class="tableblock frame-all grid-all stretch">
 <caption class="title">表 13. 説明</caption>
@@ -1610,17 +1689,65 @@ ItemProcessorの処理内で例外発生時に実行される<code>onProcessErro
 </tr>
 <tr>
 <td class="tableblock halign-left valign-top"><p class="tableblock">(2)</p></td>
-<td class="tableblock halign-left valign-top"><p class="tableblock"><code>&lt;batch:chunk&gt;</code>の<code>skip-policy</code>属性に(1)で定義したBeanを設定する。</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><code>StepBuilderのskipPolicyメソッド/&lt;batch:chunk&gt;のskip-policy属性</code>に(1)で定義したBeanを設定する。</p></td>
 </tr>
 </tbody>
 </table>
 <div id="Ch06_ExceptionHandling_HowToUse_ContinuationPropriety_Skip_Chunk_NeverSkipItemSkipPolicy" class="dlist">
 <dl>
 <dt class="hdlist1">NeverSkipItemSkipPolicy</dt>
+<dd>
+<p>.NeverSkipItemSkipPolicyの指定例</p>
+</dd>
 </dl>
 </div>
+<div class="tabbox">
+  <input type="radio" name="tabgroup060209" class="JavaConfigTab" id="tabgroup060209_1" checked><label for="tabgroup060209_1" class="tab">JavaConfig</label>
+  <input type="radio" name="tabgroup060209" class="XMLConfigTab" id="tabgroup060209_2"><label for="tabgroup060209_2" class="tab">XMLConfig</label>
+  <div class="tabcontent" name="JavaConfigContent">
 <div class="listingblock">
-<div class="title">NeverSkipItemSkipPolicyの指定例</div>
+<div class="content">
+<pre class="CodeRay highlight"><code data-lang="java"><span class="comment">// (1)</span>
+<span class="annotation">@Bean</span>
+<span class="directive">public</span> NeverSkipItemSkipPolicy skipPolicy() {
+    <span class="keyword">return</span> <span class="keyword">new</span> NeverSkipItemSkipPolicy();
+}
+
+<span class="annotation">@Bean</span>
+<span class="directive">public</span> Step step01(JobRepository jobRepository,
+                   <span class="annotation">@Qualifier</span>(<span class="string"><span class="delimiter">&quot;</span><span class="content">jobTransactionManager</span><span class="delimiter">&quot;</span></span>) PlatformTransactionManager transactionManager,
+                   <span class="annotation">@Qualifier</span>(<span class="string"><span class="delimiter">&quot;</span><span class="content">detailCSVReader</span><span class="delimiter">&quot;</span></span>) ItemReader&lt;SalesPerformanceDetail&gt; reader,
+                   <span class="annotation">@Qualifier</span>(<span class="string"><span class="delimiter">&quot;</span><span class="content">amountCheckProcessor</span><span class="delimiter">&quot;</span></span>) ItemProcessor&lt;SalesPerformanceDetail, SalesPerformanceDetail&gt; processor,
+                   <span class="annotation">@Qualifier</span>(<span class="string"><span class="delimiter">&quot;</span><span class="content">detailWriter</span><span class="delimiter">&quot;</span></span>) ItemWriter&lt;SalesPerformanceDetail&gt; writer,
+                   SkipLoggingListener skipLoggingListener,
+                   NeverSkipItemSkipPolicy skipPolicy) {
+    <span class="keyword">return</span> <span class="keyword">new</span> StepBuilder(<span class="string"><span class="delimiter">&quot;</span><span class="content">jobSalesPerfAtSkipNeverReadError.step01</span><span class="delimiter">&quot;</span></span>,
+            jobRepository)
+            .&lt;SalesPerformanceDetail, SalesPerformanceDetail&gt; chunk(<span class="integer">10</span>,
+                    transactionManager)
+            .reader(reader)
+            .processor(processor)
+            .writer(writer)
+            .faultTolerant()
+            .listener(skipLoggingListener)
+            .skipPolicy(skipPolicy) <span class="comment">// (2)</span>
+            .build();
+}
+
+<span class="annotation">@Bean</span>
+<span class="directive">public</span> Job jobSalesPerfAtSkipNeverReadError(JobRepository jobRepository,
+                                          Step step01,
+                                          JobExecutionLoggingListener listener) {
+    <span class="keyword">return</span> <span class="keyword">new</span> JobBuilder(<span class="string"><span class="delimiter">&quot;</span><span class="content">jobSalesPerfAtSkipNeverReadError</span><span class="delimiter">&quot;</span></span>, jobRepository)
+            .start(step01)
+            .listener(listener)
+            .build();
+}</code></pre>
+</div>
+</div>
+  </div>
+  <div class="tabcontent" name="XMLConfigContent">
+<div class="listingblock">
 <div class="content">
 <pre class="CodeRay highlight"><code data-lang="xml"><span class="comment">&lt;!-- (1) --&gt;</span>
 <span class="tag">&lt;bean</span> <span class="attribute-name">id</span>=<span class="string"><span class="delimiter">&quot;</span><span class="content">skipPolicy</span><span class="delimiter">&quot;</span></span>
@@ -1638,6 +1765,8 @@ ItemProcessorの処理内で例外発生時に実行される<code>onProcessErro
     <span class="tag">&lt;/batch:step&gt;</span>
 <span class="tag">&lt;/batch:job&gt;</span></code></pre>
 </div>
+</div>
+  </div>
 </div>
 <table class="tableblock frame-all grid-all stretch">
 <caption class="title">表 14. 説明</caption>
@@ -1658,19 +1787,67 @@ ItemProcessorの処理内で例外発生時に実行される<code>onProcessErro
 </tr>
 <tr>
 <td class="tableblock halign-left valign-top"><p class="tableblock">(2)</p></td>
-<td class="tableblock halign-left valign-top"><p class="tableblock"><code>&lt;batch:chunk&gt;</code>の<code>skip-policy</code>属性に(1)で定義したBeanを設定する。</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><code>StepBuilderのskipPolicyメソッド/&lt;batch:chunk&gt;のskip-policy属性</code>に(1)で定義したBeanを設定する。</p></td>
 </tr>
 </tbody>
 </table>
 <div id="Ch06_ExceptionHandling_HowToUse_ContinuationPropriety_Skip_Chunk_LimitCheckingItemSkipPolicy" class="dlist">
 <dl>
 <dt class="hdlist1">LimitCheckingItemSkipPolicy</dt>
+<dd>
+<p>.LimitCheckingItemSkipPolicyの指定例</p>
+</dd>
 </dl>
 </div>
+<div class="tabbox">
+  <input type="radio" name="tabgroup060203" class="JavaConfigTab" id="tabgroup060203_1" checked><label for="tabgroup060203_1" class="tab">JavaConfig</label>
+  <input type="radio" name="tabgroup060203" class="XMLConfigTab" id="tabgroup060203_2"><label for="tabgroup060203_2" class="tab">XMLConfig</label>
+  <div class="tabcontent" name="JavaConfigContent">
 <div class="listingblock">
-<div class="title">LimitCheckingItemSkipPolicyの指定例</div>
 <div class="content">
-<pre class="CodeRay highlight"><code data-lang="xml">(1)
+<pre class="CodeRay highlight"><code data-lang="java"><span class="comment">// (1)</span>
+<span class="comment">// @Bean</span>
+<span class="comment">// public LimitCheckingItemSkipPolicy skipPolicy() {</span>
+<span class="comment">//     return new LimitCheckingItemSkipPolicy();</span>
+<span class="comment">// }</span>
+
+<span class="annotation">@Bean</span>
+<span class="directive">public</span> Step step01(JobRepository jobRepository,
+                   <span class="annotation">@Qualifier</span>(<span class="string"><span class="delimiter">&quot;</span><span class="content">jobTransactionManager</span><span class="delimiter">&quot;</span></span>) PlatformTransactionManager transactionManager,
+                   <span class="annotation">@Qualifier</span>(<span class="string"><span class="delimiter">&quot;</span><span class="content">detailCSVReader</span><span class="delimiter">&quot;</span></span>) ItemReader&lt;SalesPerformanceDetail&gt; reader,
+                   <span class="annotation">@Qualifier</span>(<span class="string"><span class="delimiter">&quot;</span><span class="content">amountCheckProcessor</span><span class="delimiter">&quot;</span></span>) ItemProcessor&lt;SalesPerformanceDetail, SalesPerformanceDetail&gt; processor,
+                   <span class="annotation">@Qualifier</span>(<span class="string"><span class="delimiter">&quot;</span><span class="content">detailWriter</span><span class="delimiter">&quot;</span></span>) ItemWriter&lt;SalesPerformanceDetail&gt; writer,
+                   SkipLoggingListener listener) {
+    <span class="keyword">return</span> <span class="keyword">new</span> StepBuilder(<span class="string"><span class="delimiter">&quot;</span><span class="content">jobSalesPerfAtValidSkipReadError.step01</span><span class="delimiter">&quot;</span></span>,
+            jobRepository)
+            .&lt;SalesPerformanceDetail, SalesPerformanceDetail&gt; chunk(<span class="integer">10</span>,
+                    transactionManager)
+            .reader(reader)
+            .processor(processor)
+            .writer(writer)
+            .faultTolerant()
+            .skipLimit(<span class="integer">2</span>) <span class="comment">// (2)</span>
+            .skip(ItemReaderException.class) <span class="comment">// (3) (4)</span>
+            .listener(listener)
+            .build();
+}
+
+<span class="annotation">@Bean</span>
+<span class="directive">public</span> Job jobSalesPerfAtValidSkipReadError(JobRepository jobRepository,
+                                            Step step01,
+                                            JobExecutionLoggingListener listener) {
+    <span class="keyword">return</span> <span class="keyword">new</span> JobBuilder(<span class="string"><span class="delimiter">&quot;</span><span class="content">jobSalesPerfAtValidSkipReadError</span><span class="delimiter">&quot;</span></span>, jobRepository)
+            .start(step01)
+            .listener(listener)
+            .build();
+}</code></pre>
+</div>
+</div>
+  </div>
+  <div class="tabcontent" name="XMLConfigContent">
+<div class="listingblock">
+<div class="content">
+<pre class="CodeRay highlight"><code data-lang="xml"><span class="comment">&lt;!-- (1) --&gt;</span>
 <span class="comment">&lt;!--
 &lt;bean id=&quot;skipPolicy&quot;
       class=&quot;org.springframework.batch.core.step.skip.LimitCheckingItemSkipPolicy&quot;/&gt;
@@ -1695,6 +1872,8 @@ ItemProcessorの処理内で例外発生時に実行される<code>onProcessErro
 <span class="tag">&lt;/batch:job&gt;</span></code></pre>
 </div>
 </div>
+  </div>
+</div>
 <table class="tableblock frame-all grid-all stretch">
 <caption class="title">表 15. 説明</caption>
 <colgroup>
@@ -1711,16 +1890,16 @@ ItemProcessorの処理内で例外発生時に実行される<code>onProcessErro
 <tr>
 <td class="tableblock halign-left valign-top"><p class="tableblock">(1)</p></td>
 <td class="tableblock halign-left valign-top"><p class="tableblock"><code>LimitCheckingItemSkipPolicy</code>をBean定義する。<br>
-<code>skip-policy</code>属性省略時のデフォルトであるため、定義しなくてもよい。</p></td>
+<code>StepBuilderのskipPolicyメソッド/skip-policy属性</code>省略時のデフォルトであるため、定義しなくてもよい。</p></td>
 </tr>
 <tr>
 <td class="tableblock halign-left valign-top"><p class="tableblock">(2)</p></td>
-<td class="tableblock halign-left valign-top"><p class="tableblock"><code>&lt;batch:chunk&gt;</code>の<code>skip-limit</code>属性にスキップ数の上限値を設定する。<br>
-<code>skip-policy</code>属性はデフォルトを使用ため省略。</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><code>StepBuilderのskipLimitメソッド/&lt;batch:chunk&gt;のskip-limit属性</code>にスキップ数の上限値を設定する。<br>
+<code>skipPolicyメソッド/skip-policy属性</code>はデフォルトを使用ため省略。</p></td>
 </tr>
 <tr>
 <td class="tableblock halign-left valign-top"><p class="tableblock">(3)</p></td>
-<td class="tableblock halign-left valign-top"><p class="tableblock"><code>&lt;batch:skippable-exception-classes&gt;</code>を定義し、要素内に対象となる例外を設定する。</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><code>StepBuilderのskipメソッド/&lt;batch:skippable-exception-classes&gt;</code>を定義し、要素内に対象となる例外を設定する。</p></td>
 </tr>
 <tr>
 <td class="tableblock halign-left valign-top"><p class="tableblock">(4)</p></td>
@@ -1731,10 +1910,69 @@ ItemProcessorの処理内で例外発生時に実行される<code>onProcessErro
 <div id="Ch06_ExceptionHandling_HowToUse_ContinuationPropriety_Skip_Chunk_ExceptionClassifierSkipPolicy" class="dlist">
 <dl>
 <dt class="hdlist1">ExceptionClassifierSkipPolicy</dt>
+<dd>
+<p>.ExceptionClassifierSkipPolicyの指定例</p>
+</dd>
 </dl>
 </div>
+<div class="tabbox">
+  <input type="radio" name="tabgroup060204" class="JavaConfigTab" id="tabgroup060204_1" checked><label for="tabgroup060204_1" class="tab">JavaConfig</label>
+  <input type="radio" name="tabgroup060204" class="XMLConfigTab" id="tabgroup060204_2"><label for="tabgroup060204_2" class="tab">XMLConfig</label>
+  <div class="tabcontent" name="JavaConfigContent">
 <div class="listingblock">
-<div class="title">ExceptionClassifierSkipPolicyの指定例</div>
+<div class="content">
+<pre class="CodeRay highlight"><code data-lang="java"><span class="comment">// (1)</span>
+<span class="annotation">@Bean</span>
+<span class="directive">public</span> ExceptionClassifierSkipPolicy skipPolicy(
+        AlwaysSkipItemSkipPolicy alwaysSkip) {
+    ExceptionClassifierSkipPolicy skipPolicy = <span class="keyword">new</span> ExceptionClassifierSkipPolicy();
+    <span class="predefined-type">Map</span>&lt;<span class="predefined-type">Class</span>&lt;? <span class="directive">extends</span> <span class="predefined-type">Throwable</span>&gt;, SkipPolicy&gt; policyMap = <span class="keyword">new</span> <span class="predefined-type">HashMap</span>&lt;&gt;();
+    policyMap.put(ItemReaderException.class, alwaysSkip); <span class="comment">// (2)</span>
+    skipPolicy.setPolicyMap(policyMap);
+    <span class="keyword">return</span> skipPolicy;
+}
+
+<span class="comment">// (3)</span>
+<span class="annotation">@Bean</span>
+<span class="directive">public</span> AlwaysSkipItemSkipPolicy alwaysSkip() {
+    <span class="keyword">return</span> <span class="keyword">new</span> AlwaysSkipItemSkipPolicy();
+}
+
+<span class="annotation">@Bean</span>
+<span class="directive">public</span> Step step01(JobRepository jobRepository,
+                   <span class="annotation">@Qualifier</span>(<span class="string"><span class="delimiter">&quot;</span><span class="content">jobTransactionManager</span><span class="delimiter">&quot;</span></span>) PlatformTransactionManager transactionManager,
+                   <span class="annotation">@Qualifier</span>(<span class="string"><span class="delimiter">&quot;</span><span class="content">detailCSVReader</span><span class="delimiter">&quot;</span></span>) ItemReader&lt;SalesPerformanceDetail&gt; reader,
+                   <span class="annotation">@Qualifier</span>(<span class="string"><span class="delimiter">&quot;</span><span class="content">amountCheckProcessor</span><span class="delimiter">&quot;</span></span>) ItemProcessor&lt;SalesPerformanceDetail, SalesPerformanceDetail&gt; processor,
+                   <span class="annotation">@Qualifier</span>(<span class="string"><span class="delimiter">&quot;</span><span class="content">detailWriter</span><span class="delimiter">&quot;</span></span>) ItemWriter&lt;SalesPerformanceDetail&gt; writer,
+                   SkipLoggingListener skipLoggingListener,
+                   ExceptionClassifierSkipPolicy skipPolicy) {
+    <span class="keyword">return</span> <span class="keyword">new</span> StepBuilder(<span class="string"><span class="delimiter">&quot;</span><span class="content">jobSalesPerfAtValidNolimitSkipReadError.step01</span><span class="delimiter">&quot;</span></span>,
+            jobRepository)
+            .&lt;SalesPerformanceDetail, SalesPerformanceDetail&gt; chunk(<span class="integer">10</span>,
+                    transactionManager)
+            .reader(reader)
+            .processor(processor)
+            .writer(writer)
+            .faultTolerant()
+            .skipPolicy(skipPolicy) <span class="comment">// (4)</span>
+            .listener(skipLoggingListener)
+            .build();
+}
+
+<span class="annotation">@Bean</span>
+<span class="directive">public</span> Job jobSalesPerfAtValidNolimitSkipReadError(JobRepository jobRepository,
+                                          Step step01,
+                                          JobExecutionLoggingListener listener) {
+    <span class="keyword">return</span> <span class="keyword">new</span> JobBuilder(<span class="string"><span class="delimiter">&quot;</span><span class="content">jobSalesPerfAtValidNolimitSkipReadError</span><span class="delimiter">&quot;</span></span>, jobRepository)
+            .start(step01)
+            .listener(listener)
+            .build();
+}</code></pre>
+</div>
+</div>
+  </div>
+  <div class="tabcontent" name="XMLConfigContent">
+<div class="listingblock">
 <div class="content">
 <pre class="CodeRay highlight"><code data-lang="xml"><span class="comment">&lt;!-- (1) --&gt;</span>
 <span class="tag">&lt;bean</span> <span class="attribute-name">id</span>=<span class="string"><span class="delimiter">&quot;</span><span class="content">skipPolicy</span><span class="delimiter">&quot;</span></span>
@@ -1766,6 +2004,8 @@ ItemProcessorの処理内で例外発生時に実行される<code>onProcessErro
 <span class="tag">&lt;/batch:job&gt;</span></code></pre>
 </div>
 </div>
+  </div>
+</div>
 <table class="tableblock frame-all grid-all stretch">
 <caption class="title">表 16. 説明</caption>
 <colgroup>
@@ -1795,7 +2035,7 @@ ItemProcessorの処理内で例外発生時に実行される<code>onProcessErro
 </tr>
 <tr>
 <td class="tableblock halign-left valign-top"><p class="tableblock">(4)</p></td>
-<td class="tableblock halign-left valign-top"><p class="tableblock"><code>&lt;batch:chunk&gt;</code>の<code>skip-policy</code>属性に(1)で定義したBeanを設定する。</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><code>StepBuilderのskipPolicyメソッド/&lt;batch:chunk&gt;のskip-policy属性</code>に(1)で定義したBeanを設定する。</p></td>
 </tr>
 </tbody>
 </table>
@@ -1819,7 +2059,7 @@ ItemProcessorの処理内で例外発生時に実行される<code>onProcessErro
 <div class="title">ItemProcessorにおける例外ハンドリンクの制約</div>
 <div class="paragraph">
 <p><a href="#Ch06_ExceptionHandling_Appendix_SkippableExceptionClasses">&lt;skippable-exception-classes&gt;を使わない理由について</a>にあるように、
-ItemProcessorでは、<code>&lt;batch:skippable-exception-classes&gt;</code>を利用したスキップは禁止している。
+ItemProcessorでは、<code>skipメソッド/&lt;batch:skippable-exception-classes&gt;</code>を利用したスキップは禁止している。
 そのため、<a href="#Ch06_ExceptionHandling_HowToUse_StepExceptionHandling_Chunk_ItemProcessor">コーディングポイント(ItemProcessor編)</a>で説明している
 「<a href="Ch04_Listener.html#Ch04_Listener_Overview_Types_ItemProcessListener">ItemProcessListener</a>インタフェースを使用する方法」を応用したスキップはできない。</p>
 </div>
@@ -2064,8 +2304,69 @@ ItemProcessorでは、<code>&lt;batch:skippable-exception-classes&gt;</code>を�
 }</code></pre>
 </div>
 </div>
+<div class="tabbox">
+  <input type="radio" name="tabgroup060205" class="JavaConfigTab" id="tabgroup060205_1" checked><label for="tabgroup060205_1" class="tab">JavaConfig</label>
+  <input type="radio" name="tabgroup060205" class="XMLConfigTab" id="tabgroup060205_2"><label for="tabgroup060205_2" class="tab">XMLConfig</label>
+  <div class="tabcontent" name="JavaConfigContent">
 <div class="listingblock">
-<div class="title">Bean定義</div>
+<div class="content">
+<pre class="CodeRay highlight"><code data-lang="java"><span class="annotation">@Bean</span>
+<span class="annotation">@StepScope</span>
+<span class="directive">public</span> RetryableAmountCheckProcessor amountCheckProcessor(
+        <span class="annotation">@Value</span>(<span class="string"><span class="delimiter">&quot;</span><span class="content">#{jobParameters['adjust-times']}</span><span class="delimiter">&quot;</span></span>) <span class="type">int</span> adjustTimes,
+        SimpleRetryPolicy retryPolicy) {
+    RetryableAmountCheckProcessor processor = <span class="keyword">new</span> RetryableAmountCheckProcessor();
+    processor.setAmountLimit(<span class="predefined-type">BigDecimal</span>.valueOf(<span class="integer">10000</span>));
+    processor.setAdjustTimes(adjustTimes);
+    processor.setRetryPolicy(retryPolicy); <span class="comment">// (5)</span>
+    <span class="keyword">return</span> processor;
+}
+
+<span class="comment">// (6)</span>
+<span class="annotation">@Bean</span>
+<span class="directive">public</span> SimpleRetryPolicy retryPolicy(
+        <span class="predefined-type">Map</span>&lt;<span class="predefined-type">Class</span>&lt;? <span class="directive">extends</span> <span class="predefined-type">Throwable</span>&gt;, <span class="predefined-type">Boolean</span>&gt; exceptionMap) {
+    <span class="keyword">return</span> <span class="keyword">new</span> SimpleRetryPolicy(<span class="integer">3</span>, exceptionMap); <span class="comment">// (7) (8)</span>
+}
+
+<span class="comment">// (9)</span>
+<span class="annotation">@Bean</span>
+<span class="directive">public</span> <span class="predefined-type">Map</span>&lt;<span class="predefined-type">Class</span>&lt;? <span class="directive">extends</span> <span class="predefined-type">Throwable</span>&gt;, <span class="predefined-type">Boolean</span>&gt; exceptionMap() {
+    <span class="predefined-type">Map</span>&lt;<span class="predefined-type">Class</span>&lt;? <span class="directive">extends</span> <span class="predefined-type">Throwable</span>&gt;, <span class="predefined-type">Boolean</span>&gt; exceptionMap = <span class="keyword">new</span> <span class="predefined-type">HashMap</span>&lt;&gt;();
+    exceptionMap.put(<span class="exception">UnsupportedOperationException</span>.class, <span class="predefined-constant">true</span>);
+    <span class="keyword">return</span> exceptionMap;
+}
+
+<span class="annotation">@Bean</span>
+<span class="directive">public</span> Step step01(JobRepository jobRepository,
+                   <span class="annotation">@Qualifier</span>(<span class="string"><span class="delimiter">&quot;</span><span class="content">jobTransactionManager</span><span class="delimiter">&quot;</span></span>) PlatformTransactionManager transactionManager,
+                   <span class="annotation">@Qualifier</span>(<span class="string"><span class="delimiter">&quot;</span><span class="content">detailCSVReader</span><span class="delimiter">&quot;</span></span>) ItemReader&lt;SalesPerformanceDetail&gt; reader,
+                   <span class="annotation">@Qualifier</span>(<span class="string"><span class="delimiter">&quot;</span><span class="content">amountCheckProcessor</span><span class="delimiter">&quot;</span></span>) ItemProcessor&lt;SalesPerformanceDetail, SalesPerformanceDetail&gt; processor,
+                   <span class="annotation">@Qualifier</span>(<span class="string"><span class="delimiter">&quot;</span><span class="content">detailWriter</span><span class="delimiter">&quot;</span></span>) ItemWriter&lt;SalesPerformanceDetail&gt; writer) {
+    <span class="keyword">return</span> <span class="keyword">new</span> StepBuilder(<span class="string"><span class="delimiter">&quot;</span><span class="content">jobSalesPerfWithRetryPolicy.step01</span><span class="delimiter">&quot;</span></span>,
+            jobRepository)
+            .&lt;SalesPerformanceDetail, SalesPerformanceDetail&gt; chunk(<span class="integer">10</span>,
+                    transactionManager)
+            .reader(reader)
+            .processor(processor)
+            .writer(writer)
+            .build();
+}
+
+<span class="annotation">@Bean</span>
+<span class="directive">public</span> Job jobSalesPerfWithRetryPolicy(JobRepository jobRepository,
+                                          Step step01,
+                                          JobExecutionLoggingListener listener) {
+    <span class="keyword">return</span> <span class="keyword">new</span> JobBuilder(<span class="string"><span class="delimiter">&quot;</span><span class="content">jobSalesPerfWithRetryPolicy</span><span class="delimiter">&quot;</span></span>, jobRepository)
+            .start(step01)
+            .listener(listener)
+            .build();
+}</code></pre>
+</div>
+</div>
+  </div>
+  <div class="tabcontent" name="XMLConfigContent">
+<div class="listingblock">
 <div class="content">
 <pre class="CodeRay highlight"><code data-lang="xml"><span class="comment">&lt;!-- omitted --&gt;</span>
 
@@ -2094,6 +2395,8 @@ ItemProcessorでは、<code>&lt;batch:skippable-exception-classes&gt;</code>を�
     <span class="tag">&lt;/batch:step&gt;</span>
 <span class="tag">&lt;/batch:job&gt;</span></code></pre>
 </div>
+</div>
+  </div>
 </div>
 <table class="tableblock frame-all grid-all stretch">
 <caption class="title">表 19. 説明</caption>
@@ -2160,8 +2463,47 @@ ItemProcessorでは、<code>&lt;batch:skippable-exception-classes&gt;</code>を�
 <div class="paragraph">
 <p><a href="#Ch06_ExceptionHandling_HowToUse_ContinuationPropriety_Skip_Chunk_LimitCheckingItemSkipPolicy">LimitCheckingItemSkipPolicy</a>をもとに、スキップの実装例を示す。</p>
 </div>
+<div class="tabbox">
+  <input type="radio" name="tabgroup060206" class="JavaConfigTab" id="tabgroup060206_1" checked><label for="tabgroup060206_1" class="tab">JavaConfig</label>
+  <input type="radio" name="tabgroup060206" class="XMLConfigTab" id="tabgroup060206_2"><label for="tabgroup060206_2" class="tab">XMLConfig</label>
+  <div class="tabcontent" name="JavaConfigContent">
 <div class="listingblock">
-<div class="title">Bean定義</div>
+<div class="content">
+<pre class="CodeRay highlight"><code data-lang="java"><span class="annotation">@Bean</span>
+<span class="directive">public</span> Step step01(JobRepository jobRepository,
+                   <span class="annotation">@Qualifier</span>(<span class="string"><span class="delimiter">&quot;</span><span class="content">jobTransactionManager</span><span class="delimiter">&quot;</span></span>) PlatformTransactionManager transactionManager,
+                   <span class="annotation">@Qualifier</span>(<span class="string"><span class="delimiter">&quot;</span><span class="content">detailCSVReader</span><span class="delimiter">&quot;</span></span>) ItemReader&lt;SalesPerformanceDetail&gt; reader,
+                   <span class="annotation">@Qualifier</span>(<span class="string"><span class="delimiter">&quot;</span><span class="content">amountCheckProcessor</span><span class="delimiter">&quot;</span></span>) ItemProcessor&lt;SalesPerformanceDetail, SalesPerformanceDetail&gt; processor,
+                   <span class="annotation">@Qualifier</span>(<span class="string"><span class="delimiter">&quot;</span><span class="content">detailWriter</span><span class="delimiter">&quot;</span></span>) ItemWriter&lt;SalesPerformanceDetail&gt; writer,
+                   SkipLoggingListener listener) {
+    <span class="keyword">return</span> <span class="keyword">new</span> StepBuilder(<span class="string"><span class="delimiter">&quot;</span><span class="content">jobSalesPerfAtValidSkipReadError.step01</span><span class="delimiter">&quot;</span></span>,
+            jobRepository)
+            .&lt;SalesPerformanceDetail, SalesPerformanceDetail&gt; chunk(<span class="integer">10</span>,
+                    transactionManager)
+            .reader(reader)
+            .processor(processor)
+            .writer(writer)
+            .faultTolerant()
+            .skipLimit(<span class="integer">2</span>)
+            .skip(ValidationException.class) <span class="comment">// (1)</span>
+            .listener(listener)
+            .build();
+}
+
+<span class="annotation">@Bean</span>
+<span class="directive">public</span> Job jobSalesPerfAtValidSkipReadError(JobRepository jobRepository,
+                                            Step step01,
+                                            JobExecutionLoggingListener listener) {
+    <span class="keyword">return</span> <span class="keyword">new</span> JobBuilder(<span class="string"><span class="delimiter">&quot;</span><span class="content">jobSalesPerfAtValidSkipReadError</span><span class="delimiter">&quot;</span></span>, jobRepository)
+            .start(step01)
+            .listener(listener)
+            .build();
+}</code></pre>
+</div>
+</div>
+  </div>
+  <div class="tabcontent" name="XMLConfigContent">
+<div class="listingblock">
 <div class="content">
 <pre class="CodeRay highlight"><code data-lang="xml"><span class="tag">&lt;batch:job</span> <span class="attribute-name">id</span>=<span class="string"><span class="delimiter">&quot;</span><span class="content">jobSalesPerfAtValidSkipReadError</span><span class="delimiter">&quot;</span></span> <span class="attribute-name">job-repository</span>=<span class="string"><span class="delimiter">&quot;</span><span class="content">jobRepository</span><span class="delimiter">&quot;</span></span><span class="tag">&gt;</span>
     <span class="tag">&lt;batch:step</span> <span class="attribute-name">id</span>=<span class="string"><span class="delimiter">&quot;</span><span class="content">jobSalesPerfAtValidSkipReadError.step01</span><span class="delimiter">&quot;</span></span><span class="tag">&gt;</span>
@@ -2179,6 +2521,8 @@ ItemProcessorでは、<code>&lt;batch:skippable-exception-classes&gt;</code>を�
     <span class="tag">&lt;/batch:step&gt;</span>
 <span class="tag">&lt;/batch:job&gt;</span></code></pre>
 </div>
+</div>
+  </div>
 </div>
 <table class="tableblock frame-all grid-all stretch">
 <caption class="title">表 20. 説明</caption>
@@ -2202,8 +2546,55 @@ ItemProcessorでは、<code>&lt;batch:skippable-exception-classes&gt;</code>を�
 <div class="paragraph">
 <p><a href="#Ch06_ExceptionHandling_HowToUse_ContinuationPropriety_Retry">リトライ</a>をもとに、リトライの実装例を示す。</p>
 </div>
+<div class="tabbox">
+  <input type="radio" name="tabgroup060207" class="JavaConfigTab" id="tabgroup060207_1" checked><label for="tabgroup060207_1" class="tab">JavaConfig</label>
+  <input type="radio" name="tabgroup060207" class="XMLConfigTab" id="tabgroup060207_2"><label for="tabgroup060207_2" class="tab">XMLConfig</label>
+  <div class="tabcontent" name="JavaConfigContent">
 <div class="listingblock">
-<div class="title">Bean定義</div>
+<div class="content">
+<pre class="CodeRay highlight"><code data-lang="java"><span class="annotation">@Bean</span>
+<span class="directive">public</span> SimpleRetryPolicy retryPolicy(
+        <span class="predefined-type">Map</span>&lt;<span class="predefined-type">Class</span>&lt;? <span class="directive">extends</span> <span class="predefined-type">Throwable</span>&gt;, <span class="predefined-type">Boolean</span>&gt; exceptionMap) {
+    <span class="keyword">return</span> <span class="keyword">new</span> SimpleRetryPolicy(<span class="integer">3</span>, exceptionMap);
+}
+
+<span class="annotation">@Bean</span>
+<span class="directive">public</span> <span class="predefined-type">Map</span>&lt;<span class="predefined-type">Class</span>&lt;? <span class="directive">extends</span> <span class="predefined-type">Throwable</span>&gt;, <span class="predefined-type">Boolean</span>&gt; exceptionMap() {
+    <span class="predefined-type">Map</span>&lt;<span class="predefined-type">Class</span>&lt;? <span class="directive">extends</span> <span class="predefined-type">Throwable</span>&gt;, <span class="predefined-type">Boolean</span>&gt; exceptionMap = <span class="keyword">new</span> <span class="predefined-type">HashMap</span>&lt;&gt;();
+    exceptionMap.put(<span class="exception">UnsupportedOperationException</span>.class, <span class="predefined-constant">true</span>); <span class="comment">// (1)</span>
+    <span class="keyword">return</span> exceptionMap;
+}
+
+<span class="annotation">@Bean</span>
+<span class="directive">public</span> Step step01(JobRepository jobRepository,
+                   <span class="annotation">@Qualifier</span>(<span class="string"><span class="delimiter">&quot;</span><span class="content">jobTransactionManager</span><span class="delimiter">&quot;</span></span>) PlatformTransactionManager transactionManager,
+                   <span class="annotation">@Qualifier</span>(<span class="string"><span class="delimiter">&quot;</span><span class="content">detailCSVReader</span><span class="delimiter">&quot;</span></span>) ItemReader&lt;SalesPerformanceDetail&gt; reader,
+                   <span class="annotation">@Qualifier</span>(<span class="string"><span class="delimiter">&quot;</span><span class="content">amountCheckProcessor</span><span class="delimiter">&quot;</span></span>) ItemProcessor&lt;SalesPerformanceDetail, SalesPerformanceDetail&gt; processor,
+                   <span class="annotation">@Qualifier</span>(<span class="string"><span class="delimiter">&quot;</span><span class="content">detailWriter</span><span class="delimiter">&quot;</span></span>) ItemWriter&lt;SalesPerformanceDetail&gt; writer) {
+    <span class="keyword">return</span> <span class="keyword">new</span> StepBuilder(<span class="string"><span class="delimiter">&quot;</span><span class="content">jobSalesPerfWithRetryPolicy.step01</span><span class="delimiter">&quot;</span></span>,
+            jobRepository)
+            .&lt;SalesPerformanceDetail, SalesPerformanceDetail&gt; chunk(<span class="integer">10</span>,
+                    transactionManager)
+            .reader(reader)
+            .processor(processor)
+            .writer(writer)
+            .build();
+}
+
+<span class="annotation">@Bean</span>
+<span class="directive">public</span> Job jobSalesPerfWithRetryPolicy(JobRepository jobRepository,
+                                          Step step01,
+                                          JobExecutionLoggingListener listener) {
+    <span class="keyword">return</span> <span class="keyword">new</span> JobBuilder(<span class="string"><span class="delimiter">&quot;</span><span class="content">jobSalesPerfWithRetryPolicy</span><span class="delimiter">&quot;</span></span>, jobRepository)
+            .start(step01)
+            .listener(listener)
+            .build();
+}</code></pre>
+</div>
+</div>
+  </div>
+  <div class="tabcontent" name="XMLConfigContent">
+<div class="listingblock">
 <div class="content">
 <pre class="CodeRay highlight"><code data-lang="xml"><span class="comment">&lt;!-- omitted --&gt;</span>
 
@@ -2226,6 +2617,8 @@ ItemProcessorでは、<code>&lt;batch:skippable-exception-classes&gt;</code>を�
     <span class="tag">&lt;/batch:step&gt;</span>
 <span class="tag">&lt;/batch:job&gt;</span></code></pre>
 </div>
+</div>
+  </div>
 </div>
 <table class="tableblock frame-all grid-all stretch">
 <caption class="title">表 21. 説明</caption>
@@ -2259,10 +2652,47 @@ ItemProcessorでは、<code>&lt;batch:skippable-exception-classes&gt;</code>を�
 <p>Spring Batchでは、ジョブ全体を対象としてスキップする例外を指定し、例外が発生したアイテムへの処理をスキップして処理を継続させる機能を提供している。</p>
 </div>
 <div class="paragraph">
-<p>その機能は、以下のように<code>&lt;chunk&gt;</code>要素配下に<code>&lt;skippable-exception-classes&gt;</code>要素を設定し、スキップ対象の例外を指定する形で実装する。</p>
+<p>その機能は、以下のように<code>StepBuilderのskipメソッド/&lt;chunk&gt;要素配下に&lt;skippable-exception-classes&gt;要素</code>を設定し、スキップ対象の例外を指定する形で実装する。</p>
 </div>
+<div class="tabbox">
+  <input type="radio" name="tabgroup060208" class="JavaConfigTab" id="tabgroup060208_1" checked><label for="tabgroup060208_1" class="tab">JavaConfig</label>
+  <input type="radio" name="tabgroup060208" class="XMLConfigTab" id="tabgroup060208_2"><label for="tabgroup060208_2" class="tab">XMLConfig</label>
+  <div class="tabcontent" name="JavaConfigContent">
 <div class="listingblock">
-<div class="title">&lt;skippable-exception-classes&gt;の使用例</div>
+<div class="content">
+<pre class="CodeRay highlight"><code data-lang="java"><span class="annotation">@Bean</span>
+<span class="directive">public</span> Step retryStep(JobRepository jobRepository,
+                   <span class="annotation">@Qualifier</span>(<span class="string"><span class="delimiter">&quot;</span><span class="content">jobTransactionManager</span><span class="delimiter">&quot;</span></span>) PlatformTransactionManager transactionManager,
+                   ItemReader itemReader,
+                   ItemProcessor itemProcessor,
+                   ItemWriter itemWriter) {
+    <span class="keyword">return</span> <span class="keyword">new</span> StepBuilder(<span class="string"><span class="delimiter">&quot;</span><span class="content">flowJob.retryStep</span><span class="delimiter">&quot;</span></span>,
+            jobRepository)
+            .chunk(<span class="integer">20</span>, transactionManager)
+            .reader(itemReader)
+            .processor(itemProcessor)
+            .writer(itemWriter)
+            .faultTolerant()
+            .skipLimit(<span class="integer">10</span>)
+            .skip(<span class="exception">Exception</span>.class)
+            .noSkip(<span class="exception">NullPointerException</span>.class)
+            .build();
+}
+
+<span class="annotation">@Bean</span>
+<span class="directive">public</span> Job flowJob(JobRepository jobRepository,
+                                            Step retryStep,
+                                            JobExecutionLoggingListener listener) {
+    <span class="keyword">return</span> <span class="keyword">new</span> JobBuilder(<span class="string"><span class="delimiter">&quot;</span><span class="content">flowJob</span><span class="delimiter">&quot;</span></span>, jobRepository)
+            .start(retryStep)
+            .listener(listener)
+            .build();
+}</code></pre>
+</div>
+</div>
+  </div>
+  <div class="tabcontent" name="XMLConfigContent">
+<div class="listingblock">
 <div class="content">
 <pre class="CodeRay highlight"><code data-lang="xml"><span class="tag">&lt;job</span> <span class="attribute-name">id</span>=<span class="string"><span class="delimiter">&quot;</span><span class="content">flowJob</span><span class="delimiter">&quot;</span></span><span class="tag">&gt;</span>
     <span class="tag">&lt;step</span> <span class="attribute-name">id</span>=<span class="string"><span class="delimiter">&quot;</span><span class="content">retryStep</span><span class="delimiter">&quot;</span></span><span class="tag">&gt;</span>
@@ -2281,6 +2711,8 @@ ItemProcessorでは、<code>&lt;batch:skippable-exception-classes&gt;</code>を�
 <span class="tag">&lt;/job&gt;</span></code></pre>
 </div>
 </div>
+  </div>
+</div>
 <div class="paragraph">
 <p>この機能を利用することによって、入力チェックエラーが発生したレコードをスキップして後続データの処理を継続することは可能だが、
 TERASOLUNA Batch 5.xでは以下の理由により使用しない。</p>
@@ -2288,7 +2720,7 @@ TERASOLUNA Batch 5.xでは以下の理由により使用しない。</p>
 <div class="ulist">
 <ul>
 <li>
-<p><code>&lt;skippable-exception-classes&gt;</code>要素を利用して例外をスキップした場合、
+<p><code>skipメソッド/&lt;skippable-exception-classes&gt;要素</code>を利用して例外をスキップした場合、
 1つのチャンクに含まれるデータ件数が変動するため、性能劣化を引き起こす可能性がある。</p>
 <div class="ulist">
 <ul>
@@ -2307,7 +2739,7 @@ TERASOLUNA Batch 5.xでは以下の理由により使用しない。</p>
 <i class="fa icon-important" title="Important"></i>
 </td>
 <td class="content">
-<div class="title">&lt;skippable-exception-classes&gt;を定義せずにSkipPolicyを利用することは必ず避ける</div>
+<div class="title">skip/&lt;skippable-exception-classes&gt;を定義せずにSkipPolicyを利用することは必ず避ける</div>
 <div class="paragraph">
 <p>暗黙的にすべての例外が登録された状況になり、性能劣化の可能性が飛躍的に高まる。</p>
 </div>
@@ -2382,7 +2814,7 @@ TERASOLUNA Batch 5.xでは以下の理由により使用しない。</p>
 また、二重処理すること自体が問題化する可能性を秘めており、設計製造に追加の考慮事項を生む。</p>
 </div>
 <div class="paragraph">
-<p>よって、<code>&lt;skippable-exception-classes&gt;</code>を使用することは推奨しない。
+<p>よって、<code>skipメソッド/&lt;skippable-exception-classes&gt;</code>を使用することは推奨しない。
 <code>ItemReader</code>でエラーになったデータをスキップすることはこれらの問題を引き起こさないが、
 事故を未然に防ぐためには基本的に避けるようにし、どうしても必要な場合に限定的に適用すること。</p>
 </div>
@@ -2395,7 +2827,7 @@ TERASOLUNA Batch 5.xでは以下の理由により使用しない。</p>
 
   <div class="common-bg">
     <div class="information">
-      TERASOLUNA Batch Framework for Java (5.x) Development Guideline - version 5.5.0.RELEASE, 2023-3-31, commit-id:f6da76a
+      TERASOLUNA Batch Framework for Java (5.x) Development Guideline - version 5.6.0.RELEASE, 2023-3-31, commit-id:f5cbeda
     </div>
     <div class="index">
       <a href="index.html">&gt; INDEX</a>
@@ -2404,7 +2836,7 @@ TERASOLUNA Batch 5.xでは以下の理由により使用しない。</p>
 
   <div class="footer-bg">
     <div class="copyright">
-      &copy; Copyright 2017 NTT DATA Corporation. &copy; Copyright 2017 NTT Corporation.
+      &copy; Copyright 2017 NTT DATA Group Corporation. &copy; Copyright 2017 NTT Corporation.
     </div>
   </div>
 

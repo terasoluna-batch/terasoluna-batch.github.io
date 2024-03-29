@@ -14,7 +14,7 @@
 
 <div class="common-bg">
   <div class="information">
-    TERASOLUNA Batch Framework for Java (5.x) Development Guideline - version 5.5.0.RELEASE, 2023-3-31, commit-id:f6da76a
+    TERASOLUNA Batch Framework for Java (5.x) Development Guideline - version 5.6.0.RELEASE, 2023-3-31, commit-id:f5cbeda
   </div>
   <div class="index">
     <a href="index.html">&gt; INDEX</a>
@@ -265,8 +265,123 @@ ItemReader/ItemProcessor/ItemWriterを自作する場合でもスレッドセー
 <div class="paragraph">
 <p>Parallel Stepの概要図を例にしたParallel Stepの定義方法を以下に示す。</p>
 </div>
+<div class="tabbox">
+  <input type="radio" name="tabgroup080201" class="JavaConfigTab" id="tabgroup080201_1" checked><label for="tabgroup080201_1" class="tab">JavaConfig</label>
+  <input type="radio" name="tabgroup080201" class="XMLConfigTab" id="tabgroup080201_2"><label for="tabgroup080201_2" class="tab">XMLConfig</label>
+  <div class="tabcontent" name="JavaConfigContent">
 <div class="listingblock">
-<div class="title">Parallel Stepのジョブ定義</div>
+<div class="content">
+<pre class="CodeRay highlight"><code data-lang="java"><span class="comment">// (1)</span>
+<span class="annotation">@Bean</span>
+<span class="directive">public</span> TaskExecutor parallelTaskExecutor() {
+    ThreadPoolTaskExecutor executor = <span class="keyword">new</span> ThreadPoolTaskExecutor();
+    executor.setCorePoolSize(<span class="integer">10</span>);
+    executor.setQueueCapacity(<span class="integer">200</span>);
+    <span class="keyword">return</span> executor;
+}
+
+<span class="comment">// (4)</span>
+<span class="annotation">@Bean</span>
+<span class="directive">public</span> Step stepChunkDb(JobRepository jobRepository,
+                  ItemReader fileReader,
+                  ItemWriter databaseWriter,
+                  <span class="annotation">@Qualifier</span>(<span class="string"><span class="delimiter">&quot;</span><span class="content">jobTransactionManager</span><span class="delimiter">&quot;</span></span>) PlatformTransactionManager transactionManager) {
+    <span class="keyword">return</span> <span class="keyword">new</span> StepBuilder(<span class="string"><span class="delimiter">&quot;</span><span class="content">parallelStepJob.step.chunk.db</span><span class="delimiter">&quot;</span></span>, jobRepository)
+            .chunk(<span class="integer">100</span>, transactionManager)
+            .reader(fileReader)
+            .writer(databaseWriter)
+            .build();
+}
+
+<span class="comment">// (5)</span>
+<span class="annotation">@Bean</span>
+<span class="directive">public</span> Step stepTaskletChunk(JobRepository jobRepository,
+                  Tasklet chunkTransactionTasklet,
+                  <span class="annotation">@Qualifier</span>(<span class="string"><span class="delimiter">&quot;</span><span class="content">jobTransactionManager</span><span class="delimiter">&quot;</span></span>) PlatformTransactionManager transactionManager) {
+    <span class="keyword">return</span> <span class="keyword">new</span> StepBuilder(<span class="string"><span class="delimiter">&quot;</span><span class="content">parallelStepJob.step.tasklet.chunk</span><span class="delimiter">&quot;</span></span>, jobRepository)
+            .tasklet(chunkTransactionTasklet, transactionManager)
+            .build();
+}
+
+<span class="comment">// (6)</span>
+<span class="annotation">@Bean</span>
+<span class="directive">public</span> Step stepTaskletSingle(JobRepository jobRepository,
+                  Tasklet singleTransactionTasklet,
+                  <span class="annotation">@Qualifier</span>(<span class="string"><span class="delimiter">&quot;</span><span class="content">jobTransactionManager</span><span class="delimiter">&quot;</span></span>) PlatformTransactionManager transactionManager) {
+    <span class="keyword">return</span> <span class="keyword">new</span> StepBuilder(<span class="string"><span class="delimiter">&quot;</span><span class="content">parallelStepJob.step.tasklet.single</span><span class="delimiter">&quot;</span></span>, jobRepository)
+            .tasklet(singleTransactionTasklet, transactionManager)
+            .build();
+}
+
+<span class="comment">// (7)</span>
+<span class="annotation">@Bean</span>
+<span class="directive">public</span> Step stepChunkDb(JobRepository jobRepository,
+                  ItemReader databaseReader,
+                  ItemWriter fileWriter,
+                  <span class="annotation">@Qualifier</span>(<span class="string"><span class="delimiter">&quot;</span><span class="content">jobTransactionManager</span><span class="delimiter">&quot;</span></span>) PlatformTransactionManager transactionManager) {
+    <span class="keyword">return</span> <span class="keyword">new</span> StepBuilder(<span class="string"><span class="delimiter">&quot;</span><span class="content">parallelStepJob.step.chunk.file</span><span class="delimiter">&quot;</span></span>, jobRepository)
+            .chunk(<span class="integer">200</span>, transactionManager)
+            .reader(databaseReader)
+            .writer(fileWriter)
+            .build();
+}
+
+<span class="comment">// (3)</span>
+<span class="annotation">@Bean</span>
+<span class="directive">public</span> Flow flow1(Step stepChunkDb) {
+    <span class="keyword">return</span> <span class="keyword">new</span> FlowBuilder&lt;SimpleFlow&gt;(<span class="string"><span class="delimiter">&quot;</span><span class="content">flow1</span><span class="delimiter">&quot;</span></span>)
+            .start(stepChunkDb)
+            .build();
+}
+
+<span class="comment">// (3)</span>
+<span class="annotation">@Bean</span>
+<span class="directive">public</span> Flow flow2(Step stepTaskletChunk) {
+    <span class="keyword">return</span> <span class="keyword">new</span> FlowBuilder&lt;SimpleFlow&gt;(<span class="string"><span class="delimiter">&quot;</span><span class="content">flow2</span><span class="delimiter">&quot;</span></span>)
+            .start(stepTaskletChunk)
+            .build();
+}
+
+<span class="comment">// (3)</span>
+<span class="annotation">@Bean</span>
+<span class="directive">public</span> Flow flow3(Step stepTaskletSingle) {
+    <span class="keyword">return</span> <span class="keyword">new</span> FlowBuilder&lt;SimpleFlow&gt;(<span class="string"><span class="delimiter">&quot;</span><span class="content">flow3</span><span class="delimiter">&quot;</span></span>)
+            .start(stepTaskletSingle)
+            .build();
+}
+
+<span class="comment">// (3)</span>
+<span class="annotation">@Bean</span>
+<span class="directive">public</span> Flow flow4(Step stepChunkDb) {
+    <span class="keyword">return</span> <span class="keyword">new</span> FlowBuilder&lt;SimpleFlow&gt;(<span class="string"><span class="delimiter">&quot;</span><span class="content">flow4</span><span class="delimiter">&quot;</span></span>)
+            .start(stepChunkDb)
+            .build();
+}
+
+<span class="comment">// (2)</span>
+<span class="annotation">@Bean</span>
+<span class="directive">public</span> Flow splitFlow(
+        <span class="annotation">@Qualifier</span>(<span class="string"><span class="delimiter">&quot;</span><span class="content">parallelTaskExecutor</span><span class="delimiter">&quot;</span></span>) TaskExecutor taskExecutor,
+        Flow flow1, Flow flow2, Flow flow3, Flow flow4) {
+    <span class="keyword">return</span> <span class="keyword">new</span> FlowBuilder&lt;SimpleFlow&gt;(<span class="string"><span class="delimiter">&quot;</span><span class="content">parallelStepJob.split</span><span class="delimiter">&quot;</span></span>)
+            .split(taskExecutor)
+            .add(flow1, flow2, flow3, flow4)
+            .build();
+}
+
+<span class="annotation">@Bean</span>
+<span class="directive">public</span> Job parallelSummarizeJob(JobRepository jobRepository,
+                                Flow splitFlow) {
+    <span class="keyword">return</span> <span class="keyword">new</span> JobBuilder(<span class="string"><span class="delimiter">&quot;</span><span class="content">parallelStepJob</span><span class="delimiter">&quot;</span></span>, jobRepository)
+            .start(splitFlow)
+            .end()
+            .build();
+}</code></pre>
+</div>
+</div>
+  </div>
+  <div class="tabcontent" name="XMLConfigContent">
+<div class="listingblock">
 <div class="content">
 <pre class="CodeRay highlight"><code data-lang="xml"><span class="comment">&lt;!-- Task Executor --&gt;</span>
 <span class="comment">&lt;!-- (1) --&gt;</span>
@@ -316,6 +431,8 @@ ItemReader/ItemProcessor/ItemWriterを自作する場合でもスレッドセー
 <span class="tag">&lt;/batch:job&gt;</span></code></pre>
 </div>
 </div>
+  </div>
+</div>
 <table class="tableblock frame-all grid-all stretch">
 <caption class="title">表 2. 説明</caption>
 <colgroup>
@@ -335,12 +452,12 @@ ItemReader/ItemProcessor/ItemWriterを自作する場合でもスレッドセー
 </tr>
 <tr>
 <td class="tableblock halign-left valign-top"><p class="tableblock">(2)</p></td>
-<td class="tableblock halign-left valign-top"><p class="tableblock"><code>&lt;batch:split&gt;</code>要素内に並列実行するステップを<code>&lt;batch:flow&gt;</code>要素を使用した形式で定義をする。<br>
-<code>task-executor</code>属性に(1)で定義したスレッドプールのBeanを設定する</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><code>FlowBuilderのaddメソッドの引数flows/&lt;batch:split&gt;要素内に</code>並列実行するステップを<code>Bean定義したFlowクラス/&lt;batch:flow&gt;要素</code>を使用した形式で定義をする。<br>
+<code>splitメソッドの引数executor/task-executor属性</code>に(1)で定義したスレッドプールのBeanを設定する</p></td>
 </tr>
 <tr>
 <td class="tableblock halign-left valign-top"><p class="tableblock">(3)</p></td>
-<td class="tableblock halign-left valign-top"><p class="tableblock"><code>&lt;batch:flow&gt;</code>ごとに並列位処理したい<code>&lt;batch:step&gt;</code>を定義する。</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><code>Bean定義したFlow/&lt;batch:flow&gt;</code>ごとに並列位処理したい<code>Bean定義したStep/&lt;batch:step&gt;</code>を定義する。</p></td>
 </tr>
 <tr>
 <td class="tableblock halign-left valign-top"><p class="tableblock">(4)</p></td>
@@ -399,8 +516,95 @@ ItemReader/ItemProcessor/ItemWriterを自作する場合でもスレッドセー
 <div class="paragraph">
 <p>また、Parallel Stepの前後に共通処理のステップを定義することも可能である。</p>
 </div>
+<div class="tabbox">
+  <input type="radio" name="tabgroup080202" class="JavaConfigTab" id="tabgroup080202_1" checked><label for="tabgroup080202_1" class="tab">JavaConfig</label>
+  <input type="radio" name="tabgroup080202" class="XMLConfigTab" id="tabgroup080202_2"><label for="tabgroup080202_2" class="tab">XMLConfig</label>
+  <div class="tabcontent" name="JavaConfigContent">
 <div class="listingblock">
-<div class="title">共通処理ステップを含むParallel Stepの例</div>
+<div class="content">
+<pre class="CodeRay highlight"><code data-lang="java"><span class="annotation">@Bean</span>
+<span class="directive">public</span> Step stepPreprocess(JobRepository jobRepository,
+                        StepExecutionLoggingListener listener,
+                        DeleteDetailTasklet deleteDetailTasklet,
+                        <span class="annotation">@Qualifier</span>(<span class="string"><span class="delimiter">&quot;</span><span class="content">jobTransactionManager</span><span class="delimiter">&quot;</span></span>) PlatformTransactionManager transactionManager) {
+    <span class="keyword">return</span> <span class="keyword">new</span> StepBuilder(<span class="string"><span class="delimiter">&quot;</span><span class="content">parallelRegisterJob.step.preprocess</span><span class="delimiter">&quot;</span></span>, jobRepository)
+            .tasklet(deleteDetailTasklet, transactionManager)
+            .listener(listener)
+            .build();
+}
+
+<span class="annotation">@Bean</span>
+<span class="directive">public</span> Step stepPlan(JobRepository jobRepository,
+                  StepExecutionLoggingListener listener,
+                  <span class="annotation">@Qualifier</span>(<span class="string"><span class="delimiter">&quot;</span><span class="content">planReader</span><span class="delimiter">&quot;</span></span>) ItemReader&lt;SalesPlanDetail&gt; reader,
+                  <span class="annotation">@Qualifier</span>(<span class="string"><span class="delimiter">&quot;</span><span class="content">planWriter</span><span class="delimiter">&quot;</span></span>) ItemWriter&lt;SalesPlanDetail&gt; writer,
+                  <span class="annotation">@Qualifier</span>(<span class="string"><span class="delimiter">&quot;</span><span class="content">jobTransactionManager</span><span class="delimiter">&quot;</span></span>) PlatformTransactionManager transactionManager) {
+    <span class="keyword">return</span> <span class="keyword">new</span> StepBuilder(<span class="string"><span class="delimiter">&quot;</span><span class="content">parallelRegisterJob.step.plan</span><span class="delimiter">&quot;</span></span>, jobRepository)
+            .&lt;SalesPlanDetail, SalesPlanDetail&gt; chunk(<span class="integer">1</span>,
+                    transactionManager)
+            .listener(listener)
+            .reader(reader)
+            .writer(writer)
+            .build();
+}
+
+<span class="annotation">@Bean</span>
+<span class="directive">public</span> Step stepPerformance(JobRepository jobRepository,
+                  StepExecutionLoggingListener listener,
+                  <span class="annotation">@Qualifier</span>(<span class="string"><span class="delimiter">&quot;</span><span class="content">performanceReader</span><span class="delimiter">&quot;</span></span>) ItemReader&lt;SalesPerformanceDetail&gt; reader,
+                  <span class="annotation">@Qualifier</span>(<span class="string"><span class="delimiter">&quot;</span><span class="content">performanceWriter</span><span class="delimiter">&quot;</span></span>) ItemWriter&lt;SalesPerformanceDetail&gt; writer,
+                  <span class="annotation">@Qualifier</span>(<span class="string"><span class="delimiter">&quot;</span><span class="content">jobTransactionManager</span><span class="delimiter">&quot;</span></span>) PlatformTransactionManager transactionManager) {
+    <span class="keyword">return</span> <span class="keyword">new</span> StepBuilder(<span class="string"><span class="delimiter">&quot;</span><span class="content">parallelRegisterJob.step.performance</span><span class="delimiter">&quot;</span></span>,
+            jobRepository)
+            .&lt;SalesPerformanceDetail, SalesPerformanceDetail&gt; chunk(<span class="integer">1</span>,
+                    transactionManager)
+            .listener(listener)
+            .reader(reader)
+            .writer(writer)
+            .build();
+}
+
+<span class="annotation">@Bean</span>
+<span class="directive">public</span> Flow flow1(Step stepPlan) {
+    <span class="keyword">return</span> <span class="keyword">new</span> FlowBuilder&lt;SimpleFlow&gt;(<span class="string"><span class="delimiter">&quot;</span><span class="content">flow1</span><span class="delimiter">&quot;</span></span>)
+            .start(stepPlan)
+            .build();
+}
+
+<span class="annotation">@Bean</span>
+<span class="directive">public</span> Flow flow2(Step stepPerformance) {
+    <span class="keyword">return</span> <span class="keyword">new</span> FlowBuilder&lt;SimpleFlow&gt;(<span class="string"><span class="delimiter">&quot;</span><span class="content">flow2</span><span class="delimiter">&quot;</span></span>)
+            .start(stepPerformance)
+            .build();
+}
+
+<span class="comment">// (2)</span>
+<span class="annotation">@Bean</span>
+<span class="directive">public</span> Flow splitFlow(
+        <span class="annotation">@Qualifier</span>(<span class="string"><span class="delimiter">&quot;</span><span class="content">parallelTaskExecutor</span><span class="delimiter">&quot;</span></span>) TaskExecutor taskExecutor,
+        Flow flow1, Flow flow2) {
+    <span class="keyword">return</span> <span class="keyword">new</span> FlowBuilder&lt;SimpleFlow&gt;(<span class="string"><span class="delimiter">&quot;</span><span class="content">parallelRegisterJob.split</span><span class="delimiter">&quot;</span></span>)
+            .split(taskExecutor) <span class="comment">// (1)</span>
+            .add(flow1, flow2)
+            .build();
+}
+
+<span class="annotation">@Bean</span>
+<span class="directive">public</span> Job parallelRegisterJob(JobRepository jobRepository,
+                                Flow splitFlow,
+                                Step stepPreprocess) {
+    <span class="keyword">return</span> <span class="keyword">new</span> JobBuilder(<span class="string"><span class="delimiter">&quot;</span><span class="content">parallelRegisterJob</span><span class="delimiter">&quot;</span></span>, jobRepository)
+            .start(stepPreprocess)
+            .on(<span class="string"><span class="delimiter">&quot;</span><span class="content">*</span><span class="delimiter">&quot;</span></span>)
+            .to(splitFlow)
+            .end()
+            .build();
+}</code></pre>
+</div>
+</div>
+  </div>
+  <div class="tabcontent" name="XMLConfigContent">
+<div class="listingblock">
 <div class="content">
 <pre class="CodeRay highlight"><code data-lang="xml"><span class="tag">&lt;batch:job</span> <span class="attribute-name">id</span>=<span class="string"><span class="delimiter">&quot;</span><span class="content">parallelRegisterJob</span><span class="delimiter">&quot;</span></span> <span class="attribute-name">job-repository</span>=<span class="string"><span class="delimiter">&quot;</span><span class="content">jobRepository</span><span class="delimiter">&quot;</span></span><span class="tag">&gt;</span>
     <span class="comment">&lt;!-- (1) --&gt;</span>
@@ -432,6 +636,8 @@ ItemReader/ItemProcessor/ItemWriterを自作する場合でもスレッドセー
 <span class="tag">&lt;/batch:job&gt;</span></code></pre>
 </div>
 </div>
+  </div>
+</div>
 <table class="tableblock frame-all grid-all stretch">
 <caption class="title">表 3. 説明</caption>
 <colgroup>
@@ -447,13 +653,13 @@ ItemReader/ItemProcessor/ItemWriterを自作する場合でもスレッドセー
 <tbody>
 <tr>
 <td class="tableblock halign-left valign-top"><p class="tableblock">(1)</p></td>
-<td class="tableblock halign-left valign-top"><p class="tableblock">前処理として処理するステップを定義する。<code>next</code>属性に<code>&lt;batch:split&gt;</code>に設定したidを指定する。<br>
-<code>next</code>属性による後続ステップの指定に関する詳細は<a href="Ch08_FlowControll.html#Ch08_FlowControll_HowToUse_SequencialFlow">"シーケンシャルフロー"</a>を参照。</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">前処理として処理するステップを定義する。<code>FlowBuilderクラスのsplitメソッドの引数executor/next属性</code>に<code>Bean定義したTaskExecutorクラス/&lt;batch:split&gt;</code>に設定したidを指定する。<br>
+<code>addメソッド/next属性</code>による後続ステップの指定に関する詳細は<a href="Ch08_FlowControll.html#Ch08_FlowControll_HowToUse_SequencialFlow">"シーケンシャルフロー"</a>を参照。</p></td>
 </tr>
 <tr>
 <td class="tableblock halign-left valign-top"><p class="tableblock">(2)</p></td>
 <td class="tableblock halign-left valign-top"><p class="tableblock">Parallel Stepを定義する。<br>
-<code>&lt;batch:flow&gt;</code>ごとに並列処理したい<code>&lt;batch:step&gt;</code>を定義する。</p></td>
+<code>Bean定義したFlow/&lt;batch:flow&gt;</code>ごとに並列処理したい<code>Bean定義したStep/&lt;batch:step&gt;</code>を定義する。</p></td>
 </tr>
 </tbody>
 </table>
@@ -639,8 +845,94 @@ ItemReader/ItemProcessor/ItemWriterを自作する場合でもスレッドセー
 }</code></pre>
 </div>
 </div>
+<div class="tabbox">
+  <input type="radio" name="tabgroup080203" class="JavaConfigTab" id="tabgroup080203_1" checked><label for="tabgroup080203_1" class="tab">JavaConfig</label>
+  <input type="radio" name="tabgroup080203" class="XMLConfigTab" id="tabgroup080203_2"><label for="tabgroup080203_2" class="tab">XMLConfig</label>
+  <div class="tabcontent" name="JavaConfigContent">
 <div class="listingblock">
-<div class="title">Bean定義</div>
+<div class="content">
+<pre class="CodeRay highlight"><code data-lang="java"><span class="comment">// (6)</span>
+<span class="annotation">@Bean</span>
+<span class="directive">public</span> TaskExecutor parallelTaskExecutor(
+        <span class="annotation">@Value</span>(<span class="string"><span class="delimiter">&quot;</span><span class="content">${thread.size}</span><span class="delimiter">&quot;</span></span>) <span class="type">int</span> threadSize) {
+    ThreadPoolTaskExecutor executor = <span class="keyword">new</span> ThreadPoolTaskExecutor();
+    executor.setCorePoolSize(threadSize);
+    executor.setQueueCapacity(<span class="integer">10</span>);
+    <span class="keyword">return</span> executor;
+}
+
+<span class="comment">// (7)</span>
+<span class="annotation">@Bean</span>
+<span class="annotation">@StepScope</span>
+<span class="directive">public</span> MyBatisCursorItemReader&lt;SalesPerformanceDetail&gt; reader(
+        <span class="annotation">@Qualifier</span>(<span class="string"><span class="delimiter">&quot;</span><span class="content">jobSqlSessionFactory</span><span class="delimiter">&quot;</span></span>) SqlSessionFactory jobSqlSessionFactory,
+        <span class="annotation">@Value</span>(<span class="string"><span class="delimiter">&quot;</span><span class="content">#{stepExecutionContext['branchId']}</span><span class="delimiter">&quot;</span></span>) <span class="predefined-type">String</span> branchId) { <span class="comment">// (8)</span>
+    <span class="directive">final</span> <span class="predefined-type">Map</span>&lt;<span class="predefined-type">String</span>, <span class="predefined-type">Object</span>&gt; parameterValues = <span class="keyword">new</span> <span class="predefined-type">LinkedHashMap</span>&lt;&gt;();
+    parameterValues.put(<span class="string"><span class="delimiter">&quot;</span><span class="content">branchId</span><span class="delimiter">&quot;</span></span>, branchId);
+    <span class="keyword">return</span> <span class="keyword">new</span> MyBatisCursorItemReaderBuilder&lt;SalesPerformanceDetail&gt;()
+            .sqlSessionFactory(jobSqlSessionFactory)
+            .queryId(
+                    <span class="string"><span class="delimiter">&quot;</span><span class="content">org.terasoluna.batch.functionaltest.app.repository.performance.InvoiceRepository.summarizeInvoice</span><span class="delimiter">&quot;</span></span>)
+            .parameterValues(parameterValues)
+            .build();
+}
+
+<span class="comment">// omitted</span>
+
+<span class="comment">// (12)</span>
+<span class="annotation">@Bean</span>
+<span class="directive">public</span> Step step1(JobRepository jobRepository,
+                  StepExecutionLoggingListener listener,
+                  <span class="annotation">@Qualifier</span>(<span class="string"><span class="delimiter">&quot;</span><span class="content">reader</span><span class="delimiter">&quot;</span></span>) ItemReader&lt;SalesPerformanceDetail&gt; reader,
+                  <span class="annotation">@Qualifier</span>(<span class="string"><span class="delimiter">&quot;</span><span class="content">writer</span><span class="delimiter">&quot;</span></span>) ItemWriter&lt;SalesPerformanceDetail&gt; writer,
+                  <span class="annotation">@Qualifier</span>(<span class="string"><span class="delimiter">&quot;</span><span class="content">jobTransactionManager</span><span class="delimiter">&quot;</span></span>) PlatformTransactionManager transactionManager) {
+    <span class="keyword">return</span> <span class="keyword">new</span> StepBuilder(<span class="string"><span class="delimiter">&quot;</span><span class="content">multipleInvoiceSummarizeJob.worker</span><span class="delimiter">&quot;</span></span>,
+            jobRepository)
+            .&lt;SalesPerformanceDetail, SalesPerformanceDetail&gt; chunk(<span class="integer">1</span>,
+                    transactionManager)
+            .listener(listener)
+            .reader(reader)
+            .writer(writer)
+            .build();
+}
+
+<span class="annotation">@Bean</span>
+<span class="directive">public</span> PartitionHandler partitionHandler(
+        <span class="annotation">@Qualifier</span>(<span class="string"><span class="delimiter">&quot;</span><span class="content">parallelTaskExecutor</span><span class="delimiter">&quot;</span></span>) TaskExecutor taskExecutor,
+        <span class="annotation">@Value</span>(<span class="string"><span class="delimiter">&quot;</span><span class="content">${grid.size}</span><span class="delimiter">&quot;</span></span>) <span class="type">int</span> gridSize, Step step1) {
+    TaskExecutorPartitionHandler handler = <span class="keyword">new</span> TaskExecutorPartitionHandler();
+    handler.setTaskExecutor(taskExecutor);
+    handler.setStep(step1);
+    handler.setGridSize(gridSize); <span class="comment">// (11)</span>
+    <span class="keyword">return</span> handler;
+}
+
+<span class="comment">// (9)</span>
+<span class="annotation">@Bean</span>
+<span class="directive">public</span> Step step1Manager(JobRepository jobRepository,
+                         BranchPartitioner partitioner,
+                         PartitionHandler partitionHandlerandler) {
+    <span class="keyword">return</span> <span class="keyword">new</span> StepBuilder(<span class="string"><span class="delimiter">&quot;</span><span class="content">multipleInvoiceSummarizeJob.manager</span><span class="delimiter">&quot;</span></span>,
+            jobRepository)
+            .partitioner(<span class="string"><span class="delimiter">&quot;</span><span class="content">multipleInvoiceSummarizeJob.worker</span><span class="delimiter">&quot;</span></span>, partitioner) <span class="comment">// (10)</span>
+            .partitionHandler(partitionHandlerandler)
+            .build();
+}
+
+<span class="annotation">@Bean</span>
+<span class="directive">public</span> Job multipleInvoiceSummarizeJob(JobRepository jobRepository,
+                                       JobExecutionLoggingListener listener,
+                                       Step step1Manager) {
+    <span class="keyword">return</span> <span class="keyword">new</span> JobBuilder(<span class="string"><span class="delimiter">&quot;</span><span class="content">multipleInvoiceSummarizeJob</span><span class="delimiter">&quot;</span></span>, jobRepository)
+            .start(step1Manager)
+            .listener(listener)
+            .build();
+}</code></pre>
+</div>
+</div>
+  </div>
+  <div class="tabcontent" name="XMLConfigContent">
+<div class="listingblock">
 <div class="content">
 <pre class="CodeRay highlight"><code data-lang="xml"><span class="comment">&lt;!-- (6) --&gt;</span>
 <span class="tag">&lt;task:executor</span> <span class="attribute-name">id</span>=<span class="string"><span class="delimiter">&quot;</span><span class="content">parallelTaskExecutor</span><span class="delimiter">&quot;</span></span>
@@ -679,6 +971,8 @@ ItemReader/ItemProcessor/ItemWriterを自作する場合でもスレッドセー
     <span class="tag">&lt;/batch:tasklet&gt;</span>
 <span class="tag">&lt;/batch:step&gt;</span></code></pre>
 </div>
+</div>
+  </div>
 </div>
 <table class="tableblock frame-all grid-all stretch">
 <caption class="title">表 5. 説明</caption>
@@ -733,18 +1027,18 @@ Managerステップはメインスレッドで処理される。</p></td>
 <tr>
 <td class="tableblock halign-left valign-top"><p class="tableblock">(10)</p></td>
 <td class="tableblock halign-left valign-top"><p class="tableblock">データの分割条件を生成する処理を定義する。<br>
-<code>partitioner</code>属性には、<code>Partitioner</code>インタフェース実装を設定する。<br>
-<code>step</code>属性には、(12)で定義するWorkerステップのBeanIDを設定する。</p></td>
+<code>StepBuilderのpartitionerメソッドの引数partitioner/partitioner属性</code>には、<code>Partitioner</code>インタフェース実装を設定する。<br>
+<code>partitionerメソッドの引数stepName/step属性</code>には、(12)で定義するWorkerステップのBeanIDを設定する。</p></td>
 </tr>
 <tr>
 <td class="tableblock halign-left valign-top"><p class="tableblock">(11)</p></td>
-<td class="tableblock halign-left valign-top"><p class="tableblock"><code>partitioner</code>では<code>grid-size</code>を使用しないため、<code>grid-size</code>属性には任意の値を設定する。
-<code>task-executor</code>属性に(6)で定義したスレッドプールのBeanIDを設定する。</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><code>partitioner</code>では<code>grid-size</code>を使用しないため、<code>TaskExecutorPartitionHandlerのsetGridSizeメソッドの引数gridSize/grid-size属性</code>には任意の値を設定する。
+<code>setTaskExecutorメソッドの引数taskExecutor/task-executor</code>属性に(6)で定義したスレッドプールのBeanIDを設定する。</p></td>
 </tr>
 <tr>
 <td class="tableblock halign-left valign-top"><p class="tableblock">(12)</p></td>
 <td class="tableblock halign-left valign-top"><p class="tableblock">Workerステップを定義する。<br>
-<code>reader</code>属性に(7)で定義したItemReaderを設定する。</p></td>
+<code>StepBuilderのreaderメソッド/reader属性</code>に(7)で定義したItemReaderを設定する。</p></td>
 </tr>
 </tbody>
 </table>
@@ -761,8 +1055,102 @@ Managerステップはメインスレッドで処理される。</p></td>
 <div class="paragraph">
 <p><code>MultiResourcePartitioner</code>の利用例を以下に示す。</p>
 </div>
+<div class="tabbox">
+  <input type="radio" name="tabgroup080204" class="JavaConfigTab" id="tabgroup080204_1" checked><label for="tabgroup080204_1" class="tab">JavaConfig</label>
+  <input type="radio" name="tabgroup080204" class="XMLConfigTab" id="tabgroup080204_2"><label for="tabgroup080204_2" class="tab">XMLConfig</label>
+  <div class="tabcontent" name="JavaConfigContent">
 <div class="listingblock">
-<div class="title">ファイル処理を多重化する例</div>
+<div class="content">
+<pre class="CodeRay highlight"><code data-lang="java"><span class="comment">// (1)</span>
+<span class="annotation">@Bean</span>
+<span class="directive">public</span> TaskExecutor parallelTaskExecutor(
+        <span class="annotation">@Value</span>(<span class="string"><span class="delimiter">&quot;</span><span class="content">${thread.size}</span><span class="delimiter">&quot;</span></span>) <span class="type">int</span> threadSize) {
+    ThreadPoolTaskExecutor executor = <span class="keyword">new</span> ThreadPoolTaskExecutor();
+    executor.setCorePoolSize(threadSize);
+    executor.setQueueCapacity(<span class="integer">200</span>);
+    <span class="keyword">return</span> executor;
+}
+
+<span class="comment">// (2)</span>
+<span class="annotation">@Bean</span>
+<span class="annotation">@StepScope</span>
+<span class="directive">public</span> FlatFileItemReader&lt;SalesPlanDetail&gt; reader(
+        <span class="annotation">@Value</span>(<span class="string"><span class="delimiter">&quot;</span><span class="content">#{stepExecutionContext['fileName']}</span><span class="delimiter">&quot;</span></span>) <span class="predefined-type">File</span> fileName) {
+    <span class="directive">final</span> DelimitedLineTokenizer tokenizer = <span class="keyword">new</span> DelimitedLineTokenizer();
+    tokenizer.setNames(<span class="string"><span class="delimiter">&quot;</span><span class="content">branchId</span><span class="delimiter">&quot;</span></span>, <span class="string"><span class="delimiter">&quot;</span><span class="content">year</span><span class="delimiter">&quot;</span></span>, <span class="string"><span class="delimiter">&quot;</span><span class="content">month</span><span class="delimiter">&quot;</span></span>, <span class="string"><span class="delimiter">&quot;</span><span class="content">customerId</span><span class="delimiter">&quot;</span></span>, <span class="string"><span class="delimiter">&quot;</span><span class="content">amount</span><span class="delimiter">&quot;</span></span>);
+    <span class="directive">final</span> BeanWrapperFieldSetMapper&lt;SalesPlanDetail&gt; fieldSetMapper = <span class="keyword">new</span> BeanWrapperFieldSetMapper&lt;&gt;();
+    fieldSetMapper.setTargetType(SalesPlanDetail.class);
+    <span class="directive">final</span> DefaultLineMapper&lt;SalesPlanDetail&gt; lineMapper = <span class="keyword">new</span> DefaultLineMapper&lt;&gt;();
+    lineMapper.setLineTokenizer(tokenizer);
+    lineMapper.setFieldSetMapper(fieldSetMapper);
+    <span class="keyword">return</span> <span class="keyword">new</span> FlatFileItemReaderBuilder&lt;SalesPlanDetail&gt;()
+            .name(ClassUtils.getShortName(FlatFileItemReader.class))
+            .resource(<span class="keyword">new</span> FileSystemResource(fileName)) <span class="comment">// (3)</span>
+            .lineMapper(lineMapper)
+            .build();
+}
+
+<span class="comment">// (4)</span>
+<span class="annotation">@Bean</span>
+<span class="annotation">@StepScope</span>
+<span class="directive">public</span> MultiResourcePartitioner partitioner(
+        <span class="annotation">@Value</span>(<span class="string"><span class="delimiter">&quot;</span><span class="content">#{jobParameters['inputdir']}</span><span class="delimiter">&quot;</span></span>) <span class="predefined-type">File</span> inputdir) <span class="directive">throws</span> <span class="exception">Exception</span> { <span class="comment">// (5)</span>
+    MultiResourcePartitioner partitioner = <span class="keyword">new</span> MultiResourcePartitioner();
+    ResourcePatternResolver resolver = <span class="keyword">new</span> PathMatchingResourcePatternResolver();
+    Resource<span class="type">[]</span> resources = resolver.getResources(
+            <span class="keyword">new</span> FileSystemResource(inputdir).getURL() + <span class="predefined-type">File</span>.separator + <span class="string"><span class="delimiter">&quot;</span><span class="content">salesPlanDetail_*.csv</span><span class="delimiter">&quot;</span></span>);
+    partitioner.setResources(resources);
+    <span class="keyword">return</span> partitioner;
+}
+
+<span class="comment">// (7)</span>
+<span class="annotation">@Bean</span>
+<span class="directive">public</span> Step stepWorker(JobRepository jobRepository,
+                        ItemReader&lt;SalesPlanDetail&gt; reader,
+                        LoggingItemWriter writer,
+                        <span class="annotation">@Qualifier</span>(<span class="string"><span class="delimiter">&quot;</span><span class="content">jobTransactionManager</span><span class="delimiter">&quot;</span></span>) PlatformTransactionManager transactionManager) {
+    <span class="keyword">return</span> <span class="keyword">new</span> StepBuilder(<span class="string"><span class="delimiter">&quot;</span><span class="content">jobEvaluationReport.worker</span><span class="delimiter">&quot;</span></span>, jobRepository)
+            .&lt;SalesPlanDetail, SalesPlanDetail&gt; chunk(<span class="integer">20</span>,
+                    transactionManager)
+            .reader(reader)
+            .writer(writer)
+            .build();
+}
+
+<span class="annotation">@Bean</span>
+<span class="directive">public</span> PartitionHandler partitionHandler(
+        TaskExecutor parallelTaskExecutor,
+        Step stepWorker) {
+    TaskExecutorPartitionHandler handler = <span class="keyword">new</span> TaskExecutorPartitionHandler();
+    handler.setTaskExecutor(parallelTaskExecutor);
+    handler.setStep(stepWorker);
+    handler.setGridSize(<span class="integer">0</span>);
+    <span class="keyword">return</span> handler;
+}
+
+<span class="comment">// (6)</span>
+<span class="annotation">@Bean</span>
+<span class="directive">public</span> Step stepManager(JobRepository jobRepository,
+                        MultiResourcePartitioner partitioner,
+                        PartitionHandler partitionHandler) {
+    <span class="keyword">return</span> <span class="keyword">new</span> StepBuilder(<span class="string"><span class="delimiter">&quot;</span><span class="content">multiplePartitioninglStepFileJob.manager</span><span class="delimiter">&quot;</span></span>, jobRepository)
+            .partitioner(<span class="string"><span class="delimiter">&quot;</span><span class="content">multiplePartitioninglStepFileJob.worker</span><span class="delimiter">&quot;</span></span>, partitioner)
+            .partitionHandler(partitionHandler)
+            .build();
+}
+
+<span class="annotation">@Bean</span>
+<span class="directive">public</span> Job multiplePartitioninglStepFileJob(JobRepository jobRepository,
+                                       Step stepManager) {
+    <span class="keyword">return</span> <span class="keyword">new</span> JobBuilder(<span class="string"><span class="delimiter">&quot;</span><span class="content">multiplePartitioninglStepFileJob</span><span class="delimiter">&quot;</span></span>, jobRepository)
+            .start(stepManager)
+            .build();
+}</code></pre>
+</div>
+</div>
+  </div>
+  <div class="tabcontent" name="XMLConfigContent">
+<div class="listingblock">
 <div class="content">
 <pre class="CodeRay highlight"><code data-lang="xml"><span class="comment">&lt;!-- (1) --&gt;</span>
 <span class="tag">&lt;task:executor</span> <span class="attribute-name">id</span>=<span class="string"><span class="delimiter">&quot;</span><span class="content">parallelTaskExecutor</span><span class="delimiter">&quot;</span></span> <span class="attribute-name">pool-size</span>=<span class="string"><span class="delimiter">&quot;</span><span class="content">10</span><span class="delimiter">&quot;</span></span> <span class="attribute-name">queue-capacity</span>=<span class="string"><span class="delimiter">&quot;</span><span class="content">200</span><span class="delimiter">&quot;</span></span><span class="tag">/&gt;</span>
@@ -808,6 +1196,8 @@ Managerステップはメインスレッドで処理される。</p></td>
 <span class="tag">&lt;/batch:step&gt;</span></code></pre>
 </div>
 </div>
+  </div>
+</div>
 <table class="tableblock frame-all grid-all stretch">
 <caption class="title">表 6. 説明</caption>
 <colgroup>
@@ -832,7 +1222,7 @@ Managerステップはメインスレッドで処理される。</p></td>
 </tr>
 <tr>
 <td class="tableblock halign-left valign-top"><p class="tableblock">(3)</p></td>
-<td class="tableblock halign-left valign-top"><p class="tableblock"><code>resouce</code>属性に、<code>MultiResourcePartitioner</code>で分割されたファイルを入力ファイルに指定する。<br>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><code>FlatFileItemReaderBuilderのresourceメソッドの引数resource/resouce属性</code>に、<code>MultiResourcePartitioner</code>で分割されたファイルを入力ファイルに指定する。<br>
 <code>MultiResourcePartitioner</code>は、"fileName"というキーでステップコンテキストにファイルパスを格納している。</p></td>
 </tr>
 <tr>
@@ -851,7 +1241,7 @@ Managerステップはメインスレッドで処理される。</p></td>
 <tr>
 <td class="tableblock halign-left valign-top"><p class="tableblock">(7)</p></td>
 <td class="tableblock halign-left valign-top"><p class="tableblock">Workerステップを定義する。<br>
-<code>reader</code>属性に(2)で定義したItemReaderを設定する。</p></td>
+<code>StepBuilderのreaderメソッド/reader属性</code>に(2)で定義したItemReaderを設定する。</p></td>
 </tr>
 </tbody>
 </table>
@@ -940,8 +1330,101 @@ Managerステップはメインスレッドで処理される。</p></td>
 }</code></pre>
 </div>
 </div>
+<div class="tabbox">
+  <input type="radio" name="tabgroup080205" class="JavaConfigTab" id="tabgroup080205_1" checked><label for="tabgroup080205_1" class="tab">JavaConfig</label>
+  <input type="radio" name="tabgroup080205" class="XMLConfigTab" id="tabgroup080205_2"><label for="tabgroup080205_2" class="tab">XMLConfig</label>
+  <div class="tabcontent" name="JavaConfigContent">
 <div class="listingblock">
-<div class="title">Bean定義</div>
+<div class="content">
+<pre class="CodeRay highlight"><code data-lang="java"><span class="comment">// (8)</span>
+<span class="annotation">@Bean</span>
+<span class="directive">public</span> TaskExecutor parallelTaskExecutor(
+        <span class="annotation">@Value</span>(<span class="string"><span class="delimiter">&quot;</span><span class="content">${thread.size}</span><span class="delimiter">&quot;</span></span>) <span class="type">int</span> threadSize) {
+    ThreadPoolTaskExecutor executor = <span class="keyword">new</span> ThreadPoolTaskExecutor();
+    executor.setCorePoolSize(threadSize);
+    executor.setQueueCapacity(<span class="integer">10</span>);
+    <span class="keyword">return</span> executor;
+}
+
+<span class="comment">// (9)</span>
+<span class="annotation">@Bean</span>
+<span class="annotation">@StepScope</span>
+<span class="directive">public</span> MyBatisCursorItemReader&lt;SalesPerformanceSummary&gt; reader(
+        <span class="annotation">@Qualifier</span>(<span class="string"><span class="delimiter">&quot;</span><span class="content">jobSqlSessionFactory</span><span class="delimiter">&quot;</span></span>) SqlSessionFactory jobSqlSessionFactory,
+        <span class="annotation">@Value</span>(<span class="string"><span class="delimiter">&quot;</span><span class="content">#{jobParameters['year']}</span><span class="delimiter">&quot;</span></span>) <span class="predefined-type">Integer</span> year,
+        <span class="annotation">@Value</span>(<span class="string"><span class="delimiter">&quot;</span><span class="content">#{jobParameters['month']}</span><span class="delimiter">&quot;</span></span>) <span class="predefined-type">Integer</span> month,
+        <span class="annotation">@Value</span>(<span class="string"><span class="delimiter">&quot;</span><span class="content">#{stepExecutionContext['dataSize']}</span><span class="delimiter">&quot;</span></span>) <span class="predefined-type">Integer</span> dataSize, <span class="comment">// (10)</span>
+        <span class="annotation">@Value</span>(<span class="string"><span class="delimiter">&quot;</span><span class="content">#{stepExecutionContext['offset']}</span><span class="delimiter">&quot;</span></span>) <span class="predefined-type">Integer</span> offset) { <span class="comment">// (11)</span>
+    <span class="predefined-type">Map</span>&lt;<span class="predefined-type">String</span>, <span class="predefined-type">Object</span>&gt; parameterValues = <span class="keyword">new</span> <span class="predefined-type">HashMap</span>&lt;&gt;();
+    parameterValues.put(<span class="string"><span class="delimiter">&quot;</span><span class="content">year</span><span class="delimiter">&quot;</span></span>, year);
+    parameterValues.put(<span class="string"><span class="delimiter">&quot;</span><span class="content">month</span><span class="delimiter">&quot;</span></span>, month);
+    parameterValues.put(<span class="string"><span class="delimiter">&quot;</span><span class="content">dataSize</span><span class="delimiter">&quot;</span></span>, dataSize);
+    parameterValues.put(<span class="string"><span class="delimiter">&quot;</span><span class="content">offset</span><span class="delimiter">&quot;</span></span>, offset);
+    <span class="keyword">return</span> <span class="keyword">new</span> MyBatisCursorItemReaderBuilder&lt;SalesPerformanceSummary&gt;()
+            .sqlSessionFactory(jobSqlSessionFactory)
+            .queryId(
+                    <span class="string"><span class="delimiter">&quot;</span><span class="content">org.terasoluna.batch.functionaltest.ch08.parallelandmultiple.repository.SalesSummaryRepository.findByYearAndMonth</span><span class="delimiter">&quot;</span></span>)
+            .parameterValues(parameterValues)
+            .build();
+}
+
+<span class="comment">// omitted</span>
+
+<span class="comment">// (15)</span>
+<span class="annotation">@Bean</span>
+<span class="directive">public</span> Step stepWorker(JobRepository jobRepository,
+                        StepExecutionLoggingListener listener,
+                        ItemReader&lt;SalesPerformanceSummary&gt; reader,
+                        ItemWriter&lt;SalesPlanSummary&gt; writer,
+                        AddProfitsItemProcessor addProfitsItemProcessor,
+                        <span class="annotation">@Qualifier</span>(<span class="string"><span class="delimiter">&quot;</span><span class="content">jobTransactionManager</span><span class="delimiter">&quot;</span></span>) PlatformTransactionManager transactionManager) {
+    <span class="keyword">return</span> <span class="keyword">new</span> StepBuilder(<span class="string"><span class="delimiter">&quot;</span><span class="content">multipleCreateSalesPlanSummaryJob.worker</span><span class="delimiter">&quot;</span></span>, jobRepository)
+            .&lt;SalesPerformanceSummary, SalesPlanSummary&gt; chunk(<span class="integer">10</span>,
+                    transactionManager)
+            .listener(listener)
+            .reader(reader)
+            .processor(addProfitsItemProcessor)
+            .writer(writer)
+            .build();
+}
+
+<span class="annotation">@Bean</span>
+<span class="directive">public</span> PartitionHandler partitionHandler(
+        TaskExecutor parallelTaskExecutor,
+        <span class="annotation">@Value</span>(<span class="string"><span class="delimiter">&quot;</span><span class="content">${grid.size}</span><span class="delimiter">&quot;</span></span>) <span class="type">int</span> gridSize,
+        Step stepWorker) {
+    TaskExecutorPartitionHandler handler = <span class="keyword">new</span> TaskExecutorPartitionHandler();
+    handler.setTaskExecutor(parallelTaskExecutor); <span class="comment">// (14)</span>
+    handler.setStep(stepWorker);
+    handler.setGridSize(gridSize); <span class="comment">// (14)</span>
+    <span class="keyword">return</span> handler;
+}
+
+<span class="comment">// (12)</span>
+<span class="annotation">@Bean</span>
+<span class="directive">public</span> Step stepManager(JobRepository jobRepository,
+                        SalesDataPartitioner salesDataPartitioner,
+                        PartitionHandler partitionHandler) {
+    <span class="keyword">return</span> <span class="keyword">new</span> StepBuilder(<span class="string"><span class="delimiter">&quot;</span><span class="content">multipleCreateSalesPlanSummaryJob.manager</span><span class="delimiter">&quot;</span></span>, jobRepository)
+            .partitioner(<span class="string"><span class="delimiter">&quot;</span><span class="content">multipleCreateSalesPlanSummaryJob.worker</span><span class="delimiter">&quot;</span></span>, salesDataPartitioner) <span class="comment">// (13)</span>
+            .partitionHandler(partitionHandler)
+            .build();
+}
+
+<span class="annotation">@Bean</span>
+<span class="directive">public</span> Job multipleCreateSalesPlanSummaryJob(JobRepository jobRepository,
+                                       JobExecutionLoggingListener listener,
+                                       Step stepManager) {
+    <span class="keyword">return</span> <span class="keyword">new</span> JobBuilder(<span class="string"><span class="delimiter">&quot;</span><span class="content">multipleCreateSalesPlanSummaryJob</span><span class="delimiter">&quot;</span></span>, jobRepository)
+            .start(stepManager)
+            .listener(listener)
+            .build();
+}</code></pre>
+</div>
+</div>
+  </div>
+  <div class="tabcontent" name="XMLConfigContent">
+<div class="listingblock">
 <div class="content">
 <pre class="CodeRay highlight"><code data-lang="xml"><span class="comment">&lt;!-- (8) --&gt;</span>
 <span class="tag">&lt;task:executor</span> <span class="attribute-name">id</span>=<span class="string"><span class="delimiter">&quot;</span><span class="content">parallelTaskExecutor</span><span class="delimiter">&quot;</span></span>
@@ -987,6 +1470,8 @@ Managerステップはメインスレッドで処理される。</p></td>
 <span class="tag">&lt;/batch:step&gt;</span></code></pre>
 </div>
 </div>
+  </div>
+</div>
 <table class="tableblock frame-all grid-all stretch">
 <caption class="title">表 7. 説明</caption>
 <colgroup>
@@ -1004,7 +1489,7 @@ Managerステップはメインスレッドで処理される。</p></td>
 <td class="tableblock halign-left valign-top"><p class="tableblock">(1)</p></td>
 <td class="tableblock halign-left valign-top"><p class="tableblock">特定のデータ範囲を取得するためにページネーション検索(SQL絞り込み方式)を定義する。<br>
 ページネーション検索(SQL絞り込み方式)の詳細は、TERASOLUNA Server 5.x 開発ガイドラインの
-<a href="https://terasolunaorg.github.io/guideline/5.7.1.RELEASE/ja/ArchitectureInDetail/DataAccessDetail/DataAccessMyBatis3.html#entity-sql">Entityのページネーション検索(SQL絞り込み方式)</a>を参照。</p></td>
+<a href="https://terasolunaorg.github.io/guideline/5.9.0.RELEASE/ja/ArchitectureInDetail/DataAccessDetail/DataAccessMyBatis3.html#entity-sql">Entityのページネーション検索(SQL絞り込み方式)</a>を参照。</p></td>
 </tr>
 <tr>
 <td class="tableblock halign-left valign-top"><p class="tableblock">(2)</p></td>
@@ -1054,18 +1539,18 @@ Managerステップはメインスレッドで処理される。</p></td>
 <tr>
 <td class="tableblock halign-left valign-top"><p class="tableblock">(13)</p></td>
 <td class="tableblock halign-left valign-top"><p class="tableblock">データの分割条件を生成する処理を定義する。<br>
-<code>partitioner</code>属性には、<code>Partitioner</code>インタフェース実装を設定する。<br>
-<code>step</code>属性には、(15)で定義するWorkerステップのBeanIDを設定する。</p></td>
+<code>StepBuilderのpartitionerメソッドの引数partitioner/partitioner属性</code>には、<code>Partitioner</code>インタフェース実装を設定する。<br>
+<code>partitionerメソッドの引数stepName/step属性</code>には、(15)で定義するWorkerステップのBeanIDを設定する。</p></td>
 </tr>
 <tr>
 <td class="tableblock halign-left valign-top"><p class="tableblock">(14)</p></td>
-<td class="tableblock halign-left valign-top"><p class="tableblock"><code>grid-size</code>属性に分割数(固定値)を設定する。<br>
-<code>task-executor</code>属性に(8)で定義したスレッドプールのBeanIDを設定する。</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><code>TaskExecutorPartitionHandlerのsetGridSizeメソッドの引数gridSize/grid-size属性</code>に分割数(固定値)を設定する。<br>
+<code>setTaskExecutorメソッドの引数taskExecutor/task-executor属性</code>に(8)で定義したスレッドプールのBeanIDを設定する。</p></td>
 </tr>
 <tr>
 <td class="tableblock halign-left valign-top"><p class="tableblock">(15)</p></td>
 <td class="tableblock halign-left valign-top"><p class="tableblock">Workerステップを定義する。<br>
-<code>reader</code>属性に(9)で定義したItemReaderを設定する。</p></td>
+<code>StepBuilderのreaderメソッド/reader属性</code>に(9)で定義したItemReaderを設定する。</p></td>
 </tr>
 </tbody>
 </table>
@@ -1079,7 +1564,7 @@ Managerステップはメインスレッドで処理される。</p></td>
 
   <div class="common-bg">
     <div class="information">
-      TERASOLUNA Batch Framework for Java (5.x) Development Guideline - version 5.5.0.RELEASE, 2023-3-31, commit-id:f6da76a
+      TERASOLUNA Batch Framework for Java (5.x) Development Guideline - version 5.6.0.RELEASE, 2023-3-31, commit-id:f5cbeda
     </div>
     <div class="index">
       <a href="index.html">&gt; INDEX</a>
@@ -1088,7 +1573,7 @@ Managerステップはメインスレッドで処理される。</p></td>
 
   <div class="footer-bg">
     <div class="copyright">
-      &copy; Copyright 2017 NTT DATA Corporation. &copy; Copyright 2017 NTT Corporation.
+      &copy; Copyright 2017 NTT DATA Group Corporation. &copy; Copyright 2017 NTT Corporation.
     </div>
   </div>
 
