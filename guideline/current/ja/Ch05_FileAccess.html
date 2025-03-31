@@ -4,17 +4,18 @@
 <meta charset="UTF-8">
 <meta http-equiv="X-UA-Compatible" content="IE=edge">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<meta name="generator" content="Asciidoctor 2.0.10">
+<meta name="generator" content="Asciidoctor 2.0.23">
 <title>ファイルアクセス</title>
 <link rel="stylesheet" href="./theme/css/readthedocs.css">
 <link rel="stylesheet" href="./theme/css/font-awesome.min.css">
+<link rel="stylesheet" href="./theme/css/coderay-asciidoctor.css">
 <link rel="stylesheet" href="./theme/css/coderay-asciidoctor.css">
 <link rel="stylesheet" href="./theme/css/header-footer.css">
 <title>TERASOLUNA Batch Framework for Java (5.x) Development Guideline</title>
 
 <div class="common-bg">
   <div class="information">
-    TERASOLUNA Batch Framework for Java (5.x) Development Guideline - version 5.6.0.RELEASE, 2024-3-29, commit-id:1d78d35
+    TERASOLUNA Batch Framework for Java (5.x) Development Guideline - version 5.7.0.RELEASE, 2025-3-31, commit-id:7ba4db3
   </div>
   <div class="index">
     <a href="index.html">&gt; INDEX</a>
@@ -37,6 +38,155 @@
   ga('create', 'UA-46550814-2', 'auto');
   ga('send', 'pageview');
 </script>
+<style>
+.hidden {
+	display: none;
+}
+
+.switch {
+	border-width: 1px 1px 0 1px;
+	border-style: solid;
+	border-color: #7a2518;
+	display: inline-block;
+}
+
+.switch--item {
+	padding: 10px;
+	background-color: #ffffff;
+	color: #7a2518;
+	display: inline-block;
+	cursor: pointer;
+}
+
+.switch--item:not(:first-child) {
+	border-width: 0 0 0 1px;
+	border-style: solid;
+	border-color: #7a2518;
+}
+
+.switch--item.selected {
+	background-color: #7a2519;
+	color: #ffffff;
+}
+
+</style>
+<script type="text/javascript">
+function addBlockSwitches() {
+	for (var primary of document.querySelectorAll('.primary')) {
+		var switchItem = createSwitchItem(primary, createBlockSwitch(primary));
+		switchItem.item.classList.add("selected");
+		var title = primary.querySelector('.title')
+		title.remove();
+	}
+	for (var secondary of document.querySelectorAll('.secondary')) {
+		var primary = findPrimary(secondary);
+		if (primary === null) {
+			console.error("Found secondary block with no primary sibling");
+		}
+		else {
+			var switchItem = createSwitchItem(secondary, primary.querySelector('.switch'));
+			switchItem.content.classList.add("hidden");
+			primary.append(switchItem.content);
+			secondary.remove();
+		}
+	}
+}
+
+function createElementFromHtml(html) {
+	var template = document.createElement('template');
+    template.innerHTML = html;
+    return template.content.firstChild;
+}
+
+function createBlockSwitch(primary) {
+    var blockSwitch = createElementFromHtml('<div class="switch"></div>');
+    primary.prepend(blockSwitch)
+	return blockSwitch;
+}
+
+function findPrimary(secondary) {
+	var candidate = secondary.previousElementSibling;
+	while (candidate != null && !candidate.classList.contains('primary')) {
+		candidate = candidate.previousElementSibling;
+	}
+	return candidate;
+}
+
+function createSwitchItem(block, blockSwitch) {
+	var blockName = block.querySelector('.title').textContent;
+	var content = block.querySelectorAll('.content').item(0);
+	var colist = nextSibling(block, '.colist');
+	if (colist != null) {
+		content.append(colist);
+	}
+	var item = createElementFromHtml('<div class="switch--item">' + blockName + '</div>');
+	item.dataset.blockName = blockName;
+	content.dataset.blockName = blockName;
+	blockSwitch.append(item);
+	return {'item': item, 'content': content};
+}
+
+function nextSibling(element, selector) {
+	var sibling = element.nextElementSibling;
+	while (sibling) {
+		if (sibling.matches(selector)) {
+			return sibling;
+		}
+		sibling = sibling.nextElementSibling;
+	}
+}
+
+function globalSwitch() {
+	document.querySelectorAll(".switch--item").forEach(function(item) {
+		var blockId = blockIdForSwitchItem(item);
+		var handler = function(event) {
+			selectedText = event.target.textContent;
+			window.localStorage.setItem(blockId, selectedText);
+			for (var switchItem of document.querySelectorAll(".switch--item")) {
+				if (blockIdForSwitchItem(switchItem) === blockId && switchItem.textContent === selectedText) {
+					select(switchItem);
+				}
+			}
+		}
+		item.addEventListener("click", handler);
+		if (item.textContent === window.localStorage.getItem(blockId)) {
+			select(item);
+		}
+	});
+}
+
+function select(selected) {
+	for (var child of selected.parentNode.children) {
+		child.classList.remove("selected");
+	}
+	selected.classList.add("selected");
+	for (var child of selected.parentNode.parentNode.children) {
+		if (child.classList.contains("content")) {
+			if (selected.dataset.blockName === child.dataset.blockName) {
+				child.classList.remove("hidden");
+			}
+			else {
+				child.classList.add("hidden");
+			}
+		}
+	}	
+}
+
+function blockIdForSwitchItem(item) {
+	idComponents = []
+	for (var switchItem of item.parentNode.querySelectorAll(".switch--item")) {
+		idComponents.push(switchItem.textContent.toLowerCase());
+	}
+	return idComponents.sort().join("-")
+}
+
+window.onload = function() {
+	addBlockSwitches();
+	globalSwitch();
+};
+
+</script>
+
 </head>
 <body id="Ch05_FileAccess" class="book toc2 toc-left">
 <div id="header">
@@ -56,6 +206,7 @@
 <ul class="sectlevel3">
 <li><a href="#Ch05_FileAccess_HowToUse_VariableLength_Input">入力</a></li>
 <li><a href="#Ch05_FileAccess_HowToUse_VariableLength_Output">出力</a></li>
+<li><a href="#Ch05_FileAccess_HowToUse_VariableLength_Output_Property">FlatFileItemWriterのshouldDeleteIfExistsとshouldDeleteIfEmptyの動作の違い</a></li>
 </ul>
 </li>
 <li><a href="#Ch05_FileAccess_HowToUse_FixedLength">固定長レコード</a>
@@ -646,10 +797,9 @@ Beanのプロパティとレコード内の各項目とのマッピングは<cod
 <div class="paragraph">
 <p>上記のファイルを読む込むための設定は以下のとおり。</p>
 </div>
-<div class="tabbox">
-  <input type="radio" name="tabgroup050301" class="JavaConfigTab" id="tabgroup050301_1" checked><label for="tabgroup050301_1" class="tab">JavaConfig</label>
-  <input type="radio" name="tabgroup050301" class="XMLConfigTab" id="tabgroup050301_2"><label for="tabgroup050301_2" class="tab">XMLConfig</label>
-  <div class="tabcontent" name="JavaConfigContent">
+<div class="exampleblock primary">
+<div class="title">JavaConfig</div>
+<div class="content">
 <div class="listingblock">
 <div class="title">Bean定義例</div>
 <div class="content">
@@ -676,15 +826,8 @@ Beanのプロパティとレコード内の各項目とのマッピングは<cod
 }</code></pre>
 </div>
 </div>
-<div class="admonitionblock note">
-<table>
-<tr>
-<td class="icon">
-<i class="fa icon-note" title="Note"></i>
-</td>
-<td class="content">
-<div class="title">FlatFileItemReaderBuilderクラスでのnameメソッドの使用</div>
 <div class="paragraph">
+<div class="title"><code>FlatFileItemReaderBuilder</code>クラスでの<code>name</code>メソッドの使用</div>
 <p><code>FlatFileItemReaderBuilder</code>は、<code>FlatFileItemReader</code>を生成するBuilderクラスである。</p>
 </div>
 <div class="paragraph">
@@ -707,7 +850,7 @@ Beanのプロパティとレコード内の各項目とのマッピングは<cod
 <p><code>name</code>メソッドでは、<code>ExecutionContext</code>に実行状態を保存する際のキー名を引数に設定する。キー名は、特段の理由がないかぎり、<code>ItemStreamSupport</code>のサブクラス名を指定する。<code>ItemStreamSupport</code>のサブクラスとは、Builderクラスで生成するクラスのことである。</p>
 </div>
 <div class="paragraph">
-<p><strong>nameメソッドでItemStreamSupportのサブクラス名を指定する理由</strong></p>
+<p><strong><code>name</code>メソッドで<code>ItemStreamSupport</code>のサブクラス名を指定する理由</strong></p>
 </div>
 <div class="paragraph">
 <p><code>ExecutionContext</code>やログに出力される名前を、その出力元のクラス名と一致させておくことで、トレーサビリティを担保する。これは障害解析時等に、原因箇所特定の手がかりとするためである。</p>
@@ -741,31 +884,30 @@ Beanのプロパティとレコード内の各項目とのマッピングは<cod
 <div class="ulist">
 <ul>
 <li>
-<p><a href="https://docs.spring.io/spring-batch/docs/5.1.0/org/springframework/batch/item/file/builder/FlatFileItemReaderBuilder.html">クラス FlatFileItemReaderBuilder&lt;T&gt;</a></p>
+<p><a href="https://docs.spring.io/spring-batch/docs/5.2.1/api/org/springframework/batch/item/file/builder/FlatFileItemReaderBuilder.html">クラス FlatFileItemReaderBuilder&lt;T&gt;</a></p>
 </li>
 <li>
-<p><a href="https://docs.spring.io/spring-batch/docs/5.1.0/org/springframework/batch/item/file/builder/FlatFileItemWriterBuilder.html">クラス FlatFileItemWriterBuilder&lt;T&gt;</a></p>
+<p><a href="https://docs.spring.io/spring-batch/docs/5.2.1/api/org/springframework/batch/item/file/builder/FlatFileItemWriterBuilder.html">クラス FlatFileItemWriterBuilder&lt;T&gt;</a></p>
 </li>
 <li>
-<p><a href="https://docs.spring.io/spring-batch/docs/5.1.0/org/springframework/batch/item/file/builder/MultiResourceItemReaderBuilder.html">クラス MultiResourceItemReaderBuilder&lt;T&gt;</a></p>
+<p><a href="https://docs.spring.io/spring-batch/docs/5.2.1/api/org/springframework/batch/item/file/builder/MultiResourceItemReaderBuilder.html">クラス MultiResourceItemReaderBuilder&lt;T&gt;</a></p>
 </li>
 <li>
-<p><a href="https://docs.spring.io/spring-batch/docs/5.1.0/org/springframework/batch/item/file/builder/MultiResourceItemWriterBuilder.html">クラス MultiResourceItemWriterBuilder&lt;T&gt;</a></p>
+<p><a href="https://docs.spring.io/spring-batch/docs/5.2.1/api/org/springframework/batch/item/file/builder/MultiResourceItemWriterBuilder.html">クラス MultiResourceItemWriterBuilder&lt;T&gt;</a></p>
 </li>
 <li>
-<p><a href="https://docs.spring.io/spring-batch/docs/5.1.0/org/springframework/batch/item/xml/builder/StaxEventItemReaderBuilder.html">クラス StaxEventItemReaderBuilder&lt;T&gt;</a></p>
+<p><a href="https://docs.spring.io/spring-batch/docs/5.2.1/api/org/springframework/batch/item/xml/builder/StaxEventItemReaderBuilder.html">クラス StaxEventItemReaderBuilder&lt;T&gt;</a></p>
 </li>
 <li>
-<p><a href="https://docs.spring.io/spring-batch/docs/5.1.0/org/springframework/batch/item/xml/builder/StaxEventItemWriterBuilder.html">クラス StaxEventItemWriterBuilder&lt;T&gt;</a></p>
+<p><a href="https://docs.spring.io/spring-batch/docs/5.2.1/api/org/springframework/batch/item/xml/builder/StaxEventItemWriterBuilder.html">クラス StaxEventItemWriterBuilder&lt;T&gt;</a></p>
 </li>
 </ul>
 </div>
-</td>
-</tr>
-</table>
 </div>
-  </div>
-  <div class="tabcontent" name="XMLConfigContent">
+</div>
+<div class="exampleblock secondary">
+<div class="title">XMLConfig</div>
+<div class="content">
 <div class="listingblock">
 <div class="title">Bean定義例</div>
 <div class="content">
@@ -793,7 +935,7 @@ Beanのプロパティとレコード内の各項目とのマッピングは<cod
 <span class="tag">&lt;/bean&gt;</span></code></pre>
 </div>
 </div>
-  </div>
+</div>
 </div>
 <table class="tableblock frame-all grid-all stretch">
 <caption class="title">表 7. 設定内容の項目一覧</caption>
@@ -866,7 +1008,8 @@ CSV形式の一般的書式とされるRFC-4180の仕様に定義されている
 <tr>
 <td class="tableblock halign-left valign-top"><p class="tableblock">(7)</p></td>
 <td class="tableblock halign-left valign-top"><p class="tableblock">delimiter</p></td>
-<td class="tableblock halign-left valign-top"><p class="tableblock">区切り文字を設定する</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">区切り文字を設定する。<br>
+TSVファイルの読み込みを行う場合には、<a href="#Ch05_FileAccess_TSV_Input">TSV形式ファイルの入力方法</a>を参照。</p></td>
 <td class="tableblock halign-left valign-top"></td>
 <td class="tableblock halign-left valign-top"><p class="tableblock">カンマ</p></td>
 </tr>
@@ -889,6 +1032,35 @@ CSV形式の一般的書式とされるRFC-4180の仕様に定義されている
 </tr>
 </tbody>
 </table>
+<div id="Ch05_FileAccess_TSV_Input" class="paragraph">
+<div class="title">TSV形式ファイルの入力方法</div>
+<p>TSVファイルの読み込みを行う場合には、区切り文字にタブを設定することで実現可能である。</p>
+</div>
+<div class="exampleblock primary">
+<div class="title">JavaConfig</div>
+<div class="content">
+<div class="listingblock">
+<div class="title">TSVファイル読み込み時:区切り文字設定例(定数による設定)</div>
+<div class="content">
+<pre class="CodeRay highlight"><code data-lang="java">tokenizer.setDelimiter(DelimitedLineTokenizer.DELIMITER_TAB);</code></pre>
+</div>
+</div>
+</div>
+</div>
+<div class="exampleblock secondary">
+<div class="title">XMLConfig</div>
+<div class="content">
+<div class="listingblock">
+<div class="title">TSVファイル読み込み時:区切り文字設定例(定数による設定)</div>
+<div class="content">
+<pre class="CodeRay highlight"><code data-lang="xml"><span class="tag">&lt;property</span> <span class="attribute-name">name</span>=<span class="string"><span class="delimiter">&quot;</span><span class="content">delimiter</span><span class="delimiter">&quot;</span></span><span class="tag">&gt;</span>
+    <span class="tag">&lt;util:constant</span>
+            <span class="attribute-name">static-field</span>=<span class="string"><span class="delimiter">&quot;</span><span class="content">org.springframework.batch.item.file.transform.DelimitedLineTokenizer.DELIMITER_TAB</span><span class="delimiter">&quot;</span></span><span class="tag">/&gt;</span>
+<span class="tag">&lt;/property&gt;</span></code></pre>
+</div>
+</div>
+</div>
+</div>
 <div class="admonitionblock note">
 <table>
 <tr>
@@ -899,53 +1071,6 @@ CSV形式の一般的書式とされるRFC-4180の仕様に定義されている
 <div class="title">FieldSetMapperの独自実装について</div>
 <div class="paragraph">
 <p>FieldSetMapperを独自に実装する場合については、<a href="#Ch05_FileAccess_HowToExtend">How to extend</a>を参照。</p>
-</div>
-</td>
-</tr>
-</table>
-</div>
-<div class="admonitionblock note">
-<table>
-<tr>
-<td class="icon">
-<i class="fa icon-note" title="Note"></i>
-</td>
-<td class="content">
-<div class="title">TSV形式ファイルの入力方法</div>
-<div class="paragraph">
-<p>TSVファイルの読み込みを行う場合には、区切り文字にタブを設定することで実現可能である。</p>
-</div>
-<div class="tabbox">
-  <input type="radio" name="tabgroup050302" class="JavaConfigTab" id="tabgroup050302_1" checked><label for="tabgroup050302_1" class="tab">JavaConfig</label>
-  <input type="radio" name="tabgroup050302" class="XMLConfigTab" id="tabgroup050302_2"><label for="tabgroup050302_2" class="tab">XMLConfig</label>
-  <div class="tabcontent" name="JavaConfigContent">
-<div class="listingblock">
-<div class="title">TSVファイル読み込み時:区切り文字設定例(定数による設定)</div>
-<div class="content">
-<pre class="CodeRay highlight"><code data-lang="java">tokenizer.setDelimiter(DelimitedLineTokenizer.DELIMITER_TAB);</code></pre>
-</div>
-</div>
-  </div>
-  <div class="tabcontent" name="XMLConfigContent">
-<div class="listingblock">
-<div class="title">TSVファイル読み込み時:区切り文字設定例(定数による設定)</div>
-<div class="content">
-<pre class="CodeRay highlight"><code data-lang="xml"><span class="tag">&lt;property</span> <span class="attribute-name">name</span>=<span class="string"><span class="delimiter">&quot;</span><span class="content">delimiter</span><span class="delimiter">&quot;</span></span><span class="tag">&gt;</span>
-    <span class="tag">&lt;util:constant</span>
-            <span class="attribute-name">static-field</span>=<span class="string"><span class="delimiter">&quot;</span><span class="content">org.springframework.batch.item.file.transform.DelimitedLineTokenizer.DELIMITER_TAB</span><span class="delimiter">&quot;</span></span><span class="tag">/&gt;</span>
-<span class="tag">&lt;/property&gt;</span></code></pre>
-</div>
-</div>
-<div class="paragraph">
-<p>または、以下のようにしてもよい。</p>
-</div>
-<div class="listingblock">
-<div class="title">TSVファイル読み込み時:区切り文字設定例(文字参照による設定)</div>
-<div class="content">
-<pre class="CodeRay highlight"><code data-lang="xml"><span class="tag">&lt;property</span> <span class="attribute-name">name</span>=<span class="string"><span class="delimiter">&quot;</span><span class="content">delimiter</span><span class="delimiter">&quot;</span></span> <span class="attribute-name">value</span>=<span class="string"><span class="delimiter">&quot;</span><span class="entity">&amp;#09;</span><span class="delimiter">&quot;</span></span><span class="tag">/&gt;</span></code></pre>
-</div>
-</div>
-  </div>
 </div>
 </td>
 </tr>
@@ -1000,10 +1125,9 @@ CSV形式の一般的書式とされるRFC-4180の仕様に定義されている
 <div class="paragraph">
 <p>上記のファイルを書き出すための設定は以下のとおり。</p>
 </div>
-<div class="tabbox">
-  <input type="radio" name="tabgroup050303" class="JavaConfigTab" id="tabgroup050303_1" checked><label for="tabgroup050303_1" class="tab">JavaConfig</label>
-  <input type="radio" name="tabgroup050303" class="XMLConfigTab" id="tabgroup050303_2"><label for="tabgroup050303_2" class="tab">XMLConfig</label>
-  <div class="tabcontent" name="JavaConfigContent">
+<div class="exampleblock primary">
+<div class="title">JavaConfig</div>
+<div class="content">
 <div class="listingblock">
 <div class="title">Bean定義例</div>
 <div class="content">
@@ -1033,8 +1157,11 @@ CSV形式の一般的書式とされるRFC-4180の仕様に定義されている
 }</code></pre>
 </div>
 </div>
-  </div>
-  <div class="tabcontent" name="XMLConfigContent">
+</div>
+</div>
+<div class="exampleblock secondary">
+<div class="title">XMLConfig</div>
+<div class="content">
 <div class="listingblock">
 <div class="title">Bean定義例</div>
 <div class="content">
@@ -1062,7 +1189,7 @@ CSV形式の一般的書式とされるRFC-4180の仕様に定義されている
 <span class="tag">&lt;/bean&gt;</span></code></pre>
 </div>
 </div>
-  </div>
+</div>
 </div>
 <table class="tableblock frame-all grid-all stretch">
 <caption class="title">表 8. 設定内容の項目一覧</caption>
@@ -1117,16 +1244,18 @@ CSV形式の一般的書式とされるRFC-4180の仕様に定義されている
 <td class="tableblock halign-left valign-top"><p class="tableblock">(5)</p></td>
 <td class="tableblock halign-left valign-top"><p class="tableblock">shouldDeleteIfExists</p></td>
 <td class="tableblock halign-left valign-top"><p class="tableblock"><span class="icon"><i class="fa fa-warning"></i></span> appendAllowedがtrueの場合は、この設定は無効化されるため、値を指定しないことを推奨する。<br>
-trueの場合、既にファイルが存在すれば削除する。<br>
-falseの場合、既にファイルが存在すれば例外をスローする。</p></td>
+ファイル出力前に出力ファイルが存在していた場合の動作を設定する。<br>
+trueの場合、ファイル出力前に既にファイルが存在すれば削除する。<br>
+falseの場合、ファイル出力前に既にファイルが存在すれば例外をスローする。</p></td>
 <td class="tableblock halign-left valign-top"></td>
 <td class="tableblock halign-left valign-top"><p class="tableblock">true</p></td>
 </tr>
 <tr>
 <td class="tableblock halign-left valign-top"><p class="tableblock">(6)</p></td>
 <td class="tableblock halign-left valign-top"><p class="tableblock">shouldDeleteIfEmpty</p></td>
-<td class="tableblock halign-left valign-top"><p class="tableblock">trueの場合、出力件数が0件であれば出力対象ファイルを削除する。<br>
-<span class="icon"><i class="fa fa-warning"></i></span> 他の設定との組み合わせによって意図しない動作をする場合があるため、trueは設定しないことを推奨する。詳細は<a href="#Ch05_FileAccess_HowToUse_VariableLength_Output_AboutShouldDeleteIfEmpty">後述</a>する。</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">出力件数が0件であった場合にファイルを削除するかを設定する。<br>
+trueの場合、ファイル出力後に出力件数が0件であれば出力対象ファイルを削除する。<br>
+<span class="icon"><i class="fa fa-warning"></i></span> 他の設定との組み合わせによって意図しない動作をする場合がある。詳細は<a href="#Ch05_FileAccess_HowToUse_VariableLength_Output_Property">FlatFileItemWriterのshouldDeleteIfExistsとshouldDeleteIfEmptyの動作の違い</a>を参照。</p></td>
 <td class="tableblock halign-left valign-top"></td>
 <td class="tableblock halign-left valign-top"><p class="tableblock">false</p></td>
 </tr>
@@ -1171,67 +1300,11 @@ falseの場合、既にファイルが存在すれば例外をスローする。
 </tr>
 </tbody>
 </table>
-<div id="Ch05_FileAccess_HowToUse_VariableLength_Output_AboutShouldDeleteIfEmpty" class="admonitionblock important">
-<table>
-<tr>
-<td class="icon">
-<i class="fa icon-important" title="Important"></i>
-</td>
-<td class="content">
-<div class="title">FlatFileItemWriterのshouldDeleteIfEmptyプロパティにはtrueは設定しないことを推奨する</div>
-<div class="paragraph">
-<p>FlatFileItemWriterは、以下のような組み合わせでプロパティ設定を行った場合に意図しないファイル削除が行われてしまう。</p>
-</div>
-<div class="tabbox">
-  <input type="radio" name="tabgroup050304" class="JavaConfigTab" id="tabgroup050304_1" checked><label for="tabgroup050304_1" class="tab">JavaConfig</label>
-  <input type="radio" name="tabgroup050304" class="XMLConfigTab" id="tabgroup050304_2"><label for="tabgroup050304_2" class="tab">XMLConfig</label>
-  <div class="tabcontent" name="JavaConfigContent">
-<div class="ulist">
-<ul>
-<li>
-<p><code>.shouldDeleteIfExists(true)</code></p>
-</li>
-<li>
-<p><code>.shouldDeleteIfEmpty(false)</code></p>
-</li>
-</ul>
-</div>
-  </div>
-  <div class="tabcontent" name="XMLConfigContent">
-<div class="ulist">
-<ul>
-<li>
-<p><code>p:shouldDeleteIfEmpty="true"</code></p>
-</li>
-<li>
-<p><code>p:shouldDeleteIfExists="false"</code></p>
-</li>
-</ul>
-</div>
-  </div>
-</div>
-<div class="paragraph">
-<p>理由は以下の通りである。<br>
-shouldDeleteIfEmptyにtrueを設定すると、出力件数が0件の場合に出力対象ファイルの削除が行われる。<br>
-この「出力件数が0件の場合」には、shouldDeleteIfExistsにfalseを設定した状態で出力対象ファイルが既に存在していた場合も含まれる。</p>
-</div>
-<div class="paragraph">
-<p>よって、上記の組み合わせでプロパティを指定すると既に出力対象ファイルが存在する場合に出力対象ファイルの削除が行われてしまう。<br>
-これは、出力対象ファイルが既に存在する場合は例外をスローさせて処理を終了したい場合には意図しない動作である。</p>
-</div>
-<div class="paragraph">
-<p>このような意図しない動作が行われるため、shouldDeleteIfEmptyにはtrueは設定しないことを推奨する。</p>
-</div>
-<div class="paragraph">
-<p>また、出力件数が0件であった場合にファイル削除等の後処理を行う場合は、shouldDeleteIfEmptyではなくOSコマンドやListener等で実装すること。</p>
-</div>
-</td>
-</tr>
-</table>
-</div>
-<div class="paragraph">
-<div class="title">EnclosableDelimitedLineAggregatorの使用方法</div>
+<div id="Ch05_FileAccess_EnclosableDelimitedLineAggregator" class="paragraph">
+<div class="title">EnclosableDelimitedLineAggregatorについて</div>
 <p>フィールドを囲み文字で囲む場合は、TERASOLUNA Batch 5.xが提供する<code>org.terasoluna.batch.item.file.transform.EnclosableDelimitedLineAggregator</code>を使用する。<br>
+この拡張クラスでは、Spring Batchにより提供されている<code>org.springframework.batch.item.file.transform.DelimitedLineAggregator</code>に、フィールドを囲み文字で囲む処理に対応することができ、RFC-4180 で求められている要件を満たすための拡張が行われている。
+本機能の実装の経緯については、 <a href="https://github.com/spring-projects/spring-batch/issues/1139">Spring Batch/BATCH-2463</a> を参照。<br>
 <code>EnclosableDelimitedLineAggregator</code>の仕様は以下のとおり。</p>
 </div>
 <div class="ulist">
@@ -1257,14 +1330,17 @@ shouldDeleteIfEmptyにtrueを設定すると、出力件数が0件の場合に�
 </div>
 </li>
 <li>
-<p>フィールドに行頭復帰、改行、囲み文字、区切り文字が含まれている場合、囲み文字でフィールドを囲む</p>
+<p>CSV形式のフォーマットについて、CSV形式の一般的書式とされるRFC-4180では下記のように定義されている。</p>
 <div class="ulist">
 <ul>
 <li>
-<p>囲み文字が含まれている場合、直前に囲み文字を付与しエスケープする</p>
+<p>フィールドに改行、囲み文字、区切り文字が含まれていない場合、各フィールドはダブルクォート(囲み文字)で囲んでも囲わなくてもよい</p>
 </li>
 <li>
-<p>設定によってすべてのフィールドを囲み文字で囲むことが可能</p>
+<p>改行(CRLF)、ダブルクォート(囲み文字)、カンマ(区切り文字)を含むフィールドは、ダブルクォートで囲むべきである</p>
+</li>
+<li>
+<p>フィールドがダブルクォート(囲み文字)で囲まれている場合、フィールドの値に含まれるダブルクォートは、その直前に1つダブルクォートを付加して、エスケープしなければならない</p>
 </li>
 </ul>
 </div>
@@ -1288,10 +1364,9 @@ shouldDeleteIfEmptyにtrueを設定すると、出力件数が0件の場合に�
 <pre class="CodeRay highlight"><code data-lang="java"><span class="comment">// 上記の例と同様</span></code></pre>
 </div>
 </div>
-<div class="tabbox">
-  <input type="radio" name="tabgroup050305" class="JavaConfigTab" id="tabgroup050305_1" checked><label for="tabgroup050305_1" class="tab">JavaConfig</label>
-  <input type="radio" name="tabgroup050305" class="XMLConfigTab" id="tabgroup050305_2"><label for="tabgroup050305_2" class="tab">XMLConfig</label>
-  <div class="tabcontent" name="JavaConfigContent">
+<div class="exampleblock primary">
+<div class="title">JavaConfig</div>
+<div class="content">
 <div class="listingblock">
 <div class="title">Bean定義例(lineAggregatorの設定のみ)</div>
 <div class="content">
@@ -1302,8 +1377,11 @@ lineAggregator.setAllEnclosing(<span class="predefined-constant">true</span>); <
 lineAggregator.setFieldExtractor(fieldExtractor);</code></pre>
 </div>
 </div>
-  </div>
-  <div class="tabcontent" name="XMLConfigContent">
+</div>
+</div>
+<div class="exampleblock secondary">
+<div class="title">XMLConfig</div>
+<div class="content">
 <div class="listingblock">
 <div class="title">Bean定義例(lineAggregatorの設定のみ)</div>
 <div class="content">
@@ -1320,7 +1398,7 @@ lineAggregator.setFieldExtractor(fieldExtractor);</code></pre>
 <span class="tag">&lt;/property&gt;</span></code></pre>
 </div>
 </div>
-  </div>
+</div>
 </div>
 <table class="tableblock frame-all grid-all stretch">
 <caption class="title">表 9. 設定内容の項目一覧</caption>
@@ -1344,14 +1422,16 @@ lineAggregator.setFieldExtractor(fieldExtractor);</code></pre>
 <tr>
 <td class="tableblock halign-left valign-top"><p class="tableblock">(1)</p></td>
 <td class="tableblock halign-left valign-top"><p class="tableblock">lineAggregator</p></td>
-<td class="tableblock halign-left valign-top"><p class="tableblock"><code>org.terasoluna.batch.item.file.transform.EnclosableDelimitedLineAggregator</code>を設定する。</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><code>org.terasoluna.batch.item.file.transform.EnclosableDelimitedLineAggregator</code>を設定する。<br>
+<code>EnclosableDelimitedLineAggregator</code>の使用方法は<a href="#Ch05_FileAccess_EnclosableDelimitedLineAggregator">EnclosableDelimitedLineAggregatorについて</a>を参照。</p></td>
 <td class="tableblock halign-left valign-top"><p class="tableblock"><span class="icon"><i class="fa fa-check"></i></span></p></td>
 <td class="tableblock halign-left valign-top"><p class="tableblock">なし</p></td>
 </tr>
 <tr>
 <td class="tableblock halign-left valign-top"><p class="tableblock">(2)</p></td>
 <td class="tableblock halign-left valign-top"><p class="tableblock">delimiter</p></td>
-<td class="tableblock halign-left valign-top"><p class="tableblock">区切り文字を設定する。</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">区切り文字を設定する。<br>
+TSVファイルの出力を行う場合には、<a href="#Ch05_FileAccess_TSV_Output">TSV形式ファイルの出力方法</a>を参照。</p></td>
 <td class="tableblock halign-left valign-top"></td>
 <td class="tableblock halign-left valign-top"><p class="tableblock">カンマ</p></td>
 </tr>
@@ -1373,64 +1453,24 @@ falseの場合フィールド内に行頭復帰(CR)、改行(LF)、区切り文�
 </tr>
 </tbody>
 </table>
-<div class="admonitionblock note">
-<table>
-<tr>
-<td class="icon">
-<i class="fa icon-note" title="Note"></i>
-</td>
-<td class="content">
-<div class="title">EnclosableDelimitedLineAggregatorの提供について</div>
-<div class="paragraph">
-<p>TERASOLUNA Batch 5.xでは、RFC-4180の仕様を満たすことを目的として拡張クラス<code>org.terasoluna.batch.item.file.transform.EnclosableDelimitedLineAggregator</code>を提供している。</p>
-</div>
-<div class="paragraph">
-<p>Spring Batchが提供している<code>org.springframework.batch.item.file.transform.DelimitedLineAggregator</code>はフィールドを囲み文字で囲む処理に対応しておらず、RFC-4180の仕様を満たすことができないためである。
-<a href="https://github.com/spring-projects/spring-batch/issues/1139">Spring Batch/BATCH-2463</a> を参照。</p>
-</div>
-<div class="paragraph">
-<p>CSV形式のフォーマットについて、CSV形式の一般的書式とされるRFC-4180では下記のように定義されている。</p>
-</div>
-<div class="ulist">
-<ul>
-<li>
-<p>フィールドに改行、囲み文字、区切り文字が含まれていない場合、各フィールドはダブルクォート(囲み文字)で囲んでも囲わなくてもよい</p>
-</li>
-<li>
-<p>改行(CRLF)、ダブルクォート(囲み文字)、カンマ(区切り文字)を含むフィールドは、ダブルクォートで囲むべきである</p>
-</li>
-<li>
-<p>フィールドがダブルクォート(囲み文字)で囲まれている場合、フィールドの値に含まれるダブルクォートは、その直前に1つダブルクォートを付加して、エスケープしなければならない</p>
-</li>
-</ul>
-</div>
-</td>
-</tr>
-</table>
-</div>
-<div class="admonitionblock note">
-<table>
-<tr>
-<td class="icon">
-<i class="fa icon-note" title="Note"></i>
-</td>
-<td class="content">
+<div id="Ch05_FileAccess_TSV_Output" class="paragraph">
 <div class="title">TSV形式ファイルの出力方法</div>
-<div class="paragraph">
 <p>TSVファイルの出力を行う場合には、区切り文字にタブを設定することで実現可能である。</p>
 </div>
-<div class="tabbox">
-  <input type="radio" name="tabgroup050306" class="JavaConfigTab" id="tabgroup050306_1" checked><label for="tabgroup050306_1" class="tab">JavaConfig</label>
-  <input type="radio" name="tabgroup050306" class="XMLConfigTab" id="tabgroup050306_2"><label for="tabgroup050306_2" class="tab">XMLConfig</label>
-  <div class="tabcontent" name="JavaConfigContent">
+<div class="exampleblock primary">
+<div class="title">JavaConfig</div>
+<div class="content">
 <div class="listingblock">
 <div class="title">TSVファイル出力時の区切り文字設定例(定数による設定)</div>
 <div class="content">
 <pre class="CodeRay highlight"><code data-lang="java">tokenizer.setDelimiter(DelimitedLineTokenizer.DELIMITER_TAB);</code></pre>
 </div>
 </div>
-  </div>
-  <div class="tabcontent" name="XMLConfigContent">
+</div>
+</div>
+<div class="exampleblock secondary">
+<div class="title">XMLConfig</div>
+<div class="content">
 <div class="listingblock">
 <div class="title">TSVファイル出力時の区切り文字設定例(定数による設定)</div>
 <div class="content">
@@ -1440,20 +1480,133 @@ falseの場合フィールド内に行頭復帰(CR)、改行(LF)、区切り文�
 <span class="tag">&lt;/property&gt;</span></code></pre>
 </div>
 </div>
+</div>
+</div>
+</div>
+<div class="sect3">
+<h4 id="Ch05_FileAccess_HowToUse_VariableLength_Output_Property"><a class="anchor" href="#Ch05_FileAccess_HowToUse_VariableLength_Output_Property"></a>FlatFileItemWriterのshouldDeleteIfExistsとshouldDeleteIfEmptyの動作の違い</h4>
 <div class="paragraph">
-<p>または、以下のようにしてもよい。</p>
+<p><code>FlatFileItemWriter</code>のプロパティである、<code>shouldDeleteIfExists</code>と<code>shouldDeleteIfEmpty</code>は実行タイミングや判定対象が異なる。</p>
 </div>
-<div class="listingblock">
-<div class="title">TSVファイル出力時の区切り文字設定例(文字参照による設定)</div>
+<div class="imageblock text-center">
 <div class="content">
-<pre class="CodeRay highlight"><code data-lang="xml"><span class="tag">&lt;property</span> <span class="attribute-name">name</span>=<span class="string"><span class="delimiter">&quot;</span><span class="content">delimiter</span><span class="delimiter">&quot;</span></span> <span class="attribute-name">value</span>=<span class="string"><span class="delimiter">&quot;</span><span class="entity">&amp;#09;</span><span class="delimiter">&quot;</span></span><span class="tag">/&gt;</span></code></pre>
+<img src="./images/ch05/FileAccess/Ch05_FlatFileItemWriter_Property.png" alt="FlatFileItemWriter Property">
 </div>
 </div>
-  </div>
-</div>
-</td>
+<table class="tableblock frame-all grid-all stretch">
+<caption class="title">表 10. shouldDeleteIfExistsとshouldDeleteIfEmptyの違い</caption>
+<colgroup>
+<col style="width: 10%;">
+<col style="width: 30%;">
+<col style="width: 15%;">
+<col style="width: 15%;">
+<col style="width: 30%;">
+</colgroup>
+<thead>
+<tr>
+<th class="tableblock halign-left valign-top"></th>
+<th class="tableblock halign-left valign-top">機能</th>
+<th class="tableblock halign-left valign-top">判定タイミング</th>
+<th class="tableblock halign-left valign-top">判定対象</th>
+<th class="tableblock halign-left valign-top">設定値(true/false)の挙動</th>
 </tr>
+</thead>
+<tbody>
+<tr>
+<td class="tableblock halign-left valign-top"><p class="tableblock">shouldDeleteIfExists</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">同一名称の出力ファイルが既に存在する場合の挙動を制御する</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">ファイル出力前</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">同一名称の出力ファイルの有無</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">true:既存の出力ファイルを削除し、新たに出力ファイルを作成する<br>
+false:例外をスローする</p></td>
+</tr>
+<tr>
+<td class="tableblock halign-left valign-top"><p class="tableblock">shouldDeleteIfEmpty</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">ジョブの出力件数が0件の場合の挙動を制御する</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">ファイル出力後</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">ジョブの出力件数が0件かどうか (*1)</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">true:出力ファイルを削除する<br>
+false:何もしない</p></td>
+</tr>
+</tbody>
 </table>
+<div class="exampleblock">
+<div class="content">
+<div class="paragraph">
+<p>*1. 特定条件下では出力件数が0件ではない場合でもファイルが削除される場合がある、詳細は後述の「<a href="#Ch05_FileAccess_HowToUse_VariableLength_Output_Property_shouldDeleteIfEmpty_true"><code>shouldDeleteIfEmpty</code>がtrueの場合の注意すべき動作</a>」を参照。</p>
+</div>
+</div>
+</div>
+<div class="paragraph">
+<p><code>shouldDeleteIfExists</code>はファイル出力前の出力ファイルを対象とし、<code>shouldDeleteIfEmpty</code>はファイル出力後の出力件数を対象をしている。</p>
+</div>
+<div id="Ch05_FileAccess_HowToUse_VariableLength_Output_Property_shouldDeleteIfEmpty_true" class="paragraph">
+<p><code>shouldDeleteIfEmpty</code>がtrueの場合の注意すべき動作について説明する。<br>
+以下の条件を満たした場合、出力件数が0件でなくとも出力ファイルが削除されるため注意が必要である。</p>
+</div>
+<div class="ulist">
+<ul>
+<li>
+<p><code>shouldDeleteIfExists</code>にfalseを設定</p>
+</li>
+<li>
+<p><code>shouldDeleteIfEmpty</code>にtrueを設定</p>
+</li>
+<li>
+<p>Jobによるファイル出力前に既に出力ファイルが存在する</p>
+</li>
+</ul>
+</div>
+<div class="paragraph">
+<p>条件を満たした場合、以下の様に処理が進む。</p>
+</div>
+<div class="olist arabic">
+<ol class="arabic">
+<li>
+<p><code>shouldDeleteIfExists</code>はジョブ開始時に既存ファイルがあるかチェックされる。</p>
+</li>
+<li>
+<p>この時点ではまだ<code>ItemWriter</code>によるファイル出力前だが、同名のファイルが既に存在したときはファイル出力を行われずに例外がスローされる。</p>
+</li>
+<li>
+<p>しかし例外スロー前に後処理としてファイルクローズが行われ、ジョブ終了時の<code>shouldDeleteIfEmpty</code>が評価される。</p>
+</li>
+<li>
+<p>ここで<code>shouldDeleteIfEmpty</code>がtrueの場合、前処理で例外がスローされているためジョブの出力件数が0件となりファイルが削除される。<br>
+これは既存ファイルのレコードがたとえ10000行あっても出力件数が0件として評価されファイルが削除される。</p>
+</li>
+</ol>
+</div>
+<div class="paragraph">
+<p>このように、<code>shouldDeleteIfExists</code>と<code>souldDeleteIfEmpty</code>の設定値の組み合わせによっては、出力ファイルが意図せず削除される恐れがあり注意が必要である。<br>
+意図せぬ出力ファイルの削除を避けるため、以下を検討するとよい。</p>
+</div>
+<div class="ulist">
+<ul>
+<li>
+<p>不要な出力ファイルは、別の方法で削除する</p>
+<div class="ulist">
+<ul>
+<li>
+<p>ジョブスケジューラ等で、不要な出力ファイルを定期的にクリーンアップする</p>
+</li>
+</ul>
+</div>
+</li>
+<li>
+<p><code>shouldDeleteIfExists</code>、<code>shouldDeleteIfEmpty</code>による出力ファイル削除を禁止する</p>
+<div class="ulist">
+<ul>
+<li>
+<p><code>shouldDeleteIfExists</code>、<code>shouldDeleteIfEmpty</code>はともにfalseとする</p>
+</li>
+</ul>
+</div>
+</li>
+</ul>
+</div>
+<div class="paragraph">
+<p>以上のことから、<code>shouldDeleteIfExists</code>と<code>shouldDeleteIfEmpty</code>は実行タイミングや判定対象が異なることと、特定条件下で出力ファイルが意図せず削除される恐れがあるため注意が必要である。</p>
 </div>
 </div>
 </div>
@@ -1486,7 +1639,7 @@ falseの場合フィールド内に行頭復帰(CR)、改行(LF)、区切り文�
 </div>
 </div>
 <table class="tableblock frame-all grid-all stretch">
-<caption class="title">表 10. 入力ファイル仕様</caption>
+<caption class="title">表 11. 入力ファイル仕様</caption>
 <colgroup>
 <col style="width: 10%;">
 <col style="width: 35%;">
@@ -1552,10 +1705,9 @@ falseの場合フィールド内に行頭復帰(CR)、改行(LF)、区切り文�
 <div class="paragraph">
 <p>上記のファイルを読む込むための設定は以下のとおり。</p>
 </div>
-<div class="tabbox">
-  <input type="radio" name="tabgroup050307" class="JavaConfigTab" id="tabgroup050307_1" checked><label for="tabgroup050307_1" class="tab">JavaConfig</label>
-  <input type="radio" name="tabgroup050307" class="XMLConfigTab" id="tabgroup050307_2"><label for="tabgroup050307_2" class="tab">XMLConfig</label>
-  <div class="tabcontent" name="JavaConfigContent">
+<div class="exampleblock primary">
+<div class="title">JavaConfig</div>
+<div class="content">
 <div class="listingblock">
 <div class="title">Bean定義例</div>
 <div class="content">
@@ -1584,8 +1736,11 @@ falseの場合フィールド内に行頭復帰(CR)、改行(LF)、区切り文�
 }</code></pre>
 </div>
 </div>
-  </div>
-  <div class="tabcontent" name="XMLConfigContent">
+</div>
+</div>
+<div class="exampleblock secondary">
+<div class="title">XMLConfig</div>
+<div class="content">
 <div class="listingblock">
 <div class="title">Bean定義例</div>
 <div class="content">
@@ -1618,10 +1773,10 @@ falseの場合フィールド内に行頭復帰(CR)、改行(LF)、区切り文�
 <span class="tag">&lt;/bean&gt;</span></code></pre>
 </div>
 </div>
-  </div>
+</div>
 </div>
 <table class="tableblock frame-all grid-all stretch">
-<caption class="title">表 11. 設定内容の項目一覧</caption>
+<caption class="title">表 12. 設定内容の項目一覧</caption>
 <colgroup>
 <col style="width: 5%;">
 <col style="width: 20%;">
@@ -1779,17 +1934,19 @@ falseの場合フィールド内に行頭復帰(CR)、改行(LF)、区切り文�
 <div class="paragraph">
 <p><code>FixedByteLengthBufferedReaderFactory</code>の定義方法を以下に示す。</p>
 </div>
-<div class="tabbox">
-  <input type="radio" name="tabgroup050308" class="JavaConfigTab" id="tabgroup050308_1" checked><label for="tabgroup050308_1" class="tab">JavaConfig</label>
-  <input type="radio" name="tabgroup050308" class="XMLConfigTab" id="tabgroup050308_2"><label for="tabgroup050308_2" class="tab">XMLConfig</label>
-  <div class="tabcontent" name="JavaConfigContent">
+<div class="exampleblock primary">
+<div class="title">JavaConfig</div>
+<div class="content">
 <div class="listingblock">
 <div class="content">
 <pre class="CodeRay highlight"><code data-lang="java">FixedByteLengthBufferedReaderFactory bufferedReaderFactory = <span class="keyword">new</span> FixedByteLengthBufferedReaderFactory(<span class="integer">32</span>); <span class="comment">// (1)</span></code></pre>
 </div>
 </div>
-  </div>
-  <div class="tabcontent" name="XMLConfigContent">
+</div>
+</div>
+<div class="exampleblock secondary">
+<div class="title">XMLConfig</div>
+<div class="content">
 <div class="listingblock">
 <div class="content">
 <pre class="CodeRay highlight"><code data-lang="xml"><span class="tag">&lt;property</span> <span class="attribute-name">name</span>=<span class="string"><span class="delimiter">&quot;</span><span class="content">bufferedReaderFactory</span><span class="delimiter">&quot;</span></span><span class="tag">&gt;</span>
@@ -1798,10 +1955,10 @@ falseの場合フィールド内に行頭復帰(CR)、改行(LF)、区切り文�
 <span class="tag">&lt;/property&gt;</span></code></pre>
 </div>
 </div>
-  </div>
+</div>
 </div>
 <table class="tableblock frame-all grid-all stretch">
-<caption class="title">表 12. 設定内容の項目一覧</caption>
+<caption class="title">表 13. 設定内容の項目一覧</caption>
 <colgroup>
 <col style="width: 5%;">
 <col style="width: 20%;">
@@ -1937,7 +2094,7 @@ FieldSetMapperの実装については、<a href="#Ch05_FileAccess_HowToExtend">
 </div>
 </div>
 <table class="tableblock frame-all grid-all stretch">
-<caption class="title">表 13. 出力ファイル仕様</caption>
+<caption class="title">表 14. 出力ファイル仕様</caption>
 <colgroup>
 <col style="width: 10%;">
 <col style="width: 35%;">
@@ -2006,10 +2163,9 @@ FieldSetMapperの実装については、<a href="#Ch05_FileAccess_HowToExtend">
 <div class="paragraph">
 <p>上記のファイルを書き出すための設定は以下のとおり。</p>
 </div>
-<div class="tabbox">
-  <input type="radio" name="tabgroup050309" class="JavaConfigTab" id="tabgroup050309_1" checked><label for="tabgroup050309_1" class="tab">JavaConfig</label>
-  <input type="radio" name="tabgroup050309" class="XMLConfigTab" id="tabgroup050309_2"><label for="tabgroup050309_2" class="tab">XMLConfig</label>
-  <div class="tabcontent" name="JavaConfigContent">
+<div class="exampleblock primary">
+<div class="title">JavaConfig</div>
+<div class="content">
 <div class="listingblock">
 <div class="title">Bean定義</div>
 <div class="content">
@@ -2037,8 +2193,11 @@ FieldSetMapperの実装については、<a href="#Ch05_FileAccess_HowToExtend">
 }</code></pre>
 </div>
 </div>
-  </div>
-  <div class="tabcontent" name="XMLConfigContent">
+</div>
+</div>
+<div class="exampleblock secondary">
+<div class="title">XMLConfig</div>
+<div class="content">
 <div class="listingblock">
 <div class="title">Bean定義</div>
 <div class="content">
@@ -2065,10 +2224,10 @@ FieldSetMapperの実装については、<a href="#Ch05_FileAccess_HowToExtend">
 <span class="tag">&lt;/bean&gt;</span></code></pre>
 </div>
 </div>
-  </div>
+</div>
 </div>
 <table class="tableblock frame-all grid-all stretch">
-<caption class="title">表 14. 設定内容の項目一覧</caption>
+<caption class="title">表 15. 設定内容の項目一覧</caption>
 <colgroup>
 <col style="width: 5%;">
 <col style="width: 20%;">
@@ -2121,16 +2280,18 @@ FieldSetMapperの実装については、<a href="#Ch05_FileAccess_HowToExtend">
 <td class="tableblock halign-left valign-top"><p class="tableblock">(5)</p></td>
 <td class="tableblock halign-left valign-top"><p class="tableblock">shouldDeleteIfExists</p></td>
 <td class="tableblock halign-left valign-top"><p class="tableblock"><span class="icon"><i class="fa fa-warning"></i></span> appendAllowedがtrueの場合は、この設定は無効化されるため、値を指定しないことを推奨する。<br>
-trueの場合、既にファイルが存在すれば削除する。<br>
-falseの場合、既にファイルが存在すれば例外をスローする。</p></td>
+ファイル出力前に出力ファイルが存在していた場合の動作を設定する。<br>
+trueの場合、ファイル出力前に既にファイルが存在すれば削除する。<br>
+falseの場合、ファイル出力前に既にファイルが存在すれば例外をスローする。</p></td>
 <td class="tableblock halign-left valign-top"></td>
 <td class="tableblock halign-left valign-top"><p class="tableblock">true</p></td>
 </tr>
 <tr>
 <td class="tableblock halign-left valign-top"><p class="tableblock">(6)</p></td>
 <td class="tableblock halign-left valign-top"><p class="tableblock">shouldDeleteIfEmpty</p></td>
-<td class="tableblock halign-left valign-top"><p class="tableblock">trueの場合、出力件数が0件であれば出力対象ファイルを削除する。<br>
-<span class="icon"><i class="fa fa-warning"></i></span> 他の設定との組み合わせによって意図しない動作をする場合があるため、trueは設定しないことを推奨する。詳細は<a href="#Ch05_FileAccess_HowToUse_VariableLength_Output_AboutShouldDeleteIfEmpty">可変長レコードの出力の注意書き</a>を参照。</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">出力件数が0件であった場合にファイルを削除するかを設定する。<br>
+trueの場合、ファイル出力後に出力件数が0件であれば出力対象ファイルを削除する。<br>
+<span class="icon"><i class="fa fa-warning"></i></span> 他の設定との組み合わせによって意図しない動作をする場合がある。詳細は<a href="#Ch05_FileAccess_HowToUse_VariableLength_Output_Property">FlatFileItemWriterのshouldDeleteIfExistsとshouldDeleteIfEmptyの動作の違い</a>を参照。</p></td>
 <td class="tableblock halign-left valign-top"></td>
 <td class="tableblock halign-left valign-top"><p class="tableblock">false</p></td>
 </tr>
@@ -2248,10 +2409,9 @@ falseの場合、既にファイルが存在すれば例外をスローする。
 <div class="paragraph">
 <p>出力ファイルの使用は上記の例と同様。</p>
 </div>
-<div class="tabbox">
-  <input type="radio" name="tabgroup050310" class="JavaConfigTab" id="tabgroup050310_1" checked><label for="tabgroup050310_1" class="tab">JavaConfig</label>
-  <input type="radio" name="tabgroup050310" class="XMLConfigTab" id="tabgroup050310_2"><label for="tabgroup050310_2" class="tab">XMLConfig</label>
-  <div class="tabcontent" name="JavaConfigContent">
+<div class="exampleblock primary">
+<div class="title">JavaConfig</div>
+<div class="content">
 <div class="listingblock">
 <div class="title">Bean定義(lineAggregatorの設定のみ)</div>
 <div class="content">
@@ -2261,8 +2421,11 @@ lineAggregator.setFormat(<span class="string"><span class="delimiter">&quot;</sp
 lineAggregator.setFieldExtractor(fieldExtractor);</code></pre>
 </div>
 </div>
-  </div>
-  <div class="tabcontent" name="XMLConfigContent">
+</div>
+</div>
+<div class="exampleblock secondary">
+<div class="title">XMLConfig</div>
+<div class="content">
 <div class="listingblock">
 <div class="title">Bean定義(lineAggregatorの設定のみ)</div>
 <div class="content">
@@ -2276,10 +2439,10 @@ lineAggregator.setFieldExtractor(fieldExtractor);</code></pre>
 <span class="tag">&lt;/property&gt;</span></code></pre>
 </div>
 </div>
-  </div>
+</div>
 </div>
 <table class="tableblock frame-all grid-all stretch">
-<caption class="title">表 15. 設定内容の項目一覧</caption>
+<caption class="title">表 16. 設定内容の項目一覧</caption>
 <colgroup>
 <col style="width: 5%;">
 <col style="width: 20%;">
@@ -2388,7 +2551,7 @@ lineAggregator.setFieldExtractor(fieldExtractor);</code></pre>
 </div>
 </div>
 <table class="tableblock frame-all grid-all stretch">
-<caption class="title">表 16. 設定内容の項目一覧</caption>
+<caption class="title">表 17. 設定内容の項目一覧</caption>
 <colgroup>
 <col style="width: 10%;">
 <col style="width: 90%;">
@@ -2460,10 +2623,9 @@ Summary3:6,000,000,000</code></pre>
 <div class="paragraph">
 <p>上記のファイルを読む込むための設定は以下のとおり。</p>
 </div>
-<div class="tabbox">
-  <input type="radio" name="tabgroup050311" class="JavaConfigTab" id="tabgroup050311_1" checked><label for="tabgroup050311_1" class="tab">JavaConfig</label>
-  <input type="radio" name="tabgroup050311" class="XMLConfigTab" id="tabgroup050311_2"><label for="tabgroup050311_2" class="tab">XMLConfig</label>
-  <div class="tabcontent" name="JavaConfigContent">
+<div class="exampleblock primary">
+<div class="title">JavaConfig</div>
+<div class="content">
 <div class="listingblock">
 <div class="title">Bean定義</div>
 <div class="content">
@@ -2481,8 +2643,11 @@ Summary3:6,000,000,000</code></pre>
 }</code></pre>
 </div>
 </div>
-  </div>
-  <div class="tabcontent" name="XMLConfigContent">
+</div>
+</div>
+<div class="exampleblock secondary">
+<div class="title">XMLConfig</div>
+<div class="content">
 <div class="listingblock">
 <div class="title">Bean定義</div>
 <div class="content">
@@ -2498,10 +2663,10 @@ Summary3:6,000,000,000</code></pre>
 <span class="tag">&lt;/bean&gt;</span></code></pre>
 </div>
 </div>
-  </div>
+</div>
 </div>
 <table class="tableblock frame-all grid-all stretch">
-<caption class="title">表 17. 設定内容の項目一覧</caption>
+<caption class="title">表 18. 設定内容の項目一覧</caption>
 <colgroup>
 <col style="width: 5%;">
 <col style="width: 20%;">
@@ -2565,10 +2730,9 @@ Summary2:5,000,000,000
 Summary3:6,000,000,000</code></pre>
 </div>
 </div>
-<div class="tabbox">
-  <input type="radio" name="tabgroup050312" class="JavaConfigTab" id="tabgroup050312_1" checked><label for="tabgroup050312_1" class="tab">JavaConfig</label>
-  <input type="radio" name="tabgroup050312" class="XMLConfigTab" id="tabgroup050312_2"><label for="tabgroup050312_2" class="tab">XMLConfig</label>
-  <div class="tabcontent" name="JavaConfigContent">
+<div class="exampleblock primary">
+<div class="title">JavaConfig</div>
+<div class="content">
 <div class="listingblock">
 <div class="title">Bean定義</div>
 <div class="content">
@@ -2592,8 +2756,11 @@ Summary3:6,000,000,000</code></pre>
 }</code></pre>
 </div>
 </div>
-  </div>
-  <div class="tabcontent" name="XMLConfigContent">
+</div>
+</div>
+<div class="exampleblock secondary">
+<div class="title">XMLConfig</div>
+<div class="content">
 <div class="listingblock">
 <div class="title">Bean定義</div>
 <div class="content">
@@ -2614,10 +2781,10 @@ Summary3:6,000,000,000</code></pre>
 <span class="tag">&lt;/bean&gt;</span></code></pre>
 </div>
 </div>
-  </div>
+</div>
 </div>
 <table class="tableblock frame-all grid-all stretch">
-<caption class="title">表 18. 設定内容の項目一覧</caption>
+<caption class="title">表 19. 設定内容の項目一覧</caption>
 <colgroup>
 <col style="width: 5%;">
 <col style="width: 20%;">
@@ -2669,16 +2836,18 @@ Summary3:6,000,000,000</code></pre>
 <td class="tableblock halign-left valign-top"><p class="tableblock">(5)</p></td>
 <td class="tableblock halign-left valign-top"><p class="tableblock">shouldDeleteIfExists</p></td>
 <td class="tableblock halign-left valign-top"><p class="tableblock"><span class="icon"><i class="fa fa-warning"></i></span> appendAllowedがtrueの場合は、この設定は無効化されるため、値を指定しないことを推奨する。<br>
-trueの場合、既にファイルが存在すれば削除する。<br>
-falseの場合、既にファイルが存在すれば例外をスローする。</p></td>
+ファイル出力前に出力ファイルが存在していた場合の動作を設定する。<br>
+trueの場合、ファイル出力前に既にファイルが存在すれば削除する。<br>
+falseの場合、ファイル出力前に既にファイルが存在すれば例外をスローする。</p></td>
 <td class="tableblock halign-left valign-top"></td>
 <td class="tableblock halign-left valign-top"><p class="tableblock">true</p></td>
 </tr>
 <tr>
 <td class="tableblock halign-left valign-top"><p class="tableblock">(6)</p></td>
 <td class="tableblock halign-left valign-top"><p class="tableblock">shouldDeleteIfEmpty</p></td>
-<td class="tableblock halign-left valign-top"><p class="tableblock">trueの場合、出力件数が0件であれば出力対象ファイルを削除する。<br>
-<span class="icon"><i class="fa fa-warning"></i></span> 他の設定との組み合わせによって意図しない動作をする場合があるため、trueは設定しないことを推奨する。詳細は<a href="#Ch05_FileAccess_HowToUse_VariableLength_Output_AboutShouldDeleteIfEmpty">可変長レコードの出力の注意書き</a>を参照。</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">出力件数が0件であった場合にファイルを削除するかを設定する。<br>
+trueの場合、ファイル出力後に出力件数が0件であれば出力対象ファイルを削除する。<br>
+<span class="icon"><i class="fa fa-warning"></i></span> 他の設定との組み合わせによって意図しない動作をする場合がある。詳細は<a href="#Ch05_FileAccess_HowToUse_VariableLength_Output_Property">FlatFileItemWriterのshouldDeleteIfExistsとshouldDeleteIfEmptyの動作の違い</a>を参照。</p></td>
 <td class="tableblock halign-left valign-top"></td>
 <td class="tableblock halign-left valign-top"><p class="tableblock">false</p></td>
 </tr>
@@ -2743,10 +2912,9 @@ branchId,year,month,customerId,amount
 <div class="paragraph">
 <p>上記のファイルを読む込むための設定は以下のとおり。</p>
 </div>
-<div class="tabbox">
-  <input type="radio" name="tabgroup050313" class="JavaConfigTab" id="tabgroup050313_1" checked><label for="tabgroup050313_1" class="tab">JavaConfig</label>
-  <input type="radio" name="tabgroup050313" class="XMLConfigTab" id="tabgroup050313_2"><label for="tabgroup050313_2" class="tab">XMLConfig</label>
-  <div class="tabcontent" name="JavaConfigContent">
+<div class="exampleblock primary">
+<div class="title">JavaConfig</div>
+<div class="content">
 <div class="listingblock">
 <div class="title">linesToSkipによる読み飛ばし</div>
 <div class="content">
@@ -2763,8 +2931,11 @@ branchId,year,month,customerId,amount
 }</code></pre>
 </div>
 </div>
-  </div>
-  <div class="tabcontent" name="XMLConfigContent">
+</div>
+</div>
+<div class="exampleblock secondary">
+<div class="title">XMLConfig</div>
+<div class="content">
 <div class="listingblock">
 <div class="title">linesToSkipによる読み飛ばし</div>
 <div class="content">
@@ -2778,10 +2949,10 @@ branchId,year,month,customerId,amount
 <span class="tag">&lt;/bean&gt;</span></code></pre>
 </div>
 </div>
-  </div>
+</div>
 </div>
 <table class="tableblock frame-all grid-all stretch">
-<caption class="title">表 19. 設定内容の項目一覧</caption>
+<caption class="title">表 20. 設定内容の項目一覧</caption>
 <colgroup>
 <col style="width: 5%;">
 <col style="width: 20%;">
@@ -2874,7 +3045,7 @@ tail -n +`expr ${header} + 1` ${input} | head -n -${footer} &gt; ${output}</code
 </div>
 </div>
 <table class="tableblock frame-all grid-all stretch">
-<caption class="title">表 20. 引数</caption>
+<caption class="title">表 21. 引数</caption>
 <colgroup>
 <col style="width: 10%;">
 <col style="width: 90%;">
@@ -2974,10 +3145,9 @@ tail -n +`expr ${header} + 1` ${input} | head -n -${footer} &gt; ${output}</code
 <div class="paragraph">
 <p>ヘッダレコードの情報を取り出す際の実装例を示す。</p>
 </div>
-<div class="tabbox">
-  <input type="radio" name="tabgroup050314" class="JavaConfigTab" id="tabgroup050314_1" checked><label for="tabgroup050314_1" class="tab">JavaConfig</label>
-  <input type="radio" name="tabgroup050314" class="XMLConfigTab" id="tabgroup050314_2"><label for="tabgroup050314_2" class="tab">XMLConfig</label>
-  <div class="tabcontent" name="JavaConfigContent">
+<div class="exampleblock primary">
+<div class="title">JavaConfig</div>
+<div class="content">
 <div class="listingblock">
 <div class="title">Bean定義</div>
 <div class="content">
@@ -3030,8 +3200,11 @@ tail -n +`expr ${header} + 1` ${input} | head -n -${footer} &gt; ${output}</code
 }</code></pre>
 </div>
 </div>
-  </div>
-  <div class="tabcontent" name="XMLConfigContent">
+</div>
+</div>
+<div class="exampleblock secondary">
+<div class="title">XMLConfig</div>
+<div class="content">
 <div class="listingblock">
 <div class="title">Bean定義</div>
 <div class="content">
@@ -3063,10 +3236,10 @@ tail -n +`expr ${header} + 1` ${input} | head -n -${footer} &gt; ${output}</code
 <span class="tag">&lt;/batch:job&gt;</span></code></pre>
 </div>
 </div>
-  </div>
+</div>
 </div>
 <table class="tableblock frame-all grid-all stretch">
-<caption class="title">表 21. 設定内容の項目一覧</caption>
+<caption class="title">表 22. 設定内容の項目一覧</caption>
 <colgroup>
 <col style="width: 5%;">
 <col style="width: 20%;">
@@ -3110,14 +3283,9 @@ tail -n +`expr ${header} + 1` ${input} | head -n -${footer} &gt; ${output}</code
 </tr>
 </tbody>
 </table>
-<div class="admonitionblock important">
-<table>
-<tr>
-<td class="icon">
-<i class="fa icon-important" title="Important"></i>
-</td>
-<td class="content">
-<div class="title">リスナー設定について</div>
+</div>
+<div class="sect4">
+<h5 id="Ch05_FileAccess_HowToUse_HeaderFooter_batchListeners"><a class="anchor" href="#Ch05_FileAccess_HowToUse_HeaderFooter_batchListeners"></a>リスナー設定について</h5>
 <div class="paragraph">
 <p>下記の2つの場合は自動で<code>Listener</code>として登録されないため、ジョブ定義時に<code>listenerメソッド/&lt;batch:listeners&gt;</code>にも定義を追加する必要がある。<br>
 (リスナの定義を追加しないと、<code>StepExecutionListener#beforeStep()</code>が実行されない)</p>
@@ -3132,10 +3300,9 @@ tail -n +`expr ${header} + 1` ${input} | head -n -${footer} &gt; ${output}</code
 </li>
 </ul>
 </div>
-<div class="tabbox">
-  <input type="radio" name="tabgroup050315" class="JavaConfigTab" id="tabgroup050315_1" checked><label for="tabgroup050315_1" class="tab">JavaConfig</label>
-  <input type="radio" name="tabgroup050315" class="XMLConfigTab" id="tabgroup050315_2"><label for="tabgroup050315_2" class="tab">XMLConfig</label>
-  <div class="tabcontent" name="JavaConfigContent">
+<div class="exampleblock primary">
+<div class="title">JavaConfig</div>
+<div class="content">
 <div class="listingblock">
 <div class="content">
 <pre class="CodeRay highlight"><code data-lang="java"><span class="annotation">@Bean</span>
@@ -3169,8 +3336,11 @@ tail -n +`expr ${header} + 1` ${input} | head -n -${footer} &gt; ${output}</code
 }</code></pre>
 </div>
 </div>
-  </div>
-  <div class="tabcontent" name="XMLConfigContent">
+</div>
+</div>
+<div class="exampleblock secondary">
+<div class="title">XMLConfig</div>
+<div class="content">
 <div class="listingblock">
 <div class="content">
 <pre class="CodeRay highlight"><code data-lang="xml"><span class="tag">&lt;batch:job</span> <span class="attribute-name">id</span>=<span class="string"><span class="delimiter">&quot;</span><span class="content">jobReadCsvSkipAndReferHeader</span><span class="delimiter">&quot;</span></span> <span class="attribute-name">job-repository</span>=<span class="string"><span class="delimiter">&quot;</span><span class="content">jobRepository</span><span class="delimiter">&quot;</span></span><span class="tag">&gt;</span>
@@ -3189,11 +3359,7 @@ tail -n +`expr ${header} + 1` ${input} | head -n -${footer} &gt; ${output}</code
 <span class="tag">&lt;/batch:job&gt;</span></code></pre>
 </div>
 </div>
-  </div>
 </div>
-</td>
-</tr>
-</table>
 </div>
 <div class="paragraph">
 <p><code>LineCallbackHandler</code>は以下の要領で実装する。</p>
@@ -3212,13 +3378,13 @@ tail -n +`expr ${header} + 1` ${input} | head -n -${footer} &gt; ${output}</code
 <p><code>StepExecutionListener</code>クラスを実装し、<code>beforeStep</code>メソッドをオーバーライドする</p>
 </li>
 <li>
-<p>beforeStepメソッドを実装し、<code>@BeforeStep</code>アノテーションを付与する</p>
+<p><code>beforeStep</code>メソッドを実装し、<code>@BeforeStep</code>アノテーションを付与する</p>
 </li>
 </ul>
 </div>
 </li>
 <li>
-<p>beforeStepメソッドにて<code>StepExecution</code>を取得してクラスフィールドに保持する</p>
+<p><code>beforeStep</code>メソッドにて<code>StepExecution</code>を取得してクラスフィールドに保持する</p>
 </li>
 </ul>
 </div>
@@ -3265,7 +3431,7 @@ tail -n +`expr ${header} + 1` ${input} | head -n -${footer} &gt; ${output}</code
 </div>
 </div>
 <table class="tableblock frame-all grid-all stretch">
-<caption class="title">表 22. 設定内容の項目一覧</caption>
+<caption class="title">表 23. 設定内容の項目一覧</caption>
 <colgroup>
 <col style="width: 10%;">
 <col style="width: 90%;">
@@ -3351,7 +3517,7 @@ tail -n +`expr ${header} + 1` ${input} | head -n -${footer} &gt; ${output}</code
 </div>
 </div>
 <table class="tableblock frame-all grid-all stretch">
-<caption class="title">表 23. 設定内容の項目一覧</caption>
+<caption class="title">表 24. 設定内容の項目一覧</caption>
 <colgroup>
 <col style="width: 10%;">
 <col style="width: 90%;">
@@ -3631,10 +3797,9 @@ total of amounts,6000000000</code></pre>
 </li>
 </ul>
 </div>
-<div class="tabbox">
-  <input type="radio" name="tabgroup050316" class="JavaConfigTab" id="tabgroup050316_1" checked><label for="tabgroup050316_1" class="tab">JavaConfig</label>
-  <input type="radio" name="tabgroup050316" class="XMLConfigTab" id="tabgroup050316_2"><label for="tabgroup050316_2" class="tab">XMLConfig</label>
-  <div class="tabcontent" name="JavaConfigContent">
+<div class="exampleblock primary">
+<div class="title">JavaConfig</div>
+<div class="content">
 <div class="listingblock">
 <div class="title">Bean定義</div>
 <div class="content">
@@ -3719,8 +3884,11 @@ total of amounts,6000000000</code></pre>
 }</code></pre>
 </div>
 </div>
-  </div>
-  <div class="tabcontent" name="XMLConfigContent">
+</div>
+</div>
+<div class="exampleblock secondary">
+<div class="title">XMLConfig</div>
+<div class="content">
 <div class="listingblock">
 <div class="title">Bean定義</div>
 <div class="content">
@@ -3773,10 +3941,10 @@ total of amounts,6000000000</code></pre>
 <span class="tag">&lt;/batch:job&gt;</span></code></pre>
 </div>
 </div>
-  </div>
+</div>
 </div>
 <table class="tableblock frame-all grid-all stretch">
-<caption class="title">表 24. 設定内容の項目一覧</caption>
+<caption class="title">表 25. 設定内容の項目一覧</caption>
 <colgroup>
 <col style="width: 5%;">
 <col style="width: 20%;">
@@ -3900,7 +4068,7 @@ total of amounts,6000000000</code></pre>
 </div>
 </div>
 <table class="tableblock frame-all grid-all stretch">
-<caption class="title">表 25. 設定内容の項目一覧</caption>
+<caption class="title">表 26. 設定内容の項目一覧</caption>
 <colgroup>
 <col style="width: 10%;">
 <col style="width: 90%;">
@@ -3984,7 +4152,7 @@ total of amounts,6000000000</code></pre>
 </div>
 </div>
 <table class="tableblock frame-all grid-all stretch">
-<caption class="title">表 26. 設定内容の項目一覧</caption>
+<caption class="title">表 27. 設定内容の項目一覧</caption>
 <colgroup>
 <col style="width: 10%;">
 <col style="width: 90%;">
@@ -4009,10 +4177,9 @@ total of amounts,6000000000</code></pre>
 </tr>
 </tbody>
 </table>
-<div class="tabbox">
-  <input type="radio" name="tabgroup050317" class="JavaConfigTab" id="tabgroup050317_1" checked><label for="tabgroup050317_1" class="tab">JavaConfig</label>
-  <input type="radio" name="tabgroup050317" class="XMLConfigTab" id="tabgroup050317_2"><label for="tabgroup050317_2" class="tab">XMLConfig</label>
-  <div class="tabcontent" name="JavaConfigContent">
+<div class="exampleblock primary">
+<div class="title">JavaConfig</div>
+<div class="content">
 <div class="listingblock">
 <div class="title">Bean定義</div>
 <div class="content">
@@ -4033,8 +4200,11 @@ total of amounts,6000000000</code></pre>
 }</code></pre>
 </div>
 </div>
-  </div>
-  <div class="tabcontent" name="XMLConfigContent">
+</div>
+</div>
+<div class="exampleblock secondary">
+<div class="title">XMLConfig</div>
+<div class="content">
 <div class="listingblock">
 <div class="title">Bean定義</div>
 <div class="content">
@@ -4050,10 +4220,10 @@ total of amounts,6000000000</code></pre>
 <span class="tag">&lt;/bean&gt;</span></code></pre>
 </div>
 </div>
-  </div>
+</div>
 </div>
 <table class="tableblock frame-all grid-all stretch">
-<caption class="title">表 27. 設定内容の項目一覧</caption>
+<caption class="title">表 28. 設定内容の項目一覧</caption>
 <colgroup>
 <col style="width: 5%;">
 <col style="width: 20%;">
@@ -4187,7 +4357,7 @@ total of amounts,6000000000</code></pre>
 </div>
 </div>
 <table class="tableblock frame-all grid-all stretch">
-<caption class="title">表 28. 設定内容の項目一覧</caption>
+<caption class="title">表 29. 設定内容の項目一覧</caption>
 <colgroup>
 <col style="width: 10%;">
 <col style="width: 90%;">
@@ -4218,10 +4388,9 @@ total of amounts,6000000000</code></pre>
 </tr>
 </tbody>
 </table>
-<div class="tabbox">
-  <input type="radio" name="tabgroup050318" class="JavaConfigTab" id="tabgroup050318_1" checked><label for="tabgroup050318_1" class="tab">JavaConfig</label>
-  <input type="radio" name="tabgroup050318" class="XMLConfigTab" id="tabgroup050318_2"><label for="tabgroup050318_2" class="tab">XMLConfig</label>
-  <div class="tabcontent" name="JavaConfigContent">
+<div class="exampleblock primary">
+<div class="title">JavaConfig</div>
+<div class="content">
 <div class="listingblock">
 <div class="title">Bean定義</div>
 <div class="content">
@@ -4241,8 +4410,11 @@ total of amounts,6000000000</code></pre>
 }</code></pre>
 </div>
 </div>
-  </div>
-  <div class="tabcontent" name="XMLConfigContent">
+</div>
+</div>
+<div class="exampleblock secondary">
+<div class="title">XMLConfig</div>
+<div class="content">
 <div class="listingblock">
 <div class="title">Bean定義</div>
 <div class="content">
@@ -4256,10 +4428,10 @@ total of amounts,6000000000</code></pre>
 <span class="tag">&lt;/bean&gt;</span></code></pre>
 </div>
 </div>
-  </div>
+</div>
 </div>
 <table class="tableblock frame-all grid-all stretch">
-<caption class="title">表 29. 設定内容の項目一覧</caption>
+<caption class="title">表 30. 設定内容の項目一覧</caption>
 <colgroup>
 <col style="width: 5%;">
 <col style="width: 20%;">
@@ -4338,10 +4510,9 @@ sales_plan_detail_02.csv
 sales_plan_detail_03.csv</code></pre>
 </div>
 </div>
-<div class="tabbox">
-  <input type="radio" name="tabgroup050319" class="JavaConfigTab" id="tabgroup050319_1" checked><label for="tabgroup050319_1" class="tab">JavaConfig</label>
-  <input type="radio" name="tabgroup050319" class="XMLConfigTab" id="tabgroup050319_2"><label for="tabgroup050319_2" class="tab">XMLConfig</label>
-  <div class="tabcontent" name="JavaConfigContent">
+<div class="exampleblock primary">
+<div class="title">JavaConfig</div>
+<div class="content">
 <div class="listingblock">
 <div class="title">Bean定義</div>
 <div class="content">
@@ -4367,8 +4538,11 @@ sales_plan_detail_03.csv</code></pre>
 }</code></pre>
 </div>
 </div>
-  </div>
-  <div class="tabcontent" name="XMLConfigContent">
+</div>
+</div>
+<div class="exampleblock secondary">
+<div class="title">XMLConfig</div>
+<div class="content">
 <div class="listingblock">
 <div class="title">Bean定義</div>
 <div class="content">
@@ -4388,10 +4562,10 @@ sales_plan_detail_03.csv</code></pre>
 <span class="tag">&lt;/bean&gt;</span></code></pre>
 </div>
 </div>
-  </div>
+</div>
 </div>
 <table class="tableblock frame-all grid-all stretch">
-<caption class="title">表 30. 設定内容の項目一覧</caption>
+<caption class="title">表 31. 設定内容の項目一覧</caption>
 <colgroup>
 <col style="width: 5%;">
 <col style="width: 20%;">
@@ -4520,10 +4694,9 @@ sales_plan_detail_03.csv</code></pre>
 </li>
 </ul>
 </div>
-<div class="tabbox">
-  <input type="radio" name="tabgroup050320" class="JavaConfigTab" id="tabgroup050320_1" checked><label for="tabgroup050320_1" class="tab">JavaConfig</label>
-  <input type="radio" name="tabgroup050320" class="XMLConfigTab" id="tabgroup050320_2"><label for="tabgroup050320_2" class="tab">XMLConfig</label>
-  <div class="tabcontent" name="JavaConfigContent">
+<div class="exampleblock primary">
+<div class="title">JavaConfig</div>
+<div class="content">
 <div class="listingblock">
 <div class="title">Bean定義</div>
 <div class="content">
@@ -4562,8 +4735,11 @@ sales_plan_detail_03.csv</code></pre>
 }</code></pre>
 </div>
 </div>
-  </div>
-  <div class="tabcontent" name="XMLConfigContent">
+</div>
+</div>
+<div class="exampleblock secondary">
+<div class="title">XMLConfig</div>
+<div class="content">
 <div class="listingblock">
 <div class="title">Bean定義</div>
 <div class="content">
@@ -4588,10 +4764,10 @@ sales_plan_detail_03.csv</code></pre>
       <span class="attribute-name">class</span>=<span class="string"><span class="delimiter">&quot;</span><span class="content">org.terasoluna.batch.functionaltest.ch05.fileaccess.module.CustomerListResourceSuffixCreator</span><span class="delimiter">&quot;</span></span><span class="tag">/&gt;</span>  <span class="comment">&lt;!-- (6) --&gt;</span></code></pre>
 </div>
 </div>
-  </div>
+</div>
 </div>
 <table class="tableblock frame-all grid-all stretch">
-<caption class="title">表 31. 設定内容の項目一覧</caption>
+<caption class="title">表 32. 設定内容の項目一覧</caption>
 <colgroup>
 <col style="width: 5%;">
 <col style="width: 20%;">
@@ -4759,7 +4935,7 @@ sales_plan_detail_03.csv</code></pre>
 </div>
 </div>
 <table class="tableblock frame-all grid-all stretch">
-<caption class="title">表 32. 設定内容の項目一覧</caption>
+<caption class="title">表 33. 設定内容の項目一覧</caption>
 <colgroup>
 <col style="width: 10%;">
 <col style="width: 90%;">
@@ -4942,7 +5118,7 @@ Summary Branch Id : 02,,,2100</code></pre>
 </div>
 </div>
 <table class="tableblock frame-all grid-all stretch">
-<caption class="title">表 33. 設定内容の項目一覧</caption>
+<caption class="title">表 34. 設定内容の項目一覧</caption>
 <colgroup>
 <col style="width: 10%;">
 <col style="width: 90%;">
@@ -5010,10 +5186,9 @@ Summary Branch Id : 02,,,2100</code></pre>
 </tr>
 </tbody>
 </table>
-<div class="tabbox">
-  <input type="radio" name="tabgroup050321" class="JavaConfigTab" id="tabgroup050321_1" checked><label for="tabgroup050321_1" class="tab">JavaConfig</label>
-  <input type="radio" name="tabgroup050321" class="XMLConfigTab" id="tabgroup050321_2"><label for="tabgroup050321_2" class="tab">XMLConfig</label>
-  <div class="tabcontent" name="JavaConfigContent">
+<div class="exampleblock primary">
+<div class="title">JavaConfig</div>
+<div class="content">
 <div class="listingblock">
 <div class="title">Bean定義</div>
 <div class="content">
@@ -5045,8 +5220,11 @@ Summary Branch Id : 02,,,2100</code></pre>
 }</code></pre>
 </div>
 </div>
-  </div>
-  <div class="tabcontent" name="XMLConfigContent">
+</div>
+</div>
+<div class="exampleblock secondary">
+<div class="title">XMLConfig</div>
+<div class="content">
 <div class="listingblock">
 <div class="title">Bean定義</div>
 <div class="content">
@@ -5074,10 +5252,10 @@ Summary Branch Id : 02,,,2100</code></pre>
 <span class="tag">&lt;/bean&gt;</span></code></pre>
 </div>
 </div>
-  </div>
+</div>
 </div>
 <table class="tableblock frame-all grid-all stretch">
-<caption class="title">表 34. 設定内容の項目一覧</caption>
+<caption class="title">表 35. 設定内容の項目一覧</caption>
 <colgroup>
 <col style="width: 10%;">
 <col style="width: 90%;">
@@ -5157,18 +5335,18 @@ Summary Branch Id : 02,,,2100</code></pre>
 </ul>
 </div>
 <div class="paragraph">
-<p>下記のような和暦フォーマットのDate型やカンマを含むBigDecimal型の変換を行うファイルを読み込む場合の実装例を示す。</p>
+<p>下記のような西暦フォーマットのDate型やカンマを含むBigDecimal型の変換を行うファイルを読み込む場合の実装例を示す。</p>
 </div>
 <div class="listingblock">
 <div class="title">入力ファイル例</div>
 <div class="content">
-<pre class="CodeRay highlight"><code data-lang="csv">&quot;000001&quot;,&quot;平成28年1月1日&quot;,&quot;000000001&quot;,&quot;1,000,000,000&quot;
-&quot;000002&quot;,&quot;平成29年2月2日&quot;,&quot;000000002&quot;,&quot;2,000,000,000&quot;
-&quot;000003&quot;,&quot;平成30年3月3日&quot;,&quot;000000003&quot;,&quot;3,000,000,000&quot;</code></pre>
+<pre class="CodeRay highlight"><code data-lang="csv">&quot;000001&quot;,&quot;2016年1月1日&quot;,&quot;000000001&quot;,&quot;1,000,000,000&quot;
+&quot;000002&quot;,&quot;2017年2月2日&quot;,&quot;000000002&quot;,&quot;2,000,000,000&quot;
+&quot;000003&quot;,&quot;2018年3月3日&quot;,&quot;000000003&quot;,&quot;3,000,000,000&quot;</code></pre>
 </div>
 </div>
 <table class="tableblock frame-all grid-all stretch">
-<caption class="title">表 35. 入力ファイル仕様</caption>
+<caption class="title">表 36. 入力ファイル仕様</caption>
 <colgroup>
 <col style="width: 10%;">
 <col style="width: 35%;">
@@ -5194,7 +5372,7 @@ Summary Branch Id : 02,,,2100</code></pre>
 <td class="tableblock halign-left valign-top"><p class="tableblock">(2)</p></td>
 <td class="tableblock halign-left valign-top"><p class="tableblock">日付</p></td>
 <td class="tableblock halign-left valign-top"><p class="tableblock">Date</p></td>
-<td class="tableblock halign-left valign-top"><p class="tableblock">和暦フォーマット</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">西暦フォーマット</p></td>
 </tr>
 <tr>
 <td class="tableblock halign-left valign-top"><p class="tableblock">(3)</p></td>
@@ -5243,7 +5421,7 @@ Summary Branch Id : 02,,,2100</code></pre>
         item.setBranchId(fieldSet.readString(<span class="string"><span class="delimiter">&quot;</span><span class="content">branchId</span><span class="delimiter">&quot;</span></span>));  <span class="comment">// (3)</span>
 
         <span class="comment">// (4)</span>
-        <span class="predefined-type">DateFormat</span> japaneseFormat = <span class="keyword">new</span> <span class="predefined-type">SimpleDateFormat</span>(<span class="string"><span class="delimiter">&quot;</span><span class="content">GGGGy年M月d日</span><span class="delimiter">&quot;</span></span>, <span class="keyword">new</span> <span class="predefined-type">Locale</span>(<span class="string"><span class="delimiter">&quot;</span><span class="content">ja</span><span class="delimiter">&quot;</span></span>, <span class="string"><span class="delimiter">&quot;</span><span class="content">JP</span><span class="delimiter">&quot;</span></span>, <span class="string"><span class="delimiter">&quot;</span><span class="content">JP</span><span class="delimiter">&quot;</span></span>));
+        <span class="predefined-type">DateFormat</span> japaneseFormat = <span class="keyword">new</span> <span class="predefined-type">SimpleDateFormat</span>(<span class="string"><span class="delimiter">&quot;</span><span class="content">yyyy年M月d日</span><span class="delimiter">&quot;</span></span>);
         <span class="keyword">try</span> {
             item.setDate(japaneseFormat.parse(fieldSet.readString(<span class="string"><span class="delimiter">&quot;</span><span class="content">date</span><span class="delimiter">&quot;</span></span>)));
         } <span class="keyword">catch</span> (<span class="exception">ParseException</span> e) {
@@ -5268,7 +5446,7 @@ Summary Branch Id : 02,,,2100</code></pre>
 </div>
 </div>
 <table class="tableblock frame-all grid-all stretch">
-<caption class="title">表 36. 設定内容の項目一覧</caption>
+<caption class="title">表 37. 設定内容の項目一覧</caption>
 <colgroup>
 <col style="width: 10%;">
 <col style="width: 90%;">
@@ -5297,7 +5475,7 @@ Summary Branch Id : 02,,,2100</code></pre>
 <tr>
 <td class="tableblock halign-left valign-top"><p class="tableblock">(4)</p></td>
 <td class="tableblock halign-left valign-top"><p class="tableblock">引数で受けた<code>FieldSet</code>から<code>date</code>を取得し、変換対象クラスの変数へ格納する。<br>
-和暦フォーマットの日付をDate型へ変換するため、<code>SimpleDateFormat</code>でフォーマットを指定している。</p></td>
+西暦フォーマットの日付をDate型へ変換するため、<code>SimpleDateFormat</code>でフォーマットを指定している。</p></td>
 </tr>
 <tr>
 <td class="tableblock halign-left valign-top"><p class="tableblock">(5)</p></td>
@@ -5412,7 +5590,7 @@ XMLファイルとオブジェクト間の変換処理を行うライブラリ�
 デフォルト値をそのまま使用する意図である場合でも明示的にエンコーディングを設定することを推奨する。</p>
 </div>
 <table class="tableblock frame-all grid-all stretch">
-<caption class="title">表 37. 各コンポーネントのエンコーディングについての仕様</caption>
+<caption class="title">表 38. 各コンポーネントのエンコーディングについての仕様</caption>
 <colgroup>
 <col style="width: 5%;">
 <col style="width: 15%;">
@@ -5442,27 +5620,6 @@ XMLファイルとオブジェクト間の変換処理を行うライブラリ�
 </tr>
 </tbody>
 </table>
-<div class="admonitionblock warning">
-<table>
-<tr>
-<td class="icon">
-<i class="fa icon-warning" title="Warning"></i>
-</td>
-<td class="content">
-<div class="title">Spring Batchのバージョンアップに伴うエンコーディングの仕様変更</div>
-<div class="paragraph">
-<p>TERASOLUNA Batch 5.3.1以前が利用するSpring Batch 4.2.x以前の<code>StaxEventItemReader</code>のエンコーディングは入力するXMLファイルのencoding属性に従う。
-encoding属性が宣言されていない場合はUTF-8で読み込みが行われるため、Bean定義で指定することはできなかった。<br>
-Spring Batch 4.3.0以降では<code>StaxEventItemReader</code>にencodingプロパティが追加され、デフォルト値を含め上記の表の仕様に変更された。</p>
-</div>
-<div class="paragraph">
-<p>TERASOLUNA Batch 5.4.0はSpring Batch 5.1.0を利用しているため、TERASOLUNA Batch 5.3.1以前からのバージョンアップを行った場合は、
-エンコーディングを明示的に指定しないと読み込みに利用されるエンコーディングが変化してしまう可能性があるため注意すること。</p>
-</div>
-</td>
-</tr>
-</table>
-</div>
 </div>
 <div class="sect3">
 <h4 id="Ch05_FileAccess_HowToExtend_Xml_Input"><a class="anchor" href="#Ch05_FileAccess_HowToExtend_Xml_Input"></a>入力</h4>
@@ -5522,59 +5679,32 @@ Spring Batch 4.3.0以降では<code>StaxEventItemReader</code>にencodingプロ�
 <div class="paragraph">
 <p>下記の入力ファイルを読み込むための設定例を示す。</p>
 </div>
-<div class="admonitionblock important">
-<table>
-<tr>
-<td class="icon">
-<i class="fa icon-important" title="Important"></i>
-</td>
-<td class="content">
+<div id="add_library" class="paragraph">
 <div class="title">依存ライブラリの追加</div>
-<div class="paragraph">
-<p>JavaクラスとXML間のマッピングに<code>@XmlRootElement</code>などを使用するため、pom.xmlに下記の依存関係を追加する。</p>
-</div>
-<div class="listingblock">
-<div class="content">
-<pre class="CodeRay highlight"><code data-lang="xml"><span class="tag">&lt;dependency&gt;</span>
-    <span class="tag">&lt;groupId&gt;</span>jakarta.xml.bind<span class="tag">&lt;/groupId&gt;</span>
-    <span class="tag">&lt;artifactId&gt;</span>jakarta.xml.bind-api<span class="tag">&lt;/artifactId&gt;</span>
-<span class="tag">&lt;/dependency&gt;</span></code></pre>
-</div>
-</div>
-<div class="paragraph">
-<p><code>org.springframework.oxm.jaxb.Jaxb2Marshaller</code>など、
-Spring Frameworkが提供するライブラリであるSpring Object/XML Marshallingを使用する場合は、pom.xmlに下記の依存関係を追加する。</p>
+<p>本ガイドラインの前提においてJAXBを利用する場合は、以下の依存関係が必須である。<br>
+アプリケーションの依存ライブラリやバッチから提供されるライブラリにjaxb-implがない場合は、jaxb-implも追加する。</p>
 </div>
 <div class="listingblock">
 <div class="content">
 <pre class="CodeRay highlight"><code data-lang="xml"><span class="tag">&lt;dependency&gt;</span>
     <span class="tag">&lt;groupId&gt;</span>org.springframework<span class="tag">&lt;/groupId&gt;</span>
     <span class="tag">&lt;artifactId&gt;</span>spring-oxm<span class="tag">&lt;/artifactId&gt;</span>
-<span class="tag">&lt;/dependency&gt;</span></code></pre>
-</div>
-</div>
-<div class="paragraph">
-<p>JAXBを利用する場合、jaxb-core及びjaxb-implが必要となる。
-アプリケーションの依存ライブラリやバッチから提供されるライブラリにjaxb-core及びjaxb-implがない場合は、pom.xmlに下記の依存関係を追加する。</p>
-</div>
-<div class="listingblock">
-<div class="content">
-<pre class="CodeRay highlight"><code data-lang="xml"><span class="tag">&lt;dependency&gt;</span>
-    <span class="tag">&lt;groupId&gt;</span>com.sun.xml.bind<span class="tag">&lt;/groupId&gt;</span>
-    <span class="tag">&lt;artifactId&gt;</span>jaxb-core<span class="tag">&lt;/artifactId&gt;</span>
-    <span class="tag">&lt;version&gt;</span>${jaxb-core.version}<span class="tag">&lt;/version&gt;</span> <span class="comment">&lt;!-- (1) --&gt;</span>
-    <span class="tag">&lt;scope&gt;</span>runtime<span class="tag">&lt;/scope&gt;</span> <span class="comment">&lt;!-- (2) --&gt;</span>
 <span class="tag">&lt;/dependency&gt;</span>
+
+<span class="tag">&lt;dependency&gt;</span>
+    <span class="tag">&lt;groupId&gt;</span>jakarta.xml.bind<span class="tag">&lt;/groupId&gt;</span>
+    <span class="tag">&lt;artifactId&gt;</span>jakarta.xml.bind-api<span class="tag">&lt;/artifactId&gt;</span>
+<span class="tag">&lt;/dependency&gt;</span>
+
 <span class="tag">&lt;dependency&gt;</span>
     <span class="tag">&lt;groupId&gt;</span>com.sun.xml.bind<span class="tag">&lt;/groupId&gt;</span>
     <span class="tag">&lt;artifactId&gt;</span>jaxb-impl<span class="tag">&lt;/artifactId&gt;</span>
-    <span class="tag">&lt;version&gt;</span>${jaxb-impl.version}<span class="tag">&lt;/version&gt;</span> <span class="comment">&lt;!-- (3) --&gt;</span>
-    <span class="tag">&lt;scope&gt;</span>runtime<span class="tag">&lt;/scope&gt;</span> <span class="comment">&lt;!-- (4) --&gt;</span>
+    <span class="tag">&lt;scope&gt;</span>runtime<span class="tag">&lt;/scope&gt;</span> <span class="comment">&lt;!-- (1) --&gt;</span>
 <span class="tag">&lt;/dependency&gt;</span></code></pre>
 </div>
 </div>
 <table class="tableblock frame-all grid-all stretch">
-<caption class="title">表 38. 設定内容の項目一覧</caption>
+<caption class="title">表 39. 設定内容の項目一覧</caption>
 <colgroup>
 <col style="width: 10%;">
 <col style="width: 90%;">
@@ -5588,26 +5718,10 @@ Spring Frameworkが提供するライブラリであるSpring Object/XML Marshal
 <tbody>
 <tr>
 <td class="tableblock halign-left valign-top"><p class="tableblock">(1)</p></td>
-<td class="tableblock halign-left valign-top"><p class="tableblock"><a href="Ch02_TerasolunaBatchStack.html#Ch02_TerasolunaBatchStack_Stack_OSS">「表 1. OSSバージョン一覧」</a>のjaxb-coreのバージョンを指定する。</p></td>
-</tr>
-<tr>
-<td class="tableblock halign-left valign-top"><p class="tableblock">(2)</p></td>
-<td class="tableblock halign-left valign-top"><p class="tableblock">jaxb-coreはアプリケーションの実行時にのみ利用されるため、スコープはruntimeとする。</p></td>
-</tr>
-<tr>
-<td class="tableblock halign-left valign-top"><p class="tableblock">(3)</p></td>
-<td class="tableblock halign-left valign-top"><p class="tableblock"><a href="Ch02_TerasolunaBatchStack.html#Ch02_TerasolunaBatchStack_Stack_OSS">「表 1. OSSバージョン一覧」</a>のjaxb-implのバージョンを指定する。</p></td>
-</tr>
-<tr>
-<td class="tableblock halign-left valign-top"><p class="tableblock">(4)</p></td>
 <td class="tableblock halign-left valign-top"><p class="tableblock">jaxb-implはアプリケーションの実行時にのみ利用されるため、スコープはruntimeとする。</p></td>
 </tr>
 </tbody>
 </table>
-</td>
-</tr>
-</table>
-</div>
 <div class="listingblock">
 <div class="title">入力ファイル例</div>
 <div class="content">
@@ -5686,7 +5800,7 @@ Spring Frameworkが提供するライブラリであるSpring Object/XML Marshal
 </div>
 </div>
 <table class="tableblock frame-all grid-all stretch">
-<caption class="title">表 39. 設定内容の項目一覧</caption>
+<caption class="title">表 40. 設定内容の項目一覧</caption>
 <colgroup>
 <col style="width: 10%;">
 <col style="width: 90%;">
@@ -5732,10 +5846,36 @@ XML要素とJavaBeanプロパティが同じの場合、<code>name</code>属性�
 <div class="paragraph">
 <p>上記のファイルを読む込むための設定は以下のとおり。</p>
 </div>
-<div class="tabbox">
-  <input type="radio" name="tabgroup050322" class="JavaConfigTab" id="tabgroup050322_1" checked><label for="tabgroup050322_1" class="tab">JavaConfig</label>
-  <input type="radio" name="tabgroup050322" class="XMLConfigTab" id="tabgroup050322_2"><label for="tabgroup050322_2" class="tab">XMLConfig</label>
-  <div class="tabcontent" name="JavaConfigContent">
+<div class="listingblock">
+<div class="title">batch-application.properties</div>
+<div class="content">
+<pre class="CodeRay highlight"><code data-lang="txt">(1)
+#TERASOLUNA FileAccess settings.
+p:schema=&quot;file:/usr/local/terasoluna/functionaltest/files/test/input/ch05/fileaccess/customer.xsd&quot;</code></pre>
+</div>
+</div>
+<table class="tableblock frame-all grid-all stretch">
+<caption class="title">表 41. 設定内容の項目一覧</caption>
+<colgroup>
+<col style="width: 10%;">
+<col style="width: 90%;">
+</colgroup>
+<thead>
+<tr>
+<th class="tableblock halign-left valign-top">項番</th>
+<th class="tableblock halign-left valign-top">説明</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td class="tableblock halign-left valign-top"><p class="tableblock">(1)</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">XMLファイルの入力に使用するスキーマファイルのパスを指定する。</p></td>
+</tr>
+</tbody>
+</table>
+<div class="exampleblock primary">
+<div class="title">JavaConfig</div>
+<div class="content">
 <div class="listingblock">
 <div class="title">Bean定義</div>
 <div class="content">
@@ -5743,10 +5883,10 @@ XML要素とJavaBeanプロパティが同じの場合、<code>name</code>属性�
 <span class="annotation">@StepScope</span>
 <span class="directive">public</span> StaxEventItemReader&lt;Customer&gt; reader(
         <span class="annotation">@Value</span>(<span class="string"><span class="delimiter">&quot;</span><span class="content">#{jobParameters['inputFile']}</span><span class="delimiter">&quot;</span></span>) <span class="predefined-type">File</span> inputFile, <span class="comment">// (1)</span>
-        <span class="annotation">@Value</span>(<span class="string"><span class="delimiter">&quot;</span><span class="content">file:/usr/local/terasoluna/functionaltest/files/test/input/ch05/fileaccess/customer.xsd</span><span class="delimiter">&quot;</span></span>) Resource schemaResoure, <span class="comment">// (6)</span>
+        <span class="annotation">@Value</span>(<span class="string"><span class="delimiter">&quot;</span><span class="content">${fileaccess.schema-file-path}</span><span class="delimiter">&quot;</span></span>) <span class="predefined-type">String</span> schemaFile, <span class="comment">// (6)</span>
         CustomerValidationEventHandler customerValidationEventHandler) <span class="directive">throws</span> <span class="exception">Exception</span> {
     Jaxb2Marshaller unmarshaller = <span class="keyword">new</span> Jaxb2Marshaller(); <span class="comment">// (5)</span>
-    unmarshaller.setSchema(schemaREsource)); <span class="comment">// (6)</span>
+    unmarshaller.setSchema(<span class="keyword">new</span> FileSystemResource(schemaFile)); <span class="comment">// (6)</span>
     unmarshaller.setValidationEventHandler(customerValidationEventHandler); <span class="comment">// (7)</span>
     unmarshaller.setClassesToBeBound(Customer.class); <span class="comment">// (8)</span>
     unmarshaller.afterPropertiesSet();
@@ -5761,8 +5901,11 @@ XML要素とJavaBeanプロパティが同じの場合、<code>name</code>属性�
 }</code></pre>
 </div>
 </div>
-  </div>
-  <div class="tabcontent" name="XMLConfigContent">
+</div>
+</div>
+<div class="exampleblock secondary">
+<div class="title">XMLConfig</div>
+<div class="content">
 <div class="listingblock">
 <div class="title">Bean定義</div>
 <div class="content">
@@ -5775,7 +5918,7 @@ XML要素とJavaBeanプロパティが同じの場合、<code>name</code>属性�
     <span class="tag">&lt;property</span> <span class="attribute-name">name</span>=<span class="string"><span class="delimiter">&quot;</span><span class="content">unmarshaller</span><span class="delimiter">&quot;</span></span><span class="tag">&gt;</span>  <span class="comment">&lt;!-- (5) --&gt;</span>
         <span class="comment">&lt;!-- (6) (7) --&gt;</span>
         <span class="tag">&lt;bean</span> <span class="attribute-name">class</span>=<span class="string"><span class="delimiter">&quot;</span><span class="content">org.springframework.oxm.jaxb.Jaxb2Marshaller</span><span class="delimiter">&quot;</span></span>
-              <span class="attribute-name">p:schema</span>=<span class="string"><span class="delimiter">&quot;</span><span class="content">file:/usr/local/terasoluna/functionaltest/files/test/input/ch05/fileaccess/customer.xsd</span><span class="delimiter">&quot;</span></span>
+              <span class="attribute-name">p:schema</span>=<span class="string"><span class="delimiter">&quot;</span><span class="content">file:${fileaccess.schema-file-path}</span><span class="delimiter">&quot;</span></span>
               <span class="attribute-name">p:validationEventHandler-ref</span>=<span class="string"><span class="delimiter">&quot;</span><span class="content">customerValidationEventHandler</span><span class="delimiter">&quot;</span></span><span class="tag">&gt;</span>
             <span class="tag">&lt;property</span> <span class="attribute-name">name</span>=<span class="string"><span class="delimiter">&quot;</span><span class="content">classesToBeBound</span><span class="delimiter">&quot;</span></span><span class="tag">&gt;</span>  <span class="comment">&lt;!-- (8) --&gt;</span>
                 <span class="tag">&lt;list&gt;</span>
@@ -5787,10 +5930,10 @@ XML要素とJavaBeanプロパティが同じの場合、<code>name</code>属性�
 <span class="tag">&lt;/bean&gt;</span></code></pre>
 </div>
 </div>
-  </div>
+</div>
 </div>
 <table class="tableblock frame-all grid-all stretch">
-<caption class="title">表 40. 設定内容の項目一覧</caption>
+<caption class="title">表 42. 設定内容の項目一覧</caption>
 <colgroup>
 <col style="width: 5%;">
 <col style="width: 20%;">
@@ -5851,7 +5994,7 @@ JAXBを利用する場合は、<code>org.springframework.oxm.jaxb.Jaxb2Marshalle
 <td class="tableblock halign-left valign-top"><p class="tableblock">(6)</p></td>
 <td class="tableblock halign-left valign-top"><p class="tableblock">schema</p></td>
 <td class="tableblock halign-left valign-top"><p class="tableblock">バリデーションにて使用するスキーマファイルを設定する。<br>
-この例では、スキーマファイルの場所は<code>@Value</code>にファイルパス（絶対パス）で指定し、インジェクションする方式とする。<br>
+この例では、スキーマファイルの場所を<code>batch-application.properties</code>に定義し、<code>@Value</code>を使用してプロパティとしてインジェクションする方式とする。<br>
 これ以外にもファイルの場所の指定方法はいくつかのバリエーションが考えられるが、詳細説明は割愛する（ファイルパスではなくクラスパスで指定する、パス情報をプロパティファイルに定義する、等）。<br>
 開発案件のルールやアプリケーション実行環境を考慮して最適な方式を検討すること。<br>
 スキーマファイルの記述例は後述する。</p></td>
@@ -5910,7 +6053,7 @@ JAXBを利用する場合は、<code>org.springframework.oxm.jaxb.Jaxb2Marshalle
 </div>
 </div>
 <table class="tableblock frame-all grid-all stretch">
-<caption class="title">表 41. 設定内容の項目一覧</caption>
+<caption class="title">表 43. 設定内容の項目一覧</caption>
 <colgroup>
 <col style="width: 10%;">
 <col style="width: 90%;">
@@ -5991,7 +6134,7 @@ JAXBを利用する場合は、<code>org.springframework.oxm.jaxb.Jaxb2Marshalle
 </div>
 </div>
 <table class="tableblock frame-all grid-all stretch">
-<caption class="title">表 42. 設定内容の項目一覧</caption>
+<caption class="title">表 44. 設定内容の項目一覧</caption>
 <colgroup>
 <col style="width: 10%;">
 <col style="width: 90%;">
@@ -6074,143 +6217,20 @@ JAXBを利用する場合は、<code>org.springframework.oxm.jaxb.Jaxb2Marshalle
 </ul>
 </div>
 <div class="paragraph">
-<p>下記の出力ファイルを書き出すための設定例を示す。</p>
+<p>後述で示される<a href="#output_example">出力ファイル例</a>を書き出すための設定例を示す。</p>
 </div>
-<div class="admonitionblock important">
-<table>
-<tr>
-<td class="icon">
-<i class="fa icon-important" title="Important"></i>
-</td>
-<td class="content">
+<div class="paragraph">
 <div class="title">依存ライブラリの追加</div>
-<div class="paragraph">
-<p>JavaクラスとXML間のマッピングに<code>@XmlRootElement</code>などを使用するため、pom.xmlに下記の依存関係を追加する。</p>
+<p>依存ライブラリを追加する際の設定方法は<a href="#Ch05_FileAccess_HowToExtend_Xml_Input">入力</a>で説明されている<a href="#add_library">依存ライブラリの追加</a>を参照する。</p>
 </div>
-<div class="listingblock">
-<div class="content">
-<pre class="CodeRay highlight"><code data-lang="xml"><span class="tag">&lt;dependency&gt;</span>
-    <span class="tag">&lt;groupId&gt;</span>jakarta.xml.bind<span class="tag">&lt;/groupId&gt;</span>
-    <span class="tag">&lt;artifactId&gt;</span>jakarta.xml.bind-api<span class="tag">&lt;/artifactId&gt;</span>
-<span class="tag">&lt;/dependency&gt;</span></code></pre>
-</div>
-</div>
-<div class="paragraph">
-<p><code>org.springframework.oxm.jaxb.Jaxb2Marshaller</code>など、
-Spring Frameworkが提供するライブラリであるSpring Object/XML Marshallingを使用する場合は、pom.xmlに下記の依存関係を追加する。</p>
-</div>
-<div class="listingblock">
-<div class="content">
-<pre class="CodeRay highlight"><code data-lang="xml"><span class="tag">&lt;dependency&gt;</span>
-    <span class="tag">&lt;groupId&gt;</span>org.springframework<span class="tag">&lt;/groupId&gt;</span>
-    <span class="tag">&lt;artifactId&gt;</span>spring-oxm<span class="tag">&lt;/artifactId&gt;</span>
-<span class="tag">&lt;/dependency&gt;</span></code></pre>
-</div>
-</div>
-<div class="paragraph">
-<p>JAXBを利用する場合、jaxb-core及びjaxb-implが必要となる。
-アプリケーションの依存ライブラリやバッチから提供されるライブラリにjaxb-core及びjaxb-implがない場合は、pom.xmlに下記の依存関係を追加する。</p>
-</div>
-<div class="listingblock">
-<div class="content">
-<pre class="CodeRay highlight"><code data-lang="xml"><span class="tag">&lt;dependency&gt;</span>
-    <span class="tag">&lt;groupId&gt;</span>com.sun.xml.bind<span class="tag">&lt;/groupId&gt;</span>
-    <span class="tag">&lt;artifactId&gt;</span>jaxb-core<span class="tag">&lt;/artifactId&gt;</span>
-    <span class="tag">&lt;version&gt;</span>${jaxb-core.version}<span class="tag">&lt;/version&gt;</span> <span class="comment">&lt;!-- (1) --&gt;</span>
-    <span class="tag">&lt;scope&gt;</span>runtime<span class="tag">&lt;/scope&gt;</span> <span class="comment">&lt;!-- (2) --&gt;</span>
-<span class="tag">&lt;/dependency&gt;</span>
-<span class="tag">&lt;dependency&gt;</span>
-    <span class="tag">&lt;groupId&gt;</span>com.sun.xml.bind<span class="tag">&lt;/groupId&gt;</span>
-    <span class="tag">&lt;artifactId&gt;</span>jaxb-impl<span class="tag">&lt;/artifactId&gt;</span>
-    <span class="tag">&lt;version&gt;</span>${jaxb-impl.version}<span class="tag">&lt;/version&gt;</span> <span class="comment">&lt;!-- (3) --&gt;</span>
-    <span class="tag">&lt;scope&gt;</span>runtime<span class="tag">&lt;/scope&gt;</span> <span class="comment">&lt;!-- (4) --&gt;</span>
-<span class="tag">&lt;/dependency&gt;</span></code></pre>
-</div>
-</div>
-<table class="tableblock frame-all grid-all stretch">
-<caption class="title">表 43. 設定内容の項目一覧</caption>
-<colgroup>
-<col style="width: 10%;">
-<col style="width: 90%;">
-</colgroup>
-<thead>
-<tr>
-<th class="tableblock halign-left valign-top">項番</th>
-<th class="tableblock halign-left valign-top">説明</th>
-</tr>
-</thead>
-<tbody>
-<tr>
-<td class="tableblock halign-left valign-top"><p class="tableblock">(1)</p></td>
-<td class="tableblock halign-left valign-top"><p class="tableblock"><a href="Ch02_TerasolunaBatchStack.html#Ch02_TerasolunaBatchStack_Stack_OSS">「表 1. OSSバージョン一覧」</a>のjaxb-coreのバージョンを指定する。</p></td>
-</tr>
-<tr>
-<td class="tableblock halign-left valign-top"><p class="tableblock">(2)</p></td>
-<td class="tableblock halign-left valign-top"><p class="tableblock">jaxb-coreはアプリケーションの実行時にのみ利用されるため、スコープはruntimeとする。</p></td>
-</tr>
-<tr>
-<td class="tableblock halign-left valign-top"><p class="tableblock">(3)</p></td>
-<td class="tableblock halign-left valign-top"><p class="tableblock"><a href="Ch02_TerasolunaBatchStack.html#Ch02_TerasolunaBatchStack_Stack_OSS">「表 1. OSSバージョン一覧」</a>のjaxb-implのバージョンを指定する。</p></td>
-</tr>
-<tr>
-<td class="tableblock halign-left valign-top"><p class="tableblock">(4)</p></td>
-<td class="tableblock halign-left valign-top"><p class="tableblock">jaxb-implはアプリケーションの実行時にのみ利用されるため、スコープはruntimeとする。</p></td>
-</tr>
-</tbody>
-</table>
-</td>
-</tr>
-</table>
-</div>
-<div class="listingblock">
-<div class="title">出力ファイル例</div>
-<div class="content">
-<pre class="CodeRay highlight"><code data-lang="xml"><span class="preprocessor">&lt;?xml version=&quot;1.0&quot; encoding=&quot;UTF-8&quot;?&gt;</span>
-<span class="tag">&lt;records&gt;</span>
-  <span class="tag">&lt;Customer&gt;</span>
-    <span class="tag">&lt;customerId&gt;</span>001<span class="tag">&lt;/customerId&gt;</span>
-    <span class="tag">&lt;customerName&gt;</span>CustomerName001<span class="tag">&lt;/customerName&gt;</span>
-    <span class="tag">&lt;customerAddress&gt;</span>CustomerAddress001<span class="tag">&lt;/customerAddress&gt;</span>
-    <span class="tag">&lt;customerTel&gt;</span>11111111111<span class="tag">&lt;/customerTel&gt;</span>
-    <span class="tag">&lt;chargeBranchId&gt;</span>001<span class="tag">&lt;/chargeBranchId&gt;</span><span class="tag">&lt;/Customer&gt;</span>
-  <span class="tag">&lt;Customer&gt;</span>
-    <span class="tag">&lt;customerId&gt;</span>002<span class="tag">&lt;/customerId&gt;</span>
-    <span class="tag">&lt;customerName&gt;</span>CustomerName002<span class="tag">&lt;/customerName&gt;</span>
-    <span class="tag">&lt;customerAddress&gt;</span>CustomerAddress002<span class="tag">&lt;/customerAddress&gt;</span>
-    <span class="tag">&lt;customerTel&gt;</span>11111111111<span class="tag">&lt;/customerTel&gt;</span>
-    <span class="tag">&lt;chargeBranchId&gt;</span>002<span class="tag">&lt;/chargeBranchId&gt;</span><span class="tag">&lt;/Customer&gt;</span>
-  <span class="tag">&lt;Customer&gt;</span>
-    <span class="tag">&lt;customerId&gt;</span>003<span class="tag">&lt;/customerId&gt;</span>
-    <span class="tag">&lt;customerName&gt;</span>CustomerName003<span class="tag">&lt;/customerName&gt;</span>
-    <span class="tag">&lt;customerAddress&gt;</span>CustomerAddress003<span class="tag">&lt;/customerAddress&gt;</span>
-    <span class="tag">&lt;customerTel&gt;</span>11111111111<span class="tag">&lt;/customerTel&gt;</span>
-    <span class="tag">&lt;chargeBranchId&gt;</span>003<span class="tag">&lt;/chargeBranchId&gt;</span>
-  <span class="tag">&lt;/Customer&gt;</span>
-<span class="tag">&lt;/records&gt;</span></code></pre>
-</div>
-</div>
-<div id="Ch05_FileAccess_HowToExtend_Xml_Output_format" class="admonitionblock warning">
-<table>
-<tr>
-<td class="icon">
-<i class="fa icon-warning" title="Warning"></i>
-</td>
-<td class="content">
+<div id="Ch05_FileAccess_HowToExtend_Xml_Output_format" class="paragraph">
 <div class="title">XMLファイル出力時のフォーマット処理(改行およびインデント)について</div>
-<div class="paragraph">
-<p>上記の出力ファイル例ではフォーマット処理(改行およびインデント)済みのXMLを例示しているが、実際にはフォーマットされていないファイルが出力される。</p>
+<p><code>Jaxb2Marshaller</code> のデフォルト設定では、XMLファイルはフォーマット処理(改行およびインデント)が行われないまま出力される。<br>
+後述の<a href="#output_example">出力ファイル例</a>で示されているように、XMLのフォーマット処理を行うためには、以下のように <code>Jaxb2Marshaller</code> に対して <code>marshallerProperties</code> を設定する必要がある。</p>
 </div>
-<div class="paragraph">
-<p><code>Jaxb2Marshaller</code>にはXML出力時にフォーマットを行う機能があるが期待どおり動作しない。<br>
-この件に関してはSpring Forumにて議論されているため、今後期待どおり動作するようになる可能性がある。</p>
-</div>
-<div class="paragraph">
-<p>これを回避し、フォーマット済みの出力を行うためには、以下のように<code>marshallerProperties</code>に設定すればよい。</p>
-</div>
-<div class="tabbox">
-  <input type="radio" name="tabgroup050323" class="JavaConfigTab" id="tabgroup050323_1" checked><label for="tabgroup050323_1" class="tab">JavaConfig</label>
-  <input type="radio" name="tabgroup050323" class="XMLConfigTab" id="tabgroup050323_2"><label for="tabgroup050323_2" class="tab">XMLConfig</label>
-  <div class="tabcontent" name="JavaConfigContent">
+<div class="exampleblock primary">
+<div class="title">JavaConfig</div>
+<div class="content">
 <div class="listingblock">
 <div class="content">
 <pre class="CodeRay highlight"><code data-lang="java">Jaxb2Marshaller marshaller = <span class="keyword">new</span> Jaxb2Marshaller();
@@ -6219,8 +6239,11 @@ marshaller.setMarshallerProperties(<span class="predefined-type">Map</span>.of(<
 marshaller.afterPropertiesSet();</code></pre>
 </div>
 </div>
-  </div>
-  <div class="tabcontent" name="XMLConfigContent">
+</div>
+</div>
+<div class="exampleblock secondary">
+<div class="title">XMLConfig</div>
+<div class="content">
 <div class="listingblock">
 <div class="content">
 <pre class="CodeRay highlight"><code data-lang="xml"><span class="tag">&lt;property</span> <span class="attribute-name">name</span>=<span class="string"><span class="delimiter">&quot;</span><span class="content">marshaller</span><span class="delimiter">&quot;</span></span><span class="tag">&gt;</span>
@@ -6243,11 +6266,7 @@ marshaller.afterPropertiesSet();</code></pre>
 <span class="tag">&lt;/property&gt;</span></code></pre>
 </div>
 </div>
-  </div>
 </div>
-</td>
-</tr>
-</table>
 </div>
 <div class="listingblock">
 <div class="title">変換対象クラス</div>
@@ -6276,7 +6295,7 @@ marshaller.afterPropertiesSet();</code></pre>
 </div>
 </div>
 <table class="tableblock frame-all grid-all stretch">
-<caption class="title">表 44. 設定内容の項目一覧</caption>
+<caption class="title">表 45. 設定内容の項目一覧</caption>
 <colgroup>
 <col style="width: 10%;">
 <col style="width: 90%;">
@@ -6304,12 +6323,11 @@ marshaller.afterPropertiesSet();</code></pre>
 </tbody>
 </table>
 <div class="paragraph">
-<p>上記のファイルを書き出すための設定は以下のとおり。</p>
+<p>後述の<a href="#output_example">出力ファイル例</a>を書き出すための設定は以下のとおり。</p>
 </div>
-<div class="tabbox">
-  <input type="radio" name="tabgroup050324" class="JavaConfigTab" id="tabgroup050324_1" checked><label for="tabgroup050324_1" class="tab">JavaConfig</label>
-  <input type="radio" name="tabgroup050324" class="XMLConfigTab" id="tabgroup050324_2"><label for="tabgroup050324_2" class="tab">XMLConfig</label>
-  <div class="tabcontent" name="JavaConfigContent">
+<div class="exampleblock primary">
+<div class="title">JavaConfig</div>
+<div class="content">
 <div class="listingblock">
 <div class="title">Bean定義</div>
 <div class="content">
@@ -6319,6 +6337,7 @@ marshaller.afterPropertiesSet();</code></pre>
         <span class="annotation">@Value</span>(<span class="string"><span class="delimiter">&quot;</span><span class="content">#{jobParameters['outputFile']}</span><span class="delimiter">&quot;</span></span>) <span class="predefined-type">File</span> outputFile) <span class="directive">throws</span> <span class="exception">Exception</span> {
     Jaxb2Marshaller marshaller = <span class="keyword">new</span> Jaxb2Marshaller(); <span class="comment">// (8)</span>
     marshaller.setClassesToBeBound(CustomerToJaxb.class); <span class="comment">// (9)</span>
+    marshaller.setMarshallerProperties(<span class="predefined-type">Map</span>.of(<span class="string"><span class="delimiter">&quot;</span><span class="content">javax.xml.bind.Marshaller.JAXB_FORMATTED_OUTPUT</span><span class="delimiter">&quot;</span></span>, <span class="predefined-constant">true</span>)); <span class="comment">// (10)</span>
     marshaller.afterPropertiesSet();
     <span class="keyword">return</span> <span class="keyword">new</span> StaxEventItemWriterBuilder&lt;Customer&gt;()
             .name(ClassUtils.getShortName(StaxEventItemWriter.class))
@@ -6334,8 +6353,11 @@ marshaller.afterPropertiesSet();</code></pre>
 }</code></pre>
 </div>
 </div>
-  </div>
-  <div class="tabcontent" name="XMLConfigContent">
+</div>
+</div>
+<div class="exampleblock secondary">
+<div class="title">XMLConfig</div>
+<div class="content">
 <div class="listingblock">
 <div class="title">Bean定義</div>
 <div class="content">
@@ -6356,15 +6378,26 @@ marshaller.afterPropertiesSet();</code></pre>
                     <span class="tag">&lt;value&gt;</span>org.terasoluna.batch.functionaltest.ch05.fileaccess.model.mst.CustomerToJaxb<span class="tag">&lt;/value&gt;</span>
                 <span class="tag">&lt;/list&gt;</span>
             <span class="tag">&lt;/property&gt;</span>
+            <span class="tag">&lt;property</span> <span class="attribute-name">name</span>=<span class="string"><span class="delimiter">&quot;</span><span class="content">marshallerProperties</span><span class="delimiter">&quot;</span></span><span class="tag">&gt;</span>
+                <span class="tag">&lt;map&gt;</span>
+                    <span class="tag">&lt;entry&gt;</span>
+                        <span class="tag">&lt;key&gt;</span>
+                            <span class="tag">&lt;util:constant</span>
+                                <span class="attribute-name">static-field</span>=<span class="string"><span class="delimiter">&quot;</span><span class="content">javax.xml.bind.Marshaller.JAXB_FORMATTED_OUTPUT</span><span class="delimiter">&quot;</span></span><span class="tag">/&gt;</span> <span class="comment">&lt;!-- (10) --&gt;</span>
+                        <span class="tag">&lt;/key&gt;</span>
+                        <span class="tag">&lt;value</span> <span class="attribute-name">type</span>=<span class="string"><span class="delimiter">&quot;</span><span class="content">java.lang.Boolean</span><span class="delimiter">&quot;</span></span><span class="tag">&gt;</span>true<span class="tag">&lt;/value&gt;</span>
+                    <span class="tag">&lt;/entry&gt;</span>
+                <span class="tag">&lt;/map&gt;</span>
+            <span class="tag">&lt;/property&gt;</span>
         <span class="tag">&lt;/bean&gt;</span>
     <span class="tag">&lt;/property&gt;</span>
 <span class="tag">&lt;/bean&gt;</span></code></pre>
 </div>
 </div>
-  </div>
+</div>
 </div>
 <table class="tableblock frame-all grid-all stretch">
-<caption class="title">表 45. 設定内容の項目一覧</caption>
+<caption class="title">表 46. 設定内容の項目一覧</caption>
 <colgroup>
 <col style="width: 5%;">
 <col style="width: 20%;">
@@ -6415,8 +6448,9 @@ falseの場合、既にファイルが存在すれば例外をスローする。
 <tr>
 <td class="tableblock halign-left valign-top"><p class="tableblock">(5)</p></td>
 <td class="tableblock halign-left valign-top"><p class="tableblock">shouldDeleteIfEmpty</p></td>
-<td class="tableblock halign-left valign-top"><p class="tableblock">trueの場合、出力件数が0件であれば出力対象ファイルを削除する。<br>
-<span class="icon"><i class="fa fa-warning"></i></span> 他の設定との組み合わせによって意図しない動作をする場合があるため、trueは設定しないことを推奨する。詳細は<a href="#Ch05_FileAccess_HowToUse_VariableLength_Output_AboutShouldDeleteIfEmpty">可変長レコードの出力の注意書き</a>を参照。</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">出力件数が0件であった場合にファイルを削除するかを設定する。<br>
+trueの場合、ファイル出力後に出力件数が0件であれば出力対象ファイルを削除する。<br>
+<span class="icon"><i class="fa fa-warning"></i></span> 他の設定との組み合わせによって意図しない動作をする場合がある。詳細は<a href="#Ch05_FileAccess_HowToUse_VariableLength_Output_Property">FlatFileItemWriterのshouldDeleteIfExistsとshouldDeleteIfEmptyの動作の違い</a>を参照。</p></td>
 <td class="tableblock halign-left valign-top"></td>
 <td class="tableblock halign-left valign-top"><p class="tableblock">false</p></td>
 </tr>
@@ -6449,6 +6483,14 @@ JAXBを利用する場合は、<code>org.springframework.oxm.jaxb.Jaxb2Marshalle
 <td class="tableblock halign-left valign-top"><p class="tableblock"><span class="icon"><i class="fa fa-check"></i></span></p></td>
 <td class="tableblock halign-left valign-top"><p class="tableblock">なし</p></td>
 </tr>
+<tr>
+<td class="tableblock halign-left valign-top"><p class="tableblock">(10)</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">marshallerProperties</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">JAXB Marshaller プロパティを設定する。<br>
+ここでは、フォーマット済みの出力を行うために<code>javax.xml.bind.Marshaller.JAXB_FORMATTED_OUTPUT</code>をtrueに設定している。</p></td>
+<td class="tableblock halign-left valign-top"></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">なし</p></td>
+</tr>
 </tbody>
 </table>
 <div class="sect4">
@@ -6460,63 +6502,14 @@ JAXBを利用する場合は、<code>org.springframework.oxm.jaxb.Jaxb2Marshalle
 <p>ヘッダの出力は、<code>headerCallback</code>、フッタの出力は、<code>footerCallback</code>に<code>StaxWriterCallback</code>の実装を設定する。</p>
 </div>
 <div class="paragraph">
-<p>以下に出力されるファイルの例を示す。<br>
-ヘッダはルート要素の開始タグ直後、フッタはルート要素の終了タグ直前に出力される。</p>
+<p>ヘッダはルート要素の開始タグ直後、フッタはルート要素の終了タグ直前に出力される。</p>
 </div>
-<div class="listingblock">
-<div class="title">出力ファイル例</div>
+<div class="paragraph">
+<p><code>StaxEventItemWriter</code> のBean定義を以下に示す。</p>
+</div>
+<div class="exampleblock primary">
+<div class="title">JavaConfig</div>
 <div class="content">
-<pre class="CodeRay highlight"><code data-lang="xml"><span class="preprocessor">&lt;?xml version=&quot;1.0&quot; encoding=&quot;UTF-8&quot;?&gt;</span>
-<span class="tag">&lt;records&gt;</span>
-<span class="comment">&lt;!-- Customer list header --&gt;</span>
-  <span class="tag">&lt;Customer&gt;</span>
-    <span class="tag">&lt;customerId&gt;</span>001<span class="tag">&lt;/customerId&gt;</span>
-    <span class="tag">&lt;customerName&gt;</span>CustomerName001<span class="tag">&lt;/customerName&gt;</span>
-    <span class="tag">&lt;customerAddress&gt;</span>CustomerAddress001<span class="tag">&lt;/customerAddress&gt;</span>
-    <span class="tag">&lt;customerTel&gt;</span>11111111111<span class="tag">&lt;/customerTel&gt;</span>
-    <span class="tag">&lt;chargeBranchId&gt;</span>001<span class="tag">&lt;/chargeBranchId&gt;</span><span class="tag">&lt;/Customer&gt;</span>
-  <span class="tag">&lt;Customer&gt;</span>
-    <span class="tag">&lt;customerId&gt;</span>002<span class="tag">&lt;/customerId&gt;</span>
-    <span class="tag">&lt;customerName&gt;</span>CustomerName002<span class="tag">&lt;/customerName&gt;</span>
-    <span class="tag">&lt;customerAddress&gt;</span>CustomerAddress002<span class="tag">&lt;/customerAddress&gt;</span>
-    <span class="tag">&lt;customerTel&gt;</span>11111111111<span class="tag">&lt;/customerTel&gt;</span>
-    <span class="tag">&lt;chargeBranchId&gt;</span>002<span class="tag">&lt;/chargeBranchId&gt;</span><span class="tag">&lt;/Customer&gt;</span>
-  <span class="tag">&lt;Customer&gt;</span>
-    <span class="tag">&lt;customerId&gt;</span>003<span class="tag">&lt;/customerId&gt;</span>
-    <span class="tag">&lt;customerName&gt;</span>CustomerName003<span class="tag">&lt;/customerName&gt;</span>
-    <span class="tag">&lt;customerAddress&gt;</span>CustomerAddress003<span class="tag">&lt;/customerAddress&gt;</span>
-    <span class="tag">&lt;customerTel&gt;</span>11111111111<span class="tag">&lt;/customerTel&gt;</span>
-    <span class="tag">&lt;chargeBranchId&gt;</span>003<span class="tag">&lt;/chargeBranchId&gt;</span>
-  <span class="tag">&lt;/Customer&gt;</span>
-<span class="comment">&lt;!-- Customer list footer --&gt;</span>
-<span class="tag">&lt;/records&gt;</span></code></pre>
-</div>
-</div>
-<div class="admonitionblock warning">
-<table>
-<tr>
-<td class="icon">
-<i class="fa icon-warning" title="Warning"></i>
-</td>
-<td class="content">
-<div class="title">XMLファイル出力時のフォーマット処理(改行およびインデント)について</div>
-<div class="paragraph">
-<p>上記の出力ファイル例ではフォーマット処理(改行およびインデント)済みのXMLを例示しているが、実際にはフォーマットされていないファイルが出力される。</p>
-</div>
-<div class="paragraph">
-<p>詳細は、<a href="#Ch05_FileAccess_HowToExtend_Xml_Output">出力</a>を参照。</p>
-</div>
-</td>
-</tr>
-</table>
-</div>
-<div class="paragraph">
-<p>上記のようなファイルを出力する設定を以下に示す。</p>
-</div>
-<div class="tabbox">
-  <input type="radio" name="tabgroup050325" class="JavaConfigTab" id="tabgroup050325_1" checked><label for="tabgroup050325_1" class="tab">JavaConfig</label>
-  <input type="radio" name="tabgroup050325" class="XMLConfigTab" id="tabgroup050325_2"><label for="tabgroup050325_2" class="tab">XMLConfig</label>
-  <div class="tabcontent" name="JavaConfigContent">
 <div class="listingblock">
 <div class="title">Bean定義</div>
 <div class="content">
@@ -6535,8 +6528,11 @@ JAXBを利用する場合は、<code>org.springframework.oxm.jaxb.Jaxb2Marshalle
 }</code></pre>
 </div>
 </div>
-  </div>
-  <div class="tabcontent" name="XMLConfigContent">
+</div>
+</div>
+<div class="exampleblock secondary">
+<div class="title">XMLConfig</div>
+<div class="content">
 <div class="listingblock">
 <div class="title">Bean定義</div>
 <div class="content">
@@ -6552,10 +6548,10 @@ JAXBを利用する場合は、<code>org.springframework.oxm.jaxb.Jaxb2Marshalle
 <span class="tag">&lt;/bean&gt;</span></code></pre>
 </div>
 </div>
-  </div>
+</div>
 </div>
 <table class="tableblock frame-all grid-all stretch">
-<caption class="title">表 46. 設定内容の項目一覧</caption>
+<caption class="title">表 47. 設定内容の項目一覧</caption>
 <colgroup>
 <col style="width: 5%;">
 <col style="width: 20%;">
@@ -6620,7 +6616,7 @@ JAXBを利用する場合は、<code>org.springframework.oxm.jaxb.Jaxb2Marshalle
 </div>
 </div>
 <table class="tableblock frame-all grid-all stretch">
-<caption class="title">表 47. 設定内容の項目一覧</caption>
+<caption class="title">表 48. 設定内容の項目一覧</caption>
 <colgroup>
 <col style="width: 10%;">
 <col style="width: 90%;">
@@ -6661,6 +6657,38 @@ JAXBを利用する場合は、<code>org.springframework.oxm.jaxb.Jaxb2Marshalle
 </td>
 </tr>
 </table>
+</div>
+<div class="paragraph">
+<p>下記は<a href="#Ch05_FileAccess_HowToExtend_Xml_Output">XMLファイルの出力</a>でStaxEventItemWriterを使用したXMLファイルの出力例である。</p>
+</div>
+<div id="output_example" class="listingblock">
+<div class="title">出力ファイル例</div>
+<div class="content">
+<pre class="CodeRay highlight"><code data-lang="xml"><span class="preprocessor">&lt;?xml version=&quot;1.0&quot; encoding=&quot;UTF-8&quot;?&gt;</span>
+<span class="tag">&lt;records&gt;</span>
+<span class="comment">&lt;!-- Customer list header --&gt;</span>
+  <span class="tag">&lt;Customer&gt;</span>
+    <span class="tag">&lt;customerId&gt;</span>001<span class="tag">&lt;/customerId&gt;</span>
+    <span class="tag">&lt;customerName&gt;</span>CustomerName001<span class="tag">&lt;/customerName&gt;</span>
+    <span class="tag">&lt;customerAddress&gt;</span>CustomerAddress001<span class="tag">&lt;/customerAddress&gt;</span>
+    <span class="tag">&lt;customerTel&gt;</span>11111111111<span class="tag">&lt;/customerTel&gt;</span>
+    <span class="tag">&lt;chargeBranchId&gt;</span>001<span class="tag">&lt;/chargeBranchId&gt;</span><span class="tag">&lt;/Customer&gt;</span>
+  <span class="tag">&lt;Customer&gt;</span>
+    <span class="tag">&lt;customerId&gt;</span>002<span class="tag">&lt;/customerId&gt;</span>
+    <span class="tag">&lt;customerName&gt;</span>CustomerName002<span class="tag">&lt;/customerName&gt;</span>
+    <span class="tag">&lt;customerAddress&gt;</span>CustomerAddress002<span class="tag">&lt;/customerAddress&gt;</span>
+    <span class="tag">&lt;customerTel&gt;</span>11111111111<span class="tag">&lt;/customerTel&gt;</span>
+    <span class="tag">&lt;chargeBranchId&gt;</span>002<span class="tag">&lt;/chargeBranchId&gt;</span><span class="tag">&lt;/Customer&gt;</span>
+  <span class="tag">&lt;Customer&gt;</span>
+    <span class="tag">&lt;customerId&gt;</span>003<span class="tag">&lt;/customerId&gt;</span>
+    <span class="tag">&lt;customerName&gt;</span>CustomerName003<span class="tag">&lt;/customerName&gt;</span>
+    <span class="tag">&lt;customerAddress&gt;</span>CustomerAddress003<span class="tag">&lt;/customerAddress&gt;</span>
+    <span class="tag">&lt;customerTel&gt;</span>11111111111<span class="tag">&lt;/customerTel&gt;</span>
+    <span class="tag">&lt;chargeBranchId&gt;</span>003<span class="tag">&lt;/chargeBranchId&gt;</span>
+  <span class="tag">&lt;/Customer&gt;</span>
+<span class="comment">&lt;!-- Customer list footer --&gt;</span>
+<span class="tag">&lt;/records&gt;</span></code></pre>
+</div>
 </div>
 </div>
 </div>
@@ -6723,7 +6751,7 @@ JAXBを利用する場合は、<code>org.springframework.oxm.jaxb.Jaxb2Marshalle
 <div class="title">マルチフォーマットファイルを読み込む際のレコードにかかるフォーマットの制約</div>
 <div class="paragraph">
 <p>マルチフォーマットファイルを読み込むためには、レコード区分がAntPathMatcherによるパターンマッチで判別可能なフォーマットでなければならない。
-詳細は<code><a href="https://docs.spring.io/spring-batch/docs/5.1.0/api/org/springframework/batch/support/PatternMatcher.html">PatternMatcher</a></code>のAPIドキュメントを参照。</p>
+詳細は<code><a href="https://docs.spring.io/spring-batch/docs/5.2.1/api/org/springframework/batch/support/PatternMatcher.html">PatternMatcher</a></code>のAPIドキュメントを参照。</p>
 </div>
 </td>
 </tr>
@@ -6808,7 +6836,7 @@ JAXBを利用する場合は、<code>org.springframework.oxm.jaxb.Jaxb2Marshalle
 </div>
 </div>
 <table class="tableblock frame-all grid-all stretch">
-<caption class="title">表 48. 設定内容の項目一覧</caption>
+<caption class="title">表 49. 設定内容の項目一覧</caption>
 <colgroup>
 <col style="width: 10%;">
 <col style="width: 90%;">
@@ -6933,10 +6961,9 @@ E,3,9,4500000000</code></pre>
 <div class="paragraph">
 <p>上記のファイルを読む込むための設定は以下のとおり。</p>
 </div>
-<div class="tabbox">
-  <input type="radio" name="tabgroup050326" class="JavaConfigTab" id="tabgroup050326_1" checked><label for="tabgroup050326_1" class="tab">JavaConfig</label>
-  <input type="radio" name="tabgroup050326" class="XMLConfigTab" id="tabgroup050326_2"><label for="tabgroup050326_2" class="tab">XMLConfig</label>
-  <div class="tabcontent" name="JavaConfigContent">
+<div class="exampleblock primary">
+<div class="title">JavaConfig</div>
+<div class="content">
 <div class="listingblock">
 <div class="title">Bean定義例</div>
 <div class="content">
@@ -7034,8 +7061,11 @@ E,3,9,4500000000</code></pre>
 }</code></pre>
 </div>
 </div>
-  </div>
-  <div class="tabcontent" name="XMLConfigContent">
+</div>
+</div>
+<div class="exampleblock secondary">
+<div class="title">XMLConfig</div>
+<div class="content">
 <div class="listingblock">
 <div class="title">Bean定義例</div>
 <div class="content">
@@ -7099,10 +7129,10 @@ E,3,9,4500000000</code></pre>
 <span class="tag">&lt;/bean&gt;</span></code></pre>
 </div>
 </div>
-  </div>
+</div>
 </div>
 <table class="tableblock frame-all grid-all stretch">
-<caption class="title">表 49. 設定内容の項目一覧</caption>
+<caption class="title">表 50. 設定内容の項目一覧</caption>
 <colgroup>
 <col style="width: 5%;">
 <col style="width: 20%;">
@@ -7233,10 +7263,9 @@ E,3,9,4500000000</code></pre>
 <p>上記のファイルを出力するための設定は以下のとおり。
 <code>ItemProcessor</code>の定義例をBean定義例の後に示す。</p>
 </div>
-<div class="tabbox">
-  <input type="radio" name="tabgroup050327" class="JavaConfigTab" id="tabgroup050327_1" checked><label for="tabgroup050327_1" class="tab">JavaConfig</label>
-  <input type="radio" name="tabgroup050327" class="XMLConfigTab" id="tabgroup050327_2"><label for="tabgroup050327_2" class="tab">XMLConfig</label>
-  <div class="tabcontent" name="JavaConfigContent">
+<div class="exampleblock primary">
+<div class="title">JavaConfig</div>
+<div class="content">
 <div class="listingblock">
 <div class="title">Bean定義例</div>
 <div class="content">
@@ -7290,8 +7319,11 @@ E,3,9,4500000000</code></pre>
 }</code></pre>
 </div>
 </div>
-  </div>
-  <div class="tabcontent" name="XMLConfigContent">
+</div>
+</div>
+<div class="exampleblock secondary">
+<div class="title">XMLConfig</div>
+<div class="content">
 <div class="listingblock">
 <div class="title">Bean定義例</div>
 <div class="content">
@@ -7337,10 +7369,10 @@ E,3,9,4500000000</code></pre>
 <span class="tag">&lt;/bean&gt;</span></code></pre>
 </div>
 </div>
-  </div>
+</div>
 </div>
 <table class="tableblock frame-all grid-all stretch">
-<caption class="title">表 50. 設定内容の項目一覧</caption>
+<caption class="title">表 51. 設定内容の項目一覧</caption>
 <colgroup>
 <col style="width: 5%;">
 <col style="width: 20%;">
@@ -7425,7 +7457,7 @@ E,3,9,4500000000</code></pre>
 </div>
 </div>
 <table class="tableblock frame-all grid-all stretch">
-<caption class="title">表 51. 設定内容の項目一覧</caption>
+<caption class="title">表 52. 設定内容の項目一覧</caption>
 <colgroup>
 <col style="width: 10%;">
 <col style="width: 90%;">
@@ -7464,12 +7496,11 @@ E,3,9,4500000000</code></pre>
 </div>
 </div>
 </div>
-<link rel="stylesheet" href="./theme/css/coderay-asciidoctor.css">
 <div class="container">
 
   <div class="common-bg">
     <div class="information">
-      TERASOLUNA Batch Framework for Java (5.x) Development Guideline - version 5.6.0.RELEASE, 2024-3-29, commit-id:1d78d35
+      TERASOLUNA Batch Framework for Java (5.x) Development Guideline - version 5.7.0.RELEASE, 2025-3-31, commit-id:7ba4db3
     </div>
     <div class="index">
       <a href="index.html">&gt; INDEX</a>
@@ -7478,7 +7509,7 @@ E,3,9,4500000000</code></pre>
 
   <div class="footer-bg">
     <div class="copyright">
-      &copy; Copyright 2017 NTT DATA Group Corporation. &copy; Copyright 2017 NTT Corporation.
+      &copy; Copyright 2024 NTT DATA Group Corporation. &copy; Copyright 2017 NTT Corporation.
     </div>
   </div>
 

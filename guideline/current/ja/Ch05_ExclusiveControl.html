@@ -4,17 +4,18 @@
 <meta charset="UTF-8">
 <meta http-equiv="X-UA-Compatible" content="IE=edge">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<meta name="generator" content="Asciidoctor 2.0.10">
+<meta name="generator" content="Asciidoctor 2.0.23">
 <title>排他制御</title>
 <link rel="stylesheet" href="./theme/css/readthedocs.css">
 <link rel="stylesheet" href="./theme/css/font-awesome.min.css">
+<link rel="stylesheet" href="./theme/css/coderay-asciidoctor.css">
 <link rel="stylesheet" href="./theme/css/coderay-asciidoctor.css">
 <link rel="stylesheet" href="./theme/css/header-footer.css">
 <title>TERASOLUNA Batch Framework for Java (5.x) Development Guideline</title>
 
 <div class="common-bg">
   <div class="information">
-    TERASOLUNA Batch Framework for Java (5.x) Development Guideline - version 5.6.0.RELEASE, 2024-3-29, commit-id:1d78d35
+    TERASOLUNA Batch Framework for Java (5.x) Development Guideline - version 5.7.0.RELEASE, 2025-3-31, commit-id:7ba4db3
   </div>
   <div class="index">
     <a href="index.html">&gt; INDEX</a>
@@ -37,6 +38,155 @@
   ga('create', 'UA-46550814-2', 'auto');
   ga('send', 'pageview');
 </script>
+<style>
+.hidden {
+	display: none;
+}
+
+.switch {
+	border-width: 1px 1px 0 1px;
+	border-style: solid;
+	border-color: #7a2518;
+	display: inline-block;
+}
+
+.switch--item {
+	padding: 10px;
+	background-color: #ffffff;
+	color: #7a2518;
+	display: inline-block;
+	cursor: pointer;
+}
+
+.switch--item:not(:first-child) {
+	border-width: 0 0 0 1px;
+	border-style: solid;
+	border-color: #7a2518;
+}
+
+.switch--item.selected {
+	background-color: #7a2519;
+	color: #ffffff;
+}
+
+</style>
+<script type="text/javascript">
+function addBlockSwitches() {
+	for (var primary of document.querySelectorAll('.primary')) {
+		var switchItem = createSwitchItem(primary, createBlockSwitch(primary));
+		switchItem.item.classList.add("selected");
+		var title = primary.querySelector('.title')
+		title.remove();
+	}
+	for (var secondary of document.querySelectorAll('.secondary')) {
+		var primary = findPrimary(secondary);
+		if (primary === null) {
+			console.error("Found secondary block with no primary sibling");
+		}
+		else {
+			var switchItem = createSwitchItem(secondary, primary.querySelector('.switch'));
+			switchItem.content.classList.add("hidden");
+			primary.append(switchItem.content);
+			secondary.remove();
+		}
+	}
+}
+
+function createElementFromHtml(html) {
+	var template = document.createElement('template');
+    template.innerHTML = html;
+    return template.content.firstChild;
+}
+
+function createBlockSwitch(primary) {
+    var blockSwitch = createElementFromHtml('<div class="switch"></div>');
+    primary.prepend(blockSwitch)
+	return blockSwitch;
+}
+
+function findPrimary(secondary) {
+	var candidate = secondary.previousElementSibling;
+	while (candidate != null && !candidate.classList.contains('primary')) {
+		candidate = candidate.previousElementSibling;
+	}
+	return candidate;
+}
+
+function createSwitchItem(block, blockSwitch) {
+	var blockName = block.querySelector('.title').textContent;
+	var content = block.querySelectorAll('.content').item(0);
+	var colist = nextSibling(block, '.colist');
+	if (colist != null) {
+		content.append(colist);
+	}
+	var item = createElementFromHtml('<div class="switch--item">' + blockName + '</div>');
+	item.dataset.blockName = blockName;
+	content.dataset.blockName = blockName;
+	blockSwitch.append(item);
+	return {'item': item, 'content': content};
+}
+
+function nextSibling(element, selector) {
+	var sibling = element.nextElementSibling;
+	while (sibling) {
+		if (sibling.matches(selector)) {
+			return sibling;
+		}
+		sibling = sibling.nextElementSibling;
+	}
+}
+
+function globalSwitch() {
+	document.querySelectorAll(".switch--item").forEach(function(item) {
+		var blockId = blockIdForSwitchItem(item);
+		var handler = function(event) {
+			selectedText = event.target.textContent;
+			window.localStorage.setItem(blockId, selectedText);
+			for (var switchItem of document.querySelectorAll(".switch--item")) {
+				if (blockIdForSwitchItem(switchItem) === blockId && switchItem.textContent === selectedText) {
+					select(switchItem);
+				}
+			}
+		}
+		item.addEventListener("click", handler);
+		if (item.textContent === window.localStorage.getItem(blockId)) {
+			select(item);
+		}
+	});
+}
+
+function select(selected) {
+	for (var child of selected.parentNode.children) {
+		child.classList.remove("selected");
+	}
+	selected.classList.add("selected");
+	for (var child of selected.parentNode.parentNode.children) {
+		if (child.classList.contains("content")) {
+			if (selected.dataset.blockName === child.dataset.blockName) {
+				child.classList.remove("hidden");
+			}
+			else {
+				child.classList.add("hidden");
+			}
+		}
+	}	
+}
+
+function blockIdForSwitchItem(item) {
+	idComponents = []
+	for (var switchItem of item.parentNode.querySelectorAll(".switch--item")) {
+		idComponents.push(switchItem.textContent.toLowerCase());
+	}
+	return idComponents.sort().join("-")
+}
+
+window.onload = function() {
+	addBlockSwitches();
+	globalSwitch();
+};
+
+</script>
+
 </head>
 <body id="Ch05_ExclusiveControl" class="book toc2 toc-left">
 <div id="header">
@@ -106,7 +256,7 @@
 </div>
 <div class="paragraph">
 <p>排他制御に関する概念は、オンライン処理と同様であるため、TERASOLUNA Server 5.x 開発ガイドラインにある
-<a href="https://terasolunaorg.github.io/guideline/5.9.0.RELEASE/ja/ArchitectureInDetail/DataAccessDetail/ExclusionControl.html">排他制御</a>を参照。</p>
+<a href="https://terasolunaorg.github.io/guideline/5.10.0.RELEASE/ja/ArchitectureInDetail/DataAccessDetail/ExclusionControl.html">排他制御</a>を参照。</p>
 </div>
 <div class="paragraph">
 <p>ここでは、TERASOLUNA Server 5.xでは説明されていない部分を中心に説明をする。</p>
@@ -118,7 +268,7 @@
 <h3 id="Ch05_ExclusiveControl_Overview_Necessity"><a class="anchor" href="#Ch05_ExclusiveControl_Overview_Necessity"></a>排他制御の必要性</h3>
 <div class="paragraph">
 <p>排他制御の必要性に関しては、TERASOLUNA Server 5.x 開発ガイドラインにある
-<a href="https://terasolunaorg.github.io/guideline/5.9.0.RELEASE/ja/ArchitectureInDetail/DataAccessDetail/ExclusionControl.html#exclusioncontrol-necessity">排他制御の必要性</a>を参照。</p>
+<a href="https://terasolunaorg.github.io/guideline/5.10.0.RELEASE/ja/ArchitectureInDetail/DataAccessDetail/ExclusionControl.html#exclusioncontrol-necessity">排他制御の必要性</a>を参照。</p>
 </div>
 </div>
 <div class="sect2">
@@ -193,7 +343,7 @@
 そのため、ファイルの更新順序をルール化することが重要である。<br>
 デッドロックの予防に関してはデータベースのテーブル間でのデッドロック防止と同様である。
 詳細については、TERASOLUNA Server 5.x 開発ガイドラインの
-<a href="https://terasolunaorg.github.io/guideline/5.9.0.RELEASE/ja/ArchitectureInDetail/DataAccessDetail/ExclusionControl.html#id9">デッドロックの予防</a>を参照。</p>
+<a href="https://terasolunaorg.github.io/guideline/5.10.0.RELEASE/ja/ArchitectureInDetail/DataAccessDetail/ExclusionControl.html#id9">デッドロックの予防</a>を参照。</p>
 </div>
 </td>
 </tr>
@@ -204,7 +354,7 @@
 <h3 id="Ch05_ExclusiveControl_Overview_DB"><a class="anchor" href="#Ch05_ExclusiveControl_Overview_DB"></a>データベースの排他制御</h3>
 <div class="paragraph">
 <p>データベースの排他制御に関しては、TERASOLUNA Server 5.x 開発ガイドラインにある
-<a href="https://terasolunaorg.github.io/guideline/5.9.0.RELEASE/ja/ArchitectureInDetail/DataAccessDetail/ExclusionControl.html#id5">データベースのロック機能による排他制御</a>
+<a href="https://terasolunaorg.github.io/guideline/5.10.0.RELEASE/ja/ArchitectureInDetail/DataAccessDetail/ExclusionControl.html#id5">データベースのロック機能による排他制御</a>
 で詳しく説明されているため、そちらを参照。</p>
 </div>
 </div>
@@ -227,11 +377,11 @@
 </thead>
 <tbody>
 <tr>
-<td class="tableblock halign-left valign-top"><p class="tableblock"><a href="https://terasolunaorg.github.io/guideline/5.9.0.RELEASE/ja/ArchitectureInDetail/DataAccessDetail/ExclusionControl.html#id7">楽観ロック</a></p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><a href="https://terasolunaorg.github.io/guideline/5.10.0.RELEASE/ja/ArchitectureInDetail/DataAccessDetail/ExclusionControl.html#id7">楽観ロック</a></p></td>
 <td class="tableblock halign-left valign-top"><p class="tableblock">同時実行時におけるトランザクションで、別トランザクションの更新結果を処理対象外にして処理を継続できる場合</p></td>
 </tr>
 <tr>
-<td class="tableblock halign-left valign-top"><p class="tableblock"><a href="https://terasolunaorg.github.io/guideline/5.9.0.RELEASE/ja/ArchitectureInDetail/DataAccessDetail/ExclusionControl.html#id8">悲観ロック</a></p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><a href="https://terasolunaorg.github.io/guideline/5.10.0.RELEASE/ja/ArchitectureInDetail/DataAccessDetail/ExclusionControl.html#id8">悲観ロック</a></p></td>
 <td class="tableblock halign-left valign-top"><p class="tableblock">処理時間が長く、処理中に対象データの状況が変化したことによるやり直しが難しい処理<br>
 ファイルに対する排他制御が必要な処理</p></td>
 </tr>
@@ -286,7 +436,7 @@
 <td class="tableblock halign-left valign-top"><p class="tableblock">Tasklet</p></td>
 <td class="tableblock halign-left valign-top"><p class="tableblock">-</p></td>
 <td class="tableblock halign-left valign-top"><p class="tableblock">データ取得時にはItemReader、データ更新時はItemWriterで説明した処理を実施する。<br>
-Mapperインタフェースを直接利用する場合も考え方は同じである。</p></td>
+<code>Mapper</code>インタフェースを直接利用する場合も考え方は同じである。</p></td>
 </tr>
 </tbody>
 </table>
@@ -338,7 +488,7 @@ SELECTで取得するデータは、ItemProcessorでデータを取得する条�
 <tr>
 <td class="tableblock halign-left valign-top"><p class="tableblock">ItemProcessor</p></td>
 <td class="tableblock halign-left valign-top"><p class="tableblock">-</p></td>
-<td class="tableblock halign-left valign-top"><p class="tableblock">Mapperインタフェースを利用して、ItemReaderで取得したデータ(キー情報)を条件とするSQL文でSELECT FOR UPDATEを発行する。</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><code>Mapper</code>インタフェースを利用して、ItemReaderで取得したデータ(キー情報)を条件とするSQL文でSELECT FOR UPDATEを発行する。</p></td>
 </tr>
 <tr>
 <td class="tableblock halign-left valign-top"><p class="tableblock">ItemWriter</p></td>
@@ -350,8 +500,8 @@ SELECTで取得するデータは、ItemProcessorでデータを取得する条�
 <td class="tableblock halign-left valign-top"><p class="tableblock">Tasklet</p></td>
 <td class="tableblock halign-left valign-top"><p class="tableblock">ItemStreamReaderでファイルをオープンする直前にファイルロックを取得する。<br>
 ItemStreamWriterをクローズした直後にファイルロックを開放する。</p></td>
-<td class="tableblock halign-left valign-top"><p class="tableblock">データ取得時にはSELECT FOR UPDATE文を発行するItemReaderかMapperインタフェースを直接利用する。<br>
-データ更新時はItemWriterで説明した処理を実施する。Mapperインタフェースを直接利用する場合も考え方は同じである。</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">データ取得時にはSELECT FOR UPDATE文を発行するItemReaderか<code>Mapper</code>インタフェースを直接利用する。<br>
+データ更新時はItemWriterで説明した処理を実施する。<code>Mapper</code>インタフェースを直接利用する場合も考え方は同じである。</p></td>
 </tr>
 </tbody>
 </table>
@@ -513,10 +663,9 @@ ItemProcessorでデータが取得できない場合は、他のトランザク�
 <code>transactional</code>プロパティがデフォルトの<code>true</code>の場合、ファイル出力のタイミングがTransactionManagerと同期し、排他制御がされていない状態でのファイル出力が行われる。
 以下に、ItemStreamWriterの設定例を示す。</p>
 </div>
-<div class="tabbox">
-  <input type="radio" name="tabgroup050401" class="JavaConfigTab" id="tabgroup050401_1" checked><label for="tabgroup050401_1" class="tab">JavaConfig</label>
-  <input type="radio" name="tabgroup050401" class="XMLConfigTab" id="tabgroup050401_2"><label for="tabgroup050401_2" class="tab">XMLConfig</label>
-  <div class="tabcontent" name="JavaConfigContent">
+<div class="exampleblock primary">
+<div class="title">JavaConfig</div>
+<div class="content">
 <div class="listingblock">
 <div class="content">
 <pre class="CodeRay highlight"><code data-lang="java"><span class="annotation">@Bean</span>
@@ -536,8 +685,11 @@ ItemProcessorでデータが取得できない場合は、他のトランザク�
 }</code></pre>
 </div>
 </div>
-  </div>
-  <div class="tabcontent" name="XMLConfigContent">
+</div>
+</div>
+<div class="exampleblock secondary">
+<div class="title">XMLConfig</div>
+<div class="content">
 <div class="listingblock">
 <div class="content">
 <pre class="CodeRay highlight"><code data-lang="xml"><span class="tag">&lt;bean</span> <span class="attribute-name">id</span>=<span class="string"><span class="delimiter">&quot;</span><span class="content">writer</span><span class="delimiter">&quot;</span></span> <span class="attribute-name">class</span>=<span class="string"><span class="delimiter">&quot;</span><span class="content">org.springframework.batch.item.file.FlatFileItemWriter</span><span class="delimiter">&quot;</span></span> <span class="attribute-name">scope</span>=<span class="string"><span class="delimiter">&quot;</span><span class="content">step</span><span class="delimiter">&quot;</span></span>
@@ -554,7 +706,7 @@ ItemProcessorでデータが取得できない場合は、他のトランザク�
 <span class="tag">&lt;/bean&gt;</span></code></pre>
 </div>
 </div>
-  </div>
+</div>
 </div>
 <table class="tableblock frame-all grid-all stretch">
 <caption class="title">表 4. 説明</caption>
@@ -713,7 +865,7 @@ ItemProcessorでデータが取得できない場合は、他のトランザク�
 <i class="fa icon-note" title="Note"></i>
 </td>
 <td class="content">
-<div class="title">ロック取得に用いるFileChannelのメソッドについて</div>
+<div class="title">ロック取得に用いる<code>FileChannel</code>のメソッドについて</div>
 <div class="paragraph">
 <p><code>lock()</code>メソッドは排他対象ファイルがロック済みの場合ロックが解除されるまで待機するため、待機されない<code>tryLock()</code>メソッドを使用することを推奨する。
 なおtrylock()は共有ロックと排他ロックが選択できるが、バッチ処理においては、通常は排他ロックを用いる。</p>
@@ -749,9 +901,9 @@ ItemProcessorでデータが取得できない場合は、他のトランザク�
 </div>
 <div class="paragraph">
 <p>データベースの排他制御実装は、TERASOLUNA Server 5.x 開発ガイドラインにある
-<a href="https://terasolunaorg.github.io/guideline/5.9.0.RELEASE/ja/ArchitectureInDetail/DataAccessDetail/ExclusionControl.html#mybatis3">MyBatis3使用時の実装方法</a>が基本である。
+<a href="https://terasolunaorg.github.io/guideline/5.10.0.RELEASE/ja/ArchitectureInDetail/DataAccessDetail/ExclusionControl.html#mybatis3">MyBatis3使用時の実装方法</a>が基本である。
 本ガイドラインでは、
-<a href="https://terasolunaorg.github.io/guideline/5.9.0.RELEASE/ja/ArchitectureInDetail/DataAccessDetail/ExclusionControl.html#mybatis3">MyBatis3使用時の実装方法</a>ができている前提で説明を行う。</p>
+<a href="https://terasolunaorg.github.io/guideline/5.10.0.RELEASE/ja/ArchitectureInDetail/DataAccessDetail/ExclusionControl.html#mybatis3">MyBatis3使用時の実装方法</a>ができている前提で説明を行う。</p>
 </div>
 <div class="paragraph">
 <p><a href="#Ch05_ExclusiveControl_Overview_Component">排他制御とコンポーネントの関係</a>にあるとおり、処理モデル・コンポーネントの組み合わせによるバリエーションがある。</p>
@@ -796,11 +948,11 @@ ItemProcessorでデータが取得できない場合は、他のトランザク�
 </tbody>
 </table>
 <div class="paragraph">
-<p>タスクレットモデルでMapperインタフェースを使用する場合は、
-<a href="https://terasolunaorg.github.io/guideline/5.9.0.RELEASE/ja/ArchitectureInDetail/DataAccessDetail/ExclusionControl.html#mybatis3">MyBatis3使用時の実装方法</a>のとおりであるため、説明を割愛する。</p>
+<p>タスクレットモデルで<code>Mapper</code>インタフェースを使用する場合は、
+<a href="https://terasolunaorg.github.io/guideline/5.10.0.RELEASE/ja/ArchitectureInDetail/DataAccessDetail/ExclusionControl.html#mybatis3">MyBatis3使用時の実装方法</a>のとおりであるため、説明を割愛する。</p>
 </div>
 <div class="paragraph">
-<p>タスクレットモデルでItemReader/ItemWriterを使用する場合は、Mapperインタフェースでの呼び出し部分がItemReader/ItemWriterに代わるだけなので、これも説明を割愛する。</p>
+<p>タスクレットモデルでItemReader/ItemWriterを使用する場合は、<code>Mapper</code>インタフェースでの呼び出し部分がItemReader/ItemWriterに代わるだけなので、これも説明を割愛する。</p>
 </div>
 <div class="paragraph">
 <p>よって、ここではチャンクモデルの排他制御について説明する。</p>
@@ -816,10 +968,9 @@ ItemProcessorでデータが取得できない場合は、他のトランザク�
 <div class="paragraph">
 <p>楽観ロックを行うジョブ定義を以下に示す。</p>
 </div>
-<div class="tabbox">
-  <input type="radio" name="tabgroup050402" class="JavaConfigTab" id="tabgroup050402_1" checked><label for="tabgroup050402_1" class="tab">JavaConfig</label>
-  <input type="radio" name="tabgroup050402" class="XMLConfigTab" id="tabgroup050402_2"><label for="tabgroup050402_2" class="tab">XMLConfig</label>
-  <div class="tabcontent" name="JavaConfigContent">
+<div class="exampleblock primary">
+<div class="title">JavaConfig</div>
+<div class="content">
 <div class="listingblock">
 <div class="content">
 <pre class="CodeRay highlight"><code data-lang="java"><span class="annotation">@Configuration</span>
@@ -886,8 +1037,11 @@ ItemProcessorでデータが取得できない場合は、他のトランザク�
 }</code></pre>
 </div>
 </div>
-  </div>
-  <div class="tabcontent" name="XMLConfigContent">
+</div>
+</div>
+<div class="exampleblock secondary">
+<div class="title">XMLConfig</div>
+<div class="content">
 <div class="listingblock">
 <div class="content">
 <pre class="CodeRay highlight"><code data-lang="xml"><span class="comment">&lt;!-- (1) --&gt;</span>
@@ -919,7 +1073,7 @@ ItemProcessorでデータが取得できない場合は、他のトランザク�
 <span class="tag">&lt;/batch:job&gt;</span></code></pre>
 </div>
 </div>
-  </div>
+</div>
 </div>
 <table class="tableblock frame-all grid-all stretch">
 <caption class="title">表 7. 説明</caption>
@@ -959,10 +1113,9 @@ ItemProcessorでデータが取得できない場合は、他のトランザク�
 <div class="paragraph">
 <p>悲観ロックを行うジョブ定義とItemProcessorを以下に示す。</p>
 </div>
-<div class="tabbox">
-  <input type="radio" name="tabgroup050403" class="JavaConfigTab" id="tabgroup050403_1" checked><label for="tabgroup050403_1" class="tab">JavaConfig</label>
-  <input type="radio" name="tabgroup050403" class="XMLConfigTab" id="tabgroup050403_2"><label for="tabgroup050403_2" class="tab">XMLConfig</label>
-  <div class="tabcontent" name="JavaConfigContent">
+<div class="exampleblock primary">
+<div class="title">JavaConfig</div>
+<div class="content">
 <div class="listingblock">
 <div class="content">
 <pre class="CodeRay highlight"><code data-lang="java"><span class="annotation">@Configuration</span>
@@ -1029,8 +1182,11 @@ ItemProcessorでデータが取得できない場合は、他のトランザク�
 }</code></pre>
 </div>
 </div>
-  </div>
-  <div class="tabcontent" name="XMLConfigContent">
+</div>
+</div>
+<div class="exampleblock secondary">
+<div class="title">XMLConfig</div>
+<div class="content">
 <div class="listingblock">
 <div class="content">
 <pre class="CodeRay highlight"><code data-lang="xml"><span class="comment">&lt;!-- (1) --&gt;</span>
@@ -1066,7 +1222,7 @@ ItemProcessorでデータが取得できない場合は、他のトランザク�
 <span class="tag">&lt;/batch:job&gt;</span></code></pre>
 </div>
 </div>
-  </div>
+</div>
 </div>
 <div class="listingblock">
 <div class="title">悲観ロックを行うItemProcessor</div>
@@ -1127,7 +1283,7 @@ ItemProcessorでデータが取得できない場合は、他のトランザク�
 <tbody>
 <tr>
 <td class="tableblock halign-left valign-top"><p class="tableblock">(1)</p></td>
-<td class="tableblock halign-left valign-top"><p class="tableblock">MapperインタフェースがItemWriterと同じ更新モードになるように、<code>batchModeSqlSessionTemplate</code>を設定する。</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><code>Mapper</code>インタフェースがItemWriterと同じ更新モードになるように、<code>batchModeSqlSessionTemplate</code>を設定する。</p></td>
 </tr>
 <tr>
 <td class="tableblock halign-left valign-top"><p class="tableblock">(2)</p></td>
@@ -1145,7 +1301,7 @@ ItemProcessorでデータが取得できない場合は、他のトランザク�
 </tr>
 <tr>
 <td class="tableblock halign-left valign-top"><p class="tableblock">(5)</p></td>
-<td class="tableblock halign-left valign-top"><p class="tableblock">悲観ロックによるデータ取得を行うMapperインタフェースをインジェクションする。</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">悲観ロックによるデータ取得を行う<code>Mapper</code>インタフェースをインジェクションする。</p></td>
 </tr>
 <tr>
 <td class="tableblock halign-left valign-top"><p class="tableblock">(6)</p></td>
@@ -1174,7 +1330,7 @@ NO WAITやタイムアウトを設定して悲観ロックを行い、他のト�
 <td class="content">
 <div class="title">タスクレットモデルでの悲観ロックを行うコンポーネントについて</div>
 <div class="paragraph">
-<p>タスクレットモデルで悲観ロックを行う場合は、悲観ロックを行うSQL発行するItemReaderを用いる。Mapperインタフェースを直接利用する場合も同様である。</p>
+<p>タスクレットモデルで悲観ロックを行う場合は、悲観ロックを行うSQL発行するItemReaderを用いる。<code>Mapper</code>インタフェースを直接利用する場合も同様である。</p>
 </div>
 </td>
 </tr>
@@ -1185,12 +1341,11 @@ NO WAITやタイムアウトを設定して悲観ロックを行い、他のト�
 </div>
 </div>
 </div>
-<link rel="stylesheet" href="./theme/css/coderay-asciidoctor.css">
 <div class="container">
 
   <div class="common-bg">
     <div class="information">
-      TERASOLUNA Batch Framework for Java (5.x) Development Guideline - version 5.6.0.RELEASE, 2024-3-29, commit-id:1d78d35
+      TERASOLUNA Batch Framework for Java (5.x) Development Guideline - version 5.7.0.RELEASE, 2025-3-31, commit-id:7ba4db3
     </div>
     <div class="index">
       <a href="index.html">&gt; INDEX</a>
@@ -1199,7 +1354,7 @@ NO WAITやタイムアウトを設定して悲観ロックを行い、他のト�
 
   <div class="footer-bg">
     <div class="copyright">
-      &copy; Copyright 2017 NTT DATA Group Corporation. &copy; Copyright 2017 NTT Corporation.
+      &copy; Copyright 2024 NTT DATA Group Corporation. &copy; Copyright 2017 NTT Corporation.
     </div>
   </div>
 

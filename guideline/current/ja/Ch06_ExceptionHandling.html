@@ -4,17 +4,18 @@
 <meta charset="UTF-8">
 <meta http-equiv="X-UA-Compatible" content="IE=edge">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<meta name="generator" content="Asciidoctor 2.0.10">
+<meta name="generator" content="Asciidoctor 2.0.23">
 <title>例外ハンドリング</title>
 <link rel="stylesheet" href="./theme/css/readthedocs.css">
 <link rel="stylesheet" href="./theme/css/font-awesome.min.css">
+<link rel="stylesheet" href="./theme/css/coderay-asciidoctor.css">
 <link rel="stylesheet" href="./theme/css/coderay-asciidoctor.css">
 <link rel="stylesheet" href="./theme/css/header-footer.css">
 <title>TERASOLUNA Batch Framework for Java (5.x) Development Guideline</title>
 
 <div class="common-bg">
   <div class="information">
-    TERASOLUNA Batch Framework for Java (5.x) Development Guideline - version 5.6.0.RELEASE, 2024-3-29, commit-id:1d78d35
+    TERASOLUNA Batch Framework for Java (5.x) Development Guideline - version 5.7.0.RELEASE, 2025-3-31, commit-id:7ba4db3
   </div>
   <div class="index">
     <a href="index.html">&gt; INDEX</a>
@@ -37,6 +38,155 @@
   ga('create', 'UA-46550814-2', 'auto');
   ga('send', 'pageview');
 </script>
+<style>
+.hidden {
+	display: none;
+}
+
+.switch {
+	border-width: 1px 1px 0 1px;
+	border-style: solid;
+	border-color: #7a2518;
+	display: inline-block;
+}
+
+.switch--item {
+	padding: 10px;
+	background-color: #ffffff;
+	color: #7a2518;
+	display: inline-block;
+	cursor: pointer;
+}
+
+.switch--item:not(:first-child) {
+	border-width: 0 0 0 1px;
+	border-style: solid;
+	border-color: #7a2518;
+}
+
+.switch--item.selected {
+	background-color: #7a2519;
+	color: #ffffff;
+}
+
+</style>
+<script type="text/javascript">
+function addBlockSwitches() {
+	for (var primary of document.querySelectorAll('.primary')) {
+		var switchItem = createSwitchItem(primary, createBlockSwitch(primary));
+		switchItem.item.classList.add("selected");
+		var title = primary.querySelector('.title')
+		title.remove();
+	}
+	for (var secondary of document.querySelectorAll('.secondary')) {
+		var primary = findPrimary(secondary);
+		if (primary === null) {
+			console.error("Found secondary block with no primary sibling");
+		}
+		else {
+			var switchItem = createSwitchItem(secondary, primary.querySelector('.switch'));
+			switchItem.content.classList.add("hidden");
+			primary.append(switchItem.content);
+			secondary.remove();
+		}
+	}
+}
+
+function createElementFromHtml(html) {
+	var template = document.createElement('template');
+    template.innerHTML = html;
+    return template.content.firstChild;
+}
+
+function createBlockSwitch(primary) {
+    var blockSwitch = createElementFromHtml('<div class="switch"></div>');
+    primary.prepend(blockSwitch)
+	return blockSwitch;
+}
+
+function findPrimary(secondary) {
+	var candidate = secondary.previousElementSibling;
+	while (candidate != null && !candidate.classList.contains('primary')) {
+		candidate = candidate.previousElementSibling;
+	}
+	return candidate;
+}
+
+function createSwitchItem(block, blockSwitch) {
+	var blockName = block.querySelector('.title').textContent;
+	var content = block.querySelectorAll('.content').item(0);
+	var colist = nextSibling(block, '.colist');
+	if (colist != null) {
+		content.append(colist);
+	}
+	var item = createElementFromHtml('<div class="switch--item">' + blockName + '</div>');
+	item.dataset.blockName = blockName;
+	content.dataset.blockName = blockName;
+	blockSwitch.append(item);
+	return {'item': item, 'content': content};
+}
+
+function nextSibling(element, selector) {
+	var sibling = element.nextElementSibling;
+	while (sibling) {
+		if (sibling.matches(selector)) {
+			return sibling;
+		}
+		sibling = sibling.nextElementSibling;
+	}
+}
+
+function globalSwitch() {
+	document.querySelectorAll(".switch--item").forEach(function(item) {
+		var blockId = blockIdForSwitchItem(item);
+		var handler = function(event) {
+			selectedText = event.target.textContent;
+			window.localStorage.setItem(blockId, selectedText);
+			for (var switchItem of document.querySelectorAll(".switch--item")) {
+				if (blockIdForSwitchItem(switchItem) === blockId && switchItem.textContent === selectedText) {
+					select(switchItem);
+				}
+			}
+		}
+		item.addEventListener("click", handler);
+		if (item.textContent === window.localStorage.getItem(blockId)) {
+			select(item);
+		}
+	});
+}
+
+function select(selected) {
+	for (var child of selected.parentNode.children) {
+		child.classList.remove("selected");
+	}
+	selected.classList.add("selected");
+	for (var child of selected.parentNode.parentNode.children) {
+		if (child.classList.contains("content")) {
+			if (selected.dataset.blockName === child.dataset.blockName) {
+				child.classList.remove("hidden");
+			}
+			else {
+				child.classList.add("hidden");
+			}
+		}
+	}	
+}
+
+function blockIdForSwitchItem(item) {
+	idComponents = []
+	for (var switchItem of item.parentNode.querySelectorAll(".switch--item")) {
+		idComponents.push(switchItem.textContent.toLowerCase());
+	}
+	return idComponents.sort().join("-")
+}
+
+window.onload = function() {
+	addBlockSwitches();
+	globalSwitch();
+};
+
+</script>
+
 </head>
 <body id="Ch06_ExceptionHandling" class="book toc2 toc-left">
 <div id="header">
@@ -669,7 +819,7 @@ Webアプリケーションにより事前にリクエストに対する入力�
 <dt class="hdlist1"><a href="#Ch06_ExceptionHandling_HowToUse_StepExceptionHandling_ChunkListener">ChunkListenerインタフェースによる例外ハンドリング</a></dt>
 <dd>
 <p>処理モデルによらず、発生した例外を統一的にハンドリングしたい場合は、
-<a href="Ch04_Listener.html#Ch04_Listener_Overview_Types_ChunkListener">ChunkListener</a>インタフェースを利用する。<br>
+<a href="Ch04_Listener.html#Ch04_Listener_Overview_Types_ChunkListener"><code>ChunkListener</code></a>インタフェースを利用する。<br>
 チャンクよりスコープの広い、ステップやジョブのリスナーを利用しても実現できるが、
 出来る限り発生した直後にハンドリングすることを重視し、<code>ChunkListener</code>を採用する。</p>
 </dd>
@@ -682,7 +832,7 @@ Webアプリケーションにより事前にリクエストに対する入力�
 <dl>
 <dt class="hdlist1"><a href="#Ch06_ExceptionHandling_HowToUse_StepExceptionHandling_Chunk">チャンクモデルにおける例外ハンドリング</a></dt>
 <dd>
-<p>Spring Batch提供の各種Listenerインタフェースを使用して機能を実現する。</p>
+<p>Spring Batch提供の各種<code>Listener</code>インタフェースを使用して機能を実現する。</p>
 </dd>
 <dt class="hdlist1"><a href="#Ch06_ExceptionHandling_HowToUse_StepExceptionHandling_Tasklet">タスクレットモデルにおける例外ハンドリング</a></dt>
 <dd>
@@ -721,7 +871,7 @@ Webアプリケーションにより事前にリクエストに対する入力�
 <div class="sect3">
 <h4 id="Ch06_ExceptionHandling_HowToUse_StepExceptionHandling_ChunkListener"><a class="anchor" href="#Ch06_ExceptionHandling_HowToUse_StepExceptionHandling_ChunkListener"></a>ChunkListenerインタフェースによる例外ハンドリング</h4>
 <div class="paragraph">
-<p><a href="Ch04_Listener.html#Ch04_Listener_Overview_Types_ChunkListener">ChunkListener</a>インタフェースの<code>afterChunkError</code>メソッドを実装する。<br>
+<p><a href="Ch04_Listener.html#Ch04_Listener_Overview_Types_ChunkListener"><code>ChunkListener</code></a>インタフェースの<code>afterChunkError</code>メソッドを実装する。<br>
 <code>afterChunkError</code>メソッドの引数である<code>ChunkContext</code>から<code>ChunkListener.ROLLBACK_EXCEPTION_KEY</code>をキーにしてエラー情報を取得する。</p>
 </div>
 <div class="paragraph">
@@ -788,8 +938,8 @@ Webアプリケーションにより事前にリクエストに対する入力�
 <td class="content">
 <div class="title">処理モデルの違いによるChunkListenerの挙動の違い</div>
 <div class="paragraph">
-<p>チャンクモデルでは、リソースのオープン･クローズで発生した例外は、ChunkListenerインタフェースが捕捉するスコープ外となる。
-そのため、afterChunkErrorメソッドでハンドリングが行われない。
+<p>チャンクモデルでは、リソースのオープン･クローズで発生した例外は、<code>ChunkListener</code>インタフェースが捕捉するスコープ外となる。
+そのため、<code>afterChunkError</code>メソッドでハンドリングが行われない。
 概略図を以下に示す。</p>
 </div>
 <div class="imageblock">
@@ -799,8 +949,8 @@ Webアプリケーションにより事前にリクエストに対する入力�
 <div class="title">図 1. チャンクモデルでの例外ハンドリング概略図</div>
 </div>
 <div class="paragraph">
-<p>タスクレットモデルでは、リソースのオープン･クローズで発生した例外は、ChunkListenerインタフェースが捕捉するスコープ内となる。
-そのため、afterChunkErrorメソッドでハンドリングが行わる。
+<p>タスクレットモデルでは、リソースのオープン･クローズで発生した例外は、<code>ChunkListener</code>インタフェースが捕捉するスコープ内となる。
+そのため、<code>afterChunkError</code>メソッドでハンドリングが行わる。
 概略図を以下に示す。</p>
 </div>
 <div class="imageblock">
@@ -811,7 +961,7 @@ Webアプリケーションにより事前にリクエストに対する入力�
 </div>
 <div class="paragraph">
 <p>この挙動の差を吸収して統一的に例外をハンドリングしたい場合は、
-<a href="Ch04_Listener.html#Ch04_Listener_Overview_Types_StepExecutionListener">StepExecutionListener</a>インタフェースで例外の発生有無をチェックすることで実現できる。
+<a href="Ch04_Listener.html#Ch04_Listener_Overview_Types_StepExecutionListener"><code>StepExecutionListener</code></a>インタフェースで例外の発生有無をチェックすることで実現できる。
 ただし、<code>ChunkListener</code>よりも実装が少々複雑になる。</p>
 </div>
 <div class="listingblock">
@@ -898,7 +1048,7 @@ Webアプリケーションにより事前にリクエストに対する入力�
 <div class="sect4">
 <h5 id="Ch06_ExceptionHandling_HowToUse_StepExceptionHandling_Chunk_ItemReader"><a class="anchor" href="#Ch06_ExceptionHandling_HowToUse_StepExceptionHandling_Chunk_ItemReader"></a>コーディングポイント(ItemReader編)</h5>
 <div class="paragraph">
-<p><a href="Ch04_Listener.html#Ch04_Listener_Overview_Types_ItemReadListener">ItemReadListener</a>インタフェースの
+<p><a href="Ch04_Listener.html#Ch04_Listener_Overview_Types_ItemReadListener"><code>ItemReadListener</code></a>インタフェースの
 <code>onReadError</code>メソッドを実装することで、ItemReader内で発生した例外をハンドリングする。</p>
 </div>
 <div class="listingblock">
@@ -958,7 +1108,7 @@ Webアプリケーションにより事前にリクエストに対する入力�
 <p>ItemProcessor 内でtry～catchをする方法</p>
 </li>
 <li>
-<p><a href="Ch04_Listener.html#Ch04_Listener_Overview_Types_ItemProcessListener">ItemProcessListener</a>インタフェースを使用する方法</p>
+<p><a href="Ch04_Listener.html#Ch04_Listener_Overview_Types_ItemProcessListener"><code>ItemProcessListener</code></a>インタフェースを使用する方法</p>
 </li>
 </ol>
 </div>
@@ -1040,7 +1190,7 @@ ItemProcessorの処理内で例外発生時に実行される<code>onProcessErro
 </table>
 <div class="dlist">
 <dl>
-<dt class="hdlist1"><code>ItemProcessListener</code>インタフェースを使用する方法</dt>
+<dt class="hdlist1">ItemProcessListenerインタフェースを使用する方法</dt>
 <dd>
 <p>業務例外に対するハンドリングが共通化できる場合はこちらを使用する。</p>
 </dd>
@@ -1096,7 +1246,7 @@ ItemProcessorの処理内で例外発生時に実行される<code>onProcessErro
 <div class="sect4">
 <h5 id="Ch06_ExceptionHandling_HowToUse_StepExceptionHandling_Chunk_ItemWriter"><a class="anchor" href="#Ch06_ExceptionHandling_HowToUse_StepExceptionHandling_Chunk_ItemWriter"></a>コーディングポイント(ItemWriter編)</h5>
 <div class="paragraph">
-<p><a href="Ch04_Listener.html#Ch04_Listener_Overview_Types_ItemWriteListener">ItemWriteListener</a>インタフェースの
+<p><a href="Ch04_Listener.html#Ch04_Listener_Overview_Types_ItemWriteListener"><code>ItemWriteListener</code></a>インタフェースの
 <code>onWriteError</code>メソッドを実装することで、ItemWriter内で発生した例外をハンドリングする。</p>
 </div>
 <div class="listingblock">
@@ -1243,7 +1393,7 @@ ItemProcessorの処理内で例外発生時に実行される<code>onProcessErro
 </div>
 <div class="paragraph">
 <p>システム例外や致命的エラー等エラーはジョブ単位に
-<a href="Ch04_Listener.html#Ch04_Listener_Overview_Types_JobExecutionListener">JobExecutionListener</a>インタフェースの実装を行う。</p>
+<a href="Ch04_Listener.html#Ch04_Listener_Overview_Types_JobExecutionListener"><code>JobExecutionListener</code></a>インタフェースの実装を行う。</p>
 </div>
 <div class="paragraph">
 <p>例外ハンドリング処理を集約して定義するために、ステップごとにハンドリング処理を定義はせずジョブ単位でハンドリングを行う。<br>
@@ -1545,10 +1695,9 @@ ItemProcessorの処理内で例外発生時に実行される<code>onProcessErro
 <div class="paragraph">
 <p><code>skip-policy</code>別に定義方法を示す。</p>
 </div>
-<div class="tabbox">
-  <input type="radio" name="tabgroup060201" class="JavaConfigTab" id="tabgroup060201_1" checked><label for="tabgroup060201_1" class="tab">JavaConfig</label>
-  <input type="radio" name="tabgroup060201" class="XMLConfigTab" id="tabgroup060201_2"><label for="tabgroup060201_2" class="tab">XMLConfig</label>
-  <div class="tabcontent" name="JavaConfigContent">
+<div class="exampleblock primary">
+<div class="title">JavaConfig</div>
+<div class="content">
 <div class="listingblock">
 <div class="content">
 <pre class="CodeRay highlight"><code data-lang="java"><span class="annotation">@Bean</span>
@@ -1570,8 +1719,11 @@ ItemProcessorの処理内で例外発生時に実行される<code>onProcessErro
 }</code></pre>
 </div>
 </div>
-  </div>
-  <div class="tabcontent" name="XMLConfigContent">
+</div>
+</div>
+<div class="exampleblock secondary">
+<div class="title">XMLConfig</div>
+<div class="content">
 <div class="listingblock">
 <div class="content">
 <pre class="CodeRay highlight"><code data-lang="xml"><span class="tag">&lt;bean</span> <span class="attribute-name">id</span>=<span class="string"><span class="delimiter">&quot;</span><span class="content">detailCSVReader</span><span class="delimiter">&quot;</span></span>
@@ -1592,7 +1744,7 @@ ItemProcessorの処理内で例外発生時に実行される<code>onProcessErro
 <span class="tag">&lt;/bean&gt;</span></code></pre>
 </div>
 </div>
-  </div>
+</div>
 </div>
 <div id="Ch06_ExceptionHandling_HowToUse_ContinuationPropriety_Skip_Chunk_AlwaysSkipItemSkipPolicy" class="dlist">
 <dl>
@@ -1602,10 +1754,9 @@ ItemProcessorの処理内で例外発生時に実行される<code>onProcessErro
 </dd>
 </dl>
 </div>
-<div class="tabbox">
-  <input type="radio" name="tabgroup060202" class="JavaConfigTab" id="tabgroup060202_1" checked><label for="tabgroup060202_1" class="tab">JavaConfig</label>
-  <input type="radio" name="tabgroup060202" class="XMLConfigTab" id="tabgroup060202_2"><label for="tabgroup060202_2" class="tab">XMLConfig</label>
-  <div class="tabcontent" name="JavaConfigContent">
+<div class="exampleblock primary">
+<div class="title">JavaConfig</div>
+<div class="content">
 <div class="listingblock">
 <div class="content">
 <pre class="CodeRay highlight"><code data-lang="java"><span class="comment">// (1)</span>
@@ -1647,8 +1798,11 @@ ItemProcessorの処理内で例外発生時に実行される<code>onProcessErro
 }</code></pre>
 </div>
 </div>
-  </div>
-  <div class="tabcontent" name="XMLConfigContent">
+</div>
+</div>
+<div class="exampleblock secondary">
+<div class="title">XMLConfig</div>
+<div class="content">
 <div class="listingblock">
 <div class="content">
 <pre class="CodeRay highlight"><code data-lang="xml"><span class="comment">&lt;!-- (1) --&gt;</span>
@@ -1668,7 +1822,7 @@ ItemProcessorの処理内で例外発生時に実行される<code>onProcessErro
 <span class="tag">&lt;/batch:job&gt;</span></code></pre>
 </div>
 </div>
-  </div>
+</div>
 </div>
 <table class="tableblock frame-all grid-all stretch">
 <caption class="title">表 13. 説明</caption>
@@ -1701,10 +1855,9 @@ ItemProcessorの処理内で例外発生時に実行される<code>onProcessErro
 </dd>
 </dl>
 </div>
-<div class="tabbox">
-  <input type="radio" name="tabgroup060209" class="JavaConfigTab" id="tabgroup060209_1" checked><label for="tabgroup060209_1" class="tab">JavaConfig</label>
-  <input type="radio" name="tabgroup060209" class="XMLConfigTab" id="tabgroup060209_2"><label for="tabgroup060209_2" class="tab">XMLConfig</label>
-  <div class="tabcontent" name="JavaConfigContent">
+<div class="exampleblock primary">
+<div class="title">JavaConfig</div>
+<div class="content">
 <div class="listingblock">
 <div class="content">
 <pre class="CodeRay highlight"><code data-lang="java"><span class="comment">// (1)</span>
@@ -1745,8 +1898,11 @@ ItemProcessorの処理内で例外発生時に実行される<code>onProcessErro
 }</code></pre>
 </div>
 </div>
-  </div>
-  <div class="tabcontent" name="XMLConfigContent">
+</div>
+</div>
+<div class="exampleblock secondary">
+<div class="title">XMLConfig</div>
+<div class="content">
 <div class="listingblock">
 <div class="content">
 <pre class="CodeRay highlight"><code data-lang="xml"><span class="comment">&lt;!-- (1) --&gt;</span>
@@ -1766,7 +1922,7 @@ ItemProcessorの処理内で例外発生時に実行される<code>onProcessErro
 <span class="tag">&lt;/batch:job&gt;</span></code></pre>
 </div>
 </div>
-  </div>
+</div>
 </div>
 <table class="tableblock frame-all grid-all stretch">
 <caption class="title">表 14. 説明</caption>
@@ -1799,10 +1955,9 @@ ItemProcessorの処理内で例外発生時に実行される<code>onProcessErro
 </dd>
 </dl>
 </div>
-<div class="tabbox">
-  <input type="radio" name="tabgroup060203" class="JavaConfigTab" id="tabgroup060203_1" checked><label for="tabgroup060203_1" class="tab">JavaConfig</label>
-  <input type="radio" name="tabgroup060203" class="XMLConfigTab" id="tabgroup060203_2"><label for="tabgroup060203_2" class="tab">XMLConfig</label>
-  <div class="tabcontent" name="JavaConfigContent">
+<div class="exampleblock primary">
+<div class="title">JavaConfig</div>
+<div class="content">
 <div class="listingblock">
 <div class="content">
 <pre class="CodeRay highlight"><code data-lang="java"><span class="comment">// (1)</span>
@@ -1843,8 +1998,11 @@ ItemProcessorの処理内で例外発生時に実行される<code>onProcessErro
 }</code></pre>
 </div>
 </div>
-  </div>
-  <div class="tabcontent" name="XMLConfigContent">
+</div>
+</div>
+<div class="exampleblock secondary">
+<div class="title">XMLConfig</div>
+<div class="content">
 <div class="listingblock">
 <div class="content">
 <pre class="CodeRay highlight"><code data-lang="xml"><span class="comment">&lt;!-- (1) --&gt;</span>
@@ -1872,7 +2030,7 @@ ItemProcessorの処理内で例外発生時に実行される<code>onProcessErro
 <span class="tag">&lt;/batch:job&gt;</span></code></pre>
 </div>
 </div>
-  </div>
+</div>
 </div>
 <table class="tableblock frame-all grid-all stretch">
 <caption class="title">表 15. 説明</caption>
@@ -1915,10 +2073,9 @@ ItemProcessorの処理内で例外発生時に実行される<code>onProcessErro
 </dd>
 </dl>
 </div>
-<div class="tabbox">
-  <input type="radio" name="tabgroup060204" class="JavaConfigTab" id="tabgroup060204_1" checked><label for="tabgroup060204_1" class="tab">JavaConfig</label>
-  <input type="radio" name="tabgroup060204" class="XMLConfigTab" id="tabgroup060204_2"><label for="tabgroup060204_2" class="tab">XMLConfig</label>
-  <div class="tabcontent" name="JavaConfigContent">
+<div class="exampleblock primary">
+<div class="title">JavaConfig</div>
+<div class="content">
 <div class="listingblock">
 <div class="content">
 <pre class="CodeRay highlight"><code data-lang="java"><span class="comment">// (1)</span>
@@ -1970,8 +2127,11 @@ ItemProcessorの処理内で例外発生時に実行される<code>onProcessErro
 }</code></pre>
 </div>
 </div>
-  </div>
-  <div class="tabcontent" name="XMLConfigContent">
+</div>
+</div>
+<div class="exampleblock secondary">
+<div class="title">XMLConfig</div>
+<div class="content">
 <div class="listingblock">
 <div class="content">
 <pre class="CodeRay highlight"><code data-lang="xml"><span class="comment">&lt;!-- (1) --&gt;</span>
@@ -2004,7 +2164,7 @@ ItemProcessorの処理内で例外発生時に実行される<code>onProcessErro
 <span class="tag">&lt;/batch:job&gt;</span></code></pre>
 </div>
 </div>
-  </div>
+</div>
 </div>
 <table class="tableblock frame-all grid-all stretch">
 <caption class="title">表 16. 説明</caption>
@@ -2061,7 +2221,7 @@ ItemProcessorの処理内で例外発生時に実行される<code>onProcessErro
 <p><a href="#Ch06_ExceptionHandling_Appendix_SkippableExceptionClasses">&lt;skippable-exception-classes&gt;を使わない理由について</a>にあるように、
 ItemProcessorでは、<code>skipメソッド/&lt;batch:skippable-exception-classes&gt;</code>を利用したスキップは禁止している。
 そのため、<a href="#Ch06_ExceptionHandling_HowToUse_StepExceptionHandling_Chunk_ItemProcessor">コーディングポイント(ItemProcessor編)</a>で説明している
-「<a href="Ch04_Listener.html#Ch04_Listener_Overview_Types_ItemProcessListener">ItemProcessListener</a>インタフェースを使用する方法」を応用したスキップはできない。</p>
+「<a href="Ch04_Listener.html#Ch04_Listener_Overview_Types_ItemProcessListener"><code>ItemProcessListener</code></a>インタフェースを使用する方法」を応用したスキップはできない。</p>
 </div>
 </td>
 </tr>
@@ -2304,10 +2464,9 @@ ItemProcessorでは、<code>skipメソッド/&lt;batch:skippable-exception-class
 }</code></pre>
 </div>
 </div>
-<div class="tabbox">
-  <input type="radio" name="tabgroup060205" class="JavaConfigTab" id="tabgroup060205_1" checked><label for="tabgroup060205_1" class="tab">JavaConfig</label>
-  <input type="radio" name="tabgroup060205" class="XMLConfigTab" id="tabgroup060205_2"><label for="tabgroup060205_2" class="tab">XMLConfig</label>
-  <div class="tabcontent" name="JavaConfigContent">
+<div class="exampleblock primary">
+<div class="title">JavaConfig</div>
+<div class="content">
 <div class="listingblock">
 <div class="content">
 <pre class="CodeRay highlight"><code data-lang="java"><span class="annotation">@Bean</span>
@@ -2364,8 +2523,11 @@ ItemProcessorでは、<code>skipメソッド/&lt;batch:skippable-exception-class
 }</code></pre>
 </div>
 </div>
-  </div>
-  <div class="tabcontent" name="XMLConfigContent">
+</div>
+</div>
+<div class="exampleblock secondary">
+<div class="title">XMLConfig</div>
+<div class="content">
 <div class="listingblock">
 <div class="content">
 <pre class="CodeRay highlight"><code data-lang="xml"><span class="comment">&lt;!-- omitted --&gt;</span>
@@ -2396,7 +2558,7 @@ ItemProcessorでは、<code>skipメソッド/&lt;batch:skippable-exception-class
 <span class="tag">&lt;/batch:job&gt;</span></code></pre>
 </div>
 </div>
-  </div>
+</div>
 </div>
 <table class="tableblock frame-all grid-all stretch">
 <caption class="title">表 19. 説明</caption>
@@ -2463,10 +2625,9 @@ ItemProcessorでは、<code>skipメソッド/&lt;batch:skippable-exception-class
 <div class="paragraph">
 <p><a href="#Ch06_ExceptionHandling_HowToUse_ContinuationPropriety_Skip_Chunk_LimitCheckingItemSkipPolicy">LimitCheckingItemSkipPolicy</a>をもとに、スキップの実装例を示す。</p>
 </div>
-<div class="tabbox">
-  <input type="radio" name="tabgroup060206" class="JavaConfigTab" id="tabgroup060206_1" checked><label for="tabgroup060206_1" class="tab">JavaConfig</label>
-  <input type="radio" name="tabgroup060206" class="XMLConfigTab" id="tabgroup060206_2"><label for="tabgroup060206_2" class="tab">XMLConfig</label>
-  <div class="tabcontent" name="JavaConfigContent">
+<div class="exampleblock primary">
+<div class="title">JavaConfig</div>
+<div class="content">
 <div class="listingblock">
 <div class="content">
 <pre class="CodeRay highlight"><code data-lang="java"><span class="annotation">@Bean</span>
@@ -2501,8 +2662,11 @@ ItemProcessorでは、<code>skipメソッド/&lt;batch:skippable-exception-class
 }</code></pre>
 </div>
 </div>
-  </div>
-  <div class="tabcontent" name="XMLConfigContent">
+</div>
+</div>
+<div class="exampleblock secondary">
+<div class="title">XMLConfig</div>
+<div class="content">
 <div class="listingblock">
 <div class="content">
 <pre class="CodeRay highlight"><code data-lang="xml"><span class="tag">&lt;batch:job</span> <span class="attribute-name">id</span>=<span class="string"><span class="delimiter">&quot;</span><span class="content">jobSalesPerfAtValidSkipReadError</span><span class="delimiter">&quot;</span></span> <span class="attribute-name">job-repository</span>=<span class="string"><span class="delimiter">&quot;</span><span class="content">jobRepository</span><span class="delimiter">&quot;</span></span><span class="tag">&gt;</span>
@@ -2522,7 +2686,7 @@ ItemProcessorでは、<code>skipメソッド/&lt;batch:skippable-exception-class
 <span class="tag">&lt;/batch:job&gt;</span></code></pre>
 </div>
 </div>
-  </div>
+</div>
 </div>
 <table class="tableblock frame-all grid-all stretch">
 <caption class="title">表 20. 説明</caption>
@@ -2546,10 +2710,9 @@ ItemProcessorでは、<code>skipメソッド/&lt;batch:skippable-exception-class
 <div class="paragraph">
 <p><a href="#Ch06_ExceptionHandling_HowToUse_ContinuationPropriety_Retry">リトライ</a>をもとに、リトライの実装例を示す。</p>
 </div>
-<div class="tabbox">
-  <input type="radio" name="tabgroup060207" class="JavaConfigTab" id="tabgroup060207_1" checked><label for="tabgroup060207_1" class="tab">JavaConfig</label>
-  <input type="radio" name="tabgroup060207" class="XMLConfigTab" id="tabgroup060207_2"><label for="tabgroup060207_2" class="tab">XMLConfig</label>
-  <div class="tabcontent" name="JavaConfigContent">
+<div class="exampleblock primary">
+<div class="title">JavaConfig</div>
+<div class="content">
 <div class="listingblock">
 <div class="content">
 <pre class="CodeRay highlight"><code data-lang="java"><span class="annotation">@Bean</span>
@@ -2592,8 +2755,11 @@ ItemProcessorでは、<code>skipメソッド/&lt;batch:skippable-exception-class
 }</code></pre>
 </div>
 </div>
-  </div>
-  <div class="tabcontent" name="XMLConfigContent">
+</div>
+</div>
+<div class="exampleblock secondary">
+<div class="title">XMLConfig</div>
+<div class="content">
 <div class="listingblock">
 <div class="content">
 <pre class="CodeRay highlight"><code data-lang="xml"><span class="comment">&lt;!-- omitted --&gt;</span>
@@ -2618,7 +2784,7 @@ ItemProcessorでは、<code>skipメソッド/&lt;batch:skippable-exception-class
 <span class="tag">&lt;/batch:job&gt;</span></code></pre>
 </div>
 </div>
-  </div>
+</div>
 </div>
 <table class="tableblock frame-all grid-all stretch">
 <caption class="title">表 21. 説明</caption>
@@ -2654,10 +2820,9 @@ ItemProcessorでは、<code>skipメソッド/&lt;batch:skippable-exception-class
 <div class="paragraph">
 <p>その機能は、以下のように<code>StepBuilderのskipメソッド/&lt;chunk&gt;要素配下に&lt;skippable-exception-classes&gt;要素</code>を設定し、スキップ対象の例外を指定する形で実装する。</p>
 </div>
-<div class="tabbox">
-  <input type="radio" name="tabgroup060208" class="JavaConfigTab" id="tabgroup060208_1" checked><label for="tabgroup060208_1" class="tab">JavaConfig</label>
-  <input type="radio" name="tabgroup060208" class="XMLConfigTab" id="tabgroup060208_2"><label for="tabgroup060208_2" class="tab">XMLConfig</label>
-  <div class="tabcontent" name="JavaConfigContent">
+<div class="exampleblock primary">
+<div class="title">JavaConfig</div>
+<div class="content">
 <div class="listingblock">
 <div class="content">
 <pre class="CodeRay highlight"><code data-lang="java"><span class="annotation">@Bean</span>
@@ -2690,8 +2855,11 @@ ItemProcessorでは、<code>skipメソッド/&lt;batch:skippable-exception-class
 }</code></pre>
 </div>
 </div>
-  </div>
-  <div class="tabcontent" name="XMLConfigContent">
+</div>
+</div>
+<div class="exampleblock secondary">
+<div class="title">XMLConfig</div>
+<div class="content">
 <div class="listingblock">
 <div class="content">
 <pre class="CodeRay highlight"><code data-lang="xml"><span class="tag">&lt;job</span> <span class="attribute-name">id</span>=<span class="string"><span class="delimiter">&quot;</span><span class="content">flowJob</span><span class="delimiter">&quot;</span></span><span class="tag">&gt;</span>
@@ -2711,7 +2879,7 @@ ItemProcessorでは、<code>skipメソッド/&lt;batch:skippable-exception-class
 <span class="tag">&lt;/job&gt;</span></code></pre>
 </div>
 </div>
-  </div>
+</div>
 </div>
 <div class="paragraph">
 <p>この機能を利用することによって、入力チェックエラーが発生したレコードをスキップして後続データの処理を継続することは可能だが、
@@ -2822,12 +2990,11 @@ TERASOLUNA Batch 5.xでは以下の理由により使用しない。</p>
 </div>
 </div>
 </div>
-<link rel="stylesheet" href="./theme/css/coderay-asciidoctor.css">
 <div class="container">
 
   <div class="common-bg">
     <div class="information">
-      TERASOLUNA Batch Framework for Java (5.x) Development Guideline - version 5.6.0.RELEASE, 2024-3-29, commit-id:1d78d35
+      TERASOLUNA Batch Framework for Java (5.x) Development Guideline - version 5.7.0.RELEASE, 2025-3-31, commit-id:7ba4db3
     </div>
     <div class="index">
       <a href="index.html">&gt; INDEX</a>
@@ -2836,7 +3003,7 @@ TERASOLUNA Batch 5.xでは以下の理由により使用しない。</p>
 
   <div class="footer-bg">
     <div class="copyright">
-      &copy; Copyright 2017 NTT DATA Group Corporation. &copy; Copyright 2017 NTT Corporation.
+      &copy; Copyright 2024 NTT DATA Group Corporation. &copy; Copyright 2017 NTT Corporation.
     </div>
   </div>
 

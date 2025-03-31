@@ -4,17 +4,18 @@
 <meta charset="UTF-8">
 <meta http-equiv="X-UA-Compatible" content="IE=edge">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<meta name="generator" content="Asciidoctor 2.0.10">
+<meta name="generator" content="Asciidoctor 2.0.23">
 <title>データベースアクセス</title>
 <link rel="stylesheet" href="./theme/css/readthedocs.css">
 <link rel="stylesheet" href="./theme/css/font-awesome.min.css">
+<link rel="stylesheet" href="./theme/css/coderay-asciidoctor.css">
 <link rel="stylesheet" href="./theme/css/coderay-asciidoctor.css">
 <link rel="stylesheet" href="./theme/css/header-footer.css">
 <title>TERASOLUNA Batch Framework for Java (5.x) Development Guideline</title>
 
 <div class="common-bg">
   <div class="information">
-    TERASOLUNA Batch Framework for Java (5.x) Development Guideline - version 5.6.0.RELEASE, 2024-3-29, commit-id:1d78d35
+    TERASOLUNA Batch Framework for Java (5.x) Development Guideline - version 5.7.0.RELEASE, 2025-3-31, commit-id:7ba4db3
   </div>
   <div class="index">
     <a href="index.html">&gt; INDEX</a>
@@ -37,6 +38,155 @@
   ga('create', 'UA-46550814-2', 'auto');
   ga('send', 'pageview');
 </script>
+<style>
+.hidden {
+	display: none;
+}
+
+.switch {
+	border-width: 1px 1px 0 1px;
+	border-style: solid;
+	border-color: #7a2518;
+	display: inline-block;
+}
+
+.switch--item {
+	padding: 10px;
+	background-color: #ffffff;
+	color: #7a2518;
+	display: inline-block;
+	cursor: pointer;
+}
+
+.switch--item:not(:first-child) {
+	border-width: 0 0 0 1px;
+	border-style: solid;
+	border-color: #7a2518;
+}
+
+.switch--item.selected {
+	background-color: #7a2519;
+	color: #ffffff;
+}
+
+</style>
+<script type="text/javascript">
+function addBlockSwitches() {
+	for (var primary of document.querySelectorAll('.primary')) {
+		var switchItem = createSwitchItem(primary, createBlockSwitch(primary));
+		switchItem.item.classList.add("selected");
+		var title = primary.querySelector('.title')
+		title.remove();
+	}
+	for (var secondary of document.querySelectorAll('.secondary')) {
+		var primary = findPrimary(secondary);
+		if (primary === null) {
+			console.error("Found secondary block with no primary sibling");
+		}
+		else {
+			var switchItem = createSwitchItem(secondary, primary.querySelector('.switch'));
+			switchItem.content.classList.add("hidden");
+			primary.append(switchItem.content);
+			secondary.remove();
+		}
+	}
+}
+
+function createElementFromHtml(html) {
+	var template = document.createElement('template');
+    template.innerHTML = html;
+    return template.content.firstChild;
+}
+
+function createBlockSwitch(primary) {
+    var blockSwitch = createElementFromHtml('<div class="switch"></div>');
+    primary.prepend(blockSwitch)
+	return blockSwitch;
+}
+
+function findPrimary(secondary) {
+	var candidate = secondary.previousElementSibling;
+	while (candidate != null && !candidate.classList.contains('primary')) {
+		candidate = candidate.previousElementSibling;
+	}
+	return candidate;
+}
+
+function createSwitchItem(block, blockSwitch) {
+	var blockName = block.querySelector('.title').textContent;
+	var content = block.querySelectorAll('.content').item(0);
+	var colist = nextSibling(block, '.colist');
+	if (colist != null) {
+		content.append(colist);
+	}
+	var item = createElementFromHtml('<div class="switch--item">' + blockName + '</div>');
+	item.dataset.blockName = blockName;
+	content.dataset.blockName = blockName;
+	blockSwitch.append(item);
+	return {'item': item, 'content': content};
+}
+
+function nextSibling(element, selector) {
+	var sibling = element.nextElementSibling;
+	while (sibling) {
+		if (sibling.matches(selector)) {
+			return sibling;
+		}
+		sibling = sibling.nextElementSibling;
+	}
+}
+
+function globalSwitch() {
+	document.querySelectorAll(".switch--item").forEach(function(item) {
+		var blockId = blockIdForSwitchItem(item);
+		var handler = function(event) {
+			selectedText = event.target.textContent;
+			window.localStorage.setItem(blockId, selectedText);
+			for (var switchItem of document.querySelectorAll(".switch--item")) {
+				if (blockIdForSwitchItem(switchItem) === blockId && switchItem.textContent === selectedText) {
+					select(switchItem);
+				}
+			}
+		}
+		item.addEventListener("click", handler);
+		if (item.textContent === window.localStorage.getItem(blockId)) {
+			select(item);
+		}
+	});
+}
+
+function select(selected) {
+	for (var child of selected.parentNode.children) {
+		child.classList.remove("selected");
+	}
+	selected.classList.add("selected");
+	for (var child of selected.parentNode.parentNode.children) {
+		if (child.classList.contains("content")) {
+			if (selected.dataset.blockName === child.dataset.blockName) {
+				child.classList.remove("hidden");
+			}
+			else {
+				child.classList.add("hidden");
+			}
+		}
+	}	
+}
+
+function blockIdForSwitchItem(item) {
+	idComponents = []
+	for (var switchItem of item.parentNode.querySelectorAll(".switch--item")) {
+		idComponents.push(switchItem.textContent.toLowerCase());
+	}
+	return idComponents.sort().join("-")
+}
+
+window.onload = function() {
+	addBlockSwitches();
+	globalSwitch();
+};
+
+</script>
+
 </head>
 <body id="Ch05_DBAccess" class="book toc2 toc-left">
 <div id="header">
@@ -89,10 +239,10 @@ MyBatisによるデータベースアクセスの基本的な利用方法は、T
 <div class="ulist">
 <ul>
 <li>
-<p><a href="https://terasolunaorg.github.io/guideline/5.9.0.RELEASE/ja/ArchitectureInDetail/DataAccessDetail/DataAccessCommon.html">データベースアクセス(共通編)</a></p>
+<p><a href="https://terasolunaorg.github.io/guideline/5.10.0.RELEASE/ja/ArchitectureInDetail/DataAccessDetail/DataAccessCommon.html">データベースアクセス(共通編)</a></p>
 </li>
 <li>
-<p><a href="https://terasolunaorg.github.io/guideline/5.9.0.RELEASE/ja/ArchitectureInDetail/DataAccessDetail/DataAccessMyBatis3.html">データベースアクセス(MyBatis3編)</a></p>
+<p><a href="https://terasolunaorg.github.io/guideline/5.10.0.RELEASE/ja/ArchitectureInDetail/DataAccessDetail/DataAccessMyBatis3.html">データベースアクセス(MyBatis3編)</a></p>
 </li>
 </ul>
 </div>
@@ -171,7 +321,7 @@ MyBatisによるデータベースアクセスの基本的な利用方法は、T
 </div>
 </li>
 <li>
-<p>Mapperインタフェースを利用する</p>
+<p><code>Mapper</code>インタフェースを利用する</p>
 <div class="ulist">
 <ul>
 <li>
@@ -271,10 +421,9 @@ JobRepositoryや<a href="Ch04_AsyncJobWithDB.html#Ch04_AsyncJobWithDB">非同期
 <p>以下に、LaunchContextConfig.java/launch-context.xmlと接続情報のプロパティを示す。<br>
 これらをユーザの環境に合わせて設定すること。</p>
 </div>
-<div class="tabbox">
-  <input type="radio" name="tabgroup050201" class="JavaConfigTab" id="tabgroup050201_1" checked><label for="tabgroup050201_1" class="tab">JavaConfig</label>
-  <input type="radio" name="tabgroup050201" class="XMLConfigTab" id="tabgroup050201_2"><label for="tabgroup050201_2" class="tab">XMLConfig</label>
-  <div class="tabcontent" name="JavaConfigContent">
+<div class="exampleblock primary">
+<div class="title">JavaConfig</div>
+<div class="content">
 <div class="listingblock">
 <div class="title">org.terasoluna.batch.functionaltest.config.LaunchContextConfig.java</div>
 <div class="content">
@@ -291,7 +440,7 @@ JobRepositoryや<a href="Ch04_AsyncJobWithDB.html#Ch04_AsyncJobWithDB">非同期
     dataSource.setPassword(password);
     dataSource.setMaxTotal(<span class="integer">10</span>);
     dataSource.setMinIdle(<span class="integer">1</span>);
-    dataSource.setMaxWaitMillis(<span class="integer">5000</span>);
+    dataSource.setMaxWait(<span class="predefined-type">Duration</span>.ofMillis(<span class="integer">5000L</span>));
     dataSource.setDefaultAutoCommit(<span class="predefined-constant">false</span>);
     <span class="keyword">return</span> dataSource;
 }
@@ -309,14 +458,17 @@ JobRepositoryや<a href="Ch04_AsyncJobWithDB.html#Ch04_AsyncJobWithDB">非同期
     basicDataSource.setPassword(password);
     basicDataSource.setMaxTotal(<span class="integer">10</span>);
     basicDataSource.setMinIdle(<span class="integer">1</span>);
-    basicDataSource.setMaxWaitMillis(<span class="integer">5000</span>);
+    basicDataSource.setMaxWait(<span class="predefined-type">Duration</span>.ofMillis(<span class="integer">5000L</span>));
     basicDataSource.setDefaultAutoCommit(<span class="predefined-constant">false</span>);
     <span class="keyword">return</span> basicDataSource;
 }</code></pre>
 </div>
 </div>
-  </div>
-  <div class="tabcontent" name="XMLConfigContent">
+</div>
+</div>
+<div class="exampleblock secondary">
+<div class="title">XMLConfig</div>
+<div class="content">
 <div class="listingblock">
 <div class="title">resources\META-INF\spring\launch-context.xml</div>
 <div class="content">
@@ -329,11 +481,16 @@ JobRepositoryや<a href="Ch04_AsyncJobWithDB.html#Ch04_AsyncJobWithDB">非同期
       <span class="attribute-name">p:password</span>=<span class="string"><span class="delimiter">&quot;</span><span class="content">${admin.h2.jdbc.password}</span><span class="delimiter">&quot;</span></span>
       <span class="attribute-name">p:maxTotal</span>=<span class="string"><span class="delimiter">&quot;</span><span class="content">10</span><span class="delimiter">&quot;</span></span>
       <span class="attribute-name">p:minIdle</span>=<span class="string"><span class="delimiter">&quot;</span><span class="content">1</span><span class="delimiter">&quot;</span></span>
-      <span class="attribute-name">p:maxWaitMillis</span>=<span class="string"><span class="delimiter">&quot;</span><span class="content">5000</span><span class="delimiter">&quot;</span></span>
-      <span class="attribute-name">p:defaultAutoCommit</span>=<span class="string"><span class="delimiter">&quot;</span><span class="content">false</span><span class="delimiter">&quot;</span></span><span class="tag">/&gt;</span>
+      <span class="attribute-name">p:defaultAutoCommit</span>=<span class="string"><span class="delimiter">&quot;</span><span class="content">false</span><span class="delimiter">&quot;</span></span><span class="tag">&gt;</span>
+    <span class="tag">&lt;property</span> <span class="attribute-name">name</span>=<span class="string"><span class="delimiter">&quot;</span><span class="content">maxWait</span><span class="delimiter">&quot;</span></span><span class="tag">&gt;</span>
+        <span class="tag">&lt;bean</span> <span class="attribute-name">class</span>=<span class="string"><span class="delimiter">&quot;</span><span class="content">java.time.Duration</span><span class="delimiter">&quot;</span></span> <span class="attribute-name">factory-method</span>=<span class="string"><span class="delimiter">&quot;</span><span class="content">ofMillis</span><span class="delimiter">&quot;</span></span><span class="tag">&gt;</span>
+            <span class="tag">&lt;constructor-arg</span> <span class="attribute-name">name</span>=<span class="string"><span class="delimiter">&quot;</span><span class="content">millis</span><span class="delimiter">&quot;</span></span> <span class="attribute-name">type</span>=<span class="string"><span class="delimiter">&quot;</span><span class="content">long</span><span class="delimiter">&quot;</span></span> <span class="attribute-name">value</span>=<span class="string"><span class="delimiter">&quot;</span><span class="content">5000</span><span class="delimiter">&quot;</span></span> <span class="tag">/&gt;</span>
+        <span class="tag">&lt;/bean&gt;</span>
+    <span class="tag">&lt;/property&gt;</span>
+<span class="tag">&lt;/bean&gt;</span>
 
 <span class="comment">&lt;!-- (2) --&gt;</span>
-<span class="tag">&lt;bean</span> <span class="attribute-name">id</span>=<span class="string"><span class="delimiter">&quot;</span><span class="content">jobDataSource</span><span class="delimiter">&quot;</span></span> <span class="attribute-name">class</span>=<span class="string"><span class="delimiter">&quot;</span><span class="content">org.apache.commons.dbcp2.BasicDataSource</span><span class="delimiter">&quot;</span></span><span class="error">　</span>
+<span class="tag">&lt;bean</span> <span class="attribute-name">id</span>=<span class="string"><span class="delimiter">&quot;</span><span class="content">jobDataSource</span><span class="delimiter">&quot;</span></span> <span class="attribute-name">class</span>=<span class="string"><span class="delimiter">&quot;</span><span class="content">org.apache.commons.dbcp2.BasicDataSource</span><span class="delimiter">&quot;</span></span>
       <span class="attribute-name">destroy-method</span>=<span class="string"><span class="delimiter">&quot;</span><span class="content">close</span><span class="delimiter">&quot;</span></span>
       <span class="attribute-name">p:driverClassName</span>=<span class="string"><span class="delimiter">&quot;</span><span class="content">${jdbc.driver}</span><span class="delimiter">&quot;</span></span>
       <span class="attribute-name">p:url</span>=<span class="string"><span class="delimiter">&quot;</span><span class="content">${jdbc.url}</span><span class="delimiter">&quot;</span></span>
@@ -341,11 +498,16 @@ JobRepositoryや<a href="Ch04_AsyncJobWithDB.html#Ch04_AsyncJobWithDB">非同期
       <span class="attribute-name">p:password</span>=<span class="string"><span class="delimiter">&quot;</span><span class="content">${jdbc.password}</span><span class="delimiter">&quot;</span></span>
       <span class="attribute-name">p:maxTotal</span>=<span class="string"><span class="delimiter">&quot;</span><span class="content">10</span><span class="delimiter">&quot;</span></span>
       <span class="attribute-name">p:minIdle</span>=<span class="string"><span class="delimiter">&quot;</span><span class="content">1</span><span class="delimiter">&quot;</span></span>
-      <span class="attribute-name">p:maxWaitMillis</span>=<span class="string"><span class="delimiter">&quot;</span><span class="content">5000</span><span class="delimiter">&quot;</span></span>
-      <span class="attribute-name">p:defaultAutoCommit</span>=<span class="string"><span class="delimiter">&quot;</span><span class="content">false</span><span class="delimiter">&quot;</span></span> <span class="tag">/&gt;</span></code></pre>
+      <span class="attribute-name">p:defaultAutoCommit</span>=<span class="string"><span class="delimiter">&quot;</span><span class="content">false</span><span class="delimiter">&quot;</span></span><span class="tag">&gt;</span>
+    <span class="tag">&lt;property</span> <span class="attribute-name">name</span>=<span class="string"><span class="delimiter">&quot;</span><span class="content">maxWait</span><span class="delimiter">&quot;</span></span><span class="tag">&gt;</span>
+        <span class="tag">&lt;bean</span> <span class="attribute-name">class</span>=<span class="string"><span class="delimiter">&quot;</span><span class="content">java.time.Duration</span><span class="delimiter">&quot;</span></span> <span class="attribute-name">factory-method</span>=<span class="string"><span class="delimiter">&quot;</span><span class="content">ofMillis</span><span class="delimiter">&quot;</span></span><span class="tag">&gt;</span>
+            <span class="tag">&lt;constructor-arg</span> <span class="attribute-name">name</span>=<span class="string"><span class="delimiter">&quot;</span><span class="content">millis</span><span class="delimiter">&quot;</span></span> <span class="attribute-name">type</span>=<span class="string"><span class="delimiter">&quot;</span><span class="content">long</span><span class="delimiter">&quot;</span></span> <span class="attribute-name">value</span>=<span class="string"><span class="delimiter">&quot;</span><span class="content">5000</span><span class="delimiter">&quot;</span></span> <span class="tag">/&gt;</span>
+        <span class="tag">&lt;/bean&gt;</span>
+    <span class="tag">&lt;/property&gt;</span>
+<span class="tag">&lt;/bean&gt;</span></code></pre>
 </div>
 </div>
-  </div>
+</div>
 </div>
 <div class="listingblock">
 <div class="title">batch-application.properties</div>
@@ -428,21 +590,45 @@ JDBCドライバに適切な<code>fetchSize</code>を指定することが必須
 </div>
 </li>
 <li>
-<p><code>executorType</code></p>
+<p><code>executorType</code><br>
+TERASOLUNA Batch 5.xでは、2つの<code>ExecutorType</code>が存在する。
+一方の<code>ExecutorType</code>で実装する場合が多いと想定するが、併用時は特に注意が必要である。
+この点は、<a href="#Ch05_DBAccess_HowToUse_Input_MapperInterface">Mapperインタフェース(入力)</a>にて詳しく説明する。<br>
+以下は<code>defaultExecutorType</code>に設定できる<code>executorType</code>の説明である。</p>
 <div class="ulist">
 <ul>
 <li>
-<p>一般的なバッチ処理では、同一トランザクション内で同じSQLを<code>全データ件数/fetchSize</code>の回数分実行することになる。
-この際、都度ステートメントを作成するのではなく再利用することで効率よく処理できる。</p>
+<p><code>REUSE</code></p>
+<div class="ulist">
+<ul>
+<li>
+<p>データベースからデータを取得するときに設定する。</p>
 </li>
 <li>
-<p>MyBatisの設定における、<code>defaultExecutorType</code>に<code>REUSE</code>を設定することでステートメントの再利用ができ、
-処理スループット向上に寄与する。</p>
+<p>一般的なバッチ処理では、同一トランザクション内で同じSQLを複数回実行することになる。<br>
+<code>REUSE</code>によって<code>PreparedStatement</code>が再利用され、処理スループット向上に寄与する。</p>
 </li>
 <li>
-<p>大量のデータを一度に更新する場合、JDBCのバッチ更新を利用することで性能向上が期待できる。<br>
-そのため、<code>MyBatisBatchItemWriter</code>で利用する<code>SqlSessionTemplate</code>には、<br>
-<code>executorType</code>に(<code>REUSE</code>ではなく)<code>BATCH</code>が設定されている。</p>
+<p><code>MyBatisCursorItemReader</code>で利用する<code>SqlSessionFactory</code>には、<code>executorType</code>に<code>REUSE</code>が設定されている。</p>
+</li>
+</ul>
+</div>
+</li>
+<li>
+<p><code>BATCH</code></p>
+<div class="ulist">
+<ul>
+<li>
+<p>データベースへデータを更新するときに設定する。</p>
+</li>
+<li>
+<p><code>BATCH</code>によって<code>PreparedStatement</code>が再利用され、複数のSQLが一括で実行されるため、(特に大量のデータを一度に更新する会いに)性能向上が期待できる。</p>
+</li>
+<li>
+<p><code>MyBatisBatchItemWriter</code>で利用する<code>SqlSessionTemplate</code>には、<code>executorType</code>に<code>BATCH</code>が設定されている。</p>
+</li>
+</ul>
+</div>
 </li>
 </ul>
 </div>
@@ -450,9 +636,9 @@ JDBCドライバに適切な<code>fetchSize</code>を指定することが必須
 </ul>
 </div>
 <div class="paragraph">
-<p>TERASOLUNA Batch 5.xでは、同時に2つの異なる<code>ExecutorType</code>が存在する。
-一方の<code>ExecutorType</code>で実装する場合が多いと想定するが、併用時は特に注意が必要である。
-この点は、<a href="#Ch05_DBAccess_HowToUse_Input_MapperInterface">Mapperインタフェース(入力)</a>にて詳しく説明する。</p>
+<p><code>executorType</code>については
+<a href="https://terasolunaorg.github.io/guideline/current/ja/ArchitectureInDetail/DataAccessDetail/DataAccessMyBatis3.html#sql">TERASOLUNA Server ガイドライン</a>
+にて詳しく説明されている。</p>
 </div>
 <div class="admonitionblock note">
 <table>
@@ -473,10 +659,9 @@ JDBCドライバに適切な<code>fetchSize</code>を指定することが必須
 <div class="paragraph">
 <p>以下にデフォルト提供されている設定を示す。</p>
 </div>
-<div class="tabbox">
-  <input type="radio" name="tabgroup050202" class="JavaConfigTab" id="tabgroup050202_1" checked><label for="tabgroup050202_1" class="tab">JavaConfig</label>
-  <input type="radio" name="tabgroup050202" class="XMLConfigTab" id="tabgroup050202_2"><label for="tabgroup050202_2" class="tab">XMLConfig</label>
-  <div class="tabcontent" name="JavaConfigContent">
+<div class="exampleblock primary">
+<div class="title">JavaConfig</div>
+<div class="content">
 <div class="listingblock">
 <div class="title">org.terasoluna.batch.functionaltest.config.LaunchContextConfig.java</div>
 <div class="content">
@@ -503,8 +688,11 @@ JDBCドライバに適切な<code>fetchSize</code>を指定することが必須
 }</code></pre>
 </div>
 </div>
-  </div>
-  <div class="tabcontent" name="XMLConfigContent">
+</div>
+</div>
+<div class="exampleblock secondary">
+<div class="title">XMLConfig</div>
+<div class="content">
 <div class="listingblock">
 <div class="title">META-INF/spring/launch-context.xml</div>
 <div class="content">
@@ -529,7 +717,7 @@ JDBCドライバに適切な<code>fetchSize</code>を指定することが必須
       <span class="attribute-name">c:executorType</span>=<span class="string"><span class="delimiter">&quot;</span><span class="content">BATCH</span><span class="delimiter">&quot;</span></span><span class="tag">/&gt;</span></code></pre>
 </div>
 </div>
-  </div>
+</div>
 </div>
 <table class="tableblock frame-all grid-all stretch">
 <caption class="title">表 3. 説明</caption>
@@ -555,74 +743,12 @@ JDBCドライバに適切な<code>fetchSize</code>を指定することが必須
 </tr>
 </tbody>
 </table>
-<div class="admonitionblock note">
-<table>
-<tr>
-<td class="icon">
-<i class="fa icon-note" title="Note"></i>
-</td>
-<td class="content">
-<div class="title">adminDataSourceを利用したSqlSessionFactoryの定義箇所について</div>
-<div class="paragraph">
-<p>同期実行をする場合は、adminDataSourceを利用した<code>SqlSessionFactory</code>は不要であるため、定義がされていない。
-<a href="Ch04_AsyncJobWithDB.html#Ch04_AsyncJobWithDB">非同期実行(DBポーリング)</a>を利用する場合、ジョブ要求テーブルへアクセスするために
-<code>AsyncBatchDaemonConfig.java/META-INF/spring/async-batch-daemon.xml</code>内に定義されている。</p>
-</div>
-<div class="tabbox">
-  <input type="radio" name="tabgroup050203" class="JavaConfigTab" id="tabgroup050203_1" checked><label for="tabgroup050203_1" class="tab">JavaConfig</label>
-  <input type="radio" name="tabgroup050203" class="XMLConfigTab" id="tabgroup050203_2"><label for="tabgroup050203_2" class="tab">XMLConfig</label>
-  <div class="tabcontent" name="JavaConfigContent">
-<div class="listingblock">
-<div class="title">org.terasoluna.batch.functionaltest.config.AsyncBatchDaemonConfig.java</div>
-<div class="content">
-<pre class="CodeRay highlight"><code data-lang="java"><span class="annotation">@Bean</span>
-<span class="directive">public</span> SqlSessionFactory adminSqlSessionFactory(<span class="annotation">@Qualifier</span>(<span class="string"><span class="delimiter">&quot;</span><span class="content">adminDataSource</span><span class="delimiter">&quot;</span></span>) <span class="predefined-type">DataSource</span> adminDataSource,
-                                                DatabaseIdProvider databaseIdProvider) <span class="directive">throws</span> <span class="exception">Exception</span> {
-    <span class="directive">final</span> SqlSessionFactoryBean sqlSessionFactoryBean = <span class="keyword">new</span> SqlSessionFactoryBean();
-    sqlSessionFactoryBean.setDataSource(adminDataSource);
-    sqlSessionFactoryBean.setDatabaseIdProvider(databaseIdProvider);
-    <span class="directive">final</span> org.apache.ibatis.session.Configuration configuration = <span class="keyword">new</span> org.apache.ibatis.session.Configuration();
-    configuration.setLocalCacheScope(LocalCacheScope.STATEMENT);
-    configuration.setLazyLoadingEnabled(<span class="predefined-constant">true</span>);
-    configuration.setAggressiveLazyLoading(<span class="predefined-constant">false</span>);
-    configuration.setDefaultFetchSize(<span class="integer">1000</span>);
-    configuration.setDefaultExecutorType(ExecutorType.REUSE);
-    sqlSessionFactoryBean.setConfiguration(configuration);
-    <span class="keyword">return</span> sqlSessionFactoryBean.getObject();
-}</code></pre>
-</div>
-</div>
-  </div>
-  <div class="tabcontent" name="XMLConfigContent">
-<div class="listingblock">
-<div class="title">META-INF/spring/async-batch-daemon.xml</div>
-<div class="content">
-<pre class="CodeRay highlight"><code data-lang="xml"><span class="tag">&lt;bean</span> <span class="attribute-name">id</span>=<span class="string"><span class="delimiter">&quot;</span><span class="content">adminSqlSessionFactory</span><span class="delimiter">&quot;</span></span>
-      <span class="attribute-name">class</span>=<span class="string"><span class="delimiter">&quot;</span><span class="content">org.mybatis.spring.SqlSessionFactoryBean</span><span class="delimiter">&quot;</span></span>
-      <span class="attribute-name">p:dataSource-ref</span>=<span class="string"><span class="delimiter">&quot;</span><span class="content">adminDataSource</span><span class="delimiter">&quot;</span></span> <span class="tag">&gt;</span>
-    <span class="tag">&lt;property</span> <span class="attribute-name">name</span>=<span class="string"><span class="delimiter">&quot;</span><span class="content">configuration</span><span class="delimiter">&quot;</span></span><span class="tag">&gt;</span>
-        <span class="tag">&lt;bean</span> <span class="attribute-name">class</span>=<span class="string"><span class="delimiter">&quot;</span><span class="content">org.apache.ibatis.session.Configuration</span><span class="delimiter">&quot;</span></span>
-              <span class="attribute-name">p:localCacheScope</span>=<span class="string"><span class="delimiter">&quot;</span><span class="content">STATEMENT</span><span class="delimiter">&quot;</span></span>
-              <span class="attribute-name">p:lazyLoadingEnabled</span>=<span class="string"><span class="delimiter">&quot;</span><span class="content">true</span><span class="delimiter">&quot;</span></span>
-              <span class="attribute-name">p:aggressiveLazyLoading</span>=<span class="string"><span class="delimiter">&quot;</span><span class="content">false</span><span class="delimiter">&quot;</span></span>
-              <span class="attribute-name">p:defaultFetchSize</span>=<span class="string"><span class="delimiter">&quot;</span><span class="content">1000</span><span class="delimiter">&quot;</span></span>
-              <span class="attribute-name">p:defaultExecutorType</span>=<span class="string"><span class="delimiter">&quot;</span><span class="content">REUSE</span><span class="delimiter">&quot;</span></span><span class="tag">/&gt;</span>
-    <span class="tag">&lt;/property&gt;</span>
-<span class="tag">&lt;/bean&gt;</span></code></pre>
-</div>
-</div>
-  </div>
-</div>
-</td>
-</tr>
-</table>
-</div>
 </div>
 <div class="sect3">
 <h4 id="Ch05_DBAccess_HowToUse_Config_MapperXML"><a class="anchor" href="#Ch05_DBAccess_HowToUse_Config_MapperXML"></a>Mapper XMLの定義</h4>
 <div class="paragraph">
 <p>TERASOLUNA Batch 5.x特有の説明事項はないので、TERASOLUNA Server 5.x 開発ガイドラインの
-<a href="https://terasolunaorg.github.io/guideline/5.9.0.RELEASE/ja/ArchitectureInDetail/DataAccessDetail/DataAccessMyBatis3.html#dataaccessmybatis3howtodababaseaccess">データベースアクセス処理の実装</a>を参照。</p>
+<a href="https://terasolunaorg.github.io/guideline/5.10.0.RELEASE/ja/ArchitectureInDetail/DataAccessDetail/DataAccessMyBatis3.html#dataaccessmybatis3howtodababaseaccess">データベースアクセス処理の実装</a>を参照。</p>
 </div>
 </div>
 <div class="sect3">
@@ -636,21 +762,21 @@ JDBCドライバに適切な<code>fetchSize</code>を指定することが必須
 <div class="olist arabic">
 <ol class="arabic">
 <li>
-<p>共通設定として、すべてのジョブで使用するMapper XMLを登録する。</p>
+<p>共通設定</p>
 <div class="ulist">
 <ul>
 <li>
-<p><code>LaunchContextConfig.java/launch-context.xml</code>にすべてのMapper XMLを記述することになる。</p>
+<p><code>LaunchContextConfig.java/launch-context.xml</code>に読み込むMapper XMLを記述する。</p>
 </li>
 </ul>
 </div>
 </li>
 <li>
-<p>個別設定として、ジョブ単位で利用するMapper XMLを登録する。</p>
+<p>個別設定</p>
 <div class="ulist">
 <ul>
 <li>
-<p><code>jobs/</code>配下のBean定義に、個々のジョブごとに必要なMapper XMLを記述することになる。</p>
+<p><code>jobs/</code>配下のBean定義に、個々のジョブごとに必要なMapper XMLを記述する。</p>
 </li>
 </ul>
 </div>
@@ -658,19 +784,7 @@ JDBCドライバに適切な<code>fetchSize</code>を指定することが必須
 </ol>
 </div>
 <div class="paragraph">
-<p>基本的な設定方法については、TERASOLUNA Server 5.x 開発ガイドラインの
-<a href="https://terasolunaorg.github.io/guideline/5.9.0.RELEASE/ja/ArchitectureInDetail/DataAccessDetail/DataAccessMyBatis3.html#dataaccessmybatis3howtousesettingsmybatis-spring">MyBatis-Springの設定</a>を参照。</p>
-</div>
-<div class="admonitionblock warning">
-<table>
-<tr>
-<td class="icon">
-<i class="fa icon-warning" title="Warning"></i>
-</td>
-<td class="content">
-<div class="title">共通設定をした場合の性能面での弊害</div>
-<div class="paragraph">
-<p>共通設定をしてしまうと、同期実行をする際に実行するジョブのMapper XMLだけでなく、その他のジョブが使用するMapper XMLも読み込んでしまうために以下に示す弊害が生じる。</p>
+<p>共通設定、個別設定共に<code>@MapperScan/&lt;mybatis:scan&gt;</code>のスキャン範囲を不必要に広くしてしまうと、実行するジョブ以外のジョブが使用するMapper XMLも読み込んでしまう。これにより、以下に示す弊害が生じる。</p>
 </div>
 <div class="ulist">
 <ul>
@@ -683,12 +797,11 @@ JDBCドライバに適切な<code>fetchSize</code>を指定することが必須
 </ul>
 </div>
 <div class="paragraph">
-<p>これを回避するために、TERASOLUNA Batch 5.xでは、個別設定として、個々のジョブ定義でそのジョブが必要とするMapper XMLだけを指定する設定方法を採用する。
-この方法においては、<code>&lt;mybatis:scan&gt;</code>によるスキャン範囲を最小限にするため、ジョブごとに必要となるMapper XMLを分けて格納するパッケージ構成であることが望ましい。</p>
+<p>これを回避するため、スキャン範囲は最小限になるようにどのジョブでも使われるMapper XMLは共通設定で読み込み、個々のジョブ定義でそのジョブが必要とするMapper XMLは個別設定で読み込むなど使い分ける必要がある。</p>
 </div>
-</td>
-</tr>
-</table>
+<div class="paragraph">
+<p>基本的な設定方法については、TERASOLUNA Server 5.x 開発ガイドラインの
+<a href="https://terasolunaorg.github.io/guideline/5.10.0.RELEASE/ja/ArchitectureInDetail/DataAccessDetail/DataAccessMyBatis3.html#dataaccessmybatis3howtousesettingsmybatis-spring">MyBatis-Springの設定</a>を参照。</p>
 </div>
 <div class="paragraph">
 <p>TERASOLUNA Batch 5.xでは、複数の<code>SqlSessionFactory</code>および<code>SqlSessionTemplate</code>が定義されているため、
@@ -698,18 +811,20 @@ JDBCドライバに適切な<code>fetchSize</code>を指定することが必須
 <div class="paragraph">
 <p>以下に設定例を示す。</p>
 </div>
-<div class="tabbox">
-  <input type="radio" name="tabgroup050204" class="JavaConfigTab" id="tabgroup050204_1" checked><label for="tabgroup050204_1" class="tab">JavaConfig</label>
-  <input type="radio" name="tabgroup050204" class="XMLConfigTab" id="tabgroup050204_2"><label for="tabgroup050204_2" class="tab">XMLConfig</label>
-  <div class="tabcontent" name="JavaConfigContent">
+<div class="exampleblock primary">
+<div class="title">JavaConfig</div>
+<div class="content">
 <div class="listingblock">
 <div class="title">org.terasoluna.batch.jobs.common.JobSalesPlan01Config.java</div>
 <div class="content">
 <pre class="CodeRay highlight"><code data-lang="java"><span class="annotation">@MapperScan</span>(value = <span class="string"><span class="delimiter">&quot;</span><span class="content">org.terasoluna.batch.functionaltest.app.repository.plan</span><span class="delimiter">&quot;</span></span>, sqlSessionFactoryRef = <span class="string"><span class="delimiter">&quot;</span><span class="content">jobSqlSessionFactory</span><span class="delimiter">&quot;</span></span>)</code></pre>
 </div>
 </div>
-  </div>
-  <div class="tabcontent" name="XMLConfigContent">
+</div>
+</div>
+<div class="exampleblock secondary">
+<div class="title">XMLConfig</div>
+<div class="content">
 <div class="listingblock">
 <div class="title">jobSalesPlan01.xml</div>
 <div class="content">
@@ -719,7 +834,7 @@ JDBCドライバに適切な<code>fetchSize</code>を指定することが必須
     <span class="attribute-name">factory-ref</span>=<span class="string"><span class="delimiter">&quot;</span><span class="content">jobSqlSessionFactory</span><span class="delimiter">&quot;</span></span><span class="tag">/&gt;</span></code></pre>
 </div>
 </div>
-  </div>
+</div>
 </div>
 <table class="tableblock frame-all grid-all stretch">
 <caption class="title">表 4. 説明</caption>
@@ -814,7 +929,7 @@ MyBatis-Springが提供する<code>MyBatisCursorItemReader</code>によるデー
 </div>
 <div class="paragraph">
 <p><code>MyBatisPagingItemReader</code>は、TERASOLUNA Server 5.x 開発ガイドラインの
-<a href="https://terasolunaorg.github.io/guideline/5.9.0.RELEASE/ja/ArchitectureInDetail/DataAccessDetail/DataAccessMyBatis3.html#entity-sql">Entityのページネーション検索(SQL絞り込み方式)</a>で
+<a href="https://terasolunaorg.github.io/guideline/5.10.0.RELEASE/ja/ArchitectureInDetail/DataAccessDetail/DataAccessMyBatis3.html#entity-sql">Entityのページネーション検索(SQL絞り込み方式)</a>で
 説明している仕組みを利用したItemReaderである。<br>
 一定件数を取得した後に再度SQLを発行するため、データの一貫性が保たれない可能性がある。
 そのため、バッチ処理で利用するには危険であることから、TERASOLUNA Batch 5.xでは原則使用しない。<br>
@@ -825,7 +940,7 @@ TERASOLUNA Batch 5.xではMyBatisと連携して、Cursorを利用し取得デ�
 <code>mybatis:scan</code>によって動的にMapper XMLを登録する方法を採用している。
 そのため、Mapper XMLに対応するインタフェースを用意する必要がある。
 詳細については、TERASOLUNA Server 5.x 開発ガイドラインの
-<a href="https://terasolunaorg.github.io/guideline/5.9.0.RELEASE/ja/ArchitectureInDetail/DataAccessDetail/DataAccessMyBatis3.html#dataaccessmybatis3howtodababaseaccess">データベースアクセス処理の実装</a>を参照。</p>
+<a href="https://terasolunaorg.github.io/guideline/5.10.0.RELEASE/ja/ArchitectureInDetail/DataAccessDetail/DataAccessMyBatis3.html#dataaccessmybatis3howtodababaseaccess">データベースアクセス処理の実装</a>を参照。</p>
 </div>
 <div class="admonitionblock warning">
 <table>
@@ -855,10 +970,9 @@ TERASOLUNA Batch 5.xではMyBatisと連携して、Cursorを利用し取得デ�
 </dd>
 </dl>
 </div>
-<div class="tabbox">
-  <input type="radio" name="tabgroup050205" class="JavaConfigTab" id="tabgroup050205_1" checked><label for="tabgroup050205_1" class="tab">JavaConfig</label>
-  <input type="radio" name="tabgroup050205" class="XMLConfigTab" id="tabgroup050205_2"><label for="tabgroup050205_2" class="tab">XMLConfig</label>
-  <div class="tabcontent" name="JavaConfigContent">
+<div class="exampleblock primary">
+<div class="title">JavaConfig</div>
+<div class="content">
 <div class="listingblock">
 <div class="content">
 <pre class="CodeRay highlight"><code data-lang="java"><span class="annotation">@Configuration</span>
@@ -909,8 +1023,11 @@ TERASOLUNA Batch 5.xではMyBatisと連携して、Cursorを利用し取得デ�
 }</code></pre>
 </div>
 </div>
-  </div>
-  <div class="tabcontent" name="XMLConfigContent">
+</div>
+</div>
+<div class="exampleblock secondary">
+<div class="title">XMLConfig</div>
+<div class="content">
 <div class="listingblock">
 <div class="content">
 <pre class="CodeRay highlight"><code data-lang="xml"><span class="comment">&lt;!-- (1) --&gt;</span>
@@ -936,7 +1053,7 @@ TERASOLUNA Batch 5.xではMyBatisと連携して、Cursorを利用し取得デ�
 <span class="tag">&lt;/batch:job&gt;</span></code></pre>
 </div>
 </div>
-  </div>
+</div>
 </div>
 <div class="listingblock">
 <div class="title">Mapper XML</div>
@@ -1044,7 +1161,7 @@ TERASOLUNA Batch 5.xではMyBatisと連携して、Cursorを利用し取得デ�
 <tr>
 <td class="tableblock halign-left valign-top"><p class="tableblock">(9)</p></td>
 <td class="tableblock halign-left valign-top"><p class="tableblock">引数として受け取るitemの型は、
-このクラスで実装しているItemProcessorインタフェースの型引数で指定した入力オブジェクトの型である<code>Customer</code>とする。</p></td>
+このクラスで実装している<code>ItemProcessor</code>インタフェースの型引数で指定した入力オブジェクトの型である<code>Customer</code>とする。</p></td>
 </tr>
 <tr>
 <td class="tableblock halign-left valign-top"><p class="tableblock">(10)</p></td>
@@ -1068,10 +1185,9 @@ TERASOLUNA Batch 5.xではMyBatisと連携して、Cursorを利用し取得デ�
 <p>タスクレットモデルではチャンクモデルと異なり、<code>Tasklet</code>実装においてリソースを明示的にオープン/クローズする必要がある。
 また、入力データの読み込みも明示的に行う。</p>
 </div>
-<div class="tabbox">
-  <input type="radio" name="tabgroup050206" class="JavaConfigTab" id="tabgroup050206_1" checked><label for="tabgroup050206_1" class="tab">JavaConfig</label>
-  <input type="radio" name="tabgroup050206" class="XMLConfigTab" id="tabgroup050206_2"><label for="tabgroup050206_2" class="tab">XMLConfig</label>
-  <div class="tabcontent" name="JavaConfigContent">
+<div class="exampleblock primary">
+<div class="title">JavaConfig</div>
+<div class="content">
 <div class="listingblock">
 <div class="content">
 <pre class="CodeRay highlight"><code data-lang="java"><span class="annotation">@Configuration</span>
@@ -1116,8 +1232,11 @@ TERASOLUNA Batch 5.xではMyBatisと連携して、Cursorを利用し取得デ�
 }</code></pre>
 </div>
 </div>
-  </div>
-  <div class="tabcontent" name="XMLConfigContent">
+</div>
+</div>
+<div class="exampleblock secondary">
+<div class="title">XMLConfig</div>
+<div class="content">
 <div class="listingblock">
 <div class="content">
 <pre class="CodeRay highlight"><code data-lang="xml"><span class="comment">&lt;!-- (1) --&gt;</span>
@@ -1138,7 +1257,7 @@ TERASOLUNA Batch 5.xではMyBatisと連携して、Cursorを利用し取得デ�
 <span class="tag">&lt;/batch:job&gt;</span></code></pre>
 </div>
 </div>
-  </div>
+</div>
 </div>
 <div class="listingblock">
 <div class="title">Mapper XML</div>
@@ -1263,7 +1382,7 @@ TERASOLUNA Batch 5.xではMyBatisと連携して、Cursorを利用し取得デ�
 <td class="tableblock halign-left valign-top"><p class="tableblock">(8)</p></td>
 <td class="tableblock halign-left valign-top"><p class="tableblock"><code>@Inject</code>アノテーションを付与して、<code>ItemStreamReader</code>の実装をインジェクションする。<br>
 対象となるリソースへのオープン・クローズを実施する必要があるため、
-<code>ItemReader</code>にリソースのopen/closeメソッドを追加した<code>ItemStreamReader</code>インタフェースで実装をインジェクションする。</p></td>
+<code>ItemReader</code>にリソースの<code>open/close</code>メソッドを追加した<code>ItemStreamReader</code>インタフェースで実装をインジェクションする。</p></td>
 </tr>
 <tr>
 <td class="tableblock halign-left valign-top"><p class="tableblock">(9)</p></td>
@@ -1318,10 +1437,9 @@ Bean定義にてMap形式でジョブパラメータから値を取得し、キ�
 <span class="comment">&lt;!-- omitted --&gt;</span></code></pre>
 </div>
 </div>
-<div class="tabbox">
-  <input type="radio" name="tabgroup050207" class="JavaConfigTab" id="tabgroup050207_1" checked><label for="tabgroup050207_1" class="tab">JavaConfig</label>
-  <input type="radio" name="tabgroup050207" class="XMLConfigTab" id="tabgroup050207_2"><label for="tabgroup050207_2" class="tab">XMLConfig</label>
-  <div class="tabcontent" name="JavaConfigContent">
+<div class="exampleblock primary">
+<div class="title">JavaConfig</div>
+<div class="content">
 <div class="listingblock">
 <div class="content">
 <pre class="CodeRay highlight"><code data-lang="java"><span class="comment">// omitted</span>
@@ -1348,8 +1466,11 @@ Bean定義にてMap形式でジョブパラメータから値を取得し、キ�
 <span class="comment">// omited</span></code></pre>
 </div>
 </div>
-  </div>
-  <div class="tabcontent" name="XMLConfigContent">
+</div>
+</div>
+<div class="exampleblock secondary">
+<div class="title">XMLConfig</div>
+<div class="content">
 <div class="listingblock">
 <div class="content">
 <pre class="CodeRay highlight"><code data-lang="xml"><span class="comment">&lt;!-- omitted --&gt;</span>
@@ -1373,7 +1494,7 @@ Bean定義にてMap形式でジョブパラメータから値を取得し、キ�
 <span class="comment">&lt;!-- omitted --&gt;</span></code></pre>
 </div>
 </div>
-  </div>
+</div>
 </div>
 <table class="tableblock frame-all grid-all stretch">
 <caption class="title">表 7. 説明</caption>
@@ -1426,14 +1547,14 @@ SQLの引数が数値型で定義されているため、<code>Integer</code>に
 <div class="sect3">
 <h4 id="Ch05_DBAccess_HowToUse_Input_MapperInterface"><a class="anchor" href="#Ch05_DBAccess_HowToUse_Input_MapperInterface"></a>Mapperインタフェース(入力)</h4>
 <div class="paragraph">
-<p>ItemReader以外でデータベースの参照を行うにはMapperインタフェースを利用する。<br>
-ここではMapperインタフェースを利用したデータベースの参照について説明する。</p>
+<p>ItemReader以外でデータベースの参照を行うには<code>Mapper</code>インタフェースを利用する。<br>
+ここでは<code>Mapper</code>インタフェースを利用したデータベースの参照について説明する。</p>
 </div>
 <div id="Ch05_DBAccess_HowToUse_Input_MapperInterface_Overview" class="dlist">
 <dl>
 <dt class="hdlist1">機能概要</dt>
 <dd>
-<p>Mapperインタフェースを利用するにあたって、TERASOLUNA Batch 5.xでは以下の制約を設けている。</p>
+<p><code>Mapper</code>インタフェースを利用するにあたって、TERASOLUNA Batch 5.xでは以下の制約を設けている。</p>
 </dd>
 </dl>
 </div>
@@ -1472,7 +1593,7 @@ SQLの引数が数値型で定義されているため、<code>Integer</code>に
 <dl>
 <dt class="hdlist1">チャンクモデルにおける利用方法</dt>
 <dd>
-<p>チャンクモデルでMapperインタフェースを利用してデータベースを参照する実装例を以下に示す。</p>
+<p>チャンクモデルで<code>Mapper</code>インタフェースを利用してデータベースを参照する実装例を以下に示す。</p>
 </dd>
 </dl>
 </div>
@@ -1500,10 +1621,9 @@ SQLの引数が数値型で定義されているため、<code>Integer</code>に
 }</code></pre>
 </div>
 </div>
-<div class="tabbox">
-  <input type="radio" name="tabgroup050208" class="JavaConfigTab" id="tabgroup050208_1" checked><label for="tabgroup050208_1" class="tab">JavaConfig</label>
-  <input type="radio" name="tabgroup050208" class="XMLConfigTab" id="tabgroup050208_2"><label for="tabgroup050208_2" class="tab">XMLConfig</label>
-  <div class="tabcontent" name="JavaConfigContent">
+<div class="exampleblock primary">
+<div class="title">JavaConfig</div>
+<div class="content">
 <div class="listingblock">
 <div class="content">
 <pre class="CodeRay highlight"><code data-lang="java"><span class="annotation">@Configuration</span>
@@ -1528,8 +1648,11 @@ SQLの引数が数値型で定義されているため、<code>Integer</code>に
     <span class="comment">// omitted</span></code></pre>
 </div>
 </div>
-  </div>
-  <div class="tabcontent" name="XMLConfigContent">
+</div>
+</div>
+<div class="exampleblock secondary">
+<div class="title">XMLConfig</div>
+<div class="content">
 <div class="listingblock">
 <div class="content">
 <pre class="CodeRay highlight"><code data-lang="xml"><span class="comment">&lt;!-- (3) --&gt;</span>
@@ -1545,10 +1668,10 @@ SQLの引数が数値型で定義されているため、<code>Integer</code>に
 <span class="comment">&lt;!-- omitted job definition --&gt;</span></code></pre>
 </div>
 </div>
-  </div>
+</div>
 </div>
 <div class="paragraph">
-<p>MapperインタフェースとMapper XMLについては<a href="#Ch05_DBAccess_HowToUse_Input_MyBatisItemReader">MyBatisCursorItemReader</a>
+<p><code>Mapper</code>インタフェースとMapper XMLについては<a href="#Ch05_DBAccess_HowToUse_Input_MyBatisItemReader">MyBatisCursorItemReader</a>
 で説明している内容以外に特筆すべきことがないため省略する。</p>
 </div>
 <table class="tableblock frame-all grid-all stretch">
@@ -1564,11 +1687,11 @@ SQLの引数が数値型で定義されているため、<code>Integer</code>に
 </tr>
 <tr>
 <td class="tableblock halign-left valign-top"><p class="tableblock">(1)</p></td>
-<td class="tableblock halign-left valign-top"><p class="tableblock">MapperインタフェースをInjectする。</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><code>Mapper</code>インタフェースをInjectする。</p></td>
 </tr>
 <tr>
 <td class="tableblock halign-left valign-top"><p class="tableblock">(2)</p></td>
-<td class="tableblock halign-left valign-top"><p class="tableblock">Mapperインタフェースで検索処理を実行する。</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><code>Mapper</code>インタフェースで検索処理を実行する。</p></td>
 </tr>
 <tr>
 <td class="tableblock halign-left valign-top"><p class="tableblock">(3)</p></td>
@@ -1583,79 +1706,22 @@ ItemProcessorでのデータベースアクセスは<code>BATCH</code>となる�
 </tr>
 </tbody>
 </table>
-<div class="admonitionblock important">
-<table>
-<tr>
-<td class="icon">
-<i class="fa icon-important" title="Important"></i>
-</td>
-<td class="content">
-<div class="title">MyBatisCursorItemReader設定の補足</div>
-<div class="paragraph">
-<p>以下に示す定義例のように、MyBatisCursorItemReaderとMyBatisBatchItemWriterで異なる<code>ExecutorType</code>を使用しても問題ない。
-これは、MyBatisCursorItemReaderによるトランザクションはItemWriterのトランザクションとは別であるからである。</p>
-</div>
-<div class="tabbox">
-  <input type="radio" name="tabgroup050209" class="JavaConfigTab" id="tabgroup050209_1" checked><label for="tabgroup050209_1" class="tab">JavaConfig</label>
-  <input type="radio" name="tabgroup050209" class="XMLConfigTab" id="tabgroup050209_2"><label for="tabgroup050209_2" class="tab">XMLConfig</label>
-  <div class="tabcontent" name="JavaConfigContent">
-<div class="listingblock">
-<div class="content">
-<pre class="CodeRay highlight"><code data-lang="java"><span class="annotation">@Bean</span>
-<span class="directive">public</span> MyBatisCursorItemReader reader(
-        <span class="annotation">@Qualifier</span>(<span class="string"><span class="delimiter">&quot;</span><span class="content">jobSqlSessionFactory</span><span class="delimiter">&quot;</span></span>) SqlSessionFactory jobSqlSessionFactory) {
-    <span class="keyword">return</span> <span class="keyword">new</span> MyBatisCursorItemReaderBuilder()
-            .sqlSessionFactory(jobSqlSessionFactory)
-            .queryId(<span class="string"><span class="delimiter">&quot;</span><span class="content">xxx</span><span class="delimiter">&quot;</span></span>)
-            .build();
-}
-
-<span class="annotation">@Bean</span>
-<span class="directive">public</span> MyBatisBatchItemWriter writer(
-        SqlSessionTemplate batchModeSqlSessionTemplate) {
-    <span class="keyword">return</span> <span class="keyword">new</span> MyBatisBatchItemWriterBuilder()
-            .statementId(<span class="string"><span class="delimiter">&quot;</span><span class="content">yyy</span><span class="delimiter">&quot;</span></span>)
-            .sqlSessionTemplate(batchModeSqlSessionTemplate)
-            .build();
-}</code></pre>
-</div>
-</div>
-  </div>
-  <div class="tabcontent" name="XMLConfigContent">
-<div class="listingblock">
-<div class="content">
-<pre class="CodeRay highlight"><code data-lang="xml"><span class="tag">&lt;bean</span> <span class="attribute-name">id</span>=<span class="string"><span class="delimiter">&quot;</span><span class="content">reader</span><span class="delimiter">&quot;</span></span> <span class="attribute-name">class</span>=<span class="string"><span class="delimiter">&quot;</span><span class="content">org.mybatis.spring.batch.MyBatisCursorItemReader</span><span class="delimiter">&quot;</span></span>
-      <span class="attribute-name">p:queryId</span>=<span class="string"><span class="delimiter">&quot;</span><span class="content">xxx</span><span class="delimiter">&quot;</span></span>
-      <span class="attribute-name">p:sqlSessionFactory-ref</span>=<span class="string"><span class="delimiter">&quot;</span><span class="content">jobSqlSessionFactory</span><span class="delimiter">&quot;</span></span><span class="tag">/&gt;</span>
-
-<span class="tag">&lt;bean</span> <span class="attribute-name">id</span>=<span class="string"><span class="delimiter">&quot;</span><span class="content">writer</span><span class="delimiter">&quot;</span></span> <span class="attribute-name">class</span>=<span class="string"><span class="delimiter">&quot;</span><span class="content">org.mybatis.spring.batch.MyBatisBatchItemWriter</span><span class="delimiter">&quot;</span></span>
-      <span class="attribute-name">p:statementId</span>=<span class="string"><span class="delimiter">&quot;</span><span class="content">yyy</span><span class="delimiter">&quot;</span></span>
-      <span class="attribute-name">p:sqlSessionTemplate-ref</span>=<span class="string"><span class="delimiter">&quot;</span><span class="content">batchModeSqlSessionTemplate</span><span class="delimiter">&quot;</span></span><span class="tag">/&gt;</span></code></pre>
-</div>
-</div>
-  </div>
-</div>
-</td>
-</tr>
-</table>
-</div>
 <div id="Ch05_DBAccess_HowToUse_Input_MapperInterface_Tasklet" class="dlist">
 <dl>
 <dt class="hdlist1">タスクレットモデルにおける利用方法</dt>
 <dd>
-<p>タスクレットモデルでMapperインタフェースを利用してデータベースを参照する実装例を以下に示す。<br>
+<p>タスクレットモデルで<code>Mapper</code>インタフェースを利用してデータベースを参照する実装例を以下に示す。<br>
 大量データを処理する場合、Cursorを利用して取得データを1件ずつ処理することでメモリ容量をひっ迫せずに効率良く処理することができる。
-TERASOLUNA Batch 5.xでは、タスクレットモデルでMapperインタフェースを利用してデータベースアクセスする場合はCursorを利用することを基本とする。<br>
+TERASOLUNA Batch 5.xでは、タスクレットモデルで<code>Mapper</code>インタフェースを利用してデータベースアクセスする場合はCursorを利用することを基本とする。<br>
 Cursor同様に大量データを処理するうえで、ResultHandlerを利用することも有効である。
 ResultHandlerについては、TERASOLUNA Server 5.x 開発ガイドラインの
-<a href="https://terasolunaorg.github.io/guideline/5.9.0.RELEASE/ja/ArchitectureInDetail/DataAccessDetail/DataAccessMyBatis3.html#resulthandler">ResultHandlerの実装</a>を参照。</p>
+<a href="https://terasolunaorg.github.io/guideline/5.10.0.RELEASE/ja/ArchitectureInDetail/DataAccessDetail/DataAccessMyBatis3.html#resulthandler">ResultHandlerの実装</a>を参照。</p>
 </dd>
 </dl>
 </div>
-<div class="tabbox">
-  <input type="radio" name="tabgroup050210" class="JavaConfigTab" id="tabgroup050210_1" checked><label for="tabgroup050210_1" class="tab">JavaConfig</label>
-  <input type="radio" name="tabgroup050210" class="XMLConfigTab" id="tabgroup050210_2"><label for="tabgroup050210_2" class="tab">XMLConfig</label>
-  <div class="tabcontent" name="JavaConfigContent">
+<div class="exampleblock primary">
+<div class="title">JavaConfig</div>
+<div class="content">
 <div class="listingblock">
 <div class="content">
 <pre class="CodeRay highlight"><code data-lang="java"><span class="annotation">@Configuration</span>
@@ -1687,8 +1753,11 @@ ResultHandlerについては、TERASOLUNA Server 5.x 開発ガイドラインの
 }</code></pre>
 </div>
 </div>
-  </div>
-  <div class="tabcontent" name="XMLConfigContent">
+</div>
+</div>
+<div class="exampleblock secondary">
+<div class="title">XMLConfig</div>
+<div class="content">
 <div class="listingblock">
 <div class="content">
 <pre class="CodeRay highlight"><code data-lang="xml"><span class="comment">&lt;!-- (1) --&gt;</span>
@@ -1703,7 +1772,7 @@ ResultHandlerについては、TERASOLUNA Server 5.x 開発ガイドラインの
     <span class="tag">&lt;/batch:job&gt;</span></code></pre>
 </div>
 </div>
-  </div>
+</div>
 </div>
 <div class="listingblock">
 <div class="title">Mapper XML</div>
@@ -1796,7 +1865,7 @@ ResultHandlerについては、TERASOLUNA Server 5.x 開発ガイドラインの
 </tr>
 <tr>
 <td class="tableblock halign-left valign-top"><p class="tableblock">(5)</p></td>
-<td class="tableblock halign-left valign-top"><p class="tableblock">MapperインタフェースをInjectする。</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><code>Mapper</code>インタフェースをInjectする。</p></td>
 </tr>
 <tr>
 <td class="tableblock halign-left valign-top"><p class="tableblock">(6)</p></td>
@@ -1833,10 +1902,10 @@ ResultHandlerについては、TERASOLUNA Server 5.x 開発ガイドラインの
 <div class="sect2">
 <h3 id="Ch05_DBAccess_HowToUse_Output"><a class="anchor" href="#Ch05_DBAccess_HowToUse_Output"></a>出力</h3>
 <div class="paragraph">
-<p>データベースへの出力は、<code>MyBatisBatchItemWriter</code>もしくはMapperインタフェースを利用することで実現できる。<br>
-<code>MyBatisBatchItemWriter</code>とMapperインタフェースによる出力を併用した場合、<code>MyBatisBatchItemWriter</code>でエラーが発生する。
-よって、Mapperインタフェースを用いた出力はチャンクモデルでの利用に適さないため、利用方法を記載していない。<br>
-詳細は<a href="#Ch05_DBAccess_HowToUse_Output_MapperInterface_Overview">Mapperインタフェース(出力)の機能概要</a>で後述するため、そちらを参照されたい。</p>
+<p>データベースへの出力は、<code>MyBatisBatchItemWriter</code>もしくは<code>Mapper</code>インタフェースを利用することで実現できる。<br>
+<code>MyBatisBatchItemWriter</code>と<code>Mapper</code>インタフェースによる出力を併用した場合、<code>MyBatisBatchItemWriter</code>でエラーが発生する。
+よって、<code>Mapper</code>インタフェースを用いた出力はチャンクモデルでの利用に適さないため、利用方法を記載していない。<br>
+詳細は<a href="#Ch05_DBAccess_HowToUse_Output_MapperInterface_Overview"><code>Mapper</code>インタフェース(出力)の機能概要</a>で後述するため、そちらを参照されたい。</p>
 </div>
 <div class="paragraph">
 <p>上記の内容について以下のとおり説明する。</p>
@@ -1913,10 +1982,9 @@ MyBatis-Springが提供する<code>MyBatisBatchItemWriter</code>によるデー�
 </dd>
 </dl>
 </div>
-<div class="tabbox">
-  <input type="radio" name="tabgroup050211" class="JavaConfigTab" id="tabgroup050211_1" checked><label for="tabgroup050211_1" class="tab">JavaConfig</label>
-  <input type="radio" name="tabgroup050211" class="XMLConfigTab" id="tabgroup050211_2"><label for="tabgroup050211_2" class="tab">XMLConfig</label>
-  <div class="tabcontent" name="JavaConfigContent">
+<div class="exampleblock primary">
+<div class="title">JavaConfig</div>
+<div class="content">
 <div class="listingblock">
 <div class="content">
 <pre class="CodeRay highlight"><code data-lang="java"><span class="annotation">@Configuration</span>
@@ -1962,8 +2030,11 @@ MyBatis-Springが提供する<code>MyBatisBatchItemWriter</code>によるデー�
 }</code></pre>
 </div>
 </div>
-  </div>
-  <div class="tabcontent" name="XMLConfigContent">
+</div>
+</div>
+<div class="exampleblock secondary">
+<div class="title">XMLConfig</div>
+<div class="content">
 <div class="listingblock">
 <div class="content">
 <pre class="CodeRay highlight"><code data-lang="xml"><span class="comment">&lt;!-- (1) --&gt;</span>
@@ -1988,7 +2059,7 @@ MyBatis-Springが提供する<code>MyBatisBatchItemWriter</code>によるデー�
 <span class="tag">&lt;/batch:job&gt;</span></code></pre>
 </div>
 </div>
-  </div>
+</div>
 </div>
 <div class="listingblock">
 <div class="title">Mapper XML</div>
@@ -2081,10 +2152,9 @@ MyBatis-Springが提供する<code>MyBatisBatchItemWriter</code>によるデー�
 </dd>
 </dl>
 </div>
-<div class="tabbox">
-  <input type="radio" name="tabgroup050212" class="JavaConfigTab" id="tabgroup050212_1" checked><label for="tabgroup050212_1" class="tab">JavaConfig</label>
-  <input type="radio" name="tabgroup050212" class="XMLConfigTab" id="tabgroup050212_2"><label for="tabgroup050212_2" class="tab">XMLConfig</label>
-  <div class="tabcontent" name="JavaConfigContent">
+<div class="exampleblock primary">
+<div class="title">JavaConfig</div>
+<div class="content">
 <div class="listingblock">
 <div class="content">
 <pre class="CodeRay highlight"><code data-lang="java"><span class="annotation">@Configuration</span>
@@ -2133,8 +2203,11 @@ MyBatis-Springが提供する<code>MyBatisBatchItemWriter</code>によるデー�
 }</code></pre>
 </div>
 </div>
-  </div>
-  <div class="tabcontent" name="XMLConfigContent">
+</div>
+</div>
+<div class="exampleblock secondary">
+<div class="title">XMLConfig</div>
+<div class="content">
 <div class="listingblock">
 <div class="content">
 <pre class="CodeRay highlight"><code data-lang="xml"><span class="comment">&lt;!-- (1) --&gt;</span>
@@ -2154,7 +2227,7 @@ MyBatis-Springが提供する<code>MyBatisBatchItemWriter</code>によるデー�
 <span class="tag">&lt;/batch:job&gt;</span></code></pre>
 </div>
 </div>
-  </div>
+</div>
 </div>
 <div class="listingblock">
 <div class="title">Mapper XML</div>
@@ -2228,7 +2301,7 @@ MyBatis-Springが提供する<code>MyBatisBatchItemWriter</code>によるデー�
 </div>
 </div>
 <div class="paragraph">
-<p>MapperインタフェースとMapper XMLについては<a href="#Ch05_DBAccess_HowToUse_Output_MyBatisItemWriter">MyBatisBatchItemWriter</a>
+<p><code>Mapper</code>インタフェースとMapper XMLについては<a href="#Ch05_DBAccess_HowToUse_Output_MyBatisItemWriter">MyBatisBatchItemWriter</a>
 で説明している内容以外に特筆すべきことがないため省略する。</p>
 </div>
 <table class="tableblock frame-all grid-all stretch">
@@ -2297,22 +2370,22 @@ MyBatis-Springが提供する<code>MyBatisBatchItemWriter</code>によるデー�
 <div class="sect3">
 <h4 id="Ch05_DBAccess_HowToUse_Output_MapperInterface"><a class="anchor" href="#Ch05_DBAccess_HowToUse_Output_MapperInterface"></a>Mapperインタフェース(出力)</h4>
 <div class="paragraph">
-<p>ItemWriter以外でデータベースの更新を行うにはMapperインタフェースを利用する。<br>
-ここではMapperインタフェースを利用したデータベースの更新について説明する。</p>
+<p>ItemWriter以外でデータベースの更新を行うには<code>Mapper</code>インタフェースを利用する。<br>
+ここでは<code>Mapper</code>インタフェースを利用したデータベースの更新について説明する。</p>
 </div>
 <div id="Ch05_DBAccess_HowToUse_Output_MapperInterface_Overview" class="dlist">
 <dl>
 <dt class="hdlist1">機能概要</dt>
 <dd>
-<p>Mapperインタフェースを利用してデータベースアクセスするうえでのTERASOLUNA Batch 5.xとしての制約は<a href="#Ch05_DBAccess_HowToUse_Input_MapperInterface">Mapperインタフェース(入力)</a>を参照。<br>
-さらにItemProcessor、TaskletでMapperインタフェースを利用したデータベースの更新を行う際には以下の制約がある。</p>
+<p><code>Mapper</code>インタフェースを利用してデータベースアクセスするうえでのTERASOLUNA Batch 5.xとしての制約は<a href="#Ch05_DBAccess_HowToUse_Input_MapperInterface">Mapperインタフェース(入力)</a>を参照。<br>
+さらにItemProcessor、Taskletで<code>Mapper</code>インタフェースを利用したデータベースの更新を行う際には以下の制約がある。</p>
 </dd>
 <dt class="hdlist1">ItemProcessorでの制約</dt>
 <dd>
-<p>ItemWriterに<code>MyBatisBatchItemWriter</code>を利用する場合、ItemProcessorではMapperインタフェースを利用してデータベースの更新処理を行うことができないという制約がある。<br>
+<p>ItemWriterに<code>MyBatisBatchItemWriter</code>を利用する場合、ItemProcessorでは<code>Mapper</code>インタフェースを利用してデータベースの更新処理を行うことができないという制約がある。<br>
 これは、<code>MyBatisBatchItemWriter</code>がSQL実行後に自身が発行したSQLによる更新処理が行われたかをチェックしており、
 その際に同一トランザクション内での他の更新処理を検知するとエラーを発生させることによるものである。<br>
-よって、ItemProcessorでMapperインタフェースを利用したデータベースの更新はできず、参照のみが可能となる。<br>
+よって、ItemProcessorで<code>Mapper</code>インタフェースを利用したデータベースの更新はできず、参照のみが可能となる。<br>
 ItemProcessor内で更新処理を行いたいケースとして、「特定の条件に当てはまる入力データについて、
 ItemWriterとは異なる更新処理をするためにItemProcessorで個別に更新処理を行う」などが考えられるが、上記の制約によりこのような利用はできない。<br>
 代替手段として、後述のタスクレットモデルによる実装、もしくはItemProcessor、ItemWriterでの更新をステップやジョブで分離したバッチ処理の設計を検討されたい。</p>
@@ -2337,8 +2410,8 @@ ItemWriterとは異なる更新処理をするためにItemProcessorで個別に
 <dl>
 <dt class="hdlist1">Taskletでの制約</dt>
 <dd>
-<p>Taskletでは、Mapperインタフェースを利用することが基本であるため、ItemProcessorのような影響はない。<br>
-<code>MyBatisBatchItemWriter</code>をInjectして利用することも考えられるが、その場合はMapperインタフェース自体を
+<p>Taskletでは、<code>Mapper</code>インタフェースを利用することが基本であるため、ItemProcessorのような影響はない。<br>
+<code>MyBatisBatchItemWriter</code>をInjectして利用することも考えられるが、その場合は<code>Mapper</code>インタフェース自体を
 <code>BATCH</code>設定で処理すればよい。つまり、Taskletでは、<code>MyBatisBatchItemWriter</code>をInjectして使う必要は基本的にない。</p>
 </dd>
 </dl>
@@ -2347,7 +2420,7 @@ ItemWriterとは異なる更新処理をするためにItemProcessorで個別に
 <dl>
 <dt class="hdlist1">タスクレットモデルにおける利用方法</dt>
 <dd>
-<p>タスクレットモデルでMapperインタフェースを利用してデータベースを更新(登録)する実装例を以下に示す。</p>
+<p>タスクレットモデルで<code>Mapper</code>インタフェースを利用してデータベースを更新(登録)する実装例を以下に示す。</p>
 </dd>
 </dl>
 </div>
@@ -2389,10 +2462,9 @@ ItemWriterとは異なる更新処理をするためにItemProcessorで個別に
 }</code></pre>
 </div>
 </div>
-<div class="tabbox">
-  <input type="radio" name="tabgroup050213" class="JavaConfigTab" id="tabgroup050213_1" checked><label for="tabgroup050213_1" class="tab">JavaConfig</label>
-  <input type="radio" name="tabgroup050213" class="XMLConfigTab" id="tabgroup050213_2"><label for="tabgroup050213_2" class="tab">XMLConfig</label>
-  <div class="tabcontent" name="JavaConfigContent">
+<div class="exampleblock primary">
+<div class="title">JavaConfig</div>
+<div class="content">
 <div class="listingblock">
 <div class="content">
 <pre class="CodeRay highlight"><code data-lang="java"><span class="annotation">@Configuration</span>
@@ -2424,8 +2496,11 @@ ItemWriterとは異なる更新処理をするためにItemProcessorで個別に
 }</code></pre>
 </div>
 </div>
-  </div>
-  <div class="tabcontent" name="XMLConfigContent">
+</div>
+</div>
+<div class="exampleblock secondary">
+<div class="title">XMLConfig</div>
+<div class="content">
 <div class="listingblock">
 <div class="content">
 <pre class="CodeRay highlight"><code data-lang="xml"><span class="comment">&lt;!-- (4) --&gt;</span>
@@ -2442,10 +2517,10 @@ ItemWriterとは異なる更新処理をするためにItemProcessorで個別に
 <span class="tag">&lt;/batch:job&gt;</span></code></pre>
 </div>
 </div>
-  </div>
+</div>
 </div>
 <div class="paragraph">
-<p>MapperインタフェースとMapper XMLは省略する。</p>
+<p><code>Mapper</code>インタフェースとMapper XMLは省略する。</p>
 </div>
 <table class="tableblock frame-all grid-all stretch">
 <caption class="title">表 13. 説明</caption>
@@ -2462,7 +2537,7 @@ ItemWriterとは異なる更新処理をするためにItemProcessorで個別に
 <tbody>
 <tr>
 <td class="tableblock halign-left valign-top"><p class="tableblock">(1)</p></td>
-<td class="tableblock halign-left valign-top"><p class="tableblock">MapperインタフェースをInjectする。</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><code>Mapper</code>インタフェースをInjectする。</p></td>
 </tr>
 <tr>
 <td class="tableblock halign-left valign-top"><p class="tableblock">(2)</p></td>
@@ -2470,7 +2545,7 @@ ItemWriterとは異なる更新処理をするためにItemProcessorで個別に
 </tr>
 <tr>
 <td class="tableblock halign-left valign-top"><p class="tableblock">(3)</p></td>
-<td class="tableblock halign-left valign-top"><p class="tableblock">更新データを設定したDTOオブジェクトを引数に指定して、Mapperインタフェースで更新処理を実行する。</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">更新データを設定したDTOオブジェクトを引数に指定して、<code>Mapper</code>インタフェースで更新処理を実行する。</p></td>
 </tr>
 <tr>
 <td class="tableblock halign-left valign-top"><p class="tableblock">(4)</p></td>
@@ -2479,7 +2554,7 @@ ItemWriterとは異なる更新処理をするためにItemProcessorで個別に
 </tr>
 <tr>
 <td class="tableblock halign-left valign-top"><p class="tableblock">(5)</p></td>
-<td class="tableblock halign-left valign-top"><p class="tableblock">MapperインタフェースをInjectしTaskletを設定する。</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><code>Mapper</code>インタフェースをInjectしTaskletを設定する。</p></td>
 </tr>
 </tbody>
 </table>
@@ -2489,11 +2564,11 @@ ItemWriterとは異なる更新処理をするためにItemProcessorで個別に
 <h3 id="Ch05_DBAccess_HowToUse_MapperInterface_Listener"><a class="anchor" href="#Ch05_DBAccess_HowToUse_MapperInterface_Listener"></a>リスナーでのデータベースアクセス</h3>
 <div class="paragraph">
 <p>リスナーでのデータベースアクセスは他のコンポーネントと連携することが多い。
-使用するリスナー及び実装方法によっては、Mapperインタフェースで取得したデータを、
+使用するリスナー及び実装方法によっては、<code>Mapper</code>インタフェースで取得したデータを、
 他のコンポーネントへ引き渡す仕組みを追加で用意する必要がある。</p>
 </div>
 <div class="paragraph">
-<p>リスナーでMapperインタフェースを利用してデータベースアクセスを実装するにあたり、以下の制約がある。</p>
+<p>リスナーで<code>Mapper</code>インタフェースを利用してデータベースアクセスを実装するにあたり、以下の制約がある。</p>
 </div>
 <div class="dlist">
 <dl>
@@ -2599,10 +2674,9 @@ ItemWriterとは異なる更新処理をするためにItemProcessorで個別に
 }</code></pre>
 </div>
 </div>
-<div class="tabbox">
-  <input type="radio" name="tabgroup050214" class="JavaConfigTab" id="tabgroup050214_1" checked><label for="tabgroup050214_1" class="tab">JavaConfig</label>
-  <input type="radio" name="tabgroup050214" class="XMLConfigTab" id="tabgroup050214_2"><label for="tabgroup050214_2" class="tab">XMLConfig</label>
-  <div class="tabcontent" name="JavaConfigContent">
+<div class="exampleblock primary">
+<div class="title">JavaConfig</div>
+<div class="content">
 <div class="listingblock">
 <div class="content">
 <pre class="CodeRay highlight"><code data-lang="java"><span class="annotation">@Configuration</span>
@@ -2648,8 +2722,11 @@ ItemWriterとは異なる更新処理をするためにItemProcessorで個別に
 }</code></pre>
 </div>
 </div>
-  </div>
-  <div class="tabcontent" name="XMLConfigContent">
+</div>
+</div>
+<div class="exampleblock secondary">
+<div class="title">XMLConfig</div>
+<div class="content">
 <div class="listingblock">
 <div class="content">
 <pre class="CodeRay highlight"><code data-lang="xml"><span class="comment">&lt;!-- omitted --&gt;</span>
@@ -2679,7 +2756,7 @@ ItemWriterとは異なる更新処理をするためにItemProcessorで個別に
 <span class="tag">&lt;/batch:job&gt;</span></code></pre>
 </div>
 </div>
-  </div>
+</div>
 </div>
 <table class="tableblock frame-all grid-all stretch">
 <caption class="title">表 14. 説明</caption>
@@ -2694,15 +2771,15 @@ ItemWriterとは異なる更新処理をするためにItemProcessorで個別に
 </tr>
 <tr>
 <td class="tableblock halign-left valign-top"><p class="tableblock">(1)</p></td>
-<td class="tableblock halign-left valign-top"><p class="tableblock">MapperインタフェースをInjectする。</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><code>Mapper</code>インタフェースをInjectする。</p></td>
 </tr>
 <tr>
 <td class="tableblock halign-left valign-top"><p class="tableblock">(2)</p></td>
-<td class="tableblock halign-left valign-top"><p class="tableblock">Mapperインタフェースから取得したデータをキャッシュするためのBeanをInjectする。</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><code>Mapper</code>インタフェースから取得したデータをキャッシュするためのBeanをInjectする。</p></td>
 </tr>
 <tr>
 <td class="tableblock halign-left valign-top"><p class="tableblock">(3)</p></td>
-<td class="tableblock halign-left valign-top"><p class="tableblock">リスナーにて、Mapperインタフェースからデータを取得してキャッシュする。<br>
+<td class="tableblock halign-left valign-top"><p class="tableblock">リスナーにて、<code>Mapper</code>インタフェースからデータを取得してキャッシュする。<br>
 ここでは、<code>StepExecutionListener#beforeStep</code>にてステップ実行前にキャッシュを作成し、
 以降の処理ではキャッシュを参照することで、入出力を低減し処理効率を高めている。</p></td>
 </tr>
@@ -2730,7 +2807,7 @@ ItemWriterとは異なる更新処理をするためにItemProcessorで個別に
 </tr>
 <tr>
 <td class="tableblock halign-left valign-top"><p class="tableblock">(9)</p></td>
-<td class="tableblock halign-left valign-top"><p class="tableblock">Mapperインタフェースを利用するリスナーを定義する。</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><code>Mapper</code>インタフェースを利用するリスナーを定義する。</p></td>
 </tr>
 <tr>
 <td class="tableblock halign-left valign-top"><p class="tableblock">(10)</p></td>
@@ -2877,10 +2954,9 @@ ItemWriterとは異なる更新処理をするためにItemProcessorで個別に
 <span class="tag">&lt;/mapper&gt;</span></code></pre>
 </div>
 </div>
-<div class="tabbox">
-  <input type="radio" name="tabgroup050215" class="JavaConfigTab" id="tabgroup050215_1" checked><label for="tabgroup050215_1" class="tab">JavaConfig</label>
-  <input type="radio" name="tabgroup050215" class="XMLConfigTab" id="tabgroup050215_2"><label for="tabgroup050215_2" class="tab">XMLConfig</label>
-  <div class="tabcontent" name="JavaConfigContent">
+<div class="exampleblock primary">
+<div class="title">JavaConfig</div>
+<div class="content">
 <div class="listingblock">
 <div class="content">
 <pre class="CodeRay highlight"><code data-lang="java"><span class="annotation">@Configuration</span>
@@ -2961,8 +3037,11 @@ ItemWriterとは異なる更新処理をするためにItemProcessorで個別に
 }</code></pre>
 </div>
 </div>
-  </div>
-  <div class="tabcontent" name="XMLConfigContent">
+</div>
+</div>
+<div class="exampleblock secondary">
+<div class="title">XMLConfig</div>
+<div class="content">
 <div class="listingblock">
 <div class="content">
 <pre class="CodeRay highlight"><code data-lang="xml"><span class="comment">&lt;!-- reader using MyBatisCursorItemReader --&gt;</span>
@@ -3004,7 +3083,7 @@ ItemWriterとは異なる更新処理をするためにItemProcessorで個別に
 <span class="tag">&lt;/batch:job&gt;</span></code></pre>
 </div>
 </div>
-  </div>
+</div>
 </div>
 <table class="tableblock frame-all grid-all stretch">
 <caption class="title">表 15. 説明</caption>
@@ -3091,12 +3170,11 @@ MyBatisBatchItemWriterとFlatFileItemWriterを設定することで、データ�
 </div>
 </div>
 </div>
-<link rel="stylesheet" href="./theme/css/coderay-asciidoctor.css">
 <div class="container">
 
   <div class="common-bg">
     <div class="information">
-      TERASOLUNA Batch Framework for Java (5.x) Development Guideline - version 5.6.0.RELEASE, 2024-3-29, commit-id:1d78d35
+      TERASOLUNA Batch Framework for Java (5.x) Development Guideline - version 5.7.0.RELEASE, 2025-3-31, commit-id:7ba4db3
     </div>
     <div class="index">
       <a href="index.html">&gt; INDEX</a>
@@ -3105,7 +3183,7 @@ MyBatisBatchItemWriterとFlatFileItemWriterを設定することで、データ�
 
   <div class="footer-bg">
     <div class="copyright">
-      &copy; Copyright 2017 NTT DATA Group Corporation. &copy; Copyright 2017 NTT Corporation.
+      &copy; Copyright 2024 NTT DATA Group Corporation. &copy; Copyright 2017 NTT Corporation.
     </div>
   </div>
 

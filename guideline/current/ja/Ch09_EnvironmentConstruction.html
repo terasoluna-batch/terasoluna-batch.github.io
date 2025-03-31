@@ -4,17 +4,18 @@
 <meta charset="UTF-8">
 <meta http-equiv="X-UA-Compatible" content="IE=edge">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<meta name="generator" content="Asciidoctor 2.0.10">
+<meta name="generator" content="Asciidoctor 2.0.23">
 <title>環境構築</title>
 <link rel="stylesheet" href="./theme/css/readthedocs.css">
 <link rel="stylesheet" href="./theme/css/font-awesome.min.css">
+<link rel="stylesheet" href="./theme/css/coderay-asciidoctor.css">
 <link rel="stylesheet" href="./theme/css/coderay-asciidoctor.css">
 <link rel="stylesheet" href="./theme/css/header-footer.css">
 <title>TERASOLUNA Batch Framework for Java (5.x) Development Guideline</title>
 
 <div class="common-bg">
   <div class="information">
-    TERASOLUNA Batch Framework for Java (5.x) Development Guideline - version 5.6.0.RELEASE, 2024-3-29, commit-id:1d78d35
+    TERASOLUNA Batch Framework for Java (5.x) Development Guideline - version 5.7.0.RELEASE, 2025-3-31, commit-id:7ba4db3
   </div>
   <div class="index">
     <a href="index.html">&gt; INDEX</a>
@@ -37,6 +38,155 @@
   ga('create', 'UA-46550814-2', 'auto');
   ga('send', 'pageview');
 </script>
+<style>
+.hidden {
+	display: none;
+}
+
+.switch {
+	border-width: 1px 1px 0 1px;
+	border-style: solid;
+	border-color: #7a2518;
+	display: inline-block;
+}
+
+.switch--item {
+	padding: 10px;
+	background-color: #ffffff;
+	color: #7a2518;
+	display: inline-block;
+	cursor: pointer;
+}
+
+.switch--item:not(:first-child) {
+	border-width: 0 0 0 1px;
+	border-style: solid;
+	border-color: #7a2518;
+}
+
+.switch--item.selected {
+	background-color: #7a2519;
+	color: #ffffff;
+}
+
+</style>
+<script type="text/javascript">
+function addBlockSwitches() {
+	for (var primary of document.querySelectorAll('.primary')) {
+		var switchItem = createSwitchItem(primary, createBlockSwitch(primary));
+		switchItem.item.classList.add("selected");
+		var title = primary.querySelector('.title')
+		title.remove();
+	}
+	for (var secondary of document.querySelectorAll('.secondary')) {
+		var primary = findPrimary(secondary);
+		if (primary === null) {
+			console.error("Found secondary block with no primary sibling");
+		}
+		else {
+			var switchItem = createSwitchItem(secondary, primary.querySelector('.switch'));
+			switchItem.content.classList.add("hidden");
+			primary.append(switchItem.content);
+			secondary.remove();
+		}
+	}
+}
+
+function createElementFromHtml(html) {
+	var template = document.createElement('template');
+    template.innerHTML = html;
+    return template.content.firstChild;
+}
+
+function createBlockSwitch(primary) {
+    var blockSwitch = createElementFromHtml('<div class="switch"></div>');
+    primary.prepend(blockSwitch)
+	return blockSwitch;
+}
+
+function findPrimary(secondary) {
+	var candidate = secondary.previousElementSibling;
+	while (candidate != null && !candidate.classList.contains('primary')) {
+		candidate = candidate.previousElementSibling;
+	}
+	return candidate;
+}
+
+function createSwitchItem(block, blockSwitch) {
+	var blockName = block.querySelector('.title').textContent;
+	var content = block.querySelectorAll('.content').item(0);
+	var colist = nextSibling(block, '.colist');
+	if (colist != null) {
+		content.append(colist);
+	}
+	var item = createElementFromHtml('<div class="switch--item">' + blockName + '</div>');
+	item.dataset.blockName = blockName;
+	content.dataset.blockName = blockName;
+	blockSwitch.append(item);
+	return {'item': item, 'content': content};
+}
+
+function nextSibling(element, selector) {
+	var sibling = element.nextElementSibling;
+	while (sibling) {
+		if (sibling.matches(selector)) {
+			return sibling;
+		}
+		sibling = sibling.nextElementSibling;
+	}
+}
+
+function globalSwitch() {
+	document.querySelectorAll(".switch--item").forEach(function(item) {
+		var blockId = blockIdForSwitchItem(item);
+		var handler = function(event) {
+			selectedText = event.target.textContent;
+			window.localStorage.setItem(blockId, selectedText);
+			for (var switchItem of document.querySelectorAll(".switch--item")) {
+				if (blockIdForSwitchItem(switchItem) === blockId && switchItem.textContent === selectedText) {
+					select(switchItem);
+				}
+			}
+		}
+		item.addEventListener("click", handler);
+		if (item.textContent === window.localStorage.getItem(blockId)) {
+			select(item);
+		}
+	});
+}
+
+function select(selected) {
+	for (var child of selected.parentNode.children) {
+		child.classList.remove("selected");
+	}
+	selected.classList.add("selected");
+	for (var child of selected.parentNode.parentNode.children) {
+		if (child.classList.contains("content")) {
+			if (selected.dataset.blockName === child.dataset.blockName) {
+				child.classList.remove("hidden");
+			}
+			else {
+				child.classList.add("hidden");
+			}
+		}
+	}	
+}
+
+function blockIdForSwitchItem(item) {
+	idComponents = []
+	for (var switchItem of item.parentNode.querySelectorAll(".switch--item")) {
+		idComponents.push(switchItem.textContent.toLowerCase());
+	}
+	return idComponents.sort().join("-")
+}
+
+window.onload = function() {
+	addBlockSwitches();
+	globalSwitch();
+};
+
+</script>
+
 </head>
 <body id="Ch09_EnvironmentConstruction" class="book toc2 toc-left">
 <div id="header">
@@ -113,31 +263,33 @@
 <div class="paragraph">
 <p>プロジェクトを作成するディレクトリにて、以下のコマンドを実行する。</p>
 </div>
-<div class="tabbox">
-  <input type="radio" name="tabgroup090301" class="JavaConfigTab" id="tabgroup090301_1" checked><label for="tabgroup090301_1" class="tab">JavaConfig</label>
-  <input type="radio" name="tabgroup090301" class="XMLConfigTab" id="tabgroup090301_2"><label for="tabgroup090301_2" class="tab">XMLConfig</label>
-  <div class="tabcontent" name="JavaConfigContent">
+<div class="exampleblock primary">
+<div class="title">JavaConfig</div>
+<div class="content">
 <div class="listingblock">
 <div class="title">コマンドプロンプト(Windows)</div>
 <div class="content">
 <pre class="CodeRay highlight"><code data-lang="console">C:\xxx&gt;mvn archetype:generate ^
   -DarchetypeGroupId=org.terasoluna.batch ^
   -DarchetypeArtifactId=terasoluna-batch-archetype ^
-  -DarchetypeVersion=5.6.0.RELEASE</code></pre>
+  -DarchetypeVersion=5.7.0.RELEASE</code></pre>
 </div>
 </div>
-  </div>
-  <div class="tabcontent" name="XMLConfigContent">
+</div>
+</div>
+<div class="exampleblock secondary">
+<div class="title">XMLConfig</div>
+<div class="content">
 <div class="listingblock">
 <div class="title">コマンドプロンプト(Windows)</div>
 <div class="content">
 <pre class="CodeRay highlight"><code data-lang="console">C:\xxx&gt;mvn archetype:generate ^
   -DarchetypeGroupId=org.terasoluna.batch ^
   -DarchetypeArtifactId=terasoluna-batch-xmlconfig-archetype ^
-  -DarchetypeVersion=5.6.0.RELEASE</code></pre>
+  -DarchetypeVersion=5.7.0.RELEASE</code></pre>
 </div>
 </div>
-  </div>
+</div>
 </div>
 <div class="paragraph">
 <p>その後、以下を対話式に設定する。</p>
@@ -176,17 +328,16 @@
 <div class="paragraph">
 <p>以下のとおり、mvnコマンドに対して「BUILD SUCCESS」が表示されることを確認する。</p>
 </div>
-<div class="tabbox">
-  <input type="radio" name="tabgroup090302" class="JavaConfigTab" id="tabgroup090302_1" checked><label for="tabgroup090302_1" class="tab">JavaConfig</label>
-  <input type="radio" name="tabgroup090302" class="XMLConfigTab" id="tabgroup090302_2"><label for="tabgroup090302_2" class="tab">XMLConfig</label>
-  <div class="tabcontent" name="JavaConfigContent">
+<div class="exampleblock primary">
+<div class="title">JavaConfig</div>
+<div class="content">
 <div class="listingblock">
 <div class="title">実行例</div>
 <div class="content">
 <pre class="CodeRay highlight"><code data-lang="console">C:\xxx&gt;mvn archetype:generate ^
 More?   -DarchetypeGroupId=org.terasoluna.batch ^
 More?   -DarchetypeArtifactId=terasoluna-batch-archetype ^
-More?   -DarchetypeVersion=5.6.0.RELEASE
+More?   -DarchetypeVersion=5.7.0.RELEASE
 [INFO] Scanning for projects&#8230;&#8203;
 [INFO]
 [INFO] ------------------------------------------------------------------------
@@ -206,7 +357,7 @@ version: 1.0.0-SNAPSHOT
 package: org.terasoluna.batch.tutorial
  Y: : y
 [INFO] ----------------------------------------------------------------------------
-[INFO] Using following parameters for creating project from Archetype: terasoluna-batch-archetype:5.6.0.RELEASE
+[INFO] Using following parameters for creating project from Archetype: terasoluna-batch-archetype:5.7.0.RELEASE
 [INFO] ----------------------------------------------------------------------------
 [INFO] Parameter: groupId, Value: org.terasoluna.batch
 [INFO] Parameter: artifactId, Value: terasoluna-batch-tutorial
@@ -227,15 +378,18 @@ package: org.terasoluna.batch.tutorial
 [INFO] ------------------------------------------------------------------------</code></pre>
 </div>
 </div>
-  </div>
-  <div class="tabcontent" name="XMLConfigContent">
+</div>
+</div>
+<div class="exampleblock secondary">
+<div class="title">XMLConfig</div>
+<div class="content">
 <div class="listingblock">
 <div class="title">実行例</div>
 <div class="content">
 <pre class="CodeRay highlight"><code data-lang="console">C:\xxx&gt;mvn archetype:generate ^
 More?   -DarchetypeGroupId=org.terasoluna.batch ^
 More?   -DarchetypeArtifactId=terasoluna-batch-xmlcofig-archetype ^
-More?   -DarchetypeVersion=5.6.0.RELEASE
+More?   -DarchetypeVersion=5.7.0.RELEASE
 [INFO] Scanning for projects&#8230;&#8203;
 [INFO]
 [INFO] ------------------------------------------------------------------------
@@ -255,7 +409,7 @@ version: 1.0.0-SNAPSHOT
 package: org.terasoluna.batch.tutorial
  Y: : y
 [INFO] ----------------------------------------------------------------------------
-[INFO] Using following parameters for creating project from Archetype: terasoluna-batch-archetype:5.6.0.RELEASE
+[INFO] Using following parameters for creating project from Archetype: terasoluna-batch-archetype:5.7.0.RELEASE
 [INFO] ----------------------------------------------------------------------------
 [INFO] Parameter: groupId, Value: org.terasoluna.batch
 [INFO] Parameter: artifactId, Value: terasoluna-batch-tutorial
@@ -276,15 +430,14 @@ package: org.terasoluna.batch.tutorial
 [INFO] ------------------------------------------------------------------------</code></pre>
 </div>
 </div>
-  </div>
+</div>
 </div>
 <div class="paragraph">
 <p>サンプルジョブを実行し、プロジェクトが正しく作成できたことを確認する。</p>
 </div>
-<div class="tabbox">
-  <input type="radio" name="tabgroup090303" class="JavaConfigTab" id="tabgroup090303_1" checked><label for="tabgroup090303_1" class="tab">JavaConfig</label>
-  <input type="radio" name="tabgroup090303" class="XMLConfigTab" id="tabgroup090303_2"><label for="tabgroup090303_2" class="tab">XMLConfig</label>
-  <div class="tabcontent" name="JavaConfigContent">
+<div id="Ch09_EnvironmentConstruction_BlankProject_ExecSample" class="exampleblock primary">
+<div class="title">JavaConfig</div>
+<div class="content">
 <div class="listingblock">
 <div class="content">
 <pre class="CodeRay highlight"><code data-lang="console">C:\xxx&gt;cd terasoluna-batch-tutorial
@@ -324,18 +477,18 @@ APSHOT
 C:\xxx\terasoluna-batch-tutorial&gt;java -cp &quot;lib/*;target/*&quot; ^
 More? org.springframework.batch.core.launch.support.CommandLineJobRunner ^
 More? org.terasoluna.batch.tutorial.jobs.Job01Config job01
-[2020/03/26 16:42:29] [main] [o.s.c.s.PostProcessorRegistrationDelegate$BeanPostProcessorChecker] [INFO ] Bean 'jobRegistry' of type [org.springframework.batch.core.configuration.support.MapJobRegistry] is not eligible for getting processed by all BeanPostProcessors (for example: not eligible for auto-proxying)
-
-(.. ommited)
-
-[2020/03/26 16:42:31] [main] [o.s.b.c.l.s.TaskExecutorJobLauncher] [INFO ] Job: [FlowJob: [name=job01]] launched with the following parameters: [{jsr_batch_run_id=1}]
+[2020/03/26 16:42:29] [main] [o.h.v.i.util.Version  ] [INFO ] HV000001: Hibernate Validator 8.0.1.Final
+[2020/03/26 16:42:31] [main] [o.s.b.c.l.s.TaskExecutorJobLauncher] [INFO ] Job: [SimpleJob: [name=job01]] launched with the following parameters: [{'jsr_batch_run_id':'{value=1, type=class java.lang.Long, identifying=true}'}]
 [2020/03/26 16:42:31] [main] [o.s.b.c.j.SimpleStepHandler] [INFO ] Executing step: [job01.step01]
-[2020/03/26 16:42:31] [main] [o.s.b.c.s.AbstractStep] [INFO ] Step: [job01.step01] executed in 53ms
-[2020/03/26 16:42:31] [main] [o.s.b.c.l.s.TaskExecutorJobLauncher] [INFO ] Job: [FlowJob: [name=job01]] completed with the following parameters: [{jsr_batch_run_id=1}] and the following status: [COMPLETED] in 115ms</code></pre>
+[2020/03/26 16:42:31] [main] [o.s.b.c.s.AbstractStep] [INFO ] Step: [job01.step01] executed in 35ms
+[2020/03/26 16:42:31] [main] [o.s.b.c.l.s.TaskExecutorJobLauncher] [INFO ] Job: [SimpleJob: [name=job01]] completed with the following parameters: [{'jsr_batch_run_id':'{value=1, type=class java.lang.Long, identifying=true}'}] and the following status: [COMPLETED] in 66ms</code></pre>
 </div>
 </div>
-  </div>
-  <div class="tabcontent" name="XMLConfigContent">
+</div>
+</div>
+<div class="exampleblock secondary">
+<div class="title">XMLConfig</div>
+<div class="content">
 <div class="listingblock">
 <div class="content">
 <pre class="CodeRay highlight"><code data-lang="console">C:\xxx&gt;cd terasoluna-batch-tutorial
@@ -375,17 +528,14 @@ APSHOT
 C:\xxx\terasoluna-batch-tutorial&gt;java -cp &quot;lib/*;target/*&quot; ^
 More? org.springframework.batch.core.launch.support.CommandLineJobRunner ^
 More? META-INF/jobs/job01.xml job01
-[2020/03/26 16:42:29] [main] [o.s.c.s.PostProcessorRegistrationDelegate$BeanPostProcessorChecker] [INFO ] Bean 'jobRegistry' of type [org.springframework.batch.core.configuration.support.MapJobRegistry] is not eligible for getting processed by all BeanPostProcessors (for example: not eligible for auto-proxying)
-
-(.. ommited)
-
-[2020/03/26 16:42:31] [main] [o.s.b.c.l.s.TaskExecutorJobLauncher] [INFO ] Job: [FlowJob: [name=job01]] launched with the following parameters: [{jsr_batch_run_id=1}]
+[2020/03/26 16:42:29] [main] [o.h.v.i.util.Version  ] [INFO ] HV000001: Hibernate Validator 8.0.1.Final
+[2020/03/26 16:42:31] [main] [o.s.b.c.l.s.TaskExecutorJobLauncher] [INFO ] Job: [SimpleJob: [name=job01]] launched with the following parameters: [{'jsr_batch_run_id':'{value=1, type=class java.lang.Long, identifying=true}'}]
 [2020/03/26 16:42:31] [main] [o.s.b.c.j.SimpleStepHandler] [INFO ] Executing step: [job01.step01]
-[2020/03/26 16:42:31] [main] [o.s.b.c.s.AbstractStep] [INFO ] Step: [job01.step01] executed in 53ms
-[2020/03/26 16:42:31] [main] [o.s.b.c.l.s.TaskExecutorJobLauncher] [INFO ] Job: [FlowJob: [name=job01]] completed with the following parameters: [{jsr_batch_run_id=1}] and the following status: [COMPLETED] in 115ms</code></pre>
+[2020/03/26 16:42:31] [main] [o.s.b.c.s.AbstractStep] [INFO ] Step: [job01.step01] executed in 35ms
+[2020/03/26 16:42:31] [main] [main] [o.s.b.c.l.s.TaskExecutorJobLauncher] [INFO ] Job: [SimpleJob: [name=job01]] completed with the following parameters: [{'jsr_batch_run_id':'{value=1, type=class java.lang.Long, identifying=true}'}] and the following status: [COMPLETED] in 66ms</code></pre>
 </div>
 </div>
-  </div>
+</div>
 </div>
 </div>
 </div>
@@ -414,25 +564,27 @@ STSのメニューから、[File] &#8594; [Import] &#8594; [Maven] &#8594; [Exis
 <div class="paragraph">
 <p>インポートが完了すると、Package Explorerに次のようなプロジェクトが表示される。</p>
 </div>
-<div class="tabbox">
-  <input type="radio" name="tabgroup090304" class="JavaConfigTab" id="tabgroup090304_1" checked><label for="tabgroup090304_1" class="tab">JavaConfig</label>
-  <input type="radio" name="tabgroup090304" class="XMLConfigTab" id="tabgroup090304_2"><label for="tabgroup090304_2" class="tab">XMLConfig</label>
-  <div class="tabcontent" name="JavaConfigContent">
+<div class="exampleblock primary">
+<div class="title">JavaConfig</div>
+<div class="content">
 <div class="imageblock">
 <div class="content">
 <img src="./images/ch09/EnvironmentConstruction/Ch09_EnvironmentConstruction_Import_PackageExplorer.png" alt="Package Explorer">
 </div>
 <div class="title">図 3. Package Explorer</div>
 </div>
-  </div>
-  <div class="tabcontent" name="XMLConfigContent">
+</div>
+</div>
+<div class="exampleblock secondary">
+<div class="title">XMLConfig</div>
+<div class="content">
 <div class="imageblock">
 <div class="content">
 <img src="./images/ch09/EnvironmentConstruction/Ch09_EnvironmentConstruction_Import_PackageExplorer_XMLConfig.png" alt="Package Explorer">
 </div>
 <div class="title">図 4. Package Explorer</div>
 </div>
-  </div>
+</div>
 </div>
 <div class="admonitionblock note">
 <table>
@@ -735,10 +887,9 @@ tutorial.insert-data.script=file:sqls/insert-member-info-data.sql
 <div class="paragraph">
 <p><code>LaunchContextConfig.java/launch-context.xml</code>を開き、Bean定義で<code>DataSourceInitializer/&lt;jdbc:initialize-database&gt;</code>を追加する。</p>
 </div>
-<div class="tabbox">
-  <input type="radio" name="tabgroup090305" class="JavaConfigTab" id="tabgroup090305_1" checked><label for="tabgroup090305_1" class="tab">JavaConfig</label>
-  <input type="radio" name="tabgroup090305" class="XMLConfigTab" id="tabgroup090305_2"><label for="tabgroup090305_2" class="tab">XMLConfig</label>
-  <div class="tabcontent" name="JavaConfigContent">
+<div class="exampleblock primary">
+<div class="title">JavaConfig</div>
+<div class="content">
 <div class="listingblock">
 <div class="title">org.terasoluna.batch.tutorial.config.LaunchContextConfig.java</div>
 <div class="content">
@@ -758,8 +909,11 @@ tutorial.insert-data.script=file:sqls/insert-member-info-data.sql
 }</code></pre>
 </div>
 </div>
-  </div>
-  <div class="tabcontent" name="XMLConfigContent">
+</div>
+</div>
+<div class="exampleblock secondary">
+<div class="title">XMLConfig</div>
+<div class="content">
 <div class="listingblock">
 <div class="title">META-INF/spring/launch-context.xml</div>
 <div class="content">
@@ -770,7 +924,7 @@ tutorial.insert-data.script=file:sqls/insert-member-info-data.sql
 <span class="tag">&lt;/jdbc:initialize-database&gt;</span></code></pre>
 </div>
 </div>
-  </div>
+</div>
 </div>
 </div>
 </div>
@@ -1116,10 +1270,9 @@ H2 Consoleでデータベースへ接続するまでの手順は以下のとお�
 </li>
 </ol>
 </div>
-<div class="tabbox">
-  <input type="radio" name="tabgroup090306" class="JavaConfigTab" id="tabgroup090306_1" checked><label for="tabgroup090306_1" class="tab">JavaConfig</label>
-  <input type="radio" name="tabgroup090306" class="XMLConfigTab" id="tabgroup090306_2"><label for="tabgroup090306_2" class="tab">XMLConfig</label>
-  <div class="tabcontent" name="JavaConfigContent">
+<div class="exampleblock primary">
+<div class="title">JavaConfig</div>
+<div class="content">
 <table class="tableblock frame-all grid-all stretch">
 <colgroup>
 <col style="width: 30%;">
@@ -1144,8 +1297,11 @@ H2 Consoleでデータベースへ接続するまでの手順は以下のとお�
 </div>
 <div class="title">図 11. Run Configurations Arguments tab</div>
 </div>
-  </div>
-  <div class="tabcontent" name="XMLConfigContent">
+</div>
+</div>
+<div class="exampleblock secondary">
+<div class="title">XMLConfig</div>
+<div class="content">
 <table class="tableblock frame-all grid-all stretch">
 <colgroup>
 <col style="width: 30%;">
@@ -1170,7 +1326,7 @@ H2 Consoleでデータベースへ接続するまでの手順は以下のとお�
 </div>
 <div class="title">図 12. Run Configurations Arguments tab</div>
 </div>
-  </div>
+</div>
 </div>
 <div class="olist arabic">
 <ol class="arabic" start="4">
@@ -1358,12 +1514,11 @@ Spring Batchメタデータテーブル(詳細は<a href="Ch02_SpringBatchArchit
 </div>
 </div>
 </div>
-<link rel="stylesheet" href="./theme/css/coderay-asciidoctor.css">
 <div class="container">
 
   <div class="common-bg">
     <div class="information">
-      TERASOLUNA Batch Framework for Java (5.x) Development Guideline - version 5.6.0.RELEASE, 2024-3-29, commit-id:1d78d35
+      TERASOLUNA Batch Framework for Java (5.x) Development Guideline - version 5.7.0.RELEASE, 2025-3-31, commit-id:7ba4db3
     </div>
     <div class="index">
       <a href="index.html">&gt; INDEX</a>
@@ -1372,7 +1527,7 @@ Spring Batchメタデータテーブル(詳細は<a href="Ch02_SpringBatchArchit
 
   <div class="footer-bg">
     <div class="copyright">
-      &copy; Copyright 2017 NTT DATA Group Corporation. &copy; Copyright 2017 NTT Corporation.
+      &copy; Copyright 2024 NTT DATA Group Corporation. &copy; Copyright 2017 NTT Corporation.
     </div>
   </div>
 

@@ -4,17 +4,18 @@
 <meta charset="UTF-8">
 <meta http-equiv="X-UA-Compatible" content="IE=edge">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<meta name="generator" content="Asciidoctor 2.0.10">
+<meta name="generator" content="Asciidoctor 2.0.23">
 <title>try-catchで例外ハンドリングを行うジョブ</title>
 <link rel="stylesheet" href="./theme/css/readthedocs.css">
 <link rel="stylesheet" href="./theme/css/font-awesome.min.css">
+<link rel="stylesheet" href="./theme/css/coderay-asciidoctor.css">
 <link rel="stylesheet" href="./theme/css/coderay-asciidoctor.css">
 <link rel="stylesheet" href="./theme/css/header-footer.css">
 <title>TERASOLUNA Batch Framework for Java (5.x) Development Guideline</title>
 
 <div class="common-bg">
   <div class="information">
-    TERASOLUNA Batch Framework for Java (5.x) Development Guideline - version 5.6.0.RELEASE, 2024-3-29, commit-id:1d78d35
+    TERASOLUNA Batch Framework for Java (5.x) Development Guideline - version 5.7.0.RELEASE, 2025-3-31, commit-id:7ba4db3
   </div>
   <div class="index">
     <a href="index.html">&gt; INDEX</a>
@@ -37,6 +38,155 @@
   ga('create', 'UA-46550814-2', 'auto');
   ga('send', 'pageview');
 </script>
+<style>
+.hidden {
+	display: none;
+}
+
+.switch {
+	border-width: 1px 1px 0 1px;
+	border-style: solid;
+	border-color: #7a2518;
+	display: inline-block;
+}
+
+.switch--item {
+	padding: 10px;
+	background-color: #ffffff;
+	color: #7a2518;
+	display: inline-block;
+	cursor: pointer;
+}
+
+.switch--item:not(:first-child) {
+	border-width: 0 0 0 1px;
+	border-style: solid;
+	border-color: #7a2518;
+}
+
+.switch--item.selected {
+	background-color: #7a2519;
+	color: #ffffff;
+}
+
+</style>
+<script type="text/javascript">
+function addBlockSwitches() {
+	for (var primary of document.querySelectorAll('.primary')) {
+		var switchItem = createSwitchItem(primary, createBlockSwitch(primary));
+		switchItem.item.classList.add("selected");
+		var title = primary.querySelector('.title')
+		title.remove();
+	}
+	for (var secondary of document.querySelectorAll('.secondary')) {
+		var primary = findPrimary(secondary);
+		if (primary === null) {
+			console.error("Found secondary block with no primary sibling");
+		}
+		else {
+			var switchItem = createSwitchItem(secondary, primary.querySelector('.switch'));
+			switchItem.content.classList.add("hidden");
+			primary.append(switchItem.content);
+			secondary.remove();
+		}
+	}
+}
+
+function createElementFromHtml(html) {
+	var template = document.createElement('template');
+    template.innerHTML = html;
+    return template.content.firstChild;
+}
+
+function createBlockSwitch(primary) {
+    var blockSwitch = createElementFromHtml('<div class="switch"></div>');
+    primary.prepend(blockSwitch)
+	return blockSwitch;
+}
+
+function findPrimary(secondary) {
+	var candidate = secondary.previousElementSibling;
+	while (candidate != null && !candidate.classList.contains('primary')) {
+		candidate = candidate.previousElementSibling;
+	}
+	return candidate;
+}
+
+function createSwitchItem(block, blockSwitch) {
+	var blockName = block.querySelector('.title').textContent;
+	var content = block.querySelectorAll('.content').item(0);
+	var colist = nextSibling(block, '.colist');
+	if (colist != null) {
+		content.append(colist);
+	}
+	var item = createElementFromHtml('<div class="switch--item">' + blockName + '</div>');
+	item.dataset.blockName = blockName;
+	content.dataset.blockName = blockName;
+	blockSwitch.append(item);
+	return {'item': item, 'content': content};
+}
+
+function nextSibling(element, selector) {
+	var sibling = element.nextElementSibling;
+	while (sibling) {
+		if (sibling.matches(selector)) {
+			return sibling;
+		}
+		sibling = sibling.nextElementSibling;
+	}
+}
+
+function globalSwitch() {
+	document.querySelectorAll(".switch--item").forEach(function(item) {
+		var blockId = blockIdForSwitchItem(item);
+		var handler = function(event) {
+			selectedText = event.target.textContent;
+			window.localStorage.setItem(blockId, selectedText);
+			for (var switchItem of document.querySelectorAll(".switch--item")) {
+				if (blockIdForSwitchItem(switchItem) === blockId && switchItem.textContent === selectedText) {
+					select(switchItem);
+				}
+			}
+		}
+		item.addEventListener("click", handler);
+		if (item.textContent === window.localStorage.getItem(blockId)) {
+			select(item);
+		}
+	});
+}
+
+function select(selected) {
+	for (var child of selected.parentNode.children) {
+		child.classList.remove("selected");
+	}
+	selected.classList.add("selected");
+	for (var child of selected.parentNode.parentNode.children) {
+		if (child.classList.contains("content")) {
+			if (selected.dataset.blockName === child.dataset.blockName) {
+				child.classList.remove("hidden");
+			}
+			else {
+				child.classList.add("hidden");
+			}
+		}
+	}	
+}
+
+function blockIdForSwitchItem(item) {
+	idComponents = []
+	for (var switchItem of item.parentNode.querySelectorAll(".switch--item")) {
+		idComponents.push(switchItem.textContent.toLowerCase());
+	}
+	return idComponents.sort().join("-")
+}
+
+window.onload = function() {
+	addBlockSwitches();
+	globalSwitch();
+};
+
+</script>
+
 </head>
 <body id="Ch09_Impl_ExceptionHandlingWithTryCatchJob" class="book toc2 toc-left">
 <div id="header">
@@ -617,10 +767,9 @@ ItemReader、ItemWriterでのスキップは<a href="Ch06_ExceptionHandling.html
 errors.maxInteger=The {0} exceeds {1}.</code></pre>
 </div>
 </div>
-<div class="tabbox">
-  <input type="radio" name="tabgroup09040501" class="JavaConfigTab" id="tabgroup09040501_1" checked><label for="tabgroup09040501_1" class="tab">JavaConfig</label>
-  <input type="radio" name="tabgroup09040501" class="XMLConfigTab" id="tabgroup09040501_2"><label for="tabgroup09040501_2" class="tab">XMLConfig</label>
-  <div class="tabcontent" name="JavaConfigContent">
+<div class="exampleblock primary">
+<div class="title">JavaConfig</div>
+<div class="content">
 <div class="listingblock">
 <div class="title">org.terasoluna.batch.tutorial.config.LaunchContextConfig.java</div>
 <div class="content">
@@ -634,8 +783,11 @@ errors.maxInteger=The {0} exceeds {1}.</code></pre>
 <span class="comment">// omitted</span></code></pre>
 </div>
 </div>
-  </div>
-  <div class="tabcontent" name="XMLConfigContent">
+</div>
+</div>
+<div class="exampleblock secondary">
+<div class="title">XMLConfig</div>
+<div class="content">
 <div class="listingblock">
 <div class="title">META-INF/spring/launch-context.xml</div>
 <div class="content">
@@ -647,7 +799,7 @@ errors.maxInteger=The {0} exceeds {1}.</code></pre>
 <span class="comment">&lt;!-- omitted --&gt;</span></code></pre>
 </div>
 </div>
-  </div>
+</div>
 </div>
 <table class="tableblock frame-all grid-all stretch">
 <caption class="title">表 2. 説明</caption>
@@ -838,16 +990,14 @@ errors.maxInteger=The {0} exceeds {1}.</code></pre>
 <div class="paragraph">
 <p>作成したリスナーを利用するためのジョブBean定義ファイルの設定を以下に示す。</p>
 </div>
-<div class="tabbox">
-  <input type="radio" name="tabgroup09040502" class="JavaConfigTab" id="tabgroup09040502_1" checked><label for="tabgroup09040502_1" class="tab">JavaConfig</label>
-  <input type="radio" name="tabgroup09040502" class="XMLConfigTab" id="tabgroup09040502_2"><label for="tabgroup09040502_2" class="tab">XMLConfig</label>
-  <div class="tabcontent" name="JavaConfigContent">
+<div class="exampleblock primary">
+<div class="title">JavaConfig</div>
+<div class="content">
 <div class="listingblock">
 <div class="title">org.terasoluna.batch.tutorial.config.dbaccess.JobPointAddChunkConfig.java</div>
 <div class="content">
 <pre class="CodeRay highlight"><code data-lang="java"><span class="annotation">@Configuration</span>
 <span class="annotation">@Import</span>(JobBaseContextConfig.class)
-<span class="annotation">@PropertySource</span>(value = <span class="string"><span class="delimiter">&quot;</span><span class="content">classpath:batch-application.properties</span><span class="delimiter">&quot;</span></span>)
 <span class="annotation">@ComponentScan</span>({<span class="string"><span class="delimiter">&quot;</span><span class="content">org.terasoluna.batch.tutorial.dbaccess.chunk</span><span class="delimiter">&quot;</span></span>,
     <span class="string"><span class="delimiter">&quot;</span><span class="content">org.terasoluna.batch.tutorial.common.listener</span><span class="delimiter">&quot;</span></span>}) <span class="comment">// (1)</span>
 <span class="annotation">@MapperScan</span>(basePackages = <span class="string"><span class="delimiter">&quot;</span><span class="content">org.terasoluna.batch.tutorial.common.repository</span><span class="delimiter">&quot;</span></span>, sqlSessionFactoryRef = <span class="string"><span class="delimiter">&quot;</span><span class="content">jobSqlSessionFactory</span><span class="delimiter">&quot;</span></span>)
@@ -885,8 +1035,11 @@ errors.maxInteger=The {0} exceeds {1}.</code></pre>
 }</code></pre>
 </div>
 </div>
-  </div>
-  <div class="tabcontent" name="XMLConfigContent">
+</div>
+</div>
+<div class="exampleblock secondary">
+<div class="title">XMLConfig</div>
+<div class="content">
 <div class="listingblock">
 <div class="title">src/main/resources/META-INF/jobs/dbaccess/jobPointAddChunk.xml</div>
 <div class="content">
@@ -928,7 +1081,7 @@ errors.maxInteger=The {0} exceeds {1}.</code></pre>
 <span class="tag">&lt;/beans&gt;</span></code></pre>
 </div>
 </div>
-  </div>
+</div>
 </div>
 <table class="tableblock frame-all grid-all stretch">
 <caption class="title">表 5. 説明</caption>
@@ -986,10 +1139,9 @@ errors.maxInteger=The {0} exceeds {1}.</code></pre>
 <div class="paragraph">
 <p>終了コードのマッピングを追加で設定する。</p>
 </div>
-<div class="tabbox">
-  <input type="radio" name="tabgroup09040503" class="JavaConfigTab" id="tabgroup09040503_1" checked><label for="tabgroup09040503_1" class="tab">JavaConfig</label>
-  <input type="radio" name="tabgroup09040503" class="XMLConfigTab" id="tabgroup09040503_2"><label for="tabgroup09040503_2" class="tab">XMLConfig</label>
-  <div class="tabcontent" name="JavaConfigContent">
+<div class="exampleblock primary">
+<div class="title">JavaConfig</div>
+<div class="content">
 <div class="paragraph">
 <p><code>LaunchContextConfig.java</code>に以下のとおり、独自の終了コードを追加する。</p>
 </div>
@@ -1016,8 +1168,11 @@ errors.maxInteger=The {0} exceeds {1}.</code></pre>
 <span class="comment">// omitted</span></code></pre>
 </div>
 </div>
-  </div>
-  <div class="tabcontent" name="XMLConfigContent">
+</div>
+</div>
+<div class="exampleblock secondary">
+<div class="title">XMLConfig</div>
+<div class="content">
 <div class="paragraph">
 <p><code>launch-context.xml</code>に以下のとおり、独自の終了コードを追加する。</p>
 </div>
@@ -1044,7 +1199,7 @@ errors.maxInteger=The {0} exceeds {1}.</code></pre>
 <span class="comment">&lt;!-- omitted --&gt;</span></code></pre>
 </div>
 </div>
-  </div>
+</div>
 </div>
 <table class="tableblock frame-all grid-all stretch">
 <caption class="title">表 6. 説明</caption>
@@ -1467,10 +1622,9 @@ tutorial.insert-data.script=file:sqls/insert-member-info-error-data.sql</code></
 errors.maxInteger=The {0} exceeds {1}.</code></pre>
 </div>
 </div>
-<div class="tabbox">
-  <input type="radio" name="tabgroup09040504" class="JavaConfigTab" id="tabgroup09040504_1" checked><label for="tabgroup09040504_1" class="tab">JavaConfig</label>
-  <input type="radio" name="tabgroup09040504" class="XMLConfigTab" id="tabgroup09040504_2"><label for="tabgroup09040504_2" class="tab">XMLConfig</label>
-  <div class="tabcontent" name="JavaConfigContent">
+<div class="exampleblock primary">
+<div class="title">JavaConfig</div>
+<div class="content">
 <div class="listingblock">
 <div class="title">org.terasoluna.batch.tutorial.config.LaunchContextConfig.java</div>
 <div class="content">
@@ -1484,8 +1638,11 @@ errors.maxInteger=The {0} exceeds {1}.</code></pre>
 <span class="comment">// omitted</span></code></pre>
 </div>
 </div>
-  </div>
-  <div class="tabcontent" name="XMLConfigContent">
+</div>
+</div>
+<div class="exampleblock secondary">
+<div class="title">XMLConfig</div>
+<div class="content">
 <div class="listingblock">
 <div class="title">META-INF/spring/launch-context.xml</div>
 <div class="content">
@@ -1497,7 +1654,7 @@ errors.maxInteger=The {0} exceeds {1}.</code></pre>
 <span class="comment">&lt;!-- omitted --&gt;</span></code></pre>
 </div>
 </div>
-  </div>
+</div>
 </div>
 <table class="tableblock frame-all grid-all stretch">
 <caption class="title">表 8. 説明</caption>
@@ -1614,16 +1771,14 @@ errors.maxInteger=The {0} exceeds {1}.</code></pre>
 <div class="paragraph">
 <p>作成したリスナーを利用するためのジョブBean定義ファイルの設定を以下に示す。</p>
 </div>
-<div class="tabbox">
-  <input type="radio" name="tabgroup09040505" class="JavaConfigTab" id="tabgroup09040505_1" checked><label for="tabgroup09040505_1" class="tab">JavaConfig</label>
-  <input type="radio" name="tabgroup09040505" class="XMLConfigTab" id="tabgroup09040505_2"><label for="tabgroup09040505_2" class="tab">XMLConfig</label>
-  <div class="tabcontent" name="JavaConfigContent">
+<div class="exampleblock primary">
+<div class="title">JavaConfig</div>
+<div class="content">
 <div class="listingblock">
 <div class="title">org.terasoluna.batch.tutorial.config.dbaccess.JobPointAddTaskletConfig.java</div>
 <div class="content">
 <pre class="CodeRay highlight"><code data-lang="java"><span class="annotation">@Configuration</span>
 <span class="annotation">@Import</span>(JobBaseContextConfig.class)
-<span class="annotation">@PropertySource</span>(value = <span class="string"><span class="delimiter">&quot;</span><span class="content">classpath:batch-application.properties</span><span class="delimiter">&quot;</span></span>)
 <span class="annotation">@ComponentScan</span>({<span class="string"><span class="delimiter">&quot;</span><span class="content">org.terasoluna.batch.tutorial.dbaccess.tasklet</span><span class="delimiter">&quot;</span></span>,
     <span class="string"><span class="delimiter">&quot;</span><span class="content">org.terasoluna.batch.tutorial.common.listener</span><span class="delimiter">&quot;</span></span>}) <span class="comment">// (1)</span>
 <span class="annotation">@MapperScan</span>(basePackages = <span class="string"><span class="delimiter">&quot;</span><span class="content">org.terasoluna.batch.tutorial.common.repository</span><span class="delimiter">&quot;</span></span>, sqlSessionFactoryRef = <span class="string"><span class="delimiter">&quot;</span><span class="content">jobSqlSessionFactory</span><span class="delimiter">&quot;</span></span>)
@@ -1653,8 +1808,11 @@ errors.maxInteger=The {0} exceeds {1}.</code></pre>
 }</code></pre>
 </div>
 </div>
-  </div>
-  <div class="tabcontent" name="XMLConfigContent">
+</div>
+</div>
+<div class="exampleblock secondary">
+<div class="title">XMLConfig</div>
+<div class="content">
 <div class="listingblock">
 <div class="title">src/main/resources/META-INF/jobs/dbaccess/jobPointAddTasklet.xml</div>
 <div class="content">
@@ -1690,7 +1848,7 @@ errors.maxInteger=The {0} exceeds {1}.</code></pre>
 <span class="tag">&lt;/beans&gt;</span></code></pre>
 </div>
 </div>
-  </div>
+</div>
 </div>
 <table class="tableblock frame-all grid-all stretch">
 <caption class="title">表 10. 説明</caption>
@@ -1727,10 +1885,9 @@ errors.maxInteger=The {0} exceeds {1}.</code></pre>
 <div class="paragraph">
 <p>チャンクモデル/タスクレットモデルで共通して利用するため、既に実施している場合は読み飛ばしてよい。</p>
 </div>
-<div class="tabbox">
-  <input type="radio" name="tabgroup09040506" class="JavaConfigTab" id="tabgroup09040506_1" checked><label for="tabgroup09040506_1" class="tab">JavaConfig</label>
-  <input type="radio" name="tabgroup09040506" class="XMLConfigTab" id="tabgroup09040506_2"><label for="tabgroup09040506_2" class="tab">XMLConfig</label>
-  <div class="tabcontent" name="JavaConfigContent">
+<div class="exampleblock primary">
+<div class="title">JavaConfig</div>
+<div class="content">
 <div class="paragraph">
 <p><code>LaunchContextConfig.java</code>に以下のとおり、独自の終了コードを追加する。</p>
 </div>
@@ -1757,8 +1914,11 @@ errors.maxInteger=The {0} exceeds {1}.</code></pre>
 <span class="comment">// omitted</span></code></pre>
 </div>
 </div>
-  </div>
-  <div class="tabcontent" name="XMLConfigContent">
+</div>
+</div>
+<div class="exampleblock secondary">
+<div class="title">XMLConfig</div>
+<div class="content">
 <div class="paragraph">
 <p><code>launch-context.xml</code>に以下のとおり、独自の終了コードを追加する。</p>
 </div>
@@ -1785,7 +1945,7 @@ errors.maxInteger=The {0} exceeds {1}.</code></pre>
 <span class="comment">&lt;!-- omitted --&gt;</span></code></pre>
 </div>
 </div>
-  </div>
+</div>
 </div>
 <table class="tableblock frame-all grid-all stretch">
 <caption class="title">表 11. 説明</caption>
@@ -2196,12 +2356,11 @@ tutorial.insert-data.script=file:sqls/insert-member-info-error-data.sql</code></
 </div>
 </div>
 </div>
-<link rel="stylesheet" href="./theme/css/coderay-asciidoctor.css">
 <div class="container">
 
   <div class="common-bg">
     <div class="information">
-      TERASOLUNA Batch Framework for Java (5.x) Development Guideline - version 5.6.0.RELEASE, 2024-3-29, commit-id:1d78d35
+      TERASOLUNA Batch Framework for Java (5.x) Development Guideline - version 5.7.0.RELEASE, 2025-3-31, commit-id:7ba4db3
     </div>
     <div class="index">
       <a href="index.html">&gt; INDEX</a>
@@ -2210,7 +2369,7 @@ tutorial.insert-data.script=file:sqls/insert-member-info-error-data.sql</code></
 
   <div class="footer-bg">
     <div class="copyright">
-      &copy; Copyright 2017 NTT DATA Group Corporation. &copy; Copyright 2017 NTT Corporation.
+      &copy; Copyright 2024 NTT DATA Group Corporation. &copy; Copyright 2017 NTT Corporation.
     </div>
   </div>
 

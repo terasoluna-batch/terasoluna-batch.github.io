@@ -4,17 +4,18 @@
 <meta charset="UTF-8">
 <meta http-equiv="X-UA-Compatible" content="IE=edge">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<meta name="generator" content="Asciidoctor 2.0.10">
+<meta name="generator" content="Asciidoctor 2.0.23">
 <title>ジョブの管理</title>
 <link rel="stylesheet" href="./theme/css/readthedocs.css">
 <link rel="stylesheet" href="./theme/css/font-awesome.min.css">
+<link rel="stylesheet" href="./theme/css/coderay-asciidoctor.css">
 <link rel="stylesheet" href="./theme/css/coderay-asciidoctor.css">
 <link rel="stylesheet" href="./theme/css/header-footer.css">
 <title>TERASOLUNA Batch Framework for Java (5.x) Development Guideline</title>
 
 <div class="common-bg">
   <div class="information">
-    TERASOLUNA Batch Framework for Java (5.x) Development Guideline - version 5.6.0.RELEASE, 2024-3-29, commit-id:1d78d35
+    TERASOLUNA Batch Framework for Java (5.x) Development Guideline - version 5.7.0.RELEASE, 2025-3-31, commit-id:7ba4db3
   </div>
   <div class="index">
     <a href="index.html">&gt; INDEX</a>
@@ -37,6 +38,155 @@
   ga('create', 'UA-46550814-2', 'auto');
   ga('send', 'pageview');
 </script>
+<style>
+.hidden {
+	display: none;
+}
+
+.switch {
+	border-width: 1px 1px 0 1px;
+	border-style: solid;
+	border-color: #7a2518;
+	display: inline-block;
+}
+
+.switch--item {
+	padding: 10px;
+	background-color: #ffffff;
+	color: #7a2518;
+	display: inline-block;
+	cursor: pointer;
+}
+
+.switch--item:not(:first-child) {
+	border-width: 0 0 0 1px;
+	border-style: solid;
+	border-color: #7a2518;
+}
+
+.switch--item.selected {
+	background-color: #7a2519;
+	color: #ffffff;
+}
+
+</style>
+<script type="text/javascript">
+function addBlockSwitches() {
+	for (var primary of document.querySelectorAll('.primary')) {
+		var switchItem = createSwitchItem(primary, createBlockSwitch(primary));
+		switchItem.item.classList.add("selected");
+		var title = primary.querySelector('.title')
+		title.remove();
+	}
+	for (var secondary of document.querySelectorAll('.secondary')) {
+		var primary = findPrimary(secondary);
+		if (primary === null) {
+			console.error("Found secondary block with no primary sibling");
+		}
+		else {
+			var switchItem = createSwitchItem(secondary, primary.querySelector('.switch'));
+			switchItem.content.classList.add("hidden");
+			primary.append(switchItem.content);
+			secondary.remove();
+		}
+	}
+}
+
+function createElementFromHtml(html) {
+	var template = document.createElement('template');
+    template.innerHTML = html;
+    return template.content.firstChild;
+}
+
+function createBlockSwitch(primary) {
+    var blockSwitch = createElementFromHtml('<div class="switch"></div>');
+    primary.prepend(blockSwitch)
+	return blockSwitch;
+}
+
+function findPrimary(secondary) {
+	var candidate = secondary.previousElementSibling;
+	while (candidate != null && !candidate.classList.contains('primary')) {
+		candidate = candidate.previousElementSibling;
+	}
+	return candidate;
+}
+
+function createSwitchItem(block, blockSwitch) {
+	var blockName = block.querySelector('.title').textContent;
+	var content = block.querySelectorAll('.content').item(0);
+	var colist = nextSibling(block, '.colist');
+	if (colist != null) {
+		content.append(colist);
+	}
+	var item = createElementFromHtml('<div class="switch--item">' + blockName + '</div>');
+	item.dataset.blockName = blockName;
+	content.dataset.blockName = blockName;
+	blockSwitch.append(item);
+	return {'item': item, 'content': content};
+}
+
+function nextSibling(element, selector) {
+	var sibling = element.nextElementSibling;
+	while (sibling) {
+		if (sibling.matches(selector)) {
+			return sibling;
+		}
+		sibling = sibling.nextElementSibling;
+	}
+}
+
+function globalSwitch() {
+	document.querySelectorAll(".switch--item").forEach(function(item) {
+		var blockId = blockIdForSwitchItem(item);
+		var handler = function(event) {
+			selectedText = event.target.textContent;
+			window.localStorage.setItem(blockId, selectedText);
+			for (var switchItem of document.querySelectorAll(".switch--item")) {
+				if (blockIdForSwitchItem(switchItem) === blockId && switchItem.textContent === selectedText) {
+					select(switchItem);
+				}
+			}
+		}
+		item.addEventListener("click", handler);
+		if (item.textContent === window.localStorage.getItem(blockId)) {
+			select(item);
+		}
+	});
+}
+
+function select(selected) {
+	for (var child of selected.parentNode.children) {
+		child.classList.remove("selected");
+	}
+	selected.classList.add("selected");
+	for (var child of selected.parentNode.parentNode.children) {
+		if (child.classList.contains("content")) {
+			if (selected.dataset.blockName === child.dataset.blockName) {
+				child.classList.remove("hidden");
+			}
+			else {
+				child.classList.add("hidden");
+			}
+		}
+	}	
+}
+
+function blockIdForSwitchItem(item) {
+	idComponents = []
+	for (var switchItem of item.parentNode.querySelectorAll(".switch--item")) {
+		idComponents.push(switchItem.textContent.toLowerCase());
+	}
+	return idComponents.sort().join("-")
+}
+
+window.onload = function() {
+	addBlockSwitches();
+	globalSwitch();
+};
+
+</script>
+
 </head>
 <body id="Ch07_JobManagement" class="book toc2 toc-left">
 <div id="header">
@@ -77,7 +227,11 @@
 <li><a href="#Ch07_JobManagement_HowToUse_Logging_OutputLocation">ログ出力先</a></li>
 </ul>
 </li>
-<li><a href="#Ch07_JobManagement_HowToUse_MessageManagement">メッセージ管理</a></li>
+<li><a href="#Ch07_JobManagement_HowToUse_MessageManagement">メッセージ管理</a>
+<ul class="sectlevel3">
+<li><a href="#terasoluna-server-5-xとの相違点">TERASOLUNA Server 5.xとの相違点</a></li>
+</ul>
+</li>
 </ul>
 </li>
 </ul>
@@ -204,32 +358,11 @@ TERASOLUNA Batch 5.xでは、以下のすべてに該当する場合は永続化
 <p>Indexを作成することで、<code>JobRepository</code>の性能改善が期待できる。<br>
 どのSQL文のどの列に対してIndexを作成するかは、実行計画を確認するなどして適切に判断してほしい。
 Spring Batchのリファレンス
-<a href="https://docs.spring.io/spring-batch/reference/5.1.0/schema-appendix.html#recommendationsForIndexingMetaDataTables">B.10 Recommendations for Indexing Meta Data Tables</a>
+<a href="https://docs.spring.io/spring-batch/reference/5.2.1/schema-appendix.html#recommendationsForIndexingMetaDataTables">B.10 Recommendations for Indexing Meta Data Tables</a>
 では、Spring Batchが提供するDaoの実装によって、WHERE句でどの列が利用されているか、およびそれらの使用頻度を示しているので参考にするとよい。<br></p>
 </div>
 <div class="paragraph">
 <p><code>JobRepository</code>の永続化を行う場合は、Indexを作成することを検討されたい。</p>
-</div>
-</td>
-</tr>
-</table>
-</div>
-<div id="Ch07_JobManagement_Overview_JobExecutionManagement_FixPerformanceProblem" class="admonitionblock tip">
-<table>
-<tr>
-<td class="icon">
-<i class="fa icon-tip" title="Tip"></i>
-</td>
-<td class="content">
-<div class="title">Spring BatchのバージョンアップによるJobRepositoryの性能問題の修正</div>
-<div class="paragraph">
-<p>TERASOLUNA Batch 5.3.0では、Spring Batch 4.2.xから加わった変更により、ジョブの起動時にSpring Batchが発行する
-<a href="https://github.com/spring-projects/spring-batch/issues/3634"><code>JobRepository</code>へのSQLによる性能劣化</a>が発生する事がある。
-この問題はSpring Batch側で対処され、Spring Batch 4.2.4および4.3.0で変更が取り込まれた。TERASOLUNA Batchでは5.3.1および5.4.0でこの変更が取り込まれている。</p>
-</div>
-<div class="paragraph">
-<p>本件の対策として、TERASOLUNA Batch 5.3.0では「Spring Batchで対処された<a href="https://github.com/spring-projects/spring-batch/pull/3635/files">変更</a>を実装する」ことを推奨しているが、
-TERASOLUNA Batch 5.6.0.RELEASEではこの問題は発生しないため、対策は不要となる。</p>
 </div>
 </td>
 </tr>
@@ -684,25 +817,27 @@ admin=<span class="comment"># select JOB_EXECUTION_ID, STEP_EXECUTION_ID, START_
 </li>
 </ul>
 </div>
-<div class="tabbox">
-  <input type="radio" name="tabgroup070101" class="JavaConfigTab" id="tabgroup070101_1" checked><label for="tabgroup070101_1" class="tab">JavaConfig</label>
-  <input type="radio" name="tabgroup070101" class="XMLConfigTab" id="tabgroup070101_2"><label for="tabgroup070101_2" class="tab">XMLConfig</label>
-  <div class="tabcontent" name="JavaConfigContent">
+<div class="exampleblock primary">
+<div class="title">JavaConfig</div>
+<div class="content">
 <div class="listingblock">
 <div class="content">
 <pre class="CodeRay highlight"><code data-lang="terminal">$ java org.springframework.batch.core.launch.support.CommandLineJobRunner \
     com.example.batch.jobs.Job01Config job01 -stop</code></pre>
 </div>
 </div>
-  </div>
-  <div class="tabcontent" name="XMLConfigContent">
+</div>
+</div>
+<div class="exampleblock secondary">
+<div class="title">XMLConfig</div>
+<div class="content">
 <div class="listingblock">
 <div class="content">
 <pre class="CodeRay highlight"><code data-lang="terminal">$ java org.springframework.batch.core.launch.support.CommandLineJobRunner \
     classpath:/META-INF/jobs/job01.xml job01 -stop</code></pre>
 </div>
 </div>
-  </div>
+</div>
 </div>
 <div class="ulist">
 <ul>
@@ -711,25 +846,27 @@ admin=<span class="comment"># select JOB_EXECUTION_ID, STEP_EXECUTION_ID, START_
 </li>
 </ul>
 </div>
-<div class="tabbox">
-  <input type="radio" name="tabgroup070102" class="JavaConfigTab" id="tabgroup070102_1" checked><label for="tabgroup070102_1" class="tab">JavaConfig</label>
-  <input type="radio" name="tabgroup070102" class="XMLConfigTab" id="tabgroup070102_2"><label for="tabgroup070102_2" class="tab">XMLConfig</label>
-  <div class="tabcontent" name="JavaConfigContent">
+<div class="exampleblock primary">
+<div class="title">JavaConfig</div>
+<div class="content">
 <div class="listingblock">
 <div class="content">
 <pre class="CodeRay highlight"><code data-lang="terminal">$ java org.springframework.batch.core.launch.support.CommandLineJobRunner \
     com.example.batch.jobs.Job01Config 3 -stop</code></pre>
 </div>
 </div>
-  </div>
-  <div class="tabcontent" name="XMLConfigContent">
+</div>
+</div>
+<div class="exampleblock secondary">
+<div class="title">XMLConfig</div>
+<div class="content">
 <div class="listingblock">
 <div class="content">
 <pre class="CodeRay highlight"><code data-lang="terminal">$ java org.springframework.batch.core.launch.support.CommandLineJobRunner \
     classpath:/META-INF/jobs/job01.xml 3 -stop</code></pre>
 </div>
 </div>
-  </div>
+</div>
 </div>
 <div class="ulist">
 <ul>
@@ -816,7 +953,7 @@ javaプロセスの終了コードをカスタマイズするのに必要な作�
 <dl>
 <dt class="hdlist1">チャンクモデルにおけるステップの終了コードの変更</dt>
 <dd>
-<p>ステップ終了時の処理として、StepExecutionListenerのafterStepメソッドもしくは@AfterStepアノテーションを付与したメソッドを実装し、
+<p>ステップ終了時の処理として、<code>StepExecutionListener</code>の<code>afterStep</code>メソッドもしくは<code>@AfterStep</code>アノテーションを付与したメソッドを実装し、
 任意のステップの終了コードを返却する。</p>
 </dd>
 </dl>
@@ -882,7 +1019,7 @@ javaプロセスの終了コードをカスタマイズするのに必要な作�
 <dl>
 <dt class="hdlist1">タスクレットモデルにおけるステップの終了コードの変更</dt>
 <dd>
-<p>Taskletのexecuteメソッドの引数であるStepContributionに任意のステップの終了コードを設定する。</p>
+<p>Taskletの<code>execute</code>メソッドの引数である<code>StepContribution</code>に任意のステップの終了コードを設定する。</p>
 </dd>
 </dl>
 </div>
@@ -923,7 +1060,7 @@ javaプロセスの終了コードをカスタマイズするのに必要な作�
 <div class="sect3">
 <h4 id="Ch07_JobManagement_HowToUse_ExitCode_JobExitCode"><a class="anchor" href="#Ch07_JobManagement_HowToUse_ExitCode_JobExitCode"></a>ジョブの終了コードの変更</h4>
 <div class="paragraph">
-<p>ジョブ終了時の処理としてJobExecutionListenerのafterJobメソッドを実装し、最終的なジョブの終了コードを各ステップの終了コードによって設定する。</p>
+<p>ジョブ終了時の処理として<code>JobExecutionListener</code>の<code>afterJob</code>メソッドを実装し、最終的なジョブの終了コードを各ステップの終了コードによって設定する。</p>
 </div>
 <div class="listingblock">
 <div class="title">JobExecutionListener実装例</div>
@@ -945,10 +1082,9 @@ javaプロセスの終了コードをカスタマイズするのに必要な作�
 }</code></pre>
 </div>
 </div>
-<div class="tabbox">
-  <input type="radio" name="tabgroup070103" class="JavaConfigTab" id="tabgroup070103_1" checked><label for="tabgroup070103_1" class="tab">JavaConfig</label>
-  <input type="radio" name="tabgroup070103" class="XMLConfigTab" id="tabgroup070103_2"><label for="tabgroup070103_2" class="tab">XMLConfig</label>
-  <div class="tabcontent" name="JavaConfigContent">
+<div class="exampleblock primary">
+<div class="title">JavaConfig</div>
+<div class="content">
 <div class="listingblock">
 <div class="content">
 <pre class="CodeRay highlight"><code data-lang="java"><span class="annotation">@Bean</span>
@@ -962,8 +1098,11 @@ javaプロセスの終了コードをカスタマイズするのに必要な作�
 }</code></pre>
 </div>
 </div>
-  </div>
-  <div class="tabcontent" name="XMLConfigContent">
+</div>
+</div>
+<div class="exampleblock secondary">
+<div class="title">XMLConfig</div>
+<div class="content">
 <div class="listingblock">
 <div class="content">
 <pre class="CodeRay highlight"><code data-lang="xml"><span class="tag">&lt;batch:job</span> <span class="attribute-name">id</span>=<span class="string"><span class="delimiter">&quot;</span><span class="content">exitstatusjob</span><span class="delimiter">&quot;</span></span> <span class="attribute-name">job-repository</span>=<span class="string"><span class="delimiter">&quot;</span><span class="content">jobRepository</span><span class="delimiter">&quot;</span></span><span class="tag">&gt;</span>
@@ -976,7 +1115,7 @@ javaプロセスの終了コードをカスタマイズするのに必要な作�
 <span class="tag">&lt;/batch:job&gt;</span></code></pre>
 </div>
 </div>
-  </div>
+</div>
 </div>
 <table class="tableblock frame-all grid-all stretch">
 <caption class="title">表 7. 実装内容の一覧</caption>
@@ -1005,10 +1144,9 @@ javaプロセスの終了コードをカスタマイズするのに必要な作�
 <div class="paragraph">
 <p>ジョブの終了コードとプロセスの終了コードをマッピング定義を行う。</p>
 </div>
-<div class="tabbox">
-  <input type="radio" name="tabgroup070104" class="JavaConfigTab" id="tabgroup070104_1" checked><label for="tabgroup070104_1" class="tab">JavaConfig</label>
-  <input type="radio" name="tabgroup070104" class="XMLConfigTab" id="tabgroup070104_2"><label for="tabgroup070104_2" class="tab">XMLConfig</label>
-  <div class="tabcontent" name="JavaConfigContent">
+<div class="exampleblock primary">
+<div class="title">JavaConfig</div>
+<div class="content">
 <div class="listingblock">
 <div class="title">org.terasoluna.batch.functionaltest.config.LaunchContextConfig.java</div>
 <div class="content">
@@ -1029,8 +1167,11 @@ javaプロセスの終了コードをカスタマイズするのに必要な作�
 }</code></pre>
 </div>
 </div>
-  </div>
-  <div class="tabcontent" name="XMLConfigContent">
+</div>
+</div>
+<div class="exampleblock secondary">
+<div class="title">XMLConfig</div>
+<div class="content">
 <div class="listingblock">
 <div class="title">META-INF/spring/launch-context.xml</div>
 <div class="content">
@@ -1052,7 +1193,7 @@ javaプロセスの終了コードをカスタマイズするのに必要な作�
 <span class="tag">&lt;/bean&gt;</span></code></pre>
 </div>
 </div>
-  </div>
+</div>
 </div>
 <div class="admonitionblock warning">
 <table>
@@ -1133,7 +1274,7 @@ javaプロセスの終了コードをカスタマイズするのに必要な作�
 </div>
 <div class="paragraph">
 <p>ログの出力、設定、考慮事項はTERASOLUNA Server 5.xと共通点が多い。まずは、
-<a href="https://terasolunaorg.github.io/guideline/5.9.0.RELEASE/ja/ArchitectureInDetail/GeneralFuncDetail/Logging.html">ロギング</a>を参照。</p>
+<a href="https://terasolunaorg.github.io/guideline/5.10.0.RELEASE/ja/ArchitectureInDetail/GeneralFuncDetail/Logging.html">ロギング</a>を参照。</p>
 </div>
 <div class="paragraph">
 <p>ここでは、TERASOLUNA Batch 5.x特有の考慮点について説明する。</p>
@@ -1189,10 +1330,9 @@ javaプロセスの終了コードをカスタマイズするのに必要な作�
 }</code></pre>
 </div>
 </div>
-<div class="tabbox">
-  <input type="radio" name="tabgroup070105" class="JavaConfigTab" id="tabgroup070105_1" checked><label for="tabgroup070105_1" class="tab">JavaConfig</label>
-  <input type="radio" name="tabgroup070105" class="XMLConfigTab" id="tabgroup070105_2"><label for="tabgroup070105_2" class="tab">XMLConfig</label>
-  <div class="tabcontent" name="JavaConfigContent">
+<div class="exampleblock primary">
+<div class="title">JavaConfig</div>
+<div class="content">
 <div class="listingblock">
 <div class="content">
 <pre class="CodeRay highlight"><code data-lang="java"><span class="annotation">@Bean</span>
@@ -1216,8 +1356,11 @@ javaプロセスの終了コードをカスタマイズするのに必要な作�
 }</code></pre>
 </div>
 </div>
-  </div>
-  <div class="tabcontent" name="XMLConfigContent">
+</div>
+</div>
+<div class="exampleblock secondary">
+<div class="title">XMLConfig</div>
+<div class="content">
 <div class="listingblock">
 <div class="content">
 <pre class="CodeRay highlight"><code data-lang="xml"><span class="comment">&lt;!-- omitted. --&gt;</span>
@@ -1235,7 +1378,7 @@ javaプロセスの終了コードをカスタマイズするのに必要な作�
 <span class="comment">&lt;!-- omitted. --&gt;</span></code></pre>
 </div>
 </div>
-  </div>
+</div>
 </div>
 <table class="tableblock frame-all grid-all stretch">
 <caption class="title">表 8. ジョブ名、ジョブ実行IDのログ出力実装例</caption>
@@ -1318,43 +1461,31 @@ javaプロセスの終了コードをカスタマイズするのに必要な作�
 一定のルールに従ってメッセージを付与することが望ましい。</p>
 </div>
 <div class="paragraph">
-<p>なお、ログと同様、メッセージ管理についても基本的にはTERASOLUNA Server 5.xと同様である。</p>
+<p>なお、ログと同様、メッセージ管理についても基本的にはTERASOLUNA Server 5.xと同様であり、
+プロパティファイルからメッセージを使用するために<code>MessageSource</code>を使用することができる。
+具体的な設定・実装例についてはTERASOLUNA Server 5.xガイドラインにある<a href="https://terasolunaorg.github.io/guideline/5.10.0.RELEASE/ja/ArchitectureInDetail/GeneralFuncDetail/Logging.html#id8">ログメッセージの一元管理</a>を参照。</p>
 </div>
-<div class="admonitionblock important">
-<table>
-<tr>
-<td class="icon">
-<i class="fa icon-important" title="Important"></i>
-</td>
-<td class="content">
-<div class="title">MessageSourceの活用について</div>
+<div class="sect3">
+<h4 id="terasoluna-server-5-xとの相違点"><a class="anchor" href="#terasoluna-server-5-xとの相違点"></a>TERASOLUNA Server 5.xとの相違点</h4>
 <div class="paragraph">
-<p>プロパティファイルからメッセージを使用するには<code>MessageSource</code>を使用することができる。</p>
+<p>以下はTERASOLUNA Server 5.xとの相違点となる。</p>
 </div>
 <div class="ulist">
 <ul>
 <li>
-<p>具体的な設定・実装例については<a href="https://terasolunaorg.github.io/guideline/5.9.0.RELEASE/ja/ArchitectureInDetail/GeneralFuncDetail/Logging.html#id8">ログメッセージの一元管理</a>を参照。</p>
-<div class="ulist">
-<ul>
-<li>
-<p>ここではログ出力のサンプルとして Spring MVC のコントローラー のケースにそって例示されているが、
-Spring Batchの任意のコンポーネントに読み換えてほしい。</p>
+<p>TERASOLUNA Server 5.xではログ出力のサンプルとして Spring MVC のコントローラーのケースにそって例示されているが、
+TERASOLUNA Batch 5.xではSpring Batchの任意のコンポーネントに読み換えてほしい。</p>
 </li>
 <li>
-<p>ここでは<code>MessageSource</code>のインスタンスを独自に生成しているが、TERASOLUNA Batch 5.xではその必要はない。
+<p>TERASOLUNA Server 5.xでは<code>MessageSource</code>のインスタンスを独自に生成しているが、TERASOLUNA Batch 5.xではその必要はない。
 <code>ApplicationContext</code>が生成された後でのみ、各コンポーネントにアクセスされるためである。
 なお、ブランクプロジェクトには以下のとおり設定済みである。</p>
 </li>
 </ul>
 </div>
-</li>
-</ul>
-</div>
-<div class="tabbox">
-  <input type="radio" name="tabgroup070106" class="JavaConfigTab" id="tabgroup070106_1" checked><label for="tabgroup070106_1" class="tab">JavaConfig</label>
-  <input type="radio" name="tabgroup070106" class="XMLConfigTab" id="tabgroup070106_2"><label for="tabgroup070106_2" class="tab">XMLConfig</label>
-  <div class="tabcontent" name="JavaConfigContent">
+<div class="exampleblock primary">
+<div class="title">JavaConfig</div>
+<div class="content">
 <div class="listingblock">
 <div class="title">org.terasoluna.batch.functionaltest.config.LaunchContextConfig.java</div>
 <div class="content">
@@ -1366,8 +1497,11 @@ Spring Batchの任意のコンポーネントに読み換えてほしい。</p>
 }</code></pre>
 </div>
 </div>
-  </div>
-  <div class="tabcontent" name="XMLConfigContent">
+</div>
+</div>
+<div class="exampleblock secondary">
+<div class="title">XMLConfig</div>
+<div class="content">
 <div class="listingblock">
 <div class="title">META-INF/spring/launch-context.xml</div>
 <div class="content">
@@ -1376,22 +1510,18 @@ Spring Batchの任意のコンポーネントに読み換えてほしい。</p>
       <span class="attribute-name">p:basenames</span>=<span class="string"><span class="delimiter">&quot;</span><span class="content">i18n/application-messages</span><span class="delimiter">&quot;</span></span> <span class="tag">/&gt;</span></code></pre>
 </div>
 </div>
-  </div>
-</div>
-</td>
-</tr>
-</table>
 </div>
 </div>
 </div>
 </div>
 </div>
-<link rel="stylesheet" href="./theme/css/coderay-asciidoctor.css">
+</div>
+</div>
 <div class="container">
 
   <div class="common-bg">
     <div class="information">
-      TERASOLUNA Batch Framework for Java (5.x) Development Guideline - version 5.6.0.RELEASE, 2024-3-29, commit-id:1d78d35
+      TERASOLUNA Batch Framework for Java (5.x) Development Guideline - version 5.7.0.RELEASE, 2025-3-31, commit-id:7ba4db3
     </div>
     <div class="index">
       <a href="index.html">&gt; INDEX</a>
@@ -1400,7 +1530,7 @@ Spring Batchの任意のコンポーネントに読み換えてほしい。</p>
 
   <div class="footer-bg">
     <div class="copyright">
-      &copy; Copyright 2017 NTT DATA Group Corporation. &copy; Copyright 2017 NTT Corporation.
+      &copy; Copyright 2024 NTT DATA Group Corporation. &copy; Copyright 2017 NTT Corporation.
     </div>
   </div>
 

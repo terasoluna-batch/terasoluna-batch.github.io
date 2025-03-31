@@ -4,17 +4,18 @@
 <meta charset="UTF-8">
 <meta http-equiv="X-UA-Compatible" content="IE=edge">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<meta name="generator" content="Asciidoctor 2.0.10">
+<meta name="generator" content="Asciidoctor 2.0.23">
 <title>入力チェック</title>
 <link rel="stylesheet" href="./theme/css/readthedocs.css">
 <link rel="stylesheet" href="./theme/css/font-awesome.min.css">
+<link rel="stylesheet" href="./theme/css/coderay-asciidoctor.css">
 <link rel="stylesheet" href="./theme/css/coderay-asciidoctor.css">
 <link rel="stylesheet" href="./theme/css/header-footer.css">
 <title>TERASOLUNA Batch Framework for Java (5.x) Development Guideline</title>
 
 <div class="common-bg">
   <div class="information">
-    TERASOLUNA Batch Framework for Java (5.x) Development Guideline - version 5.6.0.RELEASE, 2024-3-29, commit-id:1d78d35
+    TERASOLUNA Batch Framework for Java (5.x) Development Guideline - version 5.7.0.RELEASE, 2025-3-31, commit-id:7ba4db3
   </div>
   <div class="index">
     <a href="index.html">&gt; INDEX</a>
@@ -37,6 +38,155 @@
   ga('create', 'UA-46550814-2', 'auto');
   ga('send', 'pageview');
 </script>
+<style>
+.hidden {
+	display: none;
+}
+
+.switch {
+	border-width: 1px 1px 0 1px;
+	border-style: solid;
+	border-color: #7a2518;
+	display: inline-block;
+}
+
+.switch--item {
+	padding: 10px;
+	background-color: #ffffff;
+	color: #7a2518;
+	display: inline-block;
+	cursor: pointer;
+}
+
+.switch--item:not(:first-child) {
+	border-width: 0 0 0 1px;
+	border-style: solid;
+	border-color: #7a2518;
+}
+
+.switch--item.selected {
+	background-color: #7a2519;
+	color: #ffffff;
+}
+
+</style>
+<script type="text/javascript">
+function addBlockSwitches() {
+	for (var primary of document.querySelectorAll('.primary')) {
+		var switchItem = createSwitchItem(primary, createBlockSwitch(primary));
+		switchItem.item.classList.add("selected");
+		var title = primary.querySelector('.title')
+		title.remove();
+	}
+	for (var secondary of document.querySelectorAll('.secondary')) {
+		var primary = findPrimary(secondary);
+		if (primary === null) {
+			console.error("Found secondary block with no primary sibling");
+		}
+		else {
+			var switchItem = createSwitchItem(secondary, primary.querySelector('.switch'));
+			switchItem.content.classList.add("hidden");
+			primary.append(switchItem.content);
+			secondary.remove();
+		}
+	}
+}
+
+function createElementFromHtml(html) {
+	var template = document.createElement('template');
+    template.innerHTML = html;
+    return template.content.firstChild;
+}
+
+function createBlockSwitch(primary) {
+    var blockSwitch = createElementFromHtml('<div class="switch"></div>');
+    primary.prepend(blockSwitch)
+	return blockSwitch;
+}
+
+function findPrimary(secondary) {
+	var candidate = secondary.previousElementSibling;
+	while (candidate != null && !candidate.classList.contains('primary')) {
+		candidate = candidate.previousElementSibling;
+	}
+	return candidate;
+}
+
+function createSwitchItem(block, blockSwitch) {
+	var blockName = block.querySelector('.title').textContent;
+	var content = block.querySelectorAll('.content').item(0);
+	var colist = nextSibling(block, '.colist');
+	if (colist != null) {
+		content.append(colist);
+	}
+	var item = createElementFromHtml('<div class="switch--item">' + blockName + '</div>');
+	item.dataset.blockName = blockName;
+	content.dataset.blockName = blockName;
+	blockSwitch.append(item);
+	return {'item': item, 'content': content};
+}
+
+function nextSibling(element, selector) {
+	var sibling = element.nextElementSibling;
+	while (sibling) {
+		if (sibling.matches(selector)) {
+			return sibling;
+		}
+		sibling = sibling.nextElementSibling;
+	}
+}
+
+function globalSwitch() {
+	document.querySelectorAll(".switch--item").forEach(function(item) {
+		var blockId = blockIdForSwitchItem(item);
+		var handler = function(event) {
+			selectedText = event.target.textContent;
+			window.localStorage.setItem(blockId, selectedText);
+			for (var switchItem of document.querySelectorAll(".switch--item")) {
+				if (blockIdForSwitchItem(switchItem) === blockId && switchItem.textContent === selectedText) {
+					select(switchItem);
+				}
+			}
+		}
+		item.addEventListener("click", handler);
+		if (item.textContent === window.localStorage.getItem(blockId)) {
+			select(item);
+		}
+	});
+}
+
+function select(selected) {
+	for (var child of selected.parentNode.children) {
+		child.classList.remove("selected");
+	}
+	selected.classList.add("selected");
+	for (var child of selected.parentNode.parentNode.children) {
+		if (child.classList.contains("content")) {
+			if (selected.dataset.blockName === child.dataset.blockName) {
+				child.classList.remove("hidden");
+			}
+			else {
+				child.classList.add("hidden");
+			}
+		}
+	}	
+}
+
+function blockIdForSwitchItem(item) {
+	idComponents = []
+	for (var switchItem of item.parentNode.querySelectorAll(".switch--item")) {
+		idComponents.push(switchItem.textContent.toLowerCase());
+	}
+	return idComponents.sort().join("-")
+}
+
+window.onload = function() {
+	addBlockSwitches();
+	globalSwitch();
+};
+
+</script>
+
 </head>
 <body id="Ch06_InputValidation" class="book toc2 toc-left">
 <div id="header">
@@ -86,7 +236,7 @@
 </div>
 <div class="paragraph">
 <p>入力チェックはTERASOLUNA Server 5.xの内容と重複するため、TERASOLUNA Server 5.x 開発ガイドラインの
-<a href="https://terasolunaorg.github.io/guideline/5.9.0.RELEASE/ja/ArchitectureInDetail/WebApplicationDetail/Validation.html">入力チェック</a>も合わせて参照。
+<a href="https://terasolunaorg.github.io/guideline/5.10.0.RELEASE/ja/ArchitectureInDetail/WebApplicationDetail/Validation.html">入力チェック</a>も合わせて参照。
 以下に、主な比較について示す。</p>
 </div>
 <table class="tableblock frame-all grid-all stretch">
@@ -121,7 +271,7 @@
 <tr>
 <td class="tableblock halign-left valign-top"><p class="tableblock">エラーメッセージの設定</p></td>
 <td class="tableblock halign-left valign-top" colspan="2"><p class="tableblock">TERASOLUNA Server 5.x 開発ガイドラインの
-<a href="https://terasolunaorg.github.io/guideline/5.9.0.RELEASE/ja/ArchitectureInDetail/WebApplicationDetail/Validation.html#validation-message-def">エラーメッセージの定義</a>と概ね同様だが、
+<a href="https://terasolunaorg.github.io/guideline/5.10.0.RELEASE/ja/ArchitectureInDetail/WebApplicationDetail/Validation.html#validation-message-def">エラーメッセージの定義</a>と概ね同様だが、
 TERASOLUNA Server 5.xではメッセージキーにフォーム名を含められるのに対し、TERASOLUNA Batch 5.xではDTO名をメッセージキーに含めることができない。
 この差異はチェックの実行方法の違いによるものである。</p></td>
 </tr>
@@ -164,7 +314,8 @@ TERASOLUNA Server 5.xではメッセージキーにフォーム名を含めら�
 <td class="tableblock halign-left valign-top"><p class="tableblock">入力必須チェック<br>
 桁チェック<br>
 型チェック</p></td>
-<td class="tableblock halign-left valign-top"><p class="tableblock">Bean Validation(実装ライブラリとしてHibernate Validatorを使用)</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">Bean Validation(実装ライブラリとしてHibernate Validatorを使用)<br>
+Hibernate ValidatorはBean Validationで定義されたアノテーションに加え、独自の検証用アノテーションを提供</p></td>
 </tr>
 <tr>
 <td class="tableblock halign-left valign-top"><p class="tableblock">相関項目チェック</p></td>
@@ -183,7 +334,7 @@ TERASOLUNA Server 5.xではメッセージキーにフォーム名を含めら�
 </div>
 <div class="paragraph">
 <p>この点は、
-TERASOLUNA Server 5.x 開発ガイドラインの <a href="https://terasolunaorg.github.io/guideline/5.9.0.RELEASE/ja/ArchitectureInDetail/WebApplicationDetail/Validation.html#id3">入力チェックの分類</a>
+TERASOLUNA Server 5.x 開発ガイドラインの <a href="https://terasolunaorg.github.io/guideline/5.10.0.RELEASE/ja/ArchitectureInDetail/WebApplicationDetail/Validation.html#id3">入力チェックの分類</a>
 と同様である。</p>
 </div>
 </div>
@@ -219,11 +370,11 @@ TERASOLUNA Server 5.x 開発ガイドラインの <a href="https://terasolunaorg
 <ul>
 <li>
 <p><code>ItemProcessor</code>に、<code>org.springframework.batch.item.validator.Validator</code>の実装である
-<code>org.springframework.batch.item.validator.SpringValidator</code>をインジェクションしvalidateメソッドを実行する。</p>
+<code>org.springframework.batch.item.validator.SpringValidator</code>をインジェクションし<code>validate</code>メソッドを実行する。</p>
 <div class="ulist">
 <ul>
 <li>
-<p><code>SpringValidator</code>は内部に<code>org.springframework.validation.Validator</code>を保持し、validateメソッドを実行する。<br>
+<p><code>SpringValidator</code>は内部に<code>org.springframework.validation.Validator</code>を保持し、<code>validate</code>メソッドを実行する。<br>
 いわば、<code>org.springframework.validation.Validator</code>のラッパーといえる。<br>
 <code>org.springframework.validation.Validator</code>の実装は、
 <code>org.springframework.validation.beanvalidation.LocalValidatorFactoryBean</code>となる。
@@ -369,10 +520,9 @@ Spring Batchが提供する<code>ValidatingItemProcessor</code>を使用して�
 <span class="tag">&lt;/dependency&gt;</span></code></pre>
 </div>
 </div>
-<div class="tabbox">
-  <input type="radio" name="tabgroup060101" class="JavaConfigTab" id="tabgroup060101_1" checked><label for="tabgroup060101_1" class="tab">JavaConfig</label>
-  <input type="radio" name="tabgroup060101" class="XMLConfigTab" id="tabgroup060101_2"><label for="tabgroup060101_2" class="tab">XMLConfig</label>
-  <div class="tabcontent" name="JavaConfigContent">
+<div class="exampleblock primary">
+<div class="title">JavaConfig</div>
+<div class="content">
 <div class="listingblock">
 <div class="title">org.terasoluna.batch.functionaltest.config.LaunchContextConfig.java</div>
 <div class="content">
@@ -392,8 +542,11 @@ Spring Batchが提供する<code>ValidatingItemProcessor</code>を使用して�
 }</code></pre>
 </div>
 </div>
-  </div>
-  <div class="tabcontent" name="XMLConfigContent">
+</div>
+</div>
+<div class="exampleblock secondary">
+<div class="title">XMLConfig</div>
+<div class="content">
 <div class="listingblock">
 <div class="title">META-INF/spring/launch-context.xml</div>
 <div class="content">
@@ -404,12 +557,12 @@ Spring Batchが提供する<code>ValidatingItemProcessor</code>を使用して�
       <span class="attribute-name">class</span>=<span class="string"><span class="delimiter">&quot;</span><span class="content">org.springframework.validation.beanvalidation.LocalValidatorFactoryBean</span><span class="delimiter">&quot;</span></span> <span class="tag">/&gt;</span></code></pre>
 </div>
 </div>
-  </div>
+</div>
 </div>
 <div class="paragraph">
 <div class="title">エラーメッセージの設定</div>
 <p>先にも述べたが、エラーメッセージの設定については、
-TERASOLUNA Server 5.x 開発ガイドラインの <a href="https://terasolunaorg.github.io/guideline/5.9.0.RELEASE/ja/ArchitectureInDetail/WebApplicationDetail/Validation.html#validation-message-def">エラーメッセージの定義</a>を参照。</p>
+TERASOLUNA Server 5.x 開発ガイドラインの <a href="https://terasolunaorg.github.io/guideline/5.10.0.RELEASE/ja/ArchitectureInDetail/WebApplicationDetail/Validation.html#validation-message-def">エラーメッセージの定義</a>を参照。</p>
 </div>
 </div>
 <div class="sect2">
@@ -435,7 +588,7 @@ TERASOLUNA Server 5.x 開発ガイドラインの <a href="https://terasolunaorg
 <div class="ulist">
 <ul>
 <li>
-<p>TERASOLUNA Server 5.x 開発ガイドラインの <a href="https://terasolunaorg.github.io/guideline/5.9.0.RELEASE/ja/ArchitectureInDetail/WebApplicationDetail/Validation.html">入力チェック</a> を参照。</p>
+<p>TERASOLUNA Server 5.x 開発ガイドラインの <a href="https://terasolunaorg.github.io/guideline/5.10.0.RELEASE/ja/ArchitectureInDetail/WebApplicationDetail/Validation.html">入力チェック</a> を参照。</p>
 </li>
 </ul>
 </div>
@@ -620,7 +773,7 @@ TERASOLUNA Server 5.x 開発ガイドラインの <a href="https://terasolunaorg
 <p>例外をtry/catchで捕捉し、例外をスローする前に行う。</p>
 </li>
 <li>
-<p>例外をtry/catchで捕捉せず、<code>ItemProcessListener</code>を実装しonProcessErrorメソッドにて行う。</p>
+<p>例外をtry/catchで捕捉せず、<code>ItemProcessListener</code>を実装し<code>onProcessError</code>メソッドにて行う。</p>
 <div class="ulist">
 <ul>
 <li>
@@ -771,12 +924,12 @@ TERASOLUNA Server 5.x 開発ガイドラインの <a href="https://terasolunaorg
 <td class="content">
 <div class="title">ItemProcessListener#onProcessError()使用時の注意点</div>
 <div class="paragraph">
-<p>onProcessErrorメソッドの利用は業務処理と例外ハンドリングを切り離すことができるためソースコードの可読性、保守性の向上等に有用である。<br>
+<p><code>onProcessError</code>メソッドの利用は業務処理と例外ハンドリングを切り離すことができるためソースコードの可読性、保守性の向上等に有用である。<br>
 しかし、上記の例でハンドリング処理を行っている<code>ValidationException</code>以外の例外が発生した場合も同じメソッドが実行されるため注意が必要である。</p>
 </div>
 <div class="paragraph">
 <p><code>ItemProcessor#process()</code>におけるログ出力を例外によって出力し分ける場合は、
-onProcessErrorメソッドにて発生した例外の種類を判定して例外処理を行う必要がある。
+<code>onProcessError</code>メソッドにて発生した例外の種類を判定して例外処理を行う必要がある。
 これが煩雑である場合は、try/catchによるハンドリングにて入力チェックエラーのみを処理し、それ以外はリスナーに移譲するように責務を分担するとよい。</p>
 </div>
 </td>
@@ -889,7 +1042,7 @@ onProcessErrorメソッドにて発生した例外の種類を判定して例外
 <div class="paragraph">
 <p>入力チェックエラーが発生した場合にMessageSourceを使用することで、任意のエラーメッセージを出力することができる。
 エラーメッセージの設定については、TERASOLUNA Server 5.x 開発ガイドラインの
-<a href="https://terasolunaorg.github.io/guideline/5.9.0.RELEASE/ja/ArchitectureInDetail/WebApplicationDetail/Validation.html#validation-message-def">エラーメッセージの定義</a>を参照。
+<a href="https://terasolunaorg.github.io/guideline/5.10.0.RELEASE/ja/ArchitectureInDetail/WebApplicationDetail/Validation.html#validation-message-def">エラーメッセージの定義</a>を参照。
 エラーメッセージを出力する場合は以下の要領で実装する。</p>
 </div>
 <div class="paragraph">
@@ -1161,12 +1314,11 @@ onProcessErrorメソッドにて発生した例外の種類を判定して例外
 </div>
 </div>
 </div>
-<link rel="stylesheet" href="./theme/css/coderay-asciidoctor.css">
 <div class="container">
 
   <div class="common-bg">
     <div class="information">
-      TERASOLUNA Batch Framework for Java (5.x) Development Guideline - version 5.6.0.RELEASE, 2024-3-29, commit-id:1d78d35
+      TERASOLUNA Batch Framework for Java (5.x) Development Guideline - version 5.7.0.RELEASE, 2025-3-31, commit-id:7ba4db3
     </div>
     <div class="index">
       <a href="index.html">&gt; INDEX</a>
@@ -1175,7 +1327,7 @@ onProcessErrorメソッドにて発生した例外の種類を判定して例外
 
   <div class="footer-bg">
     <div class="copyright">
-      &copy; Copyright 2017 NTT DATA Group Corporation. &copy; Copyright 2017 NTT Corporation.
+      &copy; Copyright 2024 NTT DATA Group Corporation. &copy; Copyright 2017 NTT Corporation.
     </div>
   </div>
 

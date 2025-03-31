@@ -4,7 +4,7 @@
 <meta charset="UTF-8">
 <meta http-equiv="X-UA-Compatible" content="IE=edge">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<meta name="generator" content="Asciidoctor 2.0.10">
+<meta name="generator" content="Asciidoctor 2.0.23">
 <title>更新履歴</title>
 <link rel="stylesheet" href="./theme/css/readthedocs.css">
 <link rel="stylesheet" href="./theme/css/font-awesome.min.css">
@@ -14,7 +14,7 @@
 
 <div class="common-bg">
   <div class="information">
-    TERASOLUNA Batch Framework for Java (5.x) Development Guideline - version 5.6.0.RELEASE, 2024-3-29, commit-id:1d78d35
+    TERASOLUNA Batch Framework for Java (5.x) Development Guideline - version 5.7.0.RELEASE, 2025-3-31, commit-id:7ba4db3
   </div>
   <div class="index">
     <a href="index.html">&gt; INDEX</a>
@@ -37,6 +37,155 @@
   ga('create', 'UA-46550814-2', 'auto');
   ga('send', 'pageview');
 </script>
+<style>
+.hidden {
+	display: none;
+}
+
+.switch {
+	border-width: 1px 1px 0 1px;
+	border-style: solid;
+	border-color: #7a2518;
+	display: inline-block;
+}
+
+.switch--item {
+	padding: 10px;
+	background-color: #ffffff;
+	color: #7a2518;
+	display: inline-block;
+	cursor: pointer;
+}
+
+.switch--item:not(:first-child) {
+	border-width: 0 0 0 1px;
+	border-style: solid;
+	border-color: #7a2518;
+}
+
+.switch--item.selected {
+	background-color: #7a2519;
+	color: #ffffff;
+}
+
+</style>
+<script type="text/javascript">
+function addBlockSwitches() {
+	for (var primary of document.querySelectorAll('.primary')) {
+		var switchItem = createSwitchItem(primary, createBlockSwitch(primary));
+		switchItem.item.classList.add("selected");
+		var title = primary.querySelector('.title')
+		title.remove();
+	}
+	for (var secondary of document.querySelectorAll('.secondary')) {
+		var primary = findPrimary(secondary);
+		if (primary === null) {
+			console.error("Found secondary block with no primary sibling");
+		}
+		else {
+			var switchItem = createSwitchItem(secondary, primary.querySelector('.switch'));
+			switchItem.content.classList.add("hidden");
+			primary.append(switchItem.content);
+			secondary.remove();
+		}
+	}
+}
+
+function createElementFromHtml(html) {
+	var template = document.createElement('template');
+    template.innerHTML = html;
+    return template.content.firstChild;
+}
+
+function createBlockSwitch(primary) {
+    var blockSwitch = createElementFromHtml('<div class="switch"></div>');
+    primary.prepend(blockSwitch)
+	return blockSwitch;
+}
+
+function findPrimary(secondary) {
+	var candidate = secondary.previousElementSibling;
+	while (candidate != null && !candidate.classList.contains('primary')) {
+		candidate = candidate.previousElementSibling;
+	}
+	return candidate;
+}
+
+function createSwitchItem(block, blockSwitch) {
+	var blockName = block.querySelector('.title').textContent;
+	var content = block.querySelectorAll('.content').item(0);
+	var colist = nextSibling(block, '.colist');
+	if (colist != null) {
+		content.append(colist);
+	}
+	var item = createElementFromHtml('<div class="switch--item">' + blockName + '</div>');
+	item.dataset.blockName = blockName;
+	content.dataset.blockName = blockName;
+	blockSwitch.append(item);
+	return {'item': item, 'content': content};
+}
+
+function nextSibling(element, selector) {
+	var sibling = element.nextElementSibling;
+	while (sibling) {
+		if (sibling.matches(selector)) {
+			return sibling;
+		}
+		sibling = sibling.nextElementSibling;
+	}
+}
+
+function globalSwitch() {
+	document.querySelectorAll(".switch--item").forEach(function(item) {
+		var blockId = blockIdForSwitchItem(item);
+		var handler = function(event) {
+			selectedText = event.target.textContent;
+			window.localStorage.setItem(blockId, selectedText);
+			for (var switchItem of document.querySelectorAll(".switch--item")) {
+				if (blockIdForSwitchItem(switchItem) === blockId && switchItem.textContent === selectedText) {
+					select(switchItem);
+				}
+			}
+		}
+		item.addEventListener("click", handler);
+		if (item.textContent === window.localStorage.getItem(blockId)) {
+			select(item);
+		}
+	});
+}
+
+function select(selected) {
+	for (var child of selected.parentNode.children) {
+		child.classList.remove("selected");
+	}
+	selected.classList.add("selected");
+	for (var child of selected.parentNode.parentNode.children) {
+		if (child.classList.contains("content")) {
+			if (selected.dataset.blockName === child.dataset.blockName) {
+				child.classList.remove("hidden");
+			}
+			else {
+				child.classList.add("hidden");
+			}
+		}
+	}	
+}
+
+function blockIdForSwitchItem(item) {
+	idComponents = []
+	for (var switchItem of item.parentNode.querySelectorAll(".switch--item")) {
+		idComponents.push(switchItem.textContent.toLowerCase());
+	}
+	return idComponents.sort().join("-")
+}
+
+window.onload = function() {
+	addBlockSwitches();
+	globalSwitch();
+};
+
+</script>
+
 </head>
 <body id="Ch01_ChangeLog" class="book">
 <div id="header">
@@ -59,6 +208,155 @@
 </tr>
 </thead>
 <tbody>
+<tr>
+<td class="tableblock halign-left valign-top"><p class="tableblock">2025-3-31</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">-</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">5.7.0.RELEASE 版公開</p></td>
+</tr>
+<tr>
+<td class="tableblock halign-left valign-top"></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">全般</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">記載内容の修正<br>
+・TERASOLUNA Batch Framework for Java (5.x)のバージョン表記を5.7.0.RELEASEに変更<br>
+・ガイドラインの誤記(タイプミスや単純な記述ミスなど)や表記揺れの修正<br>
+・JavaConfigとXMLConfigのタブが一括で切り替わるように修正<br>
+・TERASOLUNA Server 5.x 開発ガイドラインへのリンクを修正<br>
+記載内容の削除<br>
+<code>@PropertySource</code>アノテーションをコード例から削除</p></td>
+</tr>
+<tr>
+<td class="tableblock halign-left valign-top"></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><a href="Ch02_TerasolunaBatchStack.html#Ch02_TerasolunaBatchStack">TERASOLUNA Batch Framework for Java (5.x)のスタック</a></p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">記載内容の修正<br>
+・利用するOSSのバージョン一覧をSpring Boot Dependencies 3.4.1に準じて更新<br>
+・<code>org.glassfish.jakarta.el</code>から<code>org.apache.tomcat.embed.tomcat-embed-el</code>に変更<br>
+・<code>org.glassfish.jaxb.jaxb-core</code>と<code>org.glassfish.jaxb.jaxb-runtime</code>から<code>com.sun.xml.bind.jaxb-impl</code>に変更<br>
+記載内容の追加<br>
+・OSSバージョン一覧に一次情報のリンクを追加</p></td>
+</tr>
+<tr>
+<td class="tableblock halign-left valign-top"></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><a href="Ch02_SpringBatchArchitecture.html#Ch02_SpringBatchArch_Arch_MetadataSchema">JobRepositoryのメタデータスキーマ</a></p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">記載内容の修正<br>
+・Spring BatchメタデータテーブルのER図を修正</p></td>
+</tr>
+<tr>
+<td class="tableblock halign-left valign-top"></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><a href="Ch03_CreateProject.html#Ch03_CreateProject">バッチアプリケーションの開発</a></p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">記載内容の修正<br>
+・<code>jobOperator</code>が非推奨となったことに伴い、コード例を修正<br>
+・<code>setMaxWaitMillis</code>メソッドが非推奨になったため、かわりに<code>setMaxWait</code>メソッドを使用するコード例に修正<br>
+・JavaConfigでのBeanのインジェクション時の注意事項を修正<br>
+記載内容の追加<br>
+・<code>@Qualifier</code>アノテーションについての説明を追加</p></td>
+</tr>
+<tr>
+<td class="tableblock halign-left valign-top"></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><a href="Ch03_CreateChunkJob.html#Ch03_CreateChunkJob">チャンクモデルジョブの作成</a></p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">記載内容の修正<br>
+・<code>PassThroughItemProcessor</code>の省略ついての説明を修正</p></td>
+</tr>
+<tr>
+<td class="tableblock halign-left valign-top"></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><a href="Ch04_JobParameter.html#Ch04_JobParameter">ジョブの起動パラメータ</a></p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">記載内容の修正<br>
+・<code>jobOperator</code>が非推奨となったことに伴い、コード例を修正<br>
+記載内容の削除<br>
+・バリデーション定義例からユーザにとって必要がない<code>jsr_batch_run_id</code>の必須チェックを削除<br>
+・TERASOLUNA Batch 5.xでは省略できない必須パラメータについての説明を削除</p></td>
+</tr>
+<tr>
+<td class="tableblock halign-left valign-top"></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><a href="Ch04_AsyncJobWithDB.html#Ch04_AsyncJobWithDB">非同期実行(DBポーリング)</a></p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">記載内容の修正<br>
+・JavaConfigでの非同期バッチデーモンの起動についての説明を修正<br>
+記載内容の追加<br>
+・第一引数を省略した場合のBean定義ファイルパスについての説明を追加<br>
+記載内容の削除<br>
+・<code>PropertySourcesPlaceholderConfigurer</code>についての説明を削除</p></td>
+</tr>
+<tr>
+<td class="tableblock halign-left valign-top"></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><a href="Ch04_AsyncJobWithWebContainer.html#Ch04_AsyncJobWithWeb">非同期実行(Webコンテナ)</a></p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">記載内容の追加<br>
+ ・<code>configureMessageConverters</code>のコード例を追加<br>
+ ・<code>configureMessageConverters/&lt;mvc:message-converters&gt;タグ</code>に対する説明を追加<br>
+記載内容の削除<br>
+・<code>PropertySourcesPlaceholderConfigurer</code>をコード例から削除</p></td>
+</tr>
+<tr>
+<td class="tableblock halign-left valign-top"></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><a href="Ch04_Listener.html#Ch04_Listener_HowToUse_Impl">リスナーの実装</a></p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">記載内容の修正<br>
+・タスクレットモデルのアノテーションによるリスナー実装についての説明を修正<br>
+・タスクレットモデル実装時のリスナーについての注意点を修正</p></td>
+</tr>
+<tr>
+<td class="tableblock halign-left valign-top"></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><a href="Ch05_Transaction.html#Ch05_Transaction">トランザクション制御</a></p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">記載内容の削除<br>
+・Best Efforts 1PCパターンによる実現手段を推奨する旨を削除<br>
+・<code>setMaxWaitMillis</code>メソッドが非推奨になったため、かわりに<code>setMaxWait</code>メソッドを使用するコード例に修正</p></td>
+</tr>
+<tr>
+<td class="tableblock halign-left valign-top"></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><a href="Ch05_DBAccess.html#Ch05_DBAccess">データベースアクセス</a></p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">記載内容の修正<br>
+・<code>executorType</code>についての説明を修正<br>
+・MyBatis-Springの設定についての説明を修正<br>
+・<code>setMaxWaitMillis</code>メソッドが非推奨になったため、かわりに<code>setMaxWait</code>メソッドを使用するコード例に修正</p></td>
+</tr>
+<tr>
+<td class="tableblock halign-left valign-top"></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><a href="Ch05_FileAccess.html#Ch05_FileAccess">ファイルアクセス</a></p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">記載内容の修正<br>
+・<code>shouldDeleteIfExists</code>と<code>shouldDeleteIfEmpty</code>についての説明を修正<br>
+・<code>FieldSetMapper</code>の実装例を、和暦フォーマットの入力ファイルから西暦フォーマットの入力ファイルに修正<br>
+・<code>StaxEventItemWriter</code>のコード例を修正<br>
+・<code>Jaxb2Marshaller</code>の説明を修正<br>
+・入力ファイル読み込み時のBean定義例を修正<br>
+・<code>EnclosableDelimitedLineAggregator</code>についての説明を修正<br>
+・JAXBを利用する場合に利用するライブラリを修正<br>
+記載内容の削除<br>
+・<code>adminDataSource</code>を利用した<code>SqlSessionFactory</code>の定義箇所についての説明を削除<br>
+・<code>MyBatisCursorItemReader</code>設定の補足を削除<br>
+・Spring Batchのバージョンアップに伴うエンコーディングの仕様変更についての説明を削除<br>
+・XMLファイル出力時のフォーマット処理(改行およびインデント)についての記載を削除<br>
+・区切り文字設定例を削除<br>
+・<code>FlatFileItemReaderBuilder</code>クラスでの<code>name</code>メソッドの使用について説明している箇所を修正</p></td>
+</tr>
+<tr>
+<td class="tableblock halign-left valign-top"></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><a href="Ch07_JobManagement.html#Ch07_JobManagement">ジョブの管理</a></p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">記載内容の削除<br>
+・Spring Batchのバージョンアップによる<code>JobRepository</code>の性能問題の修正についての説明を削除</p></td>
+</tr>
+<tr>
+<td class="tableblock halign-left valign-top"></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><a href="Ch08_FlowControll.html#Ch08_FlowControll">フロー制御</a></p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">記載内容の修正<br>
+・Flow/&lt;batch:flow&gt;によるフロー定義方法の記載箇所を修正<br>
+記載内容の削除<br>
+・&lt;batch:stop&gt;でexit-codeに空文字列を指定する記載を削除</p></td>
+</tr>
+<tr>
+<td class="tableblock halign-left valign-top"></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><a href="Ch09_Introduction.html#Ch09_Introduction_Environment">チュートリアル</a></p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">記載内容の修正<br>
+・検証環境のバージョンを更新  <br></p></td>
+</tr>
+<tr>
+<td class="tableblock halign-left valign-top"></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><a href="Ch09_ValidationJob.html#Ch09_Impl_single_index">バッチジョブの実装</a></p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">記載内容の削除<br>
+・Hibernate Validatorの設定についての記載が重複していたため削除</p></td>
+</tr>
+<tr>
+<td class="tableblock halign-left valign-top"></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><a href="Ch09_AsyncExecutionJob.html#Ch09_Impl_AsyncExecutionJob_StartAsyncBatchDaemon">非同期バッチデーモンを起動</a></p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">記載内容の修正<br>
+・Run Configurationsで設定する値の表にProgram arguments(Arguments)の項目を追加</p></td>
+</tr>
 <tr>
 <td class="tableblock halign-left valign-top"><p class="tableblock">2024-3-29</p></td>
 <td class="tableblock halign-left valign-top"><p class="tableblock">-</p></td>
@@ -124,7 +422,7 @@
 <td class="tableblock halign-left valign-top"></td>
 <td class="tableblock halign-left valign-top"><p class="tableblock"><a href="Ch04_AsyncJobWithWebContainer.html#Ch04_AsyncJobWithWeb">非同期実行(Webコンテナ)</a></p></td>
 <td class="tableblock halign-left valign-top"><p class="tableblock">記載内容の修正<br>
-・<code>SimpleJobOperator.start(String jobName, String parameters)</code>メソッドが非推奨なったため、かわりに<code>SimpleJobOperator.start(String jobName, Properties parameters)</code>メソッドを使用するコード例に修正<br>
+・<code>SimpleJobOperator.start(String jobName, String parameters)</code>メソッドが非推奨になったため、かわりに<code>SimpleJobOperator.start(String jobName, Properties parameters)</code>メソッドを使用するコード例に修正<br>
 ・web.xmlの記述例の修正、REST Clientによるジョブの起動と実行結果確認の修正<br>
 記載内容の削除<br>
 ・ジョブ起動時に渡されるジョブパラメータについてを削除</p></td>
@@ -157,9 +455,9 @@
 <td class="tableblock halign-left valign-top"><p class="tableblock">全般</p></td>
 <td class="tableblock halign-left valign-top"><p class="tableblock">記載内容の修正<br>
 ・TERASOLUNA Batch Framework for Java (5.x)のバージョン表記を5.5.0.RELEASEに変更<br>
-・Spring Framework 6.1.3のJakarta EE 9対応に伴い、実装例のパッケージ名をjavax.xxxからjakarta.xxxに修正<br>
-・Spring Framework 6.1.3のベースラインJDKバージョンが17となったことに伴い、JDKバージョンを17に更新（あわせて、以前のバージョンである8、11を削除）<br>
-・Spring boot dependencies 3.0.1となったことに伴い、writeメソッドの引数をList型からChunk型に修正<br>
+・Spring Framework 6 のJakarta EE 9対応に伴い、実装例のパッケージ名をjavax.xxxからjakarta.xxxに修正<br>
+・Spring Framework 6 のベースラインJDKバージョンが17となったことに伴い、JDKバージョンを17に更新（あわせて、以前のバージョンである8、11を削除）<br>
+・Spring boot dependencies 3.0.1となったことに伴い、<code>write</code>メソッドの引数をList型からChunk型に修正<br>
 ・JavaConfigに関するコード例、説明を追加し、タブを用いてXMLConfigの説明と併記<br>
 ・ガイドラインの誤記(タイプミスや単純な記述ミスなど)や表記揺れの修正<br>
 ・チュートリアルで使用した、DBeaverをH2 Consoleに変更</p></td>
@@ -263,8 +561,8 @@
 <td class="tableblock halign-left valign-top"><p class="tableblock"><a href="Ch05_DBAccess.html#Ch05_DBAccess">データベースアクセス</a></p></td>
 <td class="tableblock halign-left valign-top"><p class="tableblock">記載内容の修正<br>
 ・MyBatisBatchItemWriterをチャンクモデルで利用する実装例と説明を修正 (管理ID#281)<br>
-・MyBatisCursorItemReaderで利用されるMapperインタフェースのメソッドの戻り値を修正 (管理ID#257)<br>
-・「出力」の目次において「Mapperインタフェースのチャンクモデルでの利用方法」へのリンクを削除し、説明を修正 (管理ID#340)</p></td>
+・MyBatisCursorItemReaderで利用される<code>Mapper</code>インタフェースのメソッドの戻り値を修正 (管理ID#257)<br>
+・「出力」の目次において「<code>Mapper</code>インタフェースのチャンクモデルでの利用方法」へのリンクを削除し、説明を修正 (管理ID#340)</p></td>
 </tr>
 <tr>
 <td class="tableblock halign-left valign-top"></td>
@@ -540,9 +838,9 @@
 <td class="tableblock halign-left valign-top"></td>
 <td class="tableblock halign-left valign-top"><p class="tableblock"><a href="Ch05_DBAccess.html#Ch05_DBAccess">データベースアクセス</a></p></td>
 <td class="tableblock halign-left valign-top"><p class="tableblock">記載内容の修正<br>
-・実装例のコードで、Mapperインタフェースのメソッドの戻り値の型をCursorに変更 (管理ID#617)<br>
+・実装例のコードで、<code>Mapper</code>インタフェースのメソッドの戻り値の型をCursorに変更 (管理ID#617)<br>
 ・大量データ処理を意識して、タスクレットモデルの実装例をCursorを利用した実装例に変更 (管理ID#517)<br>
-・「ItemProcessorでの制約」、「Taskletでの制約」は出力に関する制約のため、「Mapperインターフェース(入力) 」から転記 (管理ID#535)</p>
+・「ItemProcessorでの制約」、「Taskletでの制約」は出力に関する制約のため、「<code>Mapper</code>インタフェース(入力) 」から転記 (管理ID#535)</p>
 <p class="tableblock">記載内容の追加<br>
 ・JobRepositoryのトランザクションに関する注釈を追加 (管理ID#618)<br>
 ・MyBatisCursorItemReaderのトランザクションについての注釈を追加 (管理ID#616)</p>
@@ -589,7 +887,7 @@
 <td class="tableblock halign-left valign-top"></td>
 <td class="tableblock halign-left valign-top"><p class="tableblock"><a href="Ch09_DBAccessJob.html#Ch09_Impl_DBAccessJob">データベースアクセスでデータ入出力を行うジョブ</a></p></td>
 <td class="tableblock halign-left valign-top"><p class="tableblock">記載内容の修正<br>
-・Mapperインタフェースの実装例について、Cursorを利用するように修正 (管理ID#793)</p></td>
+・<code>Mapper</code>インタフェースの実装例について、Cursorを利用するように修正 (管理ID#793)</p></td>
 </tr>
 <tr>
 <td class="tableblock halign-left valign-top"><p class="tableblock">2018-3-16</p></td>
@@ -820,7 +1118,7 @@
 
   <div class="common-bg">
     <div class="information">
-      TERASOLUNA Batch Framework for Java (5.x) Development Guideline - version 5.6.0.RELEASE, 2024-3-29, commit-id:1d78d35
+      TERASOLUNA Batch Framework for Java (5.x) Development Guideline - version 5.7.0.RELEASE, 2025-3-31, commit-id:7ba4db3
     </div>
     <div class="index">
       <a href="index.html">&gt; INDEX</a>
@@ -829,7 +1127,7 @@
 
   <div class="footer-bg">
     <div class="copyright">
-      &copy; Copyright 2017 NTT DATA Group Corporation. &copy; Copyright 2017 NTT Corporation.
+      &copy; Copyright 2024 NTT DATA Group Corporation. &copy; Copyright 2017 NTT Corporation.
     </div>
   </div>
 
