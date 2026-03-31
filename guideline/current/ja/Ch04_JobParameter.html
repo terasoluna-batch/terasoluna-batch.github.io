@@ -15,7 +15,7 @@
 
 <div class="common-bg">
   <div class="information">
-    TERASOLUNA Batch Framework for Java (5.x) Development Guideline - version 5.7.0.RELEASE, 2025-3-31, commit-id:7ba4db3
+    TERASOLUNA Batch Framework for Java (5.x) Development Guideline - version 5.8.0.RELEASE, 2026-3-31, commit-id:f8c098e
   </div>
   <div class="index">
     <a href="index.html">&gt; INDEX</a>
@@ -374,13 +374,13 @@ window.onload = function() {
 <div class="content">
 <pre class="CodeRay highlight"><code data-lang="java"><span class="annotation">@Override</span>
 <span class="annotation">@Bean</span>
-<span class="directive">public</span> JobOperator jobOperator(JobRepository jobRepository, JobExplorer jobExplorer, JobRegistry jobRegistry, JobLauncher jobLauncher) <span class="directive">throws</span> BatchConfigurationException {
+<span class="directive">public</span> JobOperator jobOperator(JobRepository jobRepository) <span class="directive">throws</span> BatchConfigurationException {
     JobOperatorFactoryBean jobOperatorFactoryBean = <span class="keyword">new</span> JobOperatorFactoryBean();
     jobOperatorFactoryBean.setTransactionManager(<span class="local-variable">this</span>.getTransactionManager());
     jobOperatorFactoryBean.setJobRepository(jobRepository);
-    jobOperatorFactoryBean.setJobExplorer(jobExplorer);
-    jobOperatorFactoryBean.setJobRegistry(jobRegistry);
-    jobOperatorFactoryBean.setJobLauncher(jobLauncher);
+    jobOperatorFactoryBean.setJobRegistry(jobRegistry());
+    jobOperatorFactoryBean.setTaskExecutor(taskExecutor());
+    jobOperatorFactoryBean.setObservationRegistry(getObservationRegistry());
     JobParametersConverterImpl jobParametersConverter = <span class="keyword">new</span> JobParametersConverterImpl(
             getDataSource());
     jobOperatorFactoryBean.setJobParametersConverter(
@@ -413,12 +413,11 @@ window.onload = function() {
       <span class="attribute-name">c:dataSource-ref</span>=<span class="string"><span class="delimiter">&quot;</span><span class="content">adminDataSource</span><span class="delimiter">&quot;</span></span> <span class="tag">/&gt;</span>
 
 <span class="tag">&lt;bean</span> <span class="attribute-name">id</span>=<span class="string"><span class="delimiter">&quot;</span><span class="content">jobOperator</span><span class="delimiter">&quot;</span></span>
-      <span class="attribute-name">class</span>=<span class="string"><span class="delimiter">&quot;</span><span class="content">org.springframework.batch.core.launch.support.SimpleJobOperator</span><span class="delimiter">&quot;</span></span>
+      <span class="attribute-name">class</span>=<span class="string"><span class="delimiter">&quot;</span><span class="content">org.springframework.batch.core.launch.support.TaskExecutorJobOperator</span><span class="delimiter">&quot;</span></span>
       <span class="attribute-name">p:jobRepository-ref</span>=<span class="string"><span class="delimiter">&quot;</span><span class="content">jobRepository</span><span class="delimiter">&quot;</span></span>
       <span class="attribute-name">p:jobRegistry-ref</span>=<span class="string"><span class="delimiter">&quot;</span><span class="content">jobRegistry</span><span class="delimiter">&quot;</span></span>
-      <span class="attribute-name">p:jobExplorer-ref</span>=<span class="string"><span class="delimiter">&quot;</span><span class="content">jobExplorer</span><span class="delimiter">&quot;</span></span>
       <span class="attribute-name">p:jobParametersConverter-ref</span>=<span class="string"><span class="delimiter">&quot;</span><span class="content">jobParametersConverter</span><span class="delimiter">&quot;</span></span> <span class="error">&lt;</span><span class="error">!</span><span class="attribute-name">--</span> <span class="error">(</span><span class="attribute-name">1</span><span class="error">)</span> <span class="attribute-name">--</span><span class="tag">&gt;</span>
-      p:jobLauncher-ref=&quot;jobLauncher&quot; /<span class="error">&gt;</span></code></pre>
+      p:taskExecutor-ref=&quot;taskExecutor&quot; /<span class="error">&gt;</span></code></pre>
 </div>
 </div>
 </div>
@@ -444,6 +443,9 @@ JavaConfigでは<code>JobOperator</code>の<code>JobParametersConverter</code>�
 </tbody>
 </table>
 <div class="paragraph">
+<p><code>JobOperatorFactoryBean#setJobParametersConverter()</code>は現在非推奨となっているが、TERASOLUNA Batch 5.xでの利用方針については<a href="#Ch03_CreateProject_Appendix_TerasolunaBatchConfiguration_DeprecatedJobParametersConverter">非推奨であるJobOperatorFactoryBean#setJobParametersConverter()を利用する理由</a>を参照されたい。</p>
+</div>
+<div class="paragraph">
 <p>以降は<code>JobParametersConverterImpl</code>を利用する前提で説明する。</p>
 </div>
 </div>
@@ -461,6 +463,9 @@ JavaConfigでは<code>JobOperator</code>の<code>JobParametersConverter</code>�
 しかし、OSにはコマンド引数の長さに制限がある。<br>
 そのため、あまりに大量の引数が必要な場合は、<a href="#Ch04_JobParameter_HowToUse_FromFile">ファイルから標準入力へリダイレクトする</a>や
 <a href="#Ch04_JobParameter_HowToExtend_PropertyConbination">パラメータとプロパティの併用</a>などの方法を活用すること。</p>
+</div>
+<div class="paragraph">
+<p><code>CommandLineJobRunner</code>は現在非推奨となっているが、TERASOLUNA Batch 5.xでの利用方針については<a href="Ch02_TerasolunaBatchStack.html#Ch02_SpringBatchArch_Overview_HelloWorld_DeprecatedCommandLineJobRunner">非推奨であるCommandLineJobRunnerを利用する理由</a>を参照されたい。</p>
 </div>
 <div class="exampleblock primary">
 <div class="title">JavaConfig</div>
@@ -639,11 +644,11 @@ Bean定義に対する<code>Step</code>スコープの定義方法を以下に�
 <div class="content">
 <pre class="CodeRay highlight"><code data-lang="xml"><span class="comment">&lt;!-- (1) --&gt;</span>
 <span class="tag">&lt;bean</span> <span class="attribute-name">id</span>=<span class="string"><span class="delimiter">&quot;</span><span class="content">reader</span><span class="delimiter">&quot;</span></span>
-      <span class="attribute-name">class</span>=<span class="string"><span class="delimiter">&quot;</span><span class="content">org.springframework.batch.item.file.FlatFileItemReader</span><span class="delimiter">&quot;</span></span> <span class="attribute-name">scope</span>=<span class="string"><span class="delimiter">&quot;</span><span class="content">step</span><span class="delimiter">&quot;</span></span>
+      <span class="attribute-name">class</span>=<span class="string"><span class="delimiter">&quot;</span><span class="content">org.springframework.batch.infrastructure.item.file.FlatFileItemReader</span><span class="delimiter">&quot;</span></span> <span class="attribute-name">scope</span>=<span class="string"><span class="delimiter">&quot;</span><span class="content">step</span><span class="delimiter">&quot;</span></span>
       <span class="attribute-name">p:resource</span>=<span class="string"><span class="delimiter">&quot;</span><span class="content">file:#{jobParameters['inputFile']}</span><span class="delimiter">&quot;</span></span><span class="tag">&gt;</span>  <span class="comment">&lt;!-- (2) --&gt;</span>
-    <span class="tag">&lt;property</span> <span class="attribute-name">name</span>=<span class="string"><span class="delimiter">&quot;</span><span class="content">lineMapper</span><span class="delimiter">&quot;</span></span><span class="tag">&gt;</span>
+    <span class="tag">&lt;constructor-arg&gt;</span>
         <span class="comment">&lt;!-- omitted settings --&gt;</span>
-    <span class="tag">&lt;/property&gt;</span>
+    <span class="tag">&lt;/constructor-arg&gt;</span>
 <span class="tag">&lt;/bean&gt;</span></code></pre>
 </div>
 </div>
@@ -812,11 +817,11 @@ $ java org.springframework.batch.core.launch.support.CommandLineJobRunner \
 <div class="content">
 <pre class="CodeRay highlight"><code data-lang="xml"><span class="comment">&lt;!-- (1) --&gt;</span>
 <span class="tag">&lt;bean</span> <span class="attribute-name">id</span>=<span class="string"><span class="delimiter">&quot;</span><span class="content">reader</span><span class="delimiter">&quot;</span></span>
-      <span class="attribute-name">class</span>=<span class="string"><span class="delimiter">&quot;</span><span class="content">org.springframework.batch.item.file.FlatFileItemReader</span><span class="delimiter">&quot;</span></span> <span class="attribute-name">scope</span>=<span class="string"><span class="delimiter">&quot;</span><span class="content">step</span><span class="delimiter">&quot;</span></span>
+      <span class="attribute-name">class</span>=<span class="string"><span class="delimiter">&quot;</span><span class="content">org.springframework.batch.infrastructure.item.file.FlatFileItemReader</span><span class="delimiter">&quot;</span></span> <span class="attribute-name">scope</span>=<span class="string"><span class="delimiter">&quot;</span><span class="content">step</span><span class="delimiter">&quot;</span></span>
       <span class="attribute-name">p:resource</span>=<span class="string"><span class="delimiter">&quot;</span><span class="content">file:#{jobParameters['inputFile'] ?: '/input/sample.csv'}</span><span class="delimiter">&quot;</span></span><span class="tag">&gt;</span>  <span class="comment">&lt;!-- (2) --&gt;</span>
-    <span class="tag">&lt;property</span> <span class="attribute-name">name</span>=<span class="string"><span class="delimiter">&quot;</span><span class="content">lineMapper</span><span class="delimiter">&quot;</span></span><span class="tag">&gt;</span>
+    <span class="tag">&lt;constructor-arg&gt;</span>
         <span class="comment">&lt;!-- omitted settings --&gt;</span>
-    <span class="tag">&lt;/property&gt;</span>
+    <span class="tag">&lt;/constructor-arg&gt;</span>
 <span class="tag">&lt;/bean&gt;</span></code></pre>
 </div>
 </div>
@@ -1019,8 +1024,7 @@ $ java org.springframework.batch.core.launch.support.CommandLineJobRunner \
     <span class="directive">public</span> Job jobDefaultJobParametersValidator(JobRepository jobRepository,
                                        Step step01,
                                        DefaultJobParametersValidator jobParametersValidator) {
-        <span class="keyword">return</span> <span class="keyword">new</span> JobBuilder(<span class="string"><span class="delimiter">&quot;</span><span class="content">jobDefaultJobParametersValidator</span><span class="delimiter">&quot;</span></span>,
-                jobRepository)
+        <span class="keyword">return</span> <span class="keyword">new</span> JobBuilder(jobRepository)
                 .start(step01)
                 .validator(jobParametersValidator) <span class="comment">// (4)</span>
                 .build();
@@ -1039,7 +1043,7 @@ $ java org.springframework.batch.core.launch.support.CommandLineJobRunner \
 <div class="content">
 <pre class="CodeRay highlight"><code data-lang="xml"><span class="comment">&lt;!-- (1) --&gt;</span>
 <span class="tag">&lt;bean</span> <span class="attribute-name">id</span>=<span class="string"><span class="delimiter">&quot;</span><span class="content">jobParametersValidator</span><span class="delimiter">&quot;</span></span>
-      <span class="attribute-name">class</span>=<span class="string"><span class="delimiter">&quot;</span><span class="content">org.springframework.batch.core.job.DefaultJobParametersValidator</span><span class="delimiter">&quot;</span></span><span class="tag">&gt;</span>
+      <span class="attribute-name">class</span>=<span class="string"><span class="delimiter">&quot;</span><span class="content">org.springframework.batch.core.job.parameters.DefaultJobParametersValidator</span><span class="delimiter">&quot;</span></span><span class="tag">&gt;</span>
   <span class="tag">&lt;property</span> <span class="attribute-name">name</span>=<span class="string"><span class="delimiter">&quot;</span><span class="content">requiredKeys</span><span class="delimiter">&quot;</span></span><span class="tag">&gt;</span>  <span class="comment">&lt;!-- (2) --&gt;</span>
     <span class="tag">&lt;list&gt;</span>
         <span class="tag">&lt;value&gt;</span>inputFileName<span class="tag">&lt;/value&gt;</span>
@@ -1124,7 +1128,7 @@ $ java org.springframework.batch.core.launch.support.CommandLineJobRunner \
 <div class="title">DefaultJobParametersValidator定義例</div>
 <div class="content">
 <pre class="CodeRay highlight"><code data-lang="xml"><span class="tag">&lt;bean</span> <span class="attribute-name">id</span>=<span class="string"><span class="delimiter">&quot;</span><span class="content">jobParametersValidator</span><span class="delimiter">&quot;</span></span>
-    <span class="attribute-name">class</span>=<span class="string"><span class="delimiter">&quot;</span><span class="content">org.springframework.batch.core.job.DefaultJobParametersValidator</span><span class="delimiter">&quot;</span></span>
+    <span class="attribute-name">class</span>=<span class="string"><span class="delimiter">&quot;</span><span class="content">org.springframework.batch.core.job.parameters.DefaultJobParametersValidator</span><span class="delimiter">&quot;</span></span>
     <span class="attribute-name">p:requiredKeys</span>=<span class="string"><span class="delimiter">&quot;</span><span class="content">outputFileName</span><span class="delimiter">&quot;</span></span>
     <span class="attribute-name">p:optionalKeys</span>=<span class="string"><span class="delimiter">&quot;</span><span class="content">param1</span><span class="delimiter">&quot;</span></span><span class="tag">/&gt;</span></code></pre>
 </div>
@@ -1274,7 +1278,7 @@ $ java org.springframework.batch.core.launch.support.CommandLineJobRunner \
 <p>検証の結果がOKである場合には、何もする必要はない</p>
 </li>
 <li>
-<p>検証の結果がNGである場合には、<code>JobParametersInvalidException</code>をスローする</p>
+<p>検証の結果がNGである場合には、<code>InvalidJobParametersException</code>をスローする</p>
 </li>
 </ul>
 </div>
@@ -1293,14 +1297,13 @@ $ java org.springframework.batch.core.launch.support.CommandLineJobRunner \
 <div class="content">
 <pre class="CodeRay highlight"><code data-lang="java"><span class="directive">public</span> <span class="type">class</span> <span class="class">ComplexJobParametersValidator</span> <span class="directive">implements</span> JobParametersValidator {  <span class="comment">// (1)</span>
     <span class="annotation">@Override</span>
-    <span class="directive">public</span> <span class="type">void</span> validate(JobParameters parameters) <span class="directive">throws</span> JobParametersInvalidException {
-        <span class="predefined-type">Map</span>&lt;<span class="predefined-type">String</span>, JobParameter&gt; params = parameters.getParameters();  <span class="comment">// (2)</span>
+    <span class="directive">public</span> <span class="type">void</span> validate(JobParameters parameters) <span class="directive">throws</span> InvalidJobParametersException {  <span class="comment">// (2)</span>
 
-        <span class="predefined-type">String</span> str = params.get(<span class="string"><span class="delimiter">&quot;</span><span class="content">str</span><span class="delimiter">&quot;</span></span>).getValue().toString();  <span class="comment">// (3)</span>
-        <span class="type">int</span> num = <span class="predefined-type">Integer</span>.parseInt(params.get(<span class="string"><span class="delimiter">&quot;</span><span class="content">num</span><span class="delimiter">&quot;</span></span>).getValue().toString()); <span class="comment">// (4)</span>
+        <span class="predefined-type">String</span> str = parameters.getString(<span class="string"><span class="delimiter">&quot;</span><span class="content">str</span><span class="delimiter">&quot;</span></span>);  <span class="comment">// (3)</span>
+        <span class="type">int</span> num = <span class="predefined-type">Integer</span>.parseInt(parameters.getString(<span class="string"><span class="delimiter">&quot;</span><span class="content">num</span><span class="delimiter">&quot;</span></span>)); <span class="comment">// (4)</span>
 
         <span class="keyword">if</span>(str.length() &gt; num){
-            <span class="keyword">throw</span> <span class="keyword">new</span> JobParametersInvalidException(
+            <span class="keyword">throw</span> <span class="keyword">new</span> InvalidJobParametersException(
             <span class="string"><span class="delimiter">&quot;</span><span class="content">The str must be less than or equal to num. [str:</span><span class="delimiter">&quot;</span></span>
                     + str + <span class="string"><span class="delimiter">&quot;</span><span class="content">][num:</span><span class="delimiter">&quot;</span></span> + num + <span class="string"><span class="delimiter">&quot;</span><span class="content">]</span><span class="delimiter">&quot;</span></span>);  <span class="comment">// (5)</span>
         }
@@ -1327,8 +1330,8 @@ $ java org.springframework.batch.core.launch.support.CommandLineJobRunner \
 </tr>
 <tr>
 <td class="tableblock halign-left valign-top"><p class="tableblock">(2)</p></td>
-<td class="tableblock halign-left valign-top"><p class="tableblock">パラメータは<code>JobParameters</code>型で引数として受ける。<br>
-<code>parameters.getParameters()</code>とすることで、Map形式で取得することでパラメータの参照が容易になる。</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">妥当性の検証対象となる <code>JobParameters</code> を引数から受け取る。 <br>
+パラメータの値はkeyを指定することで取り出すことができる。</p></td>
 </tr>
 <tr>
 <td class="tableblock halign-left valign-top"><p class="tableblock">(3)</p></td>
@@ -1363,8 +1366,7 @@ $ java org.springframework.batch.core.launch.support.CommandLineJobRunner \
 <span class="directive">public</span> Job jobDefaultJobParametersValidator(JobRepository jobRepository,
                                    Step step01,
                                    DefaultJobParametersValidator jobParametersValidator) {
-    <span class="keyword">return</span> <span class="keyword">new</span> JobBuilder(<span class="string"><span class="delimiter">&quot;</span><span class="content">jobDefaultJobParametersValidator</span><span class="delimiter">&quot;</span></span>,
-            jobRepository)
+    <span class="keyword">return</span> <span class="keyword">new</span> JobBuilder(jobRepository)
             .start(step01)
             .validator(jobParametersValidator) <span class="comment">// (1)</span>
             .build();
@@ -1473,7 +1475,7 @@ $ java org.springframework.batch.core.launch.support.CommandLineJobRunner \
 <p>Spring BatchのベースであるSpring Frameworkには、プロパティ管理の機能が備わっており、
 環境変数やプロパティファイルに設定した値を扱うことができる。
 詳細は、TERASOLUNA Server 5.x 開発ガイドラインの
-<a href="https://terasolunaorg.github.io/guideline/5.10.0.RELEASE/ja/ArchitectureInDetail/GeneralFuncDetail/PropertyManagement.html">プロパティ管理</a> を参照。</p>
+<a href="https://terasolunaorg.github.io/guideline/5.11.0.RELEASE/ja/ArchitectureInDetail/GeneralFuncDetail/PropertyManagement.html">プロパティ管理</a> を参照。</p>
 </div>
 <div class="paragraph">
 <p>プロパティとパラメータを組み合わせることで、大部分のジョブに共通的な設定をプロパティファイルに行ったうえで、一部をパラメータで上書きするといったことが可能になる。</p>
@@ -1573,6 +1575,9 @@ $ java org.springframework.batch.core.launch.support.CommandLineJobRunner \
     com.example.batch.jobs.JobDefinedConfig.JobDefinedConfig JOBID param3=ccc outputFile=/tmp/result.csv</code></pre>
 </div>
 </div>
+<div class="paragraph">
+<p><code>CommandLineJobRunner</code>は現在非推奨となっているが、TERASOLUNA Batch 5.xでの利用方針については<a href="Ch02_TerasolunaBatchStack.html#Ch02_SpringBatchArch_Overview_HelloWorld_DeprecatedCommandLineJobRunner">非推奨であるCommandLineJobRunnerを利用する理由</a>を参照されたい。</p>
+</div>
 </div>
 </div>
 <div class="exampleblock secondary">
@@ -1589,6 +1594,9 @@ $ # Execute job
 $ java org.springframework.batch.core.launch.support.CommandLineJobRunner \
     JobDefined.xml JOBID param3=ccc outputFile=/tmp/result.csv</code></pre>
 </div>
+</div>
+<div class="paragraph">
+<p><code>CommandLineJobRunner</code>は現在非推奨となっているが、TERASOLUNA Batch 5.xでの利用方針については<a href="Ch02_TerasolunaBatchStack.html#Ch02_SpringBatchArch_Overview_HelloWorld_DeprecatedCommandLineJobRunner">非推奨であるCommandLineJobRunnerを利用する理由</a>を参照されたい。</p>
 </div>
 </div>
 </div>
@@ -1731,7 +1739,7 @@ env1の値が設定されてほしいにも関わらず、param1にnullが設定
 
   <div class="common-bg">
     <div class="information">
-      TERASOLUNA Batch Framework for Java (5.x) Development Guideline - version 5.7.0.RELEASE, 2025-3-31, commit-id:7ba4db3
+      TERASOLUNA Batch Framework for Java (5.x) Development Guideline - version 5.8.0.RELEASE, 2026-3-31, commit-id:f8c098e
     </div>
     <div class="index">
       <a href="index.html">&gt; INDEX</a>

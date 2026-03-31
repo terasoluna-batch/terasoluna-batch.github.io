@@ -15,7 +15,7 @@
 
 <div class="common-bg">
   <div class="information">
-    TERASOLUNA Batch Framework for Java (5.x) Development Guideline - version 5.7.0.RELEASE, 2025-3-31, commit-id:7ba4db3
+    TERASOLUNA Batch Framework for Java (5.x) Development Guideline - version 5.8.0.RELEASE, 2026-3-31, commit-id:f8c098e
   </div>
   <div class="index">
     <a href="index.html">&gt; INDEX</a>
@@ -230,7 +230,7 @@ window.onload = function() {
 <h2 id="Ch02_SpringBatchArch_Overview"><a class="anchor" href="#Ch02_SpringBatchArch_Overview"></a>Overview</h2>
 <div class="sectionbody">
 <div class="paragraph">
-<p>TERASOLUNA Server Framework for Java (5.x)の基盤となる、Spring Batchのアーキテクチャについて説明をする。</p>
+<p>TERASOLUNA Batch Framework for Java (5.x)の基盤となる、Spring Batchのアーキテクチャについて説明をする。</p>
 </div>
 <div class="sect2">
 <h3 id="Ch02_SpringBatchArch_Overview_SpringBatch"><a class="anchor" href="#Ch02_SpringBatchArch_Overview_SpringBatch"></a>Spring Batchとは</h3>
@@ -339,11 +339,11 @@ Spring Batchを用いた簡単なアプリケーションの作成を通して�
 Stepは、チャンクモデルまたはタスクレットモデル(これらについては後述する)のいずれかで実装する。</p></td>
 </tr>
 <tr>
-<td class="tableblock halign-left valign-middle"><p class="tableblock">JobLauncher</p></td>
+<td class="tableblock halign-left valign-middle"><p class="tableblock">JobOperator</p></td>
 <td class="tableblock halign-left valign-top"><p class="tableblock">Jobを起動するためのインタフェース。<br>
-JobLauncherをユーザが直接利用することも可能だが、javaコマンドから<br>
+JobOperatorをユーザが直接利用することも可能だが、javaコマンドから<br>
 <code>CommandLineJobRunner</code>を起動することでより簡単にバッチ処理を開始できる。
-<code>CommandLineJobRunner</code>は、JobLauncherを起動するための各種処理を引き受けてくれる。</p></td>
+<code>CommandLineJobRunner</code>は、内部で<code>JobLauncher</code>を利用してジョブを起動するための各種処理を引き受けてくれる。</p></td>
 </tr>
 <tr>
 <td class="tableblock halign-left valign-middle"><p class="tableblock">ItemReader<br>
@@ -366,6 +366,30 @@ Spring Batchの標準実装をそのまま使用するだけで要件を満た�
 </tr>
 </tbody>
 </table>
+<div id="Ch02_SpringBatchArch_Overview_HelloWorld_DeprecatedCommandLineJobRunner" class="admonitionblock important">
+<table>
+<tr>
+<td class="icon">
+<i class="fa icon-important" title="Important"></i>
+</td>
+<td class="content">
+<div class="title">非推奨であるCommandLineJobRunnerを利用する理由</div>
+<div class="paragraph">
+<p>前述の <code>JobOperator</code> の役割で触れた <code>CommandLineJobRunner</code> はSpring Batchバージョン6から非推奨となっており、代替として <code>CommandLineJobOperator</code> の利用が推奨されている。<br>
+しかし、TERASOLUNA Batch Framework for Java (5.x)のバージョン5.8.0.RELEASEでは、以下の理由により引き続き <code>CommandLineJobRunner</code> を利用する。<br></p>
+</div>
+<div class="paragraph">
+<p>現在の <code>CommandLineJobOperator</code> は、<a href="Ch04_JobParameter.html#Ch04_JobParameter_HowToUse_Converter">パラメータ変換クラスについて</a>, <a href="Ch07_JobManagement.html#Ch07_JobManagement_HowToUse_ExitCode">終了コードのカスタマイズ</a> で紹介されている <code>JobParametersConverter</code> や <code>ExitCodeMapper</code> のカスタム実装のBeanを定義しても、それらを注入することができない可能性がある。<br></p>
+</div>
+<div class="paragraph">
+<p>Spring Batchで利用が推奨されている <code>CommandLineJobOperator</code> では、いくつかの機能が利用できなくなっている件について、 Spring Batch開発チームに <a href="https://github.com/spring-projects/spring-batch/issues/5097">問い合わせ</a>を行っているが、回答の内容次第では、機能の利用方法について今後大幅な変更が生じる可能性がある。<br>
+このため、TERASOLUNA Batch Framework for Java (5.x)のバージョン5.8.0.RELEASEでは、現在Spring Batchで非推奨とされている <code>CommandLineJobRunner</code> を引き続き利用する前提としている点に留意されたい。<br>
+加えて、次回リリースで <code>CommandLineJobOperator</code> への移行と、付随する各機能の利用方法が変更される可能性がある点にも注意されたい。</p>
+</div>
+</td>
+</tr>
+</table>
+</div>
 </div>
 </div>
 </div>
@@ -426,22 +450,22 @@ Spring Batchの標準実装をそのまま使用するだけで要件を満た�
 <div class="title">中心的な処理の流れ</div>
 <ol class="arabic">
 <li>
-<p>ジョブスケジューラからJobLauncherが起動される。</p>
+<p>ジョブスケジューラから<code>JobOperator</code>が起動される。</p>
 </li>
 <li>
-<p>JobLauncherからJobを実行する。</p>
+<p><code>JobOperator</code>から<code>Job</code>を実行する。</p>
 </li>
 <li>
-<p>JobからStepを実行する。</p>
+<p><code>Job</code>から<code>Step</code>を実行する。</p>
 </li>
 <li>
-<p>StepはItemReaderによって入力データを取得する。</p>
+<p><code>Step</code>は<code>ItemReader</code>によって入力データを取得する。</p>
 </li>
 <li>
-<p>StepはItemProcessorによって入力データを加工する。</p>
+<p><code>Step</code>は<code>ItemProcessor</code>によって入力データを加工する。</p>
 </li>
 <li>
-<p>StepはItemWriterによって加工されたデータを出力する</p>
+<p><code>Step</code>は<code>ItemWriter</code>によって加工されたデータを出力する</p>
 </li>
 </ol>
 </div>
@@ -449,16 +473,16 @@ Spring Batchの標準実装をそのまま使用するだけで要件を満た�
 <div class="title">ジョブ情報を永続化する流れ</div>
 <ol class="arabic">
 <li>
-<p>JobLauncherはJobRepositoryを介してDatabaseにJobInstanceを登録する。</p>
+<p><code>JobOperator</code>は<code>JobRepository</code>を介して<code>Database</code>に<code>JobInstance</code>を登録する。</p>
 </li>
 <li>
-<p>JobLauncherはJobRepositoryを介してDatabaseにジョブが実行開始したことを登録する。</p>
+<p><code>JobOperator</code>は<code>JobRepository</code>を介して<code>Database</code>にジョブが実行開始したことを登録する。</p>
 </li>
 <li>
-<p>JobStepはJobRepositoryを介してDatabaseに入出力件数や状態など各種情報を更新する。</p>
+<p><code>JobStep</code>は<code>JobRepository</code>を介して<code>Database</code>に入出力件数や状態など各種情報を更新する。</p>
 </li>
 <li>
-<p>JobLauncherはJobRepositoryを介してDatabaseにジョブが実行終了したことを登録する。</p>
+<p><code>JobOperator</code>は<code>JobRepository</code>を介して<code>Database</code>にジョブが実行終了したことを登録する。</p>
 </li>
 </ol>
 </div>
@@ -480,8 +504,8 @@ Spring Batchの標準実装をそのまま使用するだけで要件を満た�
 <tbody>
 <tr>
 <td class="tableblock halign-left valign-middle"><p class="tableblock">JobInstance</p></td>
-<td class="tableblock halign-left valign-top"><p class="tableblock">Spring BatchはJobの「論理的」な実行を示す。JobInstanceをJob名と引数によって識別している。
-言い換えると、Job名と引数が同一である実行は、同一JobInstanceの実行と認識し、前回起動時の続きとしてJobを実行する。<br>
+<td class="tableblock halign-left valign-top"><p class="tableblock">Spring BatchはJobの「論理的」な実行を示す。JobInstanceをジョブ名と引数によって識別している。
+言い換えると、ジョブ名と引数が同一である実行は、同一JobInstanceの実行と認識し、前回起動時の続きとしてJobを実行する。<br>
 対象のJobが再実行をサポートしており、前回実行時にエラーなどで処理が途中で中断していた場合は処理の途中から実行される。
 一方、再実行をサポートしていないJobや、対象のJobInstanceがすでに正常に処理が完了している場合は例外が発生し、Javaプロセスが異常終了する。
 たとえば、すでに正常に処理が完了している場合はJobInstanceAlreadyCompleteExceptionが発生する。</p></td>
@@ -529,6 +553,9 @@ Spring Batch上で定義されたJobを開始するには、Javaを起動する�
 また、Spring Batchが提供するCommandLineJobRunnerを使用することで、ユーザが定義したSpring Batch上のJobを簡単に起動することができる。</p>
 </div>
 <div class="paragraph">
+<p><code>CommandLineJobRunner</code>は現在非推奨となっているが、TERASOLUNA Batch 5.xでの利用方針については<a href="Ch02_TerasolunaBatchStack.html#Ch02_SpringBatchArch_Overview_HelloWorld_DeprecatedCommandLineJobRunner">非推奨であるCommandLineJobRunnerを利用する理由</a>を参照されたい。</p>
+</div>
+<div class="paragraph">
 <p>下図にJavaプロセス起動からバッチ処理開始までの流れを示す。</p>
 </div>
 <div class="imageblock">
@@ -548,16 +575,16 @@ Spring Batch上で定義されたJobを開始するには、Javaを起動する�
 <div class="ulist">
 <ul>
 <li>
-<p>CommandLineJobRunnerは起動するJob名だけでなく、引数(ジョブパラメータ)を渡すことも可能であり、引数は<code>&lt;Job引数名&gt;=&lt;値&gt;</code>の形式で指定する。</p>
+<p>CommandLineJobRunnerは起動するジョブ名だけでなく、引数(ジョブパラメータ)を渡すことも可能であり、引数は<code>&lt;Job引数名&gt;=&lt;値&gt;</code>の形式で指定する。</p>
 </li>
 </ul>
 </div>
 </li>
 <li>
-<p>CommandLineJobRunnerはJobLauncherを起動する。</p>
+<p>CommandLineJobRunnerは内部でJobLauncherを利用してジョブを起動する。</p>
 </li>
 <li>
-<p>JobLauncherはJobRepositoryからJob名と引数に合致するJobInstanceをデータベースから取得する。</p>
+<p>JobLauncherはJobRepositoryからジョブ名と引数に合致するJobInstanceをデータベースから取得する。</p>
 <div class="ulist">
 <ul>
 <li>
@@ -767,7 +794,7 @@ HibernatePagingItemReader</p></td>
 <tr>
 <td class="tableblock halign-left valign-middle"><p class="tableblock">ValidatingItemProcessor</p></td>
 <td class="tableblock halign-left valign-top"><p class="tableblock">入力チェックを行う。入力チェックルールの実装には、Spring Batch独自の<br>
-org.springframework.batch.item.validator.Validatorを実装する必要がある。<br>
+org.springframework.batch.infrastructure.item.validator.Validatorを実装する必要がある。<br>
 しかし、Springから提供されている汎用的なorg.springframework.validation.ValidatorへのアダプタであるSpringValidatorが提供されており、
 org.springframework.validation.Validatorのルールを利用できる。<br>
 <span class="icon"><i class="fa fa-warning"></i></span> TERASOLUNA Batch 5.xではValidatingItemProcessorの利用は禁止している。<br>
@@ -862,7 +889,7 @@ POJOクラスはバッチ処理の終了した状態をメソッドの返り値�
 </div>
 <div class="paragraph">
 <p>なお、Spring Batchのリファレンス
-<a href="https://docs.spring.io/spring-batch/reference/5.2.1/schema-appendix.html">Appendix B. Meta-Data Schema</a>
+<a href="https://docs.spring.io/spring-batch/reference/6.0.2/schema-appendix.html">Appendix B. Meta-Data Schema</a>
 にて説明されている内容も含めて、全体像を説明する。</p>
 </div>
 <div class="paragraph">
@@ -968,8 +995,8 @@ JobRepositoryが値の更新時に、バージョン番号が変更されてい�
 <div class="listingblock">
 <div class="title">テーブルをシーケンスとして作成する例</div>
 <div class="content">
-<pre class="CodeRay highlight"><code data-lang="sql"><span class="class">CREATE</span> <span class="type">TABLE</span> BATCH_JOB_SEQ (ID <span class="predefined-type">BIGINT</span> <span class="keyword">NOT</span> <span class="predefined-constant">NULL</span>);
-<span class="class">INSERT</span> <span class="class">INTO</span> BATCH_JOB_SEQ <span class="keyword">values</span>(<span class="integer">0</span>);</code></pre>
+<pre class="CodeRay highlight"><code data-lang="sql"><span class="class">CREATE</span> <span class="type">TABLE</span> BATCH_JOB_INSTANCE_SEQ (ID <span class="predefined-type">BIGINT</span> <span class="keyword">NOT</span> <span class="predefined-constant">NULL</span>);
+<span class="class">INSERT</span> <span class="class">INTO</span> BATCH_JOB_INSTANCE_SEQ <span class="keyword">values</span>(<span class="integer">0</span>);</code></pre>
 </div>
 </div>
 </div>
@@ -1344,7 +1371,7 @@ JobRepositoryが値の更新時に、バージョン番号が変更されてい�
 
   <div class="common-bg">
     <div class="information">
-      TERASOLUNA Batch Framework for Java (5.x) Development Guideline - version 5.7.0.RELEASE, 2025-3-31, commit-id:7ba4db3
+      TERASOLUNA Batch Framework for Java (5.x) Development Guideline - version 5.8.0.RELEASE, 2026-3-31, commit-id:f8c098e
     </div>
     <div class="index">
       <a href="index.html">&gt; INDEX</a>

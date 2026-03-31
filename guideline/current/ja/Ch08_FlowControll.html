@@ -15,7 +15,7 @@
 
 <div class="common-bg">
   <div class="information">
-    TERASOLUNA Batch Framework for Java (5.x) Development Guideline - version 5.7.0.RELEASE, 2025-3-31, commit-id:7ba4db3
+    TERASOLUNA Batch Framework for Java (5.x) Development Guideline - version 5.8.0.RELEASE, 2026-3-31, commit-id:f8c098e
   </div>
   <div class="index">
     <a href="index.html">&gt; INDEX</a>
@@ -543,7 +543,7 @@ TaskletStepBuilder parentStepBuilder(<span class="predefined-type">String</span>
             .next(step03) <span class="comment">// (1)</span>
             .build(); <span class="comment">// (2)</span>
 
-    <span class="keyword">return</span> <span class="keyword">new</span> JobBuilder(<span class="string"><span class="delimiter">&quot;</span><span class="content">jobSequentialFlow</span><span class="delimiter">&quot;</span></span>, jobRepository)
+    <span class="keyword">return</span> <span class="keyword">new</span> JobBuilder(jobRepository)
             .start(flow)
             .end()
             .build();
@@ -769,7 +769,7 @@ ExecutionContextPromotionListener executionContextPromotionListener() {
 <span class="annotation">@Bean</span>
 <span class="directive">public</span> Job jobPromotionalFlow(JobRepository jobRepository,
                               Step step1, Step step2) {
-    <span class="keyword">return</span> <span class="keyword">new</span> JobBuilder(<span class="string"><span class="delimiter">&quot;</span><span class="content">jobPromotionalFlow</span><span class="delimiter">&quot;</span></span>, jobRepository)
+    <span class="keyword">return</span> <span class="keyword">new</span> JobBuilder(jobRepository)
             .start(step1)
             .next(step2)
             .build();
@@ -959,7 +959,7 @@ ExecutionContextPromotionListener executionContextPromotionListener() {
 <span class="annotation">@Bean</span>
 <span class="directive">public</span> Job jobChunkPromotionalFlow(JobRepository jobRepository,
                                    Step step1, Step step2) {
-    <span class="keyword">return</span> <span class="keyword">new</span> JobBuilder(<span class="string"><span class="delimiter">&quot;</span><span class="content">jobChunkPromotionalFlow</span><span class="delimiter">&quot;</span></span>, jobRepository)
+    <span class="keyword">return</span> <span class="keyword">new</span> JobBuilder(jobRepository)
             .start(step1)
             .next(step2)
             .build();
@@ -978,6 +978,9 @@ SimpleStepBuilder&lt;<span class="predefined-type">String</span>, <span class="p
             .writer(writer);
 }</code></pre>
 </div>
+</div>
+<div class="paragraph">
+<p>前述のジョブ定義例で利用している <code>StepBuilder#chunk(int chunkSize, PlatformTransactionManager transactionManager)</code> は現在非推奨となっているが、本バージョンでは利用を継続している。理由、および TERASOLUNA Batch 5.x での <code>SimpleStepBuilder</code> の利用方針については<a href="Ch03_CreateProject.html#Ch03_CreateProject_CreateJob_DeprecatedSimpleStepBuilder">非推奨であるSimpleStepBuilderを利用する理由</a>を参照されたい。</p>
 </div>
 </div>
 </div>
@@ -1111,7 +1114,7 @@ SimpleStepBuilder&lt;<span class="predefined-type">String</span>, <span class="p
 <span class="annotation">@Bean</span>
 <span class="directive">public</span> Job jobConditionalFlow(JobRepository jobRepository, Step stepA,
                               Step stepB, Step stepC) {
-    <span class="keyword">return</span> <span class="keyword">new</span> JobBuilder(<span class="string"><span class="delimiter">&quot;</span><span class="content">jobConditionalFlow</span><span class="delimiter">&quot;</span></span>, jobRepository)
+    <span class="keyword">return</span> <span class="keyword">new</span> JobBuilder(jobRepository)
             .start(stepA)
             .on(FlowExecutionStatus.COMPLETED.getName()).to(stepB) <span class="comment">// (1) (2)</span>
             .from(stepA)
@@ -1276,7 +1279,7 @@ SimpleStepBuilder&lt;<span class="predefined-type">String</span>, <span class="p
 <span class="directive">public</span> Job jobStopFlow(JobRepository jobRepository,
                        <span class="annotation">@Qualifier</span>(<span class="string"><span class="delimiter">&quot;</span><span class="content">jobExitCodeChangeListener</span><span class="delimiter">&quot;</span></span>) JobExitCodeChangeListener listener,
                        Step step1, Step step2, Step step3, Step step4) {
-    <span class="keyword">return</span> <span class="keyword">new</span> JobBuilder(<span class="string"><span class="delimiter">&quot;</span><span class="content">jobStopFlow</span><span class="delimiter">&quot;</span></span>, jobRepository)
+    <span class="keyword">return</span> <span class="keyword">new</span> JobBuilder(jobRepository)
             .start(step1)
             .listener(listener)
             .on(<span class="string"><span class="delimiter">&quot;</span><span class="content">END_WITH_NO_EXIT_CODE</span><span class="delimiter">&quot;</span></span>).end()
@@ -1439,7 +1442,7 @@ SimpleStepBuilder&lt;<span class="predefined-type">String</span>, <span class="p
 <span class="annotation">@Bean</span>
 <span class="directive">public</span> Job jobSequentialOuterFlow(JobRepository jobRepository,
                                   Flow outerFlow) {
-    <span class="keyword">return</span> <span class="keyword">new</span> JobBuilder(<span class="string"><span class="delimiter">&quot;</span><span class="content">jobSequentialOuterFlow</span><span class="delimiter">&quot;</span></span>, jobRepository)
+    <span class="keyword">return</span> <span class="keyword">new</span> JobBuilder(jobRepository)
             .start(outerFlow) <span class="comment">// (1)</span>
             .end()
             .build();
@@ -1506,7 +1509,7 @@ SimpleStepBuilder&lt;<span class="predefined-type">String</span>, <span class="p
 
   <div class="common-bg">
     <div class="information">
-      TERASOLUNA Batch Framework for Java (5.x) Development Guideline - version 5.7.0.RELEASE, 2025-3-31, commit-id:7ba4db3
+      TERASOLUNA Batch Framework for Java (5.x) Development Guideline - version 5.8.0.RELEASE, 2026-3-31, commit-id:f8c098e
     </div>
     <div class="index">
       <a href="index.html">&gt; INDEX</a>

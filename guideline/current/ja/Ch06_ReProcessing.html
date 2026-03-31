@@ -15,7 +15,7 @@
 
 <div class="common-bg">
   <div class="information">
-    TERASOLUNA Batch Framework for Java (5.x) Development Guideline - version 5.7.0.RELEASE, 2025-3-31, commit-id:7ba4db3
+    TERASOLUNA Batch Framework for Java (5.x) Development Guideline - version 5.8.0.RELEASE, 2026-3-31, commit-id:f8c098e
   </div>
   <div class="index">
     <a href="index.html">&gt; INDEX</a>
@@ -382,6 +382,9 @@ window.onload = function() {
 </li>
 </ul>
 </div>
+<div class="paragraph">
+<p><code>CommandLineJobRunner</code>は現在非推奨となっているが、TERASOLUNA Batch 5.xでの利用方針については<a href="Ch02_TerasolunaBatchStack.html#Ch02_SpringBatchArch_Overview_HelloWorld_DeprecatedCommandLineJobRunner">非推奨であるCommandLineJobRunnerを利用する理由</a>を参照されたい。</p>
+</div>
 <div class="admonitionblock important">
 <table>
 <tr>
@@ -489,7 +492,7 @@ window.onload = function() {
 <dt class="hdlist1">リスタート時の入力</dt>
 <dd>
 <p>Spring Batchが提供しているItemReaderのほとんどが件数ベースのリスタートに対応しているため、特別な対応は不要である。<br>
-件数ベースのリスタート可能なItemReaderを自作する場合は、リスタート処理が実装されている抽象クラス <code>org.springframework.batch.item.support.AbstractItemCountingItemStreamItemReader</code> を拡張すればよい。件数ベースリスタートは、あくまで件数のみを基準としてリスタート開始点を決定するため、処理済みの入力データの変更/追加/削除を検出することができない。<br>
+件数ベースのリスタート可能なItemReaderを自作する場合は、リスタート処理が実装されている抽象クラス <code>org.springframework.batch.infrastructure.item.support.AbstractItemCountingItemStreamItemReader</code> を拡張すればよい。件数ベースリスタートは、あくまで件数のみを基準としてリスタート開始点を決定するため、処理済みの入力データの変更/追加/削除を検出することができない。<br>
 新たに入力データを追加する際に、以下のようなケースに留意すること。</p>
 <div class="ulist">
 <ul>
@@ -641,7 +644,8 @@ $ java -cp dependency/* org.springframework.batch.core.launch.support.CommandLin
 <div class="title">非同期実行(Webコンテナ)で実行したジョブのリスタート例</div>
 <div class="content">
 <pre class="CodeRay highlight"><code data-lang="java"><span class="directive">public</span> <span class="type">long</span> restart(<span class="type">long</span> JobExecutionId) <span class="directive">throws</span> Execption {
-  <span class="keyword">return</span> jobOperator.restart(JobExecutionId); <span class="comment">// (1)</span>
+  JobExecution jobExecution = jobRepository.getJobExecution(jobExecutionId); <span class="comment">// (1)</span>
+  <span class="keyword">return</span> jobOperator.restart(jobExecution); <span class="comment">// (2)</span>
 }</code></pre>
 </div>
 </div>
@@ -658,8 +662,11 @@ $ java -cp dependency/* org.springframework.batch.core.launch.support.CommandLin
 </tr>
 <tr>
 <td class="tableblock halign-left valign-top"><p class="tableblock">(1)</p></td>
-<td class="tableblock halign-left valign-top"><p class="tableblock"><code>JobOperator</code>へ失敗したジョブと同じジョブ実行ID(JobExecutionId)を指定し、<code>restart</code>メソッドで実行する。<br>
-ジョブパラメータは、<code>JobRepository</code>から復元される。</p>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><code>jobRepository</code>へ失敗したジョブと同じジョブ実行ID(JobExecutionId)を指定し、<code>getJobExecution</code>メソッドで失敗したジョブの<code>JobExecution</code>を取得する。<br></p></td>
+</tr>
+<tr>
+<td class="tableblock halign-left valign-top"><p class="tableblock">(2)</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><code>JobOperator</code>へ失敗したジョブの<code>JobExecution</code>を指定し、<code>restart</code>メソッドで実行する。</p>
 <p class="tableblock">ジョブ実行IDは、WebAPでジョブ実行した際に取得したIDを利用するか、<code>JobRepository</code>から取得することができる。
 取得方法は、<a href="Ch07_JobManagement.html#Ch07_JobManagement_HowToUse_JobStatusManagement">"ジョブの状態管理"</a>を参照。</p></td>
 </tr>
@@ -834,14 +841,16 @@ $ java -cp dependency/* org.springframework.batch.core.launch.support.CommandLin
 <span class="directive">public</span> Job restartOnConditionBasisJob(JobRepository jobRepository,
                                         Step step01,
                                         JobExecutionLoggingListener listener) {
-    <span class="keyword">return</span> <span class="keyword">new</span> JobBuilder(<span class="string"><span class="delimiter">&quot;</span><span class="content">restartOnConditionBasisJob</span><span class="delimiter">&quot;</span></span>,
-            jobRepository)
+    <span class="keyword">return</span> <span class="keyword">new</span> JobBuilder(jobRepository)
             .preventRestart() <span class="comment">// (7)</span>
             .start(step01)
             .listener(listener)
             .build();
 }</code></pre>
 </div>
+</div>
+<div class="paragraph">
+<p>前述のジョブ定義例で利用している <code>StepBuilder#chunk(int chunkSize, PlatformTransactionManager transactionManager)</code> は現在非推奨となっているが、本バージョンでは利用を継続している。理由、および TERASOLUNA Batch 5.x での <code>SimpleStepBuilder</code> の利用方針については<a href="Ch03_CreateProject.html#Ch03_CreateProject_CreateJob_DeprecatedSimpleStepBuilder">非推奨であるSimpleStepBuilderを利用する理由</a>を参照されたい。</p>
 </div>
 </div>
 </div>
@@ -861,26 +870,26 @@ $ java -cp dependency/* org.springframework.batch.core.launch.support.CommandLin
       <span class="attribute-name">p:sqlSessionTemplate-ref</span>=<span class="string"><span class="delimiter">&quot;</span><span class="content">batchModeSqlSessionTemplate</span><span class="delimiter">&quot;</span></span><span class="tag">/&gt;</span>
 
 <span class="tag">&lt;bean</span> <span class="attribute-name">id</span>=<span class="string"><span class="delimiter">&quot;</span><span class="content">fileWriter</span><span class="delimiter">&quot;</span></span>
-      <span class="attribute-name">class</span>=<span class="string"><span class="delimiter">&quot;</span><span class="content">org.springframework.batch.item.file.FlatFileItemWriter</span><span class="delimiter">&quot;</span></span> <span class="attribute-name">scope</span>=<span class="string"><span class="delimiter">&quot;</span><span class="content">step</span><span class="delimiter">&quot;</span></span>
+      <span class="attribute-name">class</span>=<span class="string"><span class="delimiter">&quot;</span><span class="content">org.springframework.batch.infrastructure.item.file.FlatFileItemWriter</span><span class="delimiter">&quot;</span></span> <span class="attribute-name">scope</span>=<span class="string"><span class="delimiter">&quot;</span><span class="content">step</span><span class="delimiter">&quot;</span></span>
       <span class="attribute-name">p:resource</span>=<span class="string"><span class="delimiter">&quot;</span><span class="content">file:#{jobParameters['outputFile']}</span><span class="delimiter">&quot;</span></span>
       <span class="attribute-name">p:appendAllowed</span>=<span class="string"><span class="delimiter">&quot;</span><span class="content">true</span><span class="delimiter">&quot;</span></span><span class="tag">&gt;</span> <span class="comment">&lt;!-- (5) --&gt;</span>
-    <span class="tag">&lt;property</span> <span class="attribute-name">name</span>=<span class="string"><span class="delimiter">&quot;</span><span class="content">lineAggregator</span><span class="delimiter">&quot;</span></span><span class="tag">&gt;</span>
-        <span class="tag">&lt;bean</span> <span class="attribute-name">class</span>=<span class="string"><span class="delimiter">&quot;</span><span class="content">org.springframework.batch.item.file.transform.DelimitedLineAggregator</span><span class="delimiter">&quot;</span></span><span class="tag">&gt;</span>
+    <span class="tag">&lt;constructor-arg&gt;</span>
+        <span class="tag">&lt;bean</span> <span class="attribute-name">class</span>=<span class="string"><span class="delimiter">&quot;</span><span class="content">org.springframework.batch.infrastructure.item.file.transform.DelimitedLineAggregator</span><span class="delimiter">&quot;</span></span><span class="tag">&gt;</span>
             <span class="tag">&lt;property</span> <span class="attribute-name">name</span>=<span class="string"><span class="delimiter">&quot;</span><span class="content">fieldExtractor</span><span class="delimiter">&quot;</span></span><span class="tag">&gt;</span>
-                <span class="tag">&lt;bean</span> <span class="attribute-name">class</span>=<span class="string"><span class="delimiter">&quot;</span><span class="content">org.springframework.batch.item.file.transform.BeanWrapperFieldExtractor</span><span class="delimiter">&quot;</span></span>
+                <span class="tag">&lt;bean</span> <span class="attribute-name">class</span>=<span class="string"><span class="delimiter">&quot;</span><span class="content">org.springframework.batch.infrastructure.item.file.transform.BeanWrapperFieldExtractor</span><span class="delimiter">&quot;</span></span>
                       <span class="attribute-name">p:names</span>=<span class="string"><span class="delimiter">&quot;</span><span class="content">branchId,year,month,customerId,amount</span><span class="delimiter">&quot;</span></span><span class="tag">/&gt;</span>
             <span class="tag">&lt;/property&gt;</span>
         <span class="tag">&lt;/bean&gt;</span>
-    <span class="tag">&lt;/property&gt;</span>
+    <span class="tag">&lt;/constructor-arg&gt;</span>
 <span class="tag">&lt;/bean&gt;</span>
 <span class="comment">&lt;!-- (6) --&gt;</span>
-<span class="tag">&lt;bean</span> <span class="attribute-name">id</span>=<span class="string"><span class="delimiter">&quot;</span><span class="content">compositeWriter</span><span class="delimiter">&quot;</span></span> <span class="attribute-name">class</span>=<span class="string"><span class="delimiter">&quot;</span><span class="content">org.springframework.batch.item.support.CompositeItemWriter</span><span class="delimiter">&quot;</span></span><span class="tag">&gt;</span>
-    <span class="tag">&lt;property</span> <span class="attribute-name">name</span>=<span class="string"><span class="delimiter">&quot;</span><span class="content">delegates</span><span class="delimiter">&quot;</span></span><span class="tag">&gt;</span>
+<span class="tag">&lt;bean</span> <span class="attribute-name">id</span>=<span class="string"><span class="delimiter">&quot;</span><span class="content">compositeWriter</span><span class="delimiter">&quot;</span></span> <span class="attribute-name">class</span>=<span class="string"><span class="delimiter">&quot;</span><span class="content">org.springframework.batch.infrastructure.item.support.CompositeItemWriter</span><span class="delimiter">&quot;</span></span><span class="tag">&gt;</span>
+    <span class="tag">&lt;constructor-arg&gt;</span>
         <span class="tag">&lt;list&gt;</span>
             <span class="tag">&lt;ref</span> <span class="attribute-name">bean</span>=<span class="string"><span class="delimiter">&quot;</span><span class="content">fileWriter</span><span class="delimiter">&quot;</span></span><span class="tag">/&gt;</span>
             <span class="tag">&lt;ref</span> <span class="attribute-name">bean</span>=<span class="string"><span class="delimiter">&quot;</span><span class="content">dbWriter</span><span class="delimiter">&quot;</span></span><span class="tag">/&gt;</span>
         <span class="tag">&lt;/list&gt;</span>
-    <span class="tag">&lt;/property&gt;</span>
+    <span class="tag">&lt;/constructor-arg&gt;</span>
 <span class="tag">&lt;/bean&gt;</span>
 
 <span class="tag">&lt;batch:job</span> <span class="attribute-name">id</span>=<span class="string"><span class="delimiter">&quot;</span><span class="content">restartOnConditionBasisJob</span><span class="delimiter">&quot;</span></span>
@@ -977,7 +986,7 @@ $ java -cp dependency/* org.springframework.batch.core.launch.support.CommandLin
 
   <div class="common-bg">
     <div class="information">
-      TERASOLUNA Batch Framework for Java (5.x) Development Guideline - version 5.7.0.RELEASE, 2025-3-31, commit-id:7ba4db3
+      TERASOLUNA Batch Framework for Java (5.x) Development Guideline - version 5.8.0.RELEASE, 2026-3-31, commit-id:f8c098e
     </div>
     <div class="index">
       <a href="index.html">&gt; INDEX</a>

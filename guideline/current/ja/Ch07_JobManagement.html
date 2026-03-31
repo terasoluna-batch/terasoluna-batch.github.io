@@ -15,7 +15,7 @@
 
 <div class="common-bg">
   <div class="information">
-    TERASOLUNA Batch Framework for Java (5.x) Development Guideline - version 5.7.0.RELEASE, 2025-3-31, commit-id:7ba4db3
+    TERASOLUNA Batch Framework for Java (5.x) Development Guideline - version 5.8.0.RELEASE, 2026-3-31, commit-id:f8c098e
   </div>
   <div class="index">
     <a href="index.html">&gt; INDEX</a>
@@ -358,7 +358,7 @@ TERASOLUNA Batch 5.xでは、以下のすべてに該当する場合は永続化
 <p>Indexを作成することで、<code>JobRepository</code>の性能改善が期待できる。<br>
 どのSQL文のどの列に対してIndexを作成するかは、実行計画を確認するなどして適切に判断してほしい。
 Spring Batchのリファレンス
-<a href="https://docs.spring.io/spring-batch/reference/5.2.1/schema-appendix.html#recommendationsForIndexingMetaDataTables">B.10 Recommendations for Indexing Meta Data Tables</a>
+<a href="https://docs.spring.io/spring-batch/reference/6.0.2/schema-appendix.html#recommendationsForIndexingMetaDataTables">B.10 Recommendations for Indexing Meta Data Tables</a>
 では、Spring Batchが提供するDaoの実装によって、WHERE句でどの列が利用されているか、およびそれらの使用頻度を示しているので参考にするとよい。<br></p>
 </div>
 <div class="paragraph">
@@ -425,7 +425,7 @@ Spring Batchのリファレンス
 <p><a href="#Ch07_JobManagement_HowToUse_JobStatusManagement">ジョブの状態管理</a>に関するテーブルに対しクエリを発行する</p>
 </li>
 <li>
-<p><code>org.springframework.batch.core.explore.JobExplorer</code>を使用する</p>
+<p><code>org.springframework.batch.core.repository.JobRepository</code>を使用する</p>
 </li>
 </ul>
 </div>
@@ -676,9 +676,9 @@ admin=<span class="comment"># select JOB_EXECUTION_ID, STEP_EXECUTION_ID, START_
 </div>
 </div>
 <div class="sect4">
-<h5 id="Ch07_JobManagement_HowToUse_JobStatusManagement_Retrieve_JobExplorer"><a class="anchor" href="#Ch07_JobManagement_HowToUse_JobStatusManagement_Retrieve_JobExplorer"></a><code>JobExplorer</code>を利用する</h5>
+<h5 id="Ch07_JobManagement_HowToUse_JobStatusManagement_Retrieve_JobRepository"><a class="anchor" href="#Ch07_JobManagement_HowToUse_JobStatusManagement_Retrieve_JobRepository"></a><code>JobRepository</code>を利用する</h5>
 <div class="paragraph">
-<p>バッチアプリケーションと同じアプリケーションコンテキストを共有可能な環境下で、<code>JobExplorer</code>をインジェクションすることでジョブの実行状態を確認する。</p>
+<p>バッチアプリケーションと同じアプリケーションコンテキストを共有可能な環境下で、<code>JobRepository</code>をインジェクションすることでジョブの実行状態を確認する。</p>
 </div>
 <div class="listingblock">
 <div class="title">APIコールサンプル</div>
@@ -686,12 +686,12 @@ admin=<span class="comment"># select JOB_EXECUTION_ID, STEP_EXECUTION_ID, START_
 <pre class="CodeRay highlight"><code data-lang="java"><span class="comment">// omitted.</span>
 
 <span class="annotation">@Inject</span>
-<span class="directive">private</span> JobExplorer jobExplorer;
+<span class="directive">private</span> JobRepository jobRepository;
 
 <span class="directive">private</span> <span class="type">void</span> monitor(<span class="type">long</span> jobExecutionId) {
 
     <span class="comment">// (1)</span>
-    JobExecution jobExecution = jobExplorer.getJobExecution(jobExecutionId);
+    JobExecution jobExecution = jobRepository.getJobExecution(jobExecutionId);
 
     <span class="comment">// (2)</span>
     <span class="predefined-type">String</span> jobName = jobExecution.getJobInstance().getJobName();
@@ -730,7 +730,7 @@ admin=<span class="comment"># select JOB_EXECUTION_ID, STEP_EXECUTION_ID, START_
 <tbody>
 <tr>
 <td class="tableblock halign-left valign-top"><p class="tableblock">(1)</p></td>
-<td class="tableblock halign-left valign-top"><p class="tableblock">インジェクションされた<code>JobExplorer</code>からジョブ実行IDを指定し<code>JobExecution</code>を取得する。</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">インジェクションされた<code>JobRepository</code>からジョブ実行IDを指定し<code>JobExecution</code>を取得する。</p></td>
 </tr>
 <tr>
 <td class="tableblock halign-left valign-top"><p class="tableblock">(2)</p></td>
@@ -816,6 +816,9 @@ admin=<span class="comment"># select JOB_EXECUTION_ID, STEP_EXECUTION_ID, START_
 </div>
 </li>
 </ul>
+</div>
+<div class="paragraph">
+<p><code>CommandLineJobRunner</code>は現在非推奨となっているが、TERASOLUNA Batch 5.xでの利用方針については<a href="Ch02_TerasolunaBatchStack.html#Ch02_SpringBatchArch_Overview_HelloWorld_DeprecatedCommandLineJobRunner">非推奨であるCommandLineJobRunnerを利用する理由</a>を参照されたい。</p>
 </div>
 <div class="exampleblock primary">
 <div class="title">JavaConfig</div>
@@ -1091,7 +1094,7 @@ javaプロセスの終了コードをカスタマイズするのに必要な作�
 <span class="directive">public</span> Job exitstatusjob(JobRepository jobRepository,
                                      Step step,
                                      jobExitCodeChangeListener listener) {
-    <span class="keyword">return</span> <span class="keyword">new</span> JobBuilder(<span class="string"><span class="delimiter">&quot;</span><span class="content">exitstatusjob</span><span class="delimiter">&quot;</span></span>, jobRepository)
+    <span class="keyword">return</span> <span class="keyword">new</span> JobBuilder(jobRepository)
             .start(step)
             .listener(listener)
             .build();
@@ -1274,7 +1277,7 @@ javaプロセスの終了コードをカスタマイズするのに必要な作�
 </div>
 <div class="paragraph">
 <p>ログの出力、設定、考慮事項はTERASOLUNA Server 5.xと共通点が多い。まずは、
-<a href="https://terasolunaorg.github.io/guideline/5.10.0.RELEASE/ja/ArchitectureInDetail/GeneralFuncDetail/Logging.html">ロギング</a>を参照。</p>
+<a href="https://terasolunaorg.github.io/guideline/5.11.0.RELEASE/ja/ArchitectureInDetail/GeneralFuncDetail/Logging.html">ロギング</a>を参照。</p>
 </div>
 <div class="paragraph">
 <p>ここでは、TERASOLUNA Batch 5.x特有の考慮点について説明する。</p>
@@ -1349,7 +1352,7 @@ javaプロセスの終了コードをカスタマイズするのに必要な作�
 <span class="directive">public</span> Job loggingJob(JobRepository jobRepository,
                                      Step step01,
                                      JobExecutionLoggingListener listener) {
-    <span class="keyword">return</span> <span class="keyword">new</span> JobBuilder(<span class="string"><span class="delimiter">&quot;</span><span class="content">loggingJob</span><span class="delimiter">&quot;</span></span>, jobRepository)
+    <span class="keyword">return</span> <span class="keyword">new</span> JobBuilder(jobRepository)
             .start(step01)
             .listener(listener) <span class="comment">// (3)</span>
             .build();
@@ -1463,7 +1466,7 @@ javaプロセスの終了コードをカスタマイズするのに必要な作�
 <div class="paragraph">
 <p>なお、ログと同様、メッセージ管理についても基本的にはTERASOLUNA Server 5.xと同様であり、
 プロパティファイルからメッセージを使用するために<code>MessageSource</code>を使用することができる。
-具体的な設定・実装例についてはTERASOLUNA Server 5.xガイドラインにある<a href="https://terasolunaorg.github.io/guideline/5.10.0.RELEASE/ja/ArchitectureInDetail/GeneralFuncDetail/Logging.html#id8">ログメッセージの一元管理</a>を参照。</p>
+具体的な設定・実装例についてはTERASOLUNA Server 5.xガイドラインにある<a href="https://terasolunaorg.github.io/guideline/5.11.0.RELEASE/ja/ArchitectureInDetail/GeneralFuncDetail/Logging.html#id8">ログメッセージの一元管理</a>を参照。</p>
 </div>
 <div class="sect3">
 <h4 id="terasoluna-server-5-xとの相違点"><a class="anchor" href="#terasoluna-server-5-xとの相違点"></a>TERASOLUNA Server 5.xとの相違点</h4>
@@ -1521,7 +1524,7 @@ TERASOLUNA Batch 5.xではSpring Batchの任意のコンポーネントに読み
 
   <div class="common-bg">
     <div class="information">
-      TERASOLUNA Batch Framework for Java (5.x) Development Guideline - version 5.7.0.RELEASE, 2025-3-31, commit-id:7ba4db3
+      TERASOLUNA Batch Framework for Java (5.x) Development Guideline - version 5.8.0.RELEASE, 2026-3-31, commit-id:f8c098e
     </div>
     <div class="index">
       <a href="index.html">&gt; INDEX</a>

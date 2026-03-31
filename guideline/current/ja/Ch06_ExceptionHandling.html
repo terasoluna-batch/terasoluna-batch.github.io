@@ -15,7 +15,7 @@
 
 <div class="common-bg">
   <div class="information">
-    TERASOLUNA Batch Framework for Java (5.x) Development Guideline - version 5.7.0.RELEASE, 2025-3-31, commit-id:7ba4db3
+    TERASOLUNA Batch Framework for Java (5.x) Development Guideline - version 5.8.0.RELEASE, 2026-3-31, commit-id:f8c098e
   </div>
   <div class="index">
     <a href="index.html">&gt; INDEX</a>
@@ -1681,11 +1681,11 @@ ItemProcessorの処理内で例外発生時に実行される<code>onProcessErro
 <div class="ulist">
 <ul>
 <li>
-<p><code>org.springframework.batch.item.ItemReaderException</code>(ベースとなる例外クラス)</p>
+<p><code>org.springframework.batch.infrastructure.item.ItemReaderException</code>(ベースとなる例外クラス)</p>
 <div class="ulist">
 <ul>
 <li>
-<p><code>org.springframework.batch.item.file.FlatFileParseException</code> (発生する例外クラス)</p>
+<p><code>org.springframework.batch.infrastructure.item.file.FlatFileParseException</code> (発生する例外クラス)</p>
 </li>
 </ul>
 </div>
@@ -1727,20 +1727,20 @@ ItemProcessorの処理内で例外発生時に実行される<code>onProcessErro
 <div class="listingblock">
 <div class="content">
 <pre class="CodeRay highlight"><code data-lang="xml"><span class="tag">&lt;bean</span> <span class="attribute-name">id</span>=<span class="string"><span class="delimiter">&quot;</span><span class="content">detailCSVReader</span><span class="delimiter">&quot;</span></span>
-      <span class="attribute-name">class</span>=<span class="string"><span class="delimiter">&quot;</span><span class="content">org.springframework.batch.item.file.FlatFileItemReader</span><span class="delimiter">&quot;</span></span> <span class="attribute-name">scope</span>=<span class="string"><span class="delimiter">&quot;</span><span class="content">step</span><span class="delimiter">&quot;</span></span><span class="tag">&gt;</span>
+      <span class="attribute-name">class</span>=<span class="string"><span class="delimiter">&quot;</span><span class="content">org.springframework.batch.infrastructure.item.file.FlatFileItemReader</span><span class="delimiter">&quot;</span></span> <span class="attribute-name">scope</span>=<span class="string"><span class="delimiter">&quot;</span><span class="content">step</span><span class="delimiter">&quot;</span></span><span class="tag">&gt;</span>
     <span class="tag">&lt;property</span> <span class="attribute-name">name</span>=<span class="string"><span class="delimiter">&quot;</span><span class="content">resource</span><span class="delimiter">&quot;</span></span> <span class="attribute-name">value</span>=<span class="string"><span class="delimiter">&quot;</span><span class="content">file:#{jobParameters['inputFile']}</span><span class="delimiter">&quot;</span></span><span class="tag">/&gt;</span>
-    <span class="tag">&lt;property</span> <span class="attribute-name">name</span>=<span class="string"><span class="delimiter">&quot;</span><span class="content">lineMapper</span><span class="delimiter">&quot;</span></span><span class="tag">&gt;</span>
-        <span class="tag">&lt;bean</span> <span class="attribute-name">class</span>=<span class="string"><span class="delimiter">&quot;</span><span class="content">org.springframework.batch.item.file.mapping.DefaultLineMapper</span><span class="delimiter">&quot;</span></span><span class="tag">&gt;</span>
+    <span class="tag">&lt;constructor-arg&gt;</span>
+        <span class="tag">&lt;bean</span> <span class="attribute-name">class</span>=<span class="string"><span class="delimiter">&quot;</span><span class="content">org.springframework.batch.infrastructure.item.file.mapping.DefaultLineMapper</span><span class="delimiter">&quot;</span></span><span class="tag">&gt;</span>
             <span class="tag">&lt;property</span> <span class="attribute-name">name</span>=<span class="string"><span class="delimiter">&quot;</span><span class="content">lineTokenizer</span><span class="delimiter">&quot;</span></span><span class="tag">&gt;</span>
-                <span class="tag">&lt;bean</span> <span class="attribute-name">class</span>=<span class="string"><span class="delimiter">&quot;</span><span class="content">org.springframework.batch.item.file.transform.DelimitedLineTokenizer</span><span class="delimiter">&quot;</span></span>
+                <span class="tag">&lt;bean</span> <span class="attribute-name">class</span>=<span class="string"><span class="delimiter">&quot;</span><span class="content">org.springframework.batch.infrastructure.item.file.transform.DelimitedLineTokenizer</span><span class="delimiter">&quot;</span></span>
                       <span class="attribute-name">p:names</span>=<span class="string"><span class="delimiter">&quot;</span><span class="content">branchId,year,month,customerId,amount</span><span class="delimiter">&quot;</span></span><span class="tag">/&gt;</span>
             <span class="tag">&lt;/property&gt;</span>
             <span class="tag">&lt;property</span> <span class="attribute-name">name</span>=<span class="string"><span class="delimiter">&quot;</span><span class="content">fieldSetMapper</span><span class="delimiter">&quot;</span></span><span class="tag">&gt;</span>
-                <span class="tag">&lt;bean</span> <span class="attribute-name">class</span>=<span class="string"><span class="delimiter">&quot;</span><span class="content">org.springframework.batch.item.file.mapping.BeanWrapperFieldSetMapper</span><span class="delimiter">&quot;</span></span>
+                <span class="tag">&lt;bean</span> <span class="attribute-name">class</span>=<span class="string"><span class="delimiter">&quot;</span><span class="content">org.springframework.batch.infrastructure.item.file.mapping.BeanWrapperFieldSetMapper</span><span class="delimiter">&quot;</span></span>
                       <span class="attribute-name">p:targetType</span>=<span class="string"><span class="delimiter">&quot;</span><span class="content">org.terasoluna.batch.functionaltest.app.model.performance.SalesPerformanceDetail</span><span class="delimiter">&quot;</span></span><span class="tag">/&gt;</span>
             <span class="tag">&lt;/property&gt;</span>
         <span class="tag">&lt;/bean&gt;</span>
-    <span class="tag">&lt;/property&gt;</span>
+    <span class="tag">&lt;/constructor-arg&gt;</span>
 <span class="tag">&lt;/bean&gt;</span></code></pre>
 </div>
 </div>
@@ -1791,12 +1791,15 @@ ItemProcessorの処理内で例外発生時に実行される<code>onProcessErro
 <span class="directive">public</span> Job jobSalesPerfAtSkipAllReadError(JobRepository jobRepository,
                                           Step step01,
                                           JobExecutionLoggingListener listener) {
-    <span class="keyword">return</span> <span class="keyword">new</span> JobBuilder(<span class="string"><span class="delimiter">&quot;</span><span class="content">jobSalesPerfAtSkipAllReadError</span><span class="delimiter">&quot;</span></span>, jobRepository)
+    <span class="keyword">return</span> <span class="keyword">new</span> JobBuilder(jobRepository)
             .start(step01)
             .listener(listener)
             .build();
 }</code></pre>
 </div>
+</div>
+<div class="paragraph">
+<p>前述のジョブ定義例で利用している <code>StepBuilder#chunk(int chunkSize, PlatformTransactionManager transactionManager)</code> は現在非推奨となっているが、本バージョンでは利用を継続している。理由、および TERASOLUNA Batch 5.x での <code>SimpleStepBuilder</code> の利用方針については<a href="Ch03_CreateProject.html#Ch03_CreateProject_CreateJob_DeprecatedSimpleStepBuilder">非推奨であるSimpleStepBuilderを利用する理由</a>を参照されたい。</p>
 </div>
 </div>
 </div>
@@ -1891,12 +1894,15 @@ ItemProcessorの処理内で例外発生時に実行される<code>onProcessErro
 <span class="directive">public</span> Job jobSalesPerfAtSkipNeverReadError(JobRepository jobRepository,
                                           Step step01,
                                           JobExecutionLoggingListener listener) {
-    <span class="keyword">return</span> <span class="keyword">new</span> JobBuilder(<span class="string"><span class="delimiter">&quot;</span><span class="content">jobSalesPerfAtSkipNeverReadError</span><span class="delimiter">&quot;</span></span>, jobRepository)
+    <span class="keyword">return</span> <span class="keyword">new</span> JobBuilder(jobRepository)
             .start(step01)
             .listener(listener)
             .build();
 }</code></pre>
 </div>
+</div>
+<div class="paragraph">
+<p>前述のジョブ定義例で利用している <code>StepBuilder#chunk(int chunkSize, PlatformTransactionManager transactionManager)</code> は現在非推奨となっているが、本バージョンでは利用を継続している。理由、および TERASOLUNA Batch 5.x での <code>SimpleStepBuilder</code> の利用方針については<a href="Ch03_CreateProject.html#Ch03_CreateProject_CreateJob_DeprecatedSimpleStepBuilder">非推奨であるSimpleStepBuilderを利用する理由</a>を参照されたい。</p>
 </div>
 </div>
 </div>
@@ -1991,12 +1997,51 @@ ItemProcessorの処理内で例外発生時に実行される<code>onProcessErro
 <span class="directive">public</span> Job jobSalesPerfAtValidSkipReadError(JobRepository jobRepository,
                                             Step step01,
                                             JobExecutionLoggingListener listener) {
-    <span class="keyword">return</span> <span class="keyword">new</span> JobBuilder(<span class="string"><span class="delimiter">&quot;</span><span class="content">jobSalesPerfAtValidSkipReadError</span><span class="delimiter">&quot;</span></span>, jobRepository)
+    <span class="keyword">return</span> <span class="keyword">new</span> JobBuilder(jobRepository)
             .start(step01)
             .listener(listener)
             .build();
 }</code></pre>
 </div>
+</div>
+<div class="paragraph">
+<p>以下のクラスはSpring Batchバージョン6の現在、非推奨となっているが、<a href="Ch03_CreateProject.html#Ch03_CreateProject_CreateJob_DeprecatedSimpleStepBuilder">非推奨であるSimpleStepBuilderを利用する理由</a>で示した通り利用を継続する。</p>
+</div>
+<div class="paragraph">
+<p>また、これらのインスタンスはビルダーを介して生成されるものであるため、生成のトリガとなるメソッドについても併記する。</p>
+</div>
+<div class="ulist">
+<ul>
+<li>
+<p><code>SimpleStepBuilder</code></p>
+<div class="ulist">
+<ul>
+<li>
+<p><code>StepBuilder</code>の実装クラス</p>
+</li>
+<li>
+<p>生成のトリガ：<code>StepBuilder#chunk(int chunkSize, PlatformTransactionManager transactionManager)</code></p>
+</li>
+</ul>
+</div>
+</li>
+<li>
+<p><code>LimitCheckingItemSkipPolicy</code></p>
+<div class="ulist">
+<ul>
+<li>
+<p><code>SimpleStepBuilder</code>使用時の、デフォルトのスキップポリシー</p>
+</li>
+<li>
+<p>生成のトリガ：<code>StepBuilder#build()</code></p>
+</li>
+<li>
+<p>Spring Batchバージョン6から、<code>LimitCheckingItemSkipPolicy</code>の代替として<code>LimitCheckingExceptionHierarchySkipPolicy</code>が提供されているが、<code>SimpleStepBuilder</code>と同様の理由により、本バージョンでは使用しない</p>
+</li>
+</ul>
+</div>
+</li>
+</ul>
 </div>
 </div>
 </div>
@@ -2022,7 +2067,7 @@ ItemProcessorの処理内で例外発生時に実行される<code>onProcessErro
                 <span class="tag">&lt;batch:skippable-exception-classes&gt;</span>
                     <span class="comment">&lt;!-- (4) --&gt;</span>
                     <span class="tag">&lt;batch:include</span>
-                        <span class="attribute-name">class</span>=<span class="string"><span class="delimiter">&quot;</span><span class="content">org.springframework.batch.item.ItemReaderException</span><span class="delimiter">&quot;</span></span><span class="tag">/&gt;</span>
+                        <span class="attribute-name">class</span>=<span class="string"><span class="delimiter">&quot;</span><span class="content">org.springframework.batch.infrastructure.item.ItemReaderException</span><span class="delimiter">&quot;</span></span><span class="tag">/&gt;</span>
                 <span class="tag">&lt;/batch:skippable-exception-classes&gt;</span>
             <span class="tag">&lt;/batch:chunk&gt;</span>
         <span class="tag">&lt;/batch:tasklet&gt;</span>
@@ -2120,12 +2165,15 @@ ItemProcessorの処理内で例外発生時に実行される<code>onProcessErro
 <span class="directive">public</span> Job jobSalesPerfAtValidNolimitSkipReadError(JobRepository jobRepository,
                                           Step step01,
                                           JobExecutionLoggingListener listener) {
-    <span class="keyword">return</span> <span class="keyword">new</span> JobBuilder(<span class="string"><span class="delimiter">&quot;</span><span class="content">jobSalesPerfAtValidNolimitSkipReadError</span><span class="delimiter">&quot;</span></span>, jobRepository)
+    <span class="keyword">return</span> <span class="keyword">new</span> JobBuilder(jobRepository)
             .start(step01)
             .listener(listener)
             .build();
 }</code></pre>
 </div>
+</div>
+<div class="paragraph">
+<p>前述のジョブ定義例で利用している <code>StepBuilder#chunk(int chunkSize, PlatformTransactionManager transactionManager)</code> は現在非推奨となっているが、本バージョンでは利用を継続している。理由、および TERASOLUNA Batch 5.x での <code>SimpleStepBuilder</code> の利用方針については<a href="Ch03_CreateProject.html#Ch03_CreateProject_CreateJob_DeprecatedSimpleStepBuilder">非推奨であるSimpleStepBuilderを利用する理由</a>を参照されたい。</p>
 </div>
 </div>
 </div>
@@ -2140,7 +2188,7 @@ ItemProcessorの処理内で例外発生時に実行される<code>onProcessErro
     <span class="tag">&lt;property</span> <span class="attribute-name">name</span>=<span class="string"><span class="delimiter">&quot;</span><span class="content">policyMap</span><span class="delimiter">&quot;</span></span><span class="tag">&gt;</span>
         <span class="tag">&lt;map&gt;</span>
             <span class="comment">&lt;!-- (2) --&gt;</span>
-            <span class="tag">&lt;entry</span> <span class="attribute-name">key</span>=<span class="string"><span class="delimiter">&quot;</span><span class="content">org.springframework.batch.item.ItemReaderException</span><span class="delimiter">&quot;</span></span>
+            <span class="tag">&lt;entry</span> <span class="attribute-name">key</span>=<span class="string"><span class="delimiter">&quot;</span><span class="content">org.springframework.batch.infrastructure.item.ItemReaderException</span><span class="delimiter">&quot;</span></span>
                    <span class="attribute-name">value-ref</span>=<span class="string"><span class="delimiter">&quot;</span><span class="content">alwaysSkip</span><span class="delimiter">&quot;</span></span><span class="tag">/&gt;</span>
         <span class="tag">&lt;/map&gt;</span>
     <span class="tag">&lt;/property&gt;</span>
@@ -2516,12 +2564,15 @@ ItemProcessorでは、<code>skipメソッド/&lt;batch:skippable-exception-class
 <span class="directive">public</span> Job jobSalesPerfWithRetryPolicy(JobRepository jobRepository,
                                           Step step01,
                                           JobExecutionLoggingListener listener) {
-    <span class="keyword">return</span> <span class="keyword">new</span> JobBuilder(<span class="string"><span class="delimiter">&quot;</span><span class="content">jobSalesPerfWithRetryPolicy</span><span class="delimiter">&quot;</span></span>, jobRepository)
+    <span class="keyword">return</span> <span class="keyword">new</span> JobBuilder(jobRepository)
             .start(step01)
             .listener(listener)
             .build();
 }</code></pre>
 </div>
+</div>
+<div class="paragraph">
+<p>前述のジョブ定義例で利用している <code>StepBuilder#chunk(int chunkSize, PlatformTransactionManager transactionManager)</code> は現在非推奨となっているが、本バージョンでは利用を継続している。理由、および TERASOLUNA Batch 5.x での <code>SimpleStepBuilder</code> の利用方針については<a href="Ch03_CreateProject.html#Ch03_CreateProject_CreateJob_DeprecatedSimpleStepBuilder">非推奨であるSimpleStepBuilderを利用する理由</a>を参照されたい。</p>
 </div>
 </div>
 </div>
@@ -2655,12 +2706,15 @@ ItemProcessorでは、<code>skipメソッド/&lt;batch:skippable-exception-class
 <span class="directive">public</span> Job jobSalesPerfAtValidSkipReadError(JobRepository jobRepository,
                                             Step step01,
                                             JobExecutionLoggingListener listener) {
-    <span class="keyword">return</span> <span class="keyword">new</span> JobBuilder(<span class="string"><span class="delimiter">&quot;</span><span class="content">jobSalesPerfAtValidSkipReadError</span><span class="delimiter">&quot;</span></span>, jobRepository)
+    <span class="keyword">return</span> <span class="keyword">new</span> JobBuilder(jobRepository)
             .start(step01)
             .listener(listener)
             .build();
 }</code></pre>
 </div>
+</div>
+<div class="paragraph">
+<p>前述のジョブ定義例で利用している <code>StepBuilder#chunk(int chunkSize, PlatformTransactionManager transactionManager)</code> は現在非推奨となっているが、本バージョンでは利用を継続している。理由、および TERASOLUNA Batch 5.x での <code>SimpleStepBuilder</code> の利用方針については<a href="Ch03_CreateProject.html#Ch03_CreateProject_CreateJob_DeprecatedSimpleStepBuilder">非推奨であるSimpleStepBuilderを利用する理由</a>を参照されたい。</p>
 </div>
 </div>
 </div>
@@ -2678,7 +2732,7 @@ ItemProcessorでは、<code>skipメソッド/&lt;batch:skippable-exception-class
                          <span class="attribute-name">skip-limit</span>=<span class="string"><span class="delimiter">&quot;</span><span class="content">2</span><span class="delimiter">&quot;</span></span><span class="tag">&gt;</span>
                 <span class="tag">&lt;batch:skippable-exception-classes&gt;</span>
                     <span class="comment">&lt;!-- (1) --&gt;</span>
-                    <span class="tag">&lt;batch:include</span> <span class="attribute-name">class</span>=<span class="string"><span class="delimiter">&quot;</span><span class="content">org.springframework.batch.item.validator.ValidationException</span><span class="delimiter">&quot;</span></span><span class="tag">/&gt;</span>
+                    <span class="tag">&lt;batch:include</span> <span class="attribute-name">class</span>=<span class="string"><span class="delimiter">&quot;</span><span class="content">org.springframework.batch.infrastructure.item.validator.ValidationException</span><span class="delimiter">&quot;</span></span><span class="tag">/&gt;</span>
                 <span class="tag">&lt;/batch:skippable-exception-classes&gt;</span>
             <span class="tag">&lt;/batch:chunk&gt;</span>
         <span class="tag">&lt;/batch:tasklet&gt;</span>
@@ -2748,12 +2802,15 @@ ItemProcessorでは、<code>skipメソッド/&lt;batch:skippable-exception-class
 <span class="directive">public</span> Job jobSalesPerfWithRetryPolicy(JobRepository jobRepository,
                                           Step step01,
                                           JobExecutionLoggingListener listener) {
-    <span class="keyword">return</span> <span class="keyword">new</span> JobBuilder(<span class="string"><span class="delimiter">&quot;</span><span class="content">jobSalesPerfWithRetryPolicy</span><span class="delimiter">&quot;</span></span>, jobRepository)
+    <span class="keyword">return</span> <span class="keyword">new</span> JobBuilder(jobRepository)
             .start(step01)
             .listener(listener)
             .build();
 }</code></pre>
 </div>
+</div>
+<div class="paragraph">
+<p>前述のジョブ定義例で利用している <code>StepBuilder#chunk(int chunkSize, PlatformTransactionManager transactionManager)</code> は現在非推奨となっているが、本バージョンでは利用を継続している。理由、および TERASOLUNA Batch 5.x での <code>SimpleStepBuilder</code> の利用方針については<a href="Ch03_CreateProject.html#Ch03_CreateProject_CreateJob_DeprecatedSimpleStepBuilder">非推奨であるSimpleStepBuilderを利用する理由</a>を参照されたい。</p>
 </div>
 </div>
 </div>
@@ -2848,12 +2905,15 @@ ItemProcessorでは、<code>skipメソッド/&lt;batch:skippable-exception-class
 <span class="directive">public</span> Job flowJob(JobRepository jobRepository,
                                             Step retryStep,
                                             JobExecutionLoggingListener listener) {
-    <span class="keyword">return</span> <span class="keyword">new</span> JobBuilder(<span class="string"><span class="delimiter">&quot;</span><span class="content">flowJob</span><span class="delimiter">&quot;</span></span>, jobRepository)
+    <span class="keyword">return</span> <span class="keyword">new</span> JobBuilder(jobRepository)
             .start(retryStep)
             .listener(listener)
             .build();
 }</code></pre>
 </div>
+</div>
+<div class="paragraph">
+<p>前述のジョブ定義例で利用している <code>StepBuilder#chunk(int chunkSize, PlatformTransactionManager transactionManager)</code> は現在非推奨となっているが、本バージョンでは利用を継続している。理由、および TERASOLUNA Batch 5.x での <code>SimpleStepBuilder</code> の利用方針については<a href="Ch03_CreateProject.html#Ch03_CreateProject_CreateJob_DeprecatedSimpleStepBuilder">非推奨であるSimpleStepBuilderを利用する理由</a>を参照されたい。</p>
 </div>
 </div>
 </div>
@@ -2994,7 +3054,7 @@ TERASOLUNA Batch 5.xでは以下の理由により使用しない。</p>
 
   <div class="common-bg">
     <div class="information">
-      TERASOLUNA Batch Framework for Java (5.x) Development Guideline - version 5.7.0.RELEASE, 2025-3-31, commit-id:7ba4db3
+      TERASOLUNA Batch Framework for Java (5.x) Development Guideline - version 5.8.0.RELEASE, 2026-3-31, commit-id:f8c098e
     </div>
     <div class="index">
       <a href="index.html">&gt; INDEX</a>

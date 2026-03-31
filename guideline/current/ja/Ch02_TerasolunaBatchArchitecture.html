@@ -14,7 +14,7 @@
 
 <div class="common-bg">
   <div class="information">
-    TERASOLUNA Batch Framework for Java (5.x) Development Guideline - version 5.7.0.RELEASE, 2025-3-31, commit-id:7ba4db3
+    TERASOLUNA Batch Framework for Java (5.x) Development Guideline - version 5.8.0.RELEASE, 2026-3-31, commit-id:f8c098e
   </div>
   <div class="index">
     <a href="index.html">&gt; INDEX</a>
@@ -219,6 +219,11 @@ window.onload = function() {
 </ul>
 </li>
 <li><a href="#Ch02_TerasolunaBatchArch_DecisionPoints">利用する際の検討ポイント</a></li>
+<li><a href="#appendix">Appendix</a>
+<ul class="sectlevel2">
+<li><a href="#Ch02_TerasolunaBatchArch_Appendix_HowToMigrateDBPollingFromWebContainer">非同期実行(Webコンテナ)から、非同期実行方式(DBポーリング)へ移行する際の基本方針</a></li>
+</ul>
+</li>
 </ul>
 </div>
 </div>
@@ -535,6 +540,9 @@ Spring Batchを中心としたOSSの組み合わせを利用して実現する�
 </li>
 </ol>
 </div>
+<div class="paragraph">
+<p><code>CommandLineJobRunner</code>は現在非推奨となっているが、TERASOLUNA Batch 5.xでの利用方針については<a href="Ch02_TerasolunaBatchStack.html#Ch02_SpringBatchArch_Overview_HelloWorld_DeprecatedCommandLineJobRunner">非推奨であるCommandLineJobRunnerを利用する理由</a>を参照されたい。</p>
+</div>
 </div>
 <div class="sect2">
 <h3 id="Ch02_TerasolunaBatchArch_LaunchMethod_Async"><a class="anchor" href="#Ch02_TerasolunaBatchArch_LaunchMethod_Async"></a>非同期実行方式</h3>
@@ -595,7 +603,7 @@ Spring Batchを中心としたOSSの組み合わせを利用して実現する�
 <div class="ulist">
 <ul>
 <li>
-<p>SimpleJobOperatorからジョブを起動し、ジョブ終了後に<code>JobExecutionId</code>を受け取る。</p>
+<p><code>TaskExecutorJobOperator</code>からジョブを起動し、ジョブ終了後に<code>jobExecutionId</code>を受け取る。</p>
 </li>
 <li>
 <p>JobExecutionIdとは、ジョブ実行を一意に識別するIDであり、このIDを使ってJobRepositoryから実行結果を参照する。</p>
@@ -610,7 +618,7 @@ Spring Batchを中心としたOSSの組み合わせを利用して実現する�
 </div>
 </li>
 <li>
-<p>DBポーリング機能は、SimpleJobOperatorから返却されたJobExecutionIdとスタータスを起動したジョブ要求に対して更新を行う。</p>
+<p>DBポーリング機能は、<code>TaskExecutorJobOperator</code>から返却された<code>jobExecutionId</code>とステータスの更新を行う。</p>
 </li>
 <li>
 <p>ジョブの処理経過・結果は、JobExecutionIdを利用して別途参照を行う。</p>
@@ -624,6 +632,24 @@ Spring Batchを中心としたOSSの組み合わせを利用して実現する�
 <p><a href="Ch04_AsyncJobWithWebContainer.html#Ch04_AsyncJobWithWeb">"非同期実行(Webコンテナ)"</a>とは、
 Webコンテナ上のWebアプリケーションへのリクエストを契機にジョブを非同期実行する方式である。
 Webアプリケーションは、ジョブの終了を待たずに起動後すぐにレスポンスを返却することができる。</p>
+</div>
+<div id="Ch02_TerasolunaBatchArch_LaunchMethod_Async_Web_DeprecationWarning" class="admonitionblock important">
+<table>
+<tr>
+<td class="icon">
+<i class="fa icon-important" title="Important"></i>
+</td>
+<td class="content">
+<div class="title">非同期実行方式(Webコンテナ)の非推奨化へ向けた重要な勧告</div>
+<div class="paragraph">
+<p>非同期実行方式(Webコンテナ)は次期リリースより非推奨となり、その後に機能削除を予定している。
+このため、非同期実行を伴うバッチアプリケーションを新規に作成する場合は <a href="#Ch02_TerasolunaBatchArch_LaunchMethod_Async_DB">"非同期実行方式(DBポーリング)"</a> を利用すること。 <br>
+現在、バッチアプリケーションで非同期実行方式(Webコンテナ)を使用しており、非同期処理として使用しているジョブを今後も利用し続ける場合は、後述のAppendix <a href="#Ch02_TerasolunaBatchArch_Appendix_HowToMigrateDBPollingFromWebContainer">"非同期実行(Webコンテナ)から、非同期実行方式(DBポーリング)へ移行する際の基本方針"</a> を参考に、 <a href="#Ch02_TerasolunaBatchArch_LaunchMethod_Async_DB">"非同期実行方式(DBポーリング)"</a> への移行を検討すること。 <br>
+また、本機能の非推奨化を機に非同期実行の方式を見直す必要がある場合は TERASOLUNA Server 5.x 開発ガイドライン の <a href="https://terasolunaorg.github.io/guideline/5.11.0.RELEASE/ja/ArchitectureInDetail/MessagingDetail/JMS.html">JMS(Jakarta Messaging)</a> など、他の非同期実行の方式も踏まえ、最適な非同期方式を選択すること。</p>
+</div>
+</td>
+</tr>
+</table>
 </div>
 <div class="imageblock">
 <div class="content">
@@ -641,7 +667,7 @@ Webアプリケーションは、ジョブの終了を待たずに起動後す�
 <div class="ulist">
 <ul>
 <li>
-<p>SimpleJobOperatorからジョブを起動直後に<code>JobExecutionId</code>を受け取る。</p>
+<p><code>TaskExecutorJobOperator</code>からジョブを起動直後に<code>jobExecutionId</code>を受け取る。</p>
 </li>
 <li>
 <p>ジョブの実行結果は、Spring Batchの仕組みによって、JobRepositoryへ登録される。</p>
@@ -658,7 +684,7 @@ Webアプリケーションは、ジョブの終了を待たずに起動後す�
 </ol>
 </div>
 <div class="paragraph">
-<p>また、 <a href="https://terasolunaorg.github.io/guideline/5.10.0.RELEASE/ja/">TERASOLUNA Server Framework for Java (5.x)</a>で構築されるWebアプリケーションと連携することも可能である。</p>
+<p>また、 <a href="https://terasolunaorg.github.io/guideline/5.11.0.RELEASE/ja/">TERASOLUNA Server Framework for Java (5.x)</a>で構築されるWebアプリケーションと連携することも可能である。</p>
 </div>
 </div>
 </div>
@@ -710,12 +736,64 @@ Webアプリケーションは、ジョブの終了を待たずに起動後す�
 </div>
 </div>
 </div>
+<div class="sect1">
+<h2 id="appendix"><a class="anchor" href="#appendix"></a>Appendix</h2>
+<div class="sectionbody">
+<div class="sect2">
+<h3 id="Ch02_TerasolunaBatchArch_Appendix_HowToMigrateDBPollingFromWebContainer"><a class="anchor" href="#Ch02_TerasolunaBatchArch_Appendix_HowToMigrateDBPollingFromWebContainer"></a>非同期実行(Webコンテナ)から、非同期実行方式(DBポーリング)へ移行する際の基本方針</h3>
+<div class="paragraph">
+<p><a href="Ch04_AsyncJobWithWebContainer.html#Ch04_AsyncJobWithWeb">"非同期実行(Webコンテナ)"</a> の <code>@RestController</code> による RESTful Web Service のコントローラでは、リクエストから得られたジョブ名とジョブパラメータを用い、 <code>JobOperator</code> からジョブを直接起動しているが、
+この箇所を下記方針で置き換える。</p>
+</div>
+<div class="olist arabic">
+<ol class="arabic">
+<li>
+<p>リクエストから得られたジョブ名、およびジョブパラメータを <a href="Ch04_AsyncJobWithDB.html#Ch04_AsyncJobWithDB">"非同期実行(DBポーリング)"</a> のジョブ要求テーブルのレコードとしてINSERTするように置き換える。</p>
+</li>
+<li>
+<p>次に、バッチアプリケーションのジョブの実装、Bean定義等を  <a href="Ch04_AsyncJobWithDB.html#Ch04_AsyncJobWithDB">"非同期実行(DBポーリング)"</a> のアプリケーションに移行する。</p>
+</li>
+<li>
+<p>最後に、移行した  <a href="Ch04_AsyncJobWithDB.html#Ch04_AsyncJobWithDB">"非同期実行(DBポーリング)"</a> によるアプリケーションをテストする。</p>
+</li>
+</ol>
+</div>
+<div class="paragraph">
+<p>以上のような方法で、非同期実行方式(Webコンテナ)のジョブを、非同期実行(DBポーリング)のアプリケーションに移行することができる。</p>
+</div>
+<div class="paragraph">
+<p>一方で、非同期実行方式(Webコンテナ)から非同期実行(DBポーリング)へ移行した場合、現行の要件および運用設計に影響しうる、以下の2点に注意すること。</p>
+</div>
+<div class="ulist">
+<ul>
+<li>
+<p>非同期バッチデーモンの起動・停止管理</p>
+</li>
+<li>
+<p>ジョブが実行されるまでの遅延</p>
+</li>
+</ul>
+</div>
+<div class="paragraph">
+<p><strong>非同期バッチデーモンの起動・停止管理</strong> <br>
+非同期実行(DBポーリング)では、ジョブを実行するプロセスとは別に、ジョブ要求テーブルをポーリングする非同期バッチデーモンを起動する必要がある。このため、非同期バッチデーモンによるジョブの待ち受けが不要になった際には、非同期バッチデーモンも停止する必要がある。</p>
+</div>
+<div class="paragraph">
+<p><strong>ジョブが実行されるまでの遅延</strong> <br>
+非同期実行方式(Webコンテナ)では、コントローラにリクエストが到着次第、直ちにジョブを起動することができた。一方で、非同期実行(DBポーリング)では、ジョブ要求テーブルへのレコードINSERTが行われたあと、そのレコードが非同期バッチデーモンによってポーリングされるまでジョブが起動されない。このため、非同期実行方式(DBポーリング)では、ジョブ実行の要求を行った後から起動までに、おおよそポーリング間隔時間分の遅延が発生しうる。</p>
+</div>
+<div class="paragraph">
+<p>この他、バッチアプリケーションの機能要件、非機能要件を満たしていることについても、十分なテストを行うこと。</p>
+</div>
+</div>
+</div>
+</div>
 </div>
 <div class="container">
 
   <div class="common-bg">
     <div class="information">
-      TERASOLUNA Batch Framework for Java (5.x) Development Guideline - version 5.7.0.RELEASE, 2025-3-31, commit-id:7ba4db3
+      TERASOLUNA Batch Framework for Java (5.x) Development Guideline - version 5.8.0.RELEASE, 2026-3-31, commit-id:f8c098e
     </div>
     <div class="index">
       <a href="index.html">&gt; INDEX</a>

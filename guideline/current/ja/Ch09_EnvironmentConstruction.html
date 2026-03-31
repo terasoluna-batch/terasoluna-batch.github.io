@@ -15,7 +15,7 @@
 
 <div class="common-bg">
   <div class="information">
-    TERASOLUNA Batch Framework for Java (5.x) Development Guideline - version 5.7.0.RELEASE, 2025-3-31, commit-id:7ba4db3
+    TERASOLUNA Batch Framework for Java (5.x) Development Guideline - version 5.8.0.RELEASE, 2026-3-31, commit-id:f8c098e
   </div>
   <div class="index">
     <a href="index.html">&gt; INDEX</a>
@@ -272,7 +272,7 @@ window.onload = function() {
 <pre class="CodeRay highlight"><code data-lang="console">C:\xxx&gt;mvn archetype:generate ^
   -DarchetypeGroupId=org.terasoluna.batch ^
   -DarchetypeArtifactId=terasoluna-batch-archetype ^
-  -DarchetypeVersion=5.7.0.RELEASE</code></pre>
+  -DarchetypeVersion=5.8.0.RELEASE</code></pre>
 </div>
 </div>
 </div>
@@ -286,7 +286,7 @@ window.onload = function() {
 <pre class="CodeRay highlight"><code data-lang="console">C:\xxx&gt;mvn archetype:generate ^
   -DarchetypeGroupId=org.terasoluna.batch ^
   -DarchetypeArtifactId=terasoluna-batch-xmlconfig-archetype ^
-  -DarchetypeVersion=5.7.0.RELEASE</code></pre>
+  -DarchetypeVersion=5.8.0.RELEASE</code></pre>
 </div>
 </div>
 </div>
@@ -337,7 +337,7 @@ window.onload = function() {
 <pre class="CodeRay highlight"><code data-lang="console">C:\xxx&gt;mvn archetype:generate ^
 More?   -DarchetypeGroupId=org.terasoluna.batch ^
 More?   -DarchetypeArtifactId=terasoluna-batch-archetype ^
-More?   -DarchetypeVersion=5.7.0.RELEASE
+More?   -DarchetypeVersion=5.8.0.RELEASE
 [INFO] Scanning for projects&#8230;&#8203;
 [INFO]
 [INFO] ------------------------------------------------------------------------
@@ -357,7 +357,7 @@ version: 1.0.0-SNAPSHOT
 package: org.terasoluna.batch.tutorial
  Y: : y
 [INFO] ----------------------------------------------------------------------------
-[INFO] Using following parameters for creating project from Archetype: terasoluna-batch-archetype:5.7.0.RELEASE
+[INFO] Using following parameters for creating project from Archetype: terasoluna-batch-archetype:5.8.0.RELEASE
 [INFO] ----------------------------------------------------------------------------
 [INFO] Parameter: groupId, Value: org.terasoluna.batch
 [INFO] Parameter: artifactId, Value: terasoluna-batch-tutorial
@@ -388,8 +388,8 @@ package: org.terasoluna.batch.tutorial
 <div class="content">
 <pre class="CodeRay highlight"><code data-lang="console">C:\xxx&gt;mvn archetype:generate ^
 More?   -DarchetypeGroupId=org.terasoluna.batch ^
-More?   -DarchetypeArtifactId=terasoluna-batch-xmlcofig-archetype ^
-More?   -DarchetypeVersion=5.7.0.RELEASE
+More?   -DarchetypeArtifactId=terasoluna-batch-xmlconfig-archetype ^
+More?   -DarchetypeVersion=5.8.0.RELEASE
 [INFO] Scanning for projects&#8230;&#8203;
 [INFO]
 [INFO] ------------------------------------------------------------------------
@@ -409,7 +409,7 @@ version: 1.0.0-SNAPSHOT
 package: org.terasoluna.batch.tutorial
  Y: : y
 [INFO] ----------------------------------------------------------------------------
-[INFO] Using following parameters for creating project from Archetype: terasoluna-batch-archetype:5.7.0.RELEASE
+[INFO] Using following parameters for creating project from Archetype: terasoluna-batch-archetype:5.8.0.RELEASE
 [INFO] ----------------------------------------------------------------------------
 [INFO] Parameter: groupId, Value: org.terasoluna.batch
 [INFO] Parameter: artifactId, Value: terasoluna-batch-tutorial
@@ -446,6 +446,9 @@ C:\xxx&gt;java -cp &quot;lib/*;target/*&quot; ^
 org.springframework.batch.core.launch.support.CommandLineJobRunner ^
 org.terasoluna.batch.tutorial.jobs.Job01Config job01</code></pre>
 </div>
+</div>
+<div class="paragraph">
+<p><code>CommandLineJobRunner</code>は現在非推奨となっているが、TERASOLUNA Batch 5.xでの利用方針については<a href="Ch02_TerasolunaBatchStack.html#Ch02_SpringBatchArch_Overview_HelloWorld_DeprecatedCommandLineJobRunner">非推奨であるCommandLineJobRunnerを利用する理由</a>を参照されたい。</p>
 </div>
 <div class="paragraph">
 <p>以下のとおり、mvnコマンドに対して「BUILD SUCCESS」、javaコマンドに対して「COMPLETED」が表示されることを確認する。</p>
@@ -497,6 +500,9 @@ C:\xxx&gt;java -cp &quot;lib/*;target/*&quot; ^
 org.springframework.batch.core.launch.support.CommandLineJobRunner ^
 META-INF/jobs/job01.xml job01</code></pre>
 </div>
+</div>
+<div class="paragraph">
+<p><code>CommandLineJobRunner</code>は現在非推奨となっているが、TERASOLUNA Batch 5.xでの利用方針については<a href="Ch02_TerasolunaBatchStack.html#Ch02_SpringBatchArch_Overview_HelloWorld_DeprecatedCommandLineJobRunner">非推奨であるCommandLineJobRunnerを利用する理由</a>を参照されたい。</p>
 </div>
 <div class="paragraph">
 <p>以下のとおり、mvnコマンドに対して「BUILD SUCCESS」、javaコマンドに対して「COMPLETED」が表示されることを確認する。</p>
@@ -1257,6 +1263,9 @@ H2 Consoleでデータベースへ接続するまでの手順は以下のとお�
 </tr>
 </tbody>
 </table>
+<div class="paragraph">
+<p><code>CommandLineJobRunner</code>は現在非推奨となっているが、TERASOLUNA Batch 5.xでの利用方針については<a href="Ch02_TerasolunaBatchStack.html#Ch02_SpringBatchArch_Overview_HelloWorld_DeprecatedCommandLineJobRunner">非推奨であるCommandLineJobRunnerを利用する理由</a>を参照されたい。</p>
+</div>
 <div class="imageblock">
 <div class="content">
 <img src="./images/ch09/EnvironmentConstruction/Ch09_EnvironmentConstruction_OperationCheck_ExecJob_RunConf_Main.png" alt="Run Configurations Main tab">
@@ -1518,7 +1527,7 @@ Spring Batchメタデータテーブル(詳細は<a href="Ch02_SpringBatchArchit
 
   <div class="common-bg">
     <div class="information">
-      TERASOLUNA Batch Framework for Java (5.x) Development Guideline - version 5.7.0.RELEASE, 2025-3-31, commit-id:7ba4db3
+      TERASOLUNA Batch Framework for Java (5.x) Development Guideline - version 5.8.0.RELEASE, 2026-3-31, commit-id:f8c098e
     </div>
     <div class="index">
       <a href="index.html">&gt; INDEX</a>

@@ -15,7 +15,7 @@
 
 <div class="common-bg">
   <div class="information">
-    TERASOLUNA Batch Framework for Java (5.x) Development Guideline - version 5.7.0.RELEASE, 2025-3-31, commit-id:7ba4db3
+    TERASOLUNA Batch Framework for Java (5.x) Development Guideline - version 5.8.0.RELEASE, 2026-3-31, commit-id:f8c098e
   </div>
   <div class="index">
     <a href="index.html">&gt; INDEX</a>
@@ -252,6 +252,9 @@ window.onload = function() {
 また、起動パラメータの指定方法や活用方法については、<a href="Ch04_JobParameter.html#Ch04_JobParameter">ジョブの起動パラメータ</a>を参照。
 これらと本節の説明は一部重複するが、同期実行の要素に注目して説明する。</p>
 </div>
+<div class="paragraph">
+<p><code>CommandLineJobRunner</code>は現在非推奨となっているが、TERASOLUNA Batch 5.xでの利用方針については<a href="Ch02_TerasolunaBatchStack.html#Ch02_SpringBatchArch_Overview_HelloWorld_DeprecatedCommandLineJobRunner">非推奨であるCommandLineJobRunnerを利用する理由</a>を参照されたい。</p>
+</div>
 <div class="sect2">
 <h3 id="Ch04_SyncJob_HowToUse_Run"><a class="anchor" href="#Ch04_SyncJob_HowToUse_Run"></a>実行方法</h3>
 <div class="paragraph">
@@ -345,11 +348,14 @@ window.onload = function() {
 <span class="annotation">@Bean</span>
 <span class="directive">public</span> Job job01(JobRepository jobRepository,
                                         Step step01) {
-    <span class="keyword">return</span> <span class="keyword">new</span> JobBuilder(<span class="string"><span class="delimiter">&quot;</span><span class="content">job01</span><span class="delimiter">&quot;</span></span>,jobRepository)
+    <span class="keyword">return</span> <span class="keyword">new</span> JobBuilder(jobRepository)
             .start(step01)
             .build();
 }</code></pre>
 </div>
+</div>
+<div class="paragraph">
+<p>前述のジョブ定義例で利用している <code>StepBuilder#chunk(int chunkSize, PlatformTransactionManager transactionManager)</code> は現在非推奨となっているが、本バージョンでは利用を継続している。理由、および TERASOLUNA Batch 5.x での <code>SimpleStepBuilder</code> の利用方針については<a href="Ch03_CreateProject.html#Ch03_CreateProject_CreateJob_DeprecatedSimpleStepBuilder">非推奨であるSimpleStepBuilderを利用する理由</a>を参照されたい。</p>
 </div>
 </div>
 </div>
@@ -526,7 +532,7 @@ TERASOLUNA Batch 5.xでは、このオプションを活用するシーンがな
 
   <div class="common-bg">
     <div class="information">
-      TERASOLUNA Batch Framework for Java (5.x) Development Guideline - version 5.7.0.RELEASE, 2025-3-31, commit-id:7ba4db3
+      TERASOLUNA Batch Framework for Java (5.x) Development Guideline - version 5.8.0.RELEASE, 2026-3-31, commit-id:f8c098e
     </div>
     <div class="index">
       <a href="index.html">&gt; INDEX</a>

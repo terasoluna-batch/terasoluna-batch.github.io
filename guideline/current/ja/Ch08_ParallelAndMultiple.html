@@ -15,7 +15,7 @@
 
 <div class="common-bg">
   <div class="information">
-    TERASOLUNA Batch Framework for Java (5.x) Development Guideline - version 5.7.0.RELEASE, 2025-3-31, commit-id:7ba4db3
+    TERASOLUNA Batch Framework for Java (5.x) Development Guideline - version 5.8.0.RELEASE, 2026-3-31, commit-id:f8c098e
   </div>
   <div class="index">
     <a href="index.html">&gt; INDEX</a>
@@ -521,12 +521,15 @@ ItemReader/ItemProcessor/ItemWriterを自作する場合でもスレッドセー
 <span class="annotation">@Bean</span>
 <span class="directive">public</span> Job parallelSummarizeJob(JobRepository jobRepository,
                                 Flow splitFlow) {
-    <span class="keyword">return</span> <span class="keyword">new</span> JobBuilder(<span class="string"><span class="delimiter">&quot;</span><span class="content">parallelStepJob</span><span class="delimiter">&quot;</span></span>, jobRepository)
+    <span class="keyword">return</span> <span class="keyword">new</span> JobBuilder(jobRepository)
             .start(splitFlow)
             .end()
             .build();
 }</code></pre>
 </div>
+</div>
+<div class="paragraph">
+<p>前述のジョブ定義例で利用している <code>StepBuilder#chunk(int chunkSize, PlatformTransactionManager transactionManager)</code> は現在非推奨となっているが、本バージョンでは利用を継続している。理由、および TERASOLUNA Batch 5.x での <code>SimpleStepBuilder</code> の利用方針については<a href="Ch03_CreateProject.html#Ch03_CreateProject_CreateJob_DeprecatedSimpleStepBuilder">非推奨であるSimpleStepBuilderを利用する理由</a>を参照されたい。</p>
 </div>
 </div>
 </div>
@@ -744,7 +747,7 @@ ItemReader/ItemProcessor/ItemWriterを自作する場合でもスレッドセー
 <span class="directive">public</span> Job parallelRegisterJob(JobRepository jobRepository,
                                 Flow splitFlow,
                                 Step stepPreprocess) {
-    <span class="keyword">return</span> <span class="keyword">new</span> JobBuilder(<span class="string"><span class="delimiter">&quot;</span><span class="content">parallelRegisterJob</span><span class="delimiter">&quot;</span></span>, jobRepository)
+    <span class="keyword">return</span> <span class="keyword">new</span> JobBuilder(jobRepository)
             .start(stepPreprocess)
             .on(<span class="string"><span class="delimiter">&quot;</span><span class="content">*</span><span class="delimiter">&quot;</span></span>)
             .to(splitFlow)
@@ -752,6 +755,9 @@ ItemReader/ItemProcessor/ItemWriterを自作する場合でもスレッドセー
             .build();
 }</code></pre>
 </div>
+</div>
+<div class="paragraph">
+<p>前述のジョブ定義例で利用している <code>StepBuilder#chunk(int chunkSize, PlatformTransactionManager transactionManager)</code> は現在非推奨となっているが、本バージョンでは利用を継続している。理由、および TERASOLUNA Batch 5.x での <code>SimpleStepBuilder</code> の利用方針については<a href="Ch03_CreateProject.html#Ch03_CreateProject_CreateJob_DeprecatedSimpleStepBuilder">非推奨であるSimpleStepBuilderを利用する理由</a>を参照されたい。</p>
 </div>
 </div>
 </div>
@@ -1076,12 +1082,15 @@ ItemReader/ItemProcessor/ItemWriterを自作する場合でもスレッドセー
 <span class="directive">public</span> Job multipleInvoiceSummarizeJob(JobRepository jobRepository,
                                        JobExecutionLoggingListener listener,
                                        Step step1Manager) {
-    <span class="keyword">return</span> <span class="keyword">new</span> JobBuilder(<span class="string"><span class="delimiter">&quot;</span><span class="content">multipleInvoiceSummarizeJob</span><span class="delimiter">&quot;</span></span>, jobRepository)
+    <span class="keyword">return</span> <span class="keyword">new</span> JobBuilder(jobRepository)
             .start(step1Manager)
             .listener(listener)
             .build();
 }</code></pre>
 </div>
+</div>
+<div class="paragraph">
+<p>前述のジョブ定義例で利用している <code>StepBuilder#chunk(int chunkSize, PlatformTransactionManager transactionManager)</code> は現在非推奨となっているが、本バージョンでは利用を継続している。理由、および TERASOLUNA Batch 5.x での <code>SimpleStepBuilder</code> の利用方針については<a href="Ch03_CreateProject.html#Ch03_CreateProject_CreateJob_DeprecatedSimpleStepBuilder">非推奨であるSimpleStepBuilderを利用する理由</a>を参照されたい。</p>
 </div>
 </div>
 </div>
@@ -1297,11 +1306,14 @@ Managerステップはメインスレッドで処理される。</p></td>
 <span class="annotation">@Bean</span>
 <span class="directive">public</span> Job multiplePartitioninglStepFileJob(JobRepository jobRepository,
                                        Step stepManager) {
-    <span class="keyword">return</span> <span class="keyword">new</span> JobBuilder(<span class="string"><span class="delimiter">&quot;</span><span class="content">multiplePartitioninglStepFileJob</span><span class="delimiter">&quot;</span></span>, jobRepository)
+    <span class="keyword">return</span> <span class="keyword">new</span> JobBuilder(jobRepository)
             .start(stepManager)
             .build();
 }</code></pre>
 </div>
+</div>
+<div class="paragraph">
+<p>前述のジョブ定義例で利用している <code>StepBuilder#chunk(int chunkSize, PlatformTransactionManager transactionManager)</code> は現在非推奨となっているが、本バージョンでは利用を継続している。理由、および TERASOLUNA Batch 5.x での <code>SimpleStepBuilder</code> の利用方針については<a href="Ch03_CreateProject.html#Ch03_CreateProject_CreateJob_DeprecatedSimpleStepBuilder">非推奨であるSimpleStepBuilderを利用する理由</a>を参照されたい。</p>
 </div>
 </div>
 </div>
@@ -1314,20 +1326,20 @@ Managerステップはメインスレッドで処理される。</p></td>
 <span class="tag">&lt;task:executor</span> <span class="attribute-name">id</span>=<span class="string"><span class="delimiter">&quot;</span><span class="content">parallelTaskExecutor</span><span class="delimiter">&quot;</span></span> <span class="attribute-name">pool-size</span>=<span class="string"><span class="delimiter">&quot;</span><span class="content">10</span><span class="delimiter">&quot;</span></span> <span class="attribute-name">queue-capacity</span>=<span class="string"><span class="delimiter">&quot;</span><span class="content">200</span><span class="delimiter">&quot;</span></span><span class="tag">/&gt;</span>
 
 <span class="comment">&lt;!-- (2) --&gt;</span>
-<span class="tag">&lt;bean</span> <span class="attribute-name">id</span>=<span class="string"><span class="delimiter">&quot;</span><span class="content">reader</span><span class="delimiter">&quot;</span></span> <span class="attribute-name">class</span>=<span class="string"><span class="delimiter">&quot;</span><span class="content">org.springframework.batch.item.file.FlatFileItemReader</span><span class="delimiter">&quot;</span></span> <span class="attribute-name">scope</span>=<span class="string"><span class="delimiter">&quot;</span><span class="content">step</span><span class="delimiter">&quot;</span></span>
+<span class="tag">&lt;bean</span> <span class="attribute-name">id</span>=<span class="string"><span class="delimiter">&quot;</span><span class="content">reader</span><span class="delimiter">&quot;</span></span> <span class="attribute-name">class</span>=<span class="string"><span class="delimiter">&quot;</span><span class="content">org.springframework.batch.infrastructure.item.file.FlatFileItemReader</span><span class="delimiter">&quot;</span></span> <span class="attribute-name">scope</span>=<span class="string"><span class="delimiter">&quot;</span><span class="content">step</span><span class="delimiter">&quot;</span></span>
       <span class="attribute-name">p:resource</span>=<span class="string"><span class="delimiter">&quot;</span><span class="content">#{stepExecutionContext['fileName']}</span><span class="delimiter">&quot;</span></span><span class="tag">&gt;</span> <span class="comment">&lt;!-- (3) --&gt;</span>
-    <span class="tag">&lt;property</span> <span class="attribute-name">name</span>=<span class="string"><span class="delimiter">&quot;</span><span class="content">lineMapper</span><span class="delimiter">&quot;</span></span><span class="tag">&gt;</span>
-        <span class="tag">&lt;bean</span> <span class="attribute-name">class</span>=<span class="string"><span class="delimiter">&quot;</span><span class="content">org.springframework.batch.item.file.mapping.DefaultLineMapper</span><span class="delimiter">&quot;</span></span><span class="tag">&gt;</span>
+    <span class="tag">&lt;constructor-arg&gt;</span>
+        <span class="tag">&lt;bean</span> <span class="attribute-name">class</span>=<span class="string"><span class="delimiter">&quot;</span><span class="content">org.springframework.batch.infrastructure.item.file.mapping.DefaultLineMapper</span><span class="delimiter">&quot;</span></span><span class="tag">&gt;</span>
             <span class="tag">&lt;property</span> <span class="attribute-name">name</span>=<span class="string"><span class="delimiter">&quot;</span><span class="content">lineTokenizer</span><span class="delimiter">&quot;</span></span><span class="tag">&gt;</span>
-                <span class="tag">&lt;bean</span> <span class="attribute-name">class</span>=<span class="string"><span class="delimiter">&quot;</span><span class="content">org.springframework.batch.item.file.transform.DelimitedLineTokenizer</span><span class="delimiter">&quot;</span></span>
+                <span class="tag">&lt;bean</span> <span class="attribute-name">class</span>=<span class="string"><span class="delimiter">&quot;</span><span class="content">org.springframework.batch.infrastructure.item.file.transform.DelimitedLineTokenizer</span><span class="delimiter">&quot;</span></span>
                       <span class="attribute-name">p:names</span>=<span class="string"><span class="delimiter">&quot;</span><span class="content">branchId,year,month,customerId,amount</span><span class="delimiter">&quot;</span></span><span class="tag">/&gt;</span>
             <span class="tag">&lt;/property&gt;</span>
             <span class="tag">&lt;property</span> <span class="attribute-name">name</span>=<span class="string"><span class="delimiter">&quot;</span><span class="content">fieldSetMapper</span><span class="delimiter">&quot;</span></span><span class="tag">&gt;</span>
-                <span class="tag">&lt;bean</span> <span class="attribute-name">class</span>=<span class="string"><span class="delimiter">&quot;</span><span class="content">org.springframework.batch.item.file.mapping.BeanWrapperFieldSetMapper</span><span class="delimiter">&quot;</span></span>
+                <span class="tag">&lt;bean</span> <span class="attribute-name">class</span>=<span class="string"><span class="delimiter">&quot;</span><span class="content">org.springframework.batch.infrastructure.item.file.mapping.BeanWrapperFieldSetMapper</span><span class="delimiter">&quot;</span></span>
                       <span class="attribute-name">p:targetType</span>=<span class="string"><span class="delimiter">&quot;</span><span class="content">org.terasoluna.batch.functionaltest.app.model.plan.SalesPlanDetail</span><span class="delimiter">&quot;</span></span><span class="tag">/&gt;</span>
             <span class="tag">&lt;/property&gt;</span>
         <span class="tag">&lt;/bean&gt;</span>
-    <span class="tag">&lt;/property&gt;</span>
+    <span class="tag">&lt;/constructor-arg&gt;</span>
 <span class="tag">&lt;/bean&gt;</span>
 
 <span class="comment">&lt;!-- (4) --&gt;</span>
@@ -1572,12 +1584,15 @@ Managerステップはメインスレッドで処理される。</p></td>
 <span class="directive">public</span> Job multipleCreateSalesPlanSummaryJob(JobRepository jobRepository,
                                        JobExecutionLoggingListener listener,
                                        Step stepManager) {
-    <span class="keyword">return</span> <span class="keyword">new</span> JobBuilder(<span class="string"><span class="delimiter">&quot;</span><span class="content">multipleCreateSalesPlanSummaryJob</span><span class="delimiter">&quot;</span></span>, jobRepository)
+    <span class="keyword">return</span> <span class="keyword">new</span> JobBuilder(jobRepository)
             .start(stepManager)
             .listener(listener)
             .build();
 }</code></pre>
 </div>
+</div>
+<div class="paragraph">
+<p>前述のジョブ定義例で利用している <code>StepBuilder#chunk(int chunkSize, PlatformTransactionManager transactionManager)</code> は現在非推奨となっているが、本バージョンでは利用を継続している。理由、および TERASOLUNA Batch 5.x での <code>SimpleStepBuilder</code> の利用方針については<a href="Ch03_CreateProject.html#Ch03_CreateProject_CreateJob_DeprecatedSimpleStepBuilder">非推奨であるSimpleStepBuilderを利用する理由</a>を参照されたい。</p>
 </div>
 </div>
 </div>
@@ -1649,7 +1664,7 @@ Managerステップはメインスレッドで処理される。</p></td>
 <td class="tableblock halign-left valign-top"><p class="tableblock">(1)</p></td>
 <td class="tableblock halign-left valign-top"><p class="tableblock">特定のデータ範囲を取得するためにページネーション検索(SQL絞り込み方式)を定義する。<br>
 ページネーション検索(SQL絞り込み方式)の詳細は、TERASOLUNA Server 5.x 開発ガイドラインの
-<a href="https://terasolunaorg.github.io/guideline/5.10.0.RELEASE/ja/ArchitectureInDetail/DataAccessDetail/DataAccessMyBatis3.html#entity-sql">Entityのページネーション検索(SQL絞り込み方式)</a>を参照。</p></td>
+<a href="https://terasolunaorg.github.io/guideline/5.11.0.RELEASE/ja/ArchitectureInDetail/DataAccessDetail/DataAccessMyBatis3.html#entity-sql">Entityのページネーション検索(SQL絞り込み方式)</a>を参照。</p></td>
 </tr>
 <tr>
 <td class="tableblock halign-left valign-top"><p class="tableblock">(2)</p></td>
@@ -1723,7 +1738,7 @@ Managerステップはメインスレッドで処理される。</p></td>
 
   <div class="common-bg">
     <div class="information">
-      TERASOLUNA Batch Framework for Java (5.x) Development Guideline - version 5.7.0.RELEASE, 2025-3-31, commit-id:7ba4db3
+      TERASOLUNA Batch Framework for Java (5.x) Development Guideline - version 5.8.0.RELEASE, 2026-3-31, commit-id:f8c098e
     </div>
     <div class="index">
       <a href="index.html">&gt; INDEX</a>

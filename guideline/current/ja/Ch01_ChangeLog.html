@@ -14,7 +14,7 @@
 
 <div class="common-bg">
   <div class="information">
-    TERASOLUNA Batch Framework for Java (5.x) Development Guideline - version 5.7.0.RELEASE, 2025-3-31, commit-id:7ba4db3
+    TERASOLUNA Batch Framework for Java (5.x) Development Guideline - version 5.8.0.RELEASE, 2026-3-31, commit-id:f8c098e
   </div>
   <div class="index">
     <a href="index.html">&gt; INDEX</a>
@@ -208,6 +208,221 @@ window.onload = function() {
 </tr>
 </thead>
 <tbody>
+<tr>
+<td class="tableblock halign-left valign-top"><p class="tableblock">2026-3-31</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">-</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">5.8.0.RELEASE 版公開</p></td>
+</tr>
+<tr>
+<td class="tableblock halign-left valign-top"></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">全般</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">記載内容の修正<br>
+・TERASOLUNA Batch Framework for Java (5.x)のバージョン表記を5.8.0.RELEASEに変更<br>
+・ガイドラインの誤記(タイプミスや単純な記述ミスなど)や表記揺れの修正<br>
+・TERASOLUNA Server 5.x 開発ガイドラインへのリンクを修正<br>
+・コンストラクタに引数が必要になったコード例を修正<br>
+・パッケージ名の修正<br></p></td>
+</tr>
+<tr>
+<td class="tableblock halign-left valign-top"></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><a href="Ch02_TerasolunaBatchStack.html#Ch02_TerasolunaBatchStack_TerasolunaBOM">TERASOLUNA Framework for Java (5.x) Dependencies</a></p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">記載内容の追加<br>
+・TERASOLUNA Framework for Java (5.x) Dependenciesの説明を追加<br></p></td>
+</tr>
+<tr>
+<td class="tableblock halign-left valign-top"></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><a href="Ch02_SpringBatchArchitecture.html#Ch02_SpringBatchArch_Overview_BasicStructure">Spring Batchの基本構造</a></p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">記載内容の追加<br>
+・非推奨である<code>CommandLineJobRunner</code>を利用する理由を追加<br>
+記載内容の修正<br>
+・<code>JobLauncher</code>が非推奨になったため、かわりに<code>JobOperator</code>を使用するよう、説明と図を修正<br></p></td>
+</tr>
+<tr>
+<td class="tableblock halign-left valign-top"></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><a href="Ch02_TerasolunaBatchArchitecture.html#Ch02_TerasolunaBatchArch_LaunchMethod_Async_Web">非同期実行方式(Webコンテナ)</a></p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">記載内容の追加<br>
+・非同期実行方式(Webコンテナ)の非推奨化へ向けた重要な勧告を追加<br>
+記載内容の修正<br>
+・<code>SimpleJobOperator</code>が非推奨になったため、かわりに<code>TaskExecutorJobOperator</code>を使用する説明に修正<br></p></td>
+</tr>
+<tr>
+<td class="tableblock halign-left valign-top"></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><a href="Ch02_TerasolunaBatchStack.html#Ch02_TerasolunaBatchStack">TERASOLUNA Batch Framework for Java (5.x)のスタック</a></p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">記載内容の修正<br>
+・利用するOSSのバージョン一覧をSpring Boot Dependencies 4.0.2に準じて更新<br></p></td>
+</tr>
+<tr>
+<td class="tableblock halign-left valign-top"></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><a href="Ch02_SpringBatchArchitecture.html#Ch02_SpringBatchArch_Arch_ProcessFlow">処理全体の流れ</a></p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">記載内容の修正<br>
+・JobBuilderの名前未指定コンストラクタの追加対応<br></p></td>
+</tr>
+<tr>
+<td class="tableblock halign-left valign-top"></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><a href="Ch02_SpringBatchArchitecture.html#Ch02_SpringBatchArch_Arch_MetadataSchema_SequenceID">ID(シーケンス)定義</a></p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">記載内容の修正<br>
+・シーケンス名を変更<br></p></td>
+</tr>
+<tr>
+<td class="tableblock halign-left valign-top"></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><a href="Ch03_CreateProject.html#Ch03_CreateProject_XMLConfig_DeprecationNote">Bean定義の記述方法</a></p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">記載内容の追加<br>
+・XMLConfigが将来的に利用できなくなる可能性についての注意事項を追加<br></p></td>
+</tr>
+<tr>
+<td class="tableblock halign-left valign-top"></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><a href="Ch03_CreateProject.html#Ch03_CreateProject_BeanDefinition_Classification">Bean定義の分類とBean定義ファイルの対応関係</a></p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">記載内容の修正<br>
+・<code>DefaultBatchConfiguration</code>から<code>JdbcDefaultBatchConfiguration</code>を使用する説明に修正<br></p></td>
+</tr>
+<tr>
+<td class="tableblock halign-left valign-top"></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><a href="Ch03_CreateProject.html#Ch03_CreateProject_Appendix_JdbcDefaultBatchConfiguration">JdbcDefaultBatchConfiguration</a></p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">記載内容の削除<br>
+・DefaultBatchConfigurationの説明からJobRegistryの記載を削除<br></p></td>
+</tr>
+<tr>
+<td class="tableblock halign-left valign-top"></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><a href="Ch03_CreateProject.html#Ch03_CreateProject_Appendix_TerasolunaBatchConfiguration">TerasolunaBatchConfiguration</a></p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">記載内容の追加<br>
+・TerasolunaBatchConfigurationの説明にJobRegistyを追加<br>
+・非推奨である<code>JobOperatorFactoryBean#setJobParametersConverter()</code>を利用する理由を追加<br>
+記載内容の修正<br>
+・<code>JobLauncher</code>が非推奨になったため、直接<code>TaskExecutor</code>を使用するよう、説明とコード例を修正<br>
+・<code>TerasolunaBatchConfiguration</code>のコードにMicrometer用の設定を追加<br>
+・<code>JobRepositoryFactoryBean</code>から<code>JdbcJobRepositoryFactoryBean</code>を使用するコード例に修正<br>
+・<code>TerasolunaBatchConfiguration</code>のコード例と<code>DefaultBatchConfiguration</code>との差分を解消<br>
+記載内容の削除<br>
+・<code>JobExplorer</code>が非推奨になったため、コード例から削除<br></p></td>
+</tr>
+<tr>
+<td class="tableblock halign-left valign-top"></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><a href="Ch03_CreateChunkJob.html#Ch03_CreateChunkJob_HowToUse_JobConfig">ジョブの設定</a></p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">記載内容の追加<br>
+・非推奨である<code>SimpleStepBuilder</code>を利用する理由を追加<br></p></td>
+</tr>
+<tr>
+<td class="tableblock halign-left valign-top"></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><a href="_Ch04_single_index.html#Ch04">ジョブの起動</a></p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">記載内容の修正<br>
+・<code>SimpleJobOperator</code>が非推奨になったため、かわりに<code>TaskExecutorJobOperator</code>を使用するよう、コード例（XMLConfigのみ）、及び説明を修正<br>
+・<code>JobExplorer</code>が非推奨になったため、かわりに<code>JobRepository</code>を使用する説明とコード例、シーケンス図に修正<br>
+・<code>JobLauncher</code>が非推奨になったため、かわりに<code>JobOperator</code>を使用する説明とコード例に修正<br>
+記載内容の削除<br>
+・<code>JobExplorer</code>が非推奨になったため、コード例から削除<br></p></td>
+</tr>
+<tr>
+<td class="tableblock halign-left valign-top"></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><a href="Ch04_JobParameter.html#Ch04_JobParameter_HowToUse_Converter">パラメータ変換クラスについて</a></p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">記載内容の修正<br>
+・TerasolunaBatchConfiguration.javaのコードにMicrometer用の設定を追加<br></p></td>
+</tr>
+<tr>
+<td class="tableblock halign-left valign-top"></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><a href="Ch04_AsyncJobWithDB.html#Ch04_AsyncJobWithDB">非同期実行(DBポーリング)</a></p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">記載内容の追加<br>
+・非同期実行において非推奨APIを利用する理由を追加<br></p></td>
+</tr>
+<tr>
+<td class="tableblock halign-left valign-top"></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><a href="Ch04_JobParameter.html#Ch04_JobParameter_HowToUse_ParamsValidation_Origin">複雑な妥当性検証</a></p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">記載内容の修正<br>
+・JobParameterの取得メソッド変更によるJobParametersValidatorインタフェースの実装例を修正<br>
+・InvalidJobParametersExceptionに例外が変更になったことによる記載の修正<br></p></td>
+</tr>
+<tr>
+<td class="tableblock halign-left valign-top"></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><a href="Ch04_AsyncJobWithDB.html#Ch04_AsyncJobWithDB_HowToUse_CumulativeData">累積データの退避について</a></p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">記載内容の追加<br>
+・シーケンス名を変更<br></p></td>
+</tr>
+<tr>
+<td class="tableblock halign-left valign-top"></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><a href="Ch04_AsyncJobWithWebContainer.html#Ch04_AsyncJobWithWeb">非同期実行(Webコンテナ)</a></p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">記載内容の修正<br>
+・停止・リスタートの実装例を修正<br></p></td>
+</tr>
+<tr>
+<td class="tableblock halign-left valign-top"></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><a href="Ch04_AsyncJobWithWebContainer.html#Ch04_AsyncJobWithWeb_HowToUse_WebApp_Config">Webアプリケーションの設定</a></p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">記載内容の追加<br>
+・HttpMessageConverterに関する注意事項を追加<br>
+記載内容の修正<br>
+・JavaConfigではJackson3を使用するが、XMLConfigではJackson2を引き続き使用することに伴い、コード例及び説明を修正<br></p></td>
+</tr>
+<tr>
+<td class="tableblock halign-left valign-top"></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><a href="Ch04_AsyncJobWithWebContainer.html#Ch04_AsyncJobWithWeb_HowToUse_WebApp_Controller">コントローラの実装</a></p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">記載内容の追加<br>
+・非推奨であるJobOperator#start(String jobName, String parameters)を利用する理由を追加<br></p></td>
+</tr>
+<tr>
+<td class="tableblock halign-left valign-top"></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><a href="Ch04_AsyncJobWithWebContainer.html#Ch04_AsyncJobWithWeb_HowToExtend_StopAndRestart">ジョブの停止とリスタート</a></p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">記載内容の修正<br>
+・JobExecutionからJobInstanceのIdを取得するメソッドの変更による停止・リスタートの実装例を修正<br></p></td>
+</tr>
+<tr>
+<td class="tableblock halign-left valign-top"></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><a href="Ch04_Listener.html#Ch04_Listener_HowToUse_Impl_WithAnnotation">アノテーションを付与する場合</a></p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">記載内容の追加<br>
+・ChunkListenerに対応したアノテーションを付与して実装した場合の注意点を追加<br></p></td>
+</tr>
+<tr>
+<td class="tableblock halign-left valign-top"></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><a href="_Ch05_single_index.html#Ch05">データの入出力</a></p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">記載内容の修正<br>
+・日付処理について、JSR-310(Date and Time API)を使用するよう修正<br></p></td>
+</tr>
+<tr>
+<td class="tableblock halign-left valign-top"></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><a href="Ch05_DBAccess.html#Ch05_DBAccess_HowToUse_Config_MapperXML">Mapper XMLの定義</a></p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">記載内容の修正<br>
+・MyBatis-Springの設定に関する記述の見直し<br></p></td>
+</tr>
+<tr>
+<td class="tableblock halign-left valign-top"></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><a href="Ch05_FileAccess.html#Ch05_FileAccess_HowToUse_VariableLength">可変長レコード</a></p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">記載内容の削除<br>
+・nameメソッドでItemStreamSupportのサブクラス名を指定する理由を削除<br>
+・FlatFileItemReaderのコンストラクタのコード例を削除<br></p></td>
+</tr>
+<tr>
+<td class="tableblock halign-left valign-top"></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><a href="Ch05_FileAccess.html#Ch05_FileAccess_HowToUse_MultiFile_Output">出力</a></p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">記載内容の削除<br>
+・<code>itemCountLimitPerResource</code>で指定されたレコード件数で意図通りに出力されないことに関するワーニング説明を削除<br></p></td>
+</tr>
+<tr>
+<td class="tableblock halign-left valign-top"></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><a href="Ch06_InputValidation.html#Ch06_InputValidation_HowToUse_ErrorHandling_ErrorMessage">エラーメッセージの出力</a></p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">記載内容の修正<br>
+・<code>MessageSource</code>を使用したエラーメッセージ取得処理で、ロケール指定を<code>Locale.getDefault()</code>に修正<br></p></td>
+</tr>
+<tr>
+<td class="tableblock halign-left valign-top"></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><a href="Ch06_ExceptionHandling.html#Ch06_ExceptionHandling_HowToUse_ContinuationPropriety_Skip_Chunk_LimitCheckingItemSkipPolicy">LimitCheckingItemSkipPolicy</a></p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">記載内容の追加<br>
+・LimitCheckingItemSkipPolicy非推奨化の説明を追加<br></p></td>
+</tr>
+<tr>
+<td class="tableblock halign-left valign-top"></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><a href="Ch06_ReProcessing.html#Ch06_RerunRestart">処理の再実行</a></p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">記載内容の修正<br>
+・非同期実行(Webコンテナ)で実行したジョブのリスタート例と説明を修正<br></p></td>
+</tr>
+<tr>
+<td class="tableblock halign-left valign-top"></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><a href="Ch07_JobManagement.html#Ch07_JobManagement_HowToUse">ジョブの管理</a></p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">記載内容の修正<br>
+・<code>JobExplorer</code>が非推奨になったため、かわりに<code>JobRepository</code>を使用する説明とコード例に修正<br></p></td>
+</tr>
+<tr>
+<td class="tableblock halign-left valign-top"></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><a href="Ch09_Introduction.html#Ch09_Introduction_Environment">チュートリアル</a></p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">記載内容の修正<br>
+・検証環境のバージョンを更新  <br></p></td>
+</tr>
 <tr>
 <td class="tableblock halign-left valign-top"><p class="tableblock">2025-3-31</p></td>
 <td class="tableblock halign-left valign-top"><p class="tableblock">-</p></td>
@@ -542,7 +757,7 @@ window.onload = function() {
 <td class="tableblock halign-left valign-top"><p class="tableblock">記載内容の修正<br>
 ・利用するOSSのバージョン一覧をSpring Boot Dependencies 2.6.1.RELEASEに準じて更新 (管理ID#330)<br>
 記載内容の追加<br>
-・ <a href="https://cve.mitre.org/cgi-bin/cvename.cgi?name=CVE-2021-42550/">CVE-2021-42550</a>に関する説明及び注意点を追加 (管理ID#339)</p></td>
+・ <a href="https://cve.mitre.org/cgi-bin/cvename.cgi?name=CVE-2021-42550">CVE-2021-42550</a>に関する説明及び注意点を追加 (管理ID#339)</p></td>
 </tr>
 <tr>
 <td class="tableblock halign-left valign-top"></td>
@@ -1118,7 +1333,7 @@ window.onload = function() {
 
   <div class="common-bg">
     <div class="information">
-      TERASOLUNA Batch Framework for Java (5.x) Development Guideline - version 5.7.0.RELEASE, 2025-3-31, commit-id:7ba4db3
+      TERASOLUNA Batch Framework for Java (5.x) Development Guideline - version 5.8.0.RELEASE, 2026-3-31, commit-id:f8c098e
     </div>
     <div class="index">
       <a href="index.html">&gt; INDEX</a>

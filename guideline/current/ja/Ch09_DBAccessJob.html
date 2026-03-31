@@ -15,7 +15,7 @@
 
 <div class="common-bg">
   <div class="information">
-    TERASOLUNA Batch Framework for Java (5.x) Development Guideline - version 5.7.0.RELEASE, 2025-3-31, commit-id:7ba4db3
+    TERASOLUNA Batch Framework for Java (5.x) Development Guideline - version 5.8.0.RELEASE, 2026-3-31, commit-id:f8c098e
   </div>
   <div class="index">
     <a href="index.html">&gt; INDEX</a>
@@ -1163,7 +1163,7 @@ ItemProcessorの実装例は、<a href="Ch05_DBAccess.html#Ch05_DBAccess_HowToUs
 <div class="content">
 <pre class="CodeRay highlight"><code data-lang="java"><span class="keyword">package</span> <span class="namespace">org.terasoluna.batch.tutorial.dbaccess.chunk</span>;
 
-<span class="keyword">import</span> <span class="include">org.springframework.batch.item.ItemProcessor</span>;
+<span class="keyword">import</span> <span class="include">org.springframework.batch.infrastructure.item.ItemProcessor</span>;
 <span class="keyword">import</span> <span class="include">org.springframework.stereotype.Component</span>;
 <span class="keyword">import</span> <span class="include">org.terasoluna.batch.tutorial.common.dto.MemberInfoDto</span>;
 
@@ -1321,12 +1321,15 @@ ItemProcessorの実装例は、<a href="Ch05_DBAccess.html#Ch05_DBAccess_HowToUs
     <span class="annotation">@Bean</span>
     <span class="directive">public</span> Job jobPointAddChunk(JobRepository jobRepository,
                                              Step step01) {
-        <span class="keyword">return</span> <span class="keyword">new</span> JobBuilder(<span class="string"><span class="delimiter">&quot;</span><span class="content">jobPointAddChunk</span><span class="delimiter">&quot;</span></span>, jobRepository) <span class="comment">// (1)</span>
+        <span class="keyword">return</span> <span class="keyword">new</span> JobBuilder(jobRepository) <span class="comment">// (1)</span>
                 .start(step01)
                 .build();
     }
 }</code></pre>
 </div>
+</div>
+<div class="paragraph">
+<p>前述のジョブ定義例で利用している <code>StepBuilder#chunk(int chunkSize, PlatformTransactionManager transactionManager)</code> は現在非推奨となっているが、本バージョンでは利用を継続している。理由、および TERASOLUNA Batch 5.x での <code>SimpleStepBuilder</code> の利用方針については<a href="Ch03_CreateProject.html#Ch03_CreateProject_CreateJob_DeprecatedSimpleStepBuilder">非推奨であるSimpleStepBuilderを利用する理由</a>を参照されたい。</p>
 </div>
 </div>
 </div>
@@ -1394,14 +1397,14 @@ ItemProcessorの実装例は、<a href="Ch05_DBAccess.html#Ch05_DBAccess_HowToUs
 <tr>
 <td class="tableblock halign-left valign-top"><p class="tableblock">(1)</p></td>
 <td class="tableblock halign-left valign-top"><p class="tableblock">ジョブの設定を行う。<br>
-<code>JobBuilderのコンストラクタの引数name/id属性</code>は、1つのバッチアプリケーションに含まれる全ジョブの範囲内で一意とする必要がある。<br>
-ここでは、チャンクモデルのジョブ名として<code>jobPointAddChunk</code>を指定する。</p></td>
+ジョブ名は、JavaConfigでは<code>@Bean</code>が付与されたメソッド名(<code>jobCustomerList01</code>)で定められ、XMLConfigでは<code>&lt;batch:job&gt;</code>要素の<code>id</code>属性で指定される。<br>
+ジョブ名は、1つのバッチアプリケーションに含まれる全ジョブの範囲内で一意でなければならない。</p></td>
 </tr>
 <tr>
 <td class="tableblock halign-left valign-top"><p class="tableblock">(2)</p></td>
 <td class="tableblock halign-left valign-top"><p class="tableblock">ステップの設定を行う。<br>
-<code>StepBuilderのコンストラクタの引数name/id属性</code>は、1つのバッチアプリケーションに含まれる全ジョブの範囲内で一意とする必要はないが、障害発生時に追跡しやすくなる等の様々なメリットがあるため一意とする。<br>
-特別な理由がない限り、(1)で指定した<code>JobBuilderのコンストラクタの引数name/id属性</code>に[step+連番]を付加する形式とする。<br>
+<code>StepBuilder</code>のコンストラクタの<code>name</code>引数/<code>&lt;batch:step&gt;</code>要素の<code>id</code>属性で定められるステップ名は、ジョブ名とは異なり、1つのバッチアプリケーションに含まれる全ジョブの範囲内で一意である必要はないが、障害発生時の追跡性向上などの利点があるため一意とすることを推奨する。
+特別な理由がない限り、(1)で指定したジョブ名に<code>[step+連番]</code>を付加する形式とする。<br>
 ここでは、チャンクモデルのジョブのステップ名として<code>jobPointAddChunk.step01</code>を指定する。</p></td>
 </tr>
 <tr>
@@ -1413,6 +1416,35 @@ ItemProcessorの実装例は、<a href="Ch05_DBAccess.html#Ch05_DBAccess_HowToUs
 </tr>
 </tbody>
 </table>
+<div class="admonitionblock warning">
+<table>
+<tr>
+<td class="icon">
+<i class="fa icon-warning" title="Warning"></i>
+</td>
+<td class="content">
+<div class="paragraph">
+<p>JavaConfig では、<code>JobBuilder</code>のコンストラクタで <code>name</code>属性を指定しないこと。<br>
+(1) のジョブ名として利用されるBean名は、一般的に Spring Framework の JavaConfigでは <code>@Bean</code> メソッドの名前として、XMLConfigでは <code>&lt;bean&gt;</code> 要素の <code>id</code> 属性として定められる。
+一方で、ジョブ名とは、Spring Batchのメタデータに記録されるジョブの名前であり、Spring Framework のBean名をそのままジョブ名とする方法と、<code>JobBuilder</code> のコンストラクタで <code>name</code> 属性として定める方法がある。</p>
+</div>
+<div class="paragraph">
+<p>ここで、<code>JobBuilder</code>のコンストラクタの <code>name</code> 属性を指定することで、Bean名とは異なるジョブ名を定義すると、次のような問題が発生しうる。</p>
+</div>
+<div class="ulist">
+<ul>
+<li>
+<p>ログやSpring Batchのメタデータテーブル（例：<code>BATCH_JOB_INSTANCE</code>）にはジョブ名のみが記録されるため、JavaConfig/XMLConfigのBean名の情報が失われてしまうことで、障害解析時やジョブの実行管理を行う際、定義体から調査対象のジョブを特定することが難しくなる。</p>
+</li>
+</ul>
+</div>
+<div class="paragraph">
+<p>特別な理由がない限り、JavaConfigでは Bean名とジョブ名を一致させるために、<code>JobBuilder</code>のコンストラクタの<code>name</code> 属性を利用せず、<code>@Bean</code> が付与されたメソッドであるBean名をそのままジョブ名として利用することを推奨する。</p>
+</div>
+</td>
+</tr>
+</table>
+</div>
 <div class="admonitionblock note">
 <table>
 <tr>
@@ -1487,6 +1519,9 @@ ItemProcessorの実装例は、<a href="Ch05_DBAccess.html#Ch05_DBAccess_HowToUs
 </li>
 </ul>
 </div>
+<div class="paragraph">
+<p><code>CommandLineJobRunner</code>は現在非推奨となっているが、TERASOLUNA Batch 5.xでの利用方針については<a href="Ch02_TerasolunaBatchStack.html#Ch02_SpringBatchArch_Overview_HelloWorld_DeprecatedCommandLineJobRunner">非推奨であるCommandLineJobRunnerを利用する理由</a>を参照されたい。</p>
+</div>
 </div>
 </div>
 <div class="exampleblock secondary">
@@ -1521,6 +1556,9 @@ ItemProcessorの実装例は、<a href="Ch05_DBAccess.html#Ch05_DBAccess_HowToUs
 </div>
 </li>
 </ul>
+</div>
+<div class="paragraph">
+<p><code>CommandLineJobRunner</code>は現在非推奨となっているが、TERASOLUNA Batch 5.xでの利用方針については<a href="Ch02_TerasolunaBatchStack.html#Ch02_SpringBatchArch_Overview_HelloWorld_DeprecatedCommandLineJobRunner">非推奨であるCommandLineJobRunnerを利用する理由</a>を参照されたい。</p>
 </div>
 </div>
 </div>
@@ -2150,13 +2188,13 @@ Taskletの実装例は、<a href="Ch05_DBAccess.html#Ch05_DBAccess_HowToUse_Inpu
 <div class="content">
 <pre class="CodeRay highlight"><code data-lang="java"><span class="keyword">package</span> <span class="namespace">org.terasoluna.batch.tutorial.dbaccess.tasklet</span>;
 
-<span class="keyword">import</span> <span class="include">org.springframework.batch.core.StepContribution</span>;
+<span class="keyword">import</span> <span class="include">org.springframework.batch.core.step.StepContribution</span>;
 <span class="keyword">import</span> <span class="include">org.springframework.batch.core.scope.context.ChunkContext</span>;
 <span class="keyword">import</span> <span class="include">org.springframework.batch.core.step.tasklet.Tasklet</span>;
-<span class="keyword">import</span> <span class="include">org.springframework.batch.item.Chunk</span>;
-<span class="keyword">import</span> <span class="include">org.springframework.batch.item.ItemStreamReader</span>;
-<span class="keyword">import</span> <span class="include">org.springframework.batch.item.ItemWriter</span>;
-<span class="keyword">import</span> <span class="include">org.springframework.batch.repeat.RepeatStatus</span>;
+<span class="keyword">import</span> <span class="include">org.springframework.batch.infrastructure.item.Chunk</span>;
+<span class="keyword">import</span> <span class="include">org.springframework.batch.infrastructure.item.ItemStreamReader</span>;
+<span class="keyword">import</span> <span class="include">org.springframework.batch.infrastructure.item.ItemWriter</span>;
+<span class="keyword">import</span> <span class="include">org.springframework.batch.infrastructure.repeat.RepeatStatus</span>;
 <span class="keyword">import</span> <span class="include">org.springframework.stereotype.Component</span>;
 <span class="keyword">import</span> <span class="include">org.terasoluna.batch.tutorial.common.dto.MemberInfoDto</span>;
 
@@ -2385,7 +2423,7 @@ Taskletの実装例は、<a href="Ch05_DBAccess.html#Ch05_DBAccess_HowToUse_Inpu
     <span class="annotation">@Bean</span>
     <span class="directive">public</span> Job jobPointAddTasklet(JobRepository jobRepository,
                                              Step step01) {
-        <span class="keyword">return</span> <span class="keyword">new</span> JobBuilder(<span class="string"><span class="delimiter">&quot;</span><span class="content">jobPointAddTasklet</span><span class="delimiter">&quot;</span></span>, jobRepository)
+        <span class="keyword">return</span> <span class="keyword">new</span> JobBuilder(jobRepository)
                 .start(step01)
                 .build();
     }
@@ -2455,14 +2493,14 @@ Taskletの実装例は、<a href="Ch05_DBAccess.html#Ch05_DBAccess_HowToUse_Inpu
 <tr>
 <td class="tableblock halign-left valign-top"><p class="tableblock">(1)</p></td>
 <td class="tableblock halign-left valign-top"><p class="tableblock">ジョブの設定を行う。<br>
-<code>JobBuilderのコンストラクタの引数name/id属性</code>は、1つのバッチアプリケーションに含まれる全ジョブの範囲内で一意とする必要がある。<br>
-ここでは、タスクレットモデルのジョブ名として<code>jobPointAddTasklet</code>を指定する。</p></td>
+ジョブ名は、JavaConfigでは<code>@Bean</code>が付与されたメソッド名(<code>jobCustomerList01</code>)で定められ、XMLConfigでは<code>&lt;batch:job&gt;</code>要素の<code>id</code>属性で指定される。<br>
+ジョブ名は、1つのバッチアプリケーションに含まれる全ジョブの範囲内で一意でなければならない。</p></td>
 </tr>
 <tr>
 <td class="tableblock halign-left valign-top"><p class="tableblock">(2)</p></td>
 <td class="tableblock halign-left valign-top"><p class="tableblock">ステップの設定を行う。<br>
-<code>StepBuilderのコンストラクタの引数name/id属性</code>は、1つのバッチアプリケーションに含まれる全ジョブの範囲内で一意とする必要はないが、障害発生時に追跡しやすくなる等の様々なメリットがあるため一意とする。<br>
- 特別な理由がない限り、(1)で指定した<code>JobBuilderのコンストラクタの引数name/id属性</code>に[step+連番]を付加する形式とする。<br>
+<code>StepBuilder</code>のコンストラクタの<code>name</code>引数/<code>&lt;batch:step&gt;</code>要素の<code>id</code>属性で定められるステップ名は、ジョブ名とは異なり、1つのバッチアプリケーションに含まれる全ジョブの範囲内で一意である必要はないが、障害発生時の追跡性向上などの利点があるため一意とすることを推奨する。
+特別な理由がない限り、(1)で指定したジョブ名に<code>[step+連番]</code>を付加する形式とする。<br>
 ここでは、タスクレットモデルのジョブのステップ名として<code>jobPointAddTasklet.step01</code>を指定する。</p></td>
 </tr>
 <tr>
@@ -2472,6 +2510,35 @@ Taskletの実装例は、<a href="Ch05_DBAccess.html#Ch05_DBAccess_HowToUse_Inpu
 </tr>
 </tbody>
 </table>
+<div class="admonitionblock warning">
+<table>
+<tr>
+<td class="icon">
+<i class="fa icon-warning" title="Warning"></i>
+</td>
+<td class="content">
+<div class="paragraph">
+<p>JavaConfig では、<code>JobBuilder</code>のコンストラクタで <code>name</code>属性を指定しないこと。<br>
+(1) のジョブ名として利用されるBean名は、一般的に Spring Framework の JavaConfigでは <code>@Bean</code> メソッドの名前として、XMLConfigでは <code>&lt;bean&gt;</code> 要素の <code>id</code> 属性として定められる。
+一方で、ジョブ名とは、Spring Batchのメタデータに記録されるジョブの名前であり、Spring Framework のBean名をそのままジョブ名とする方法と、<code>JobBuilder</code> のコンストラクタで <code>name</code> 属性として定める方法がある。</p>
+</div>
+<div class="paragraph">
+<p>ここで、<code>JobBuilder</code>のコンストラクタの <code>name</code> 属性を指定することで、Bean名とは異なるジョブ名を定義すると、次のような問題が発生しうる。</p>
+</div>
+<div class="ulist">
+<ul>
+<li>
+<p>ログやSpring Batchのメタデータテーブル（例：<code>BATCH_JOB_INSTANCE</code>）にはジョブ名のみが記録されるため、JavaConfig/XMLConfigのBean名の情報が失われてしまうことで、障害解析時やジョブの実行管理を行う際、定義体から調査対象のジョブを特定することが難しくなる。</p>
+</li>
+</ul>
+</div>
+<div class="paragraph">
+<p>特別な理由がない限り、JavaConfigでは Bean名とジョブ名を一致させるために、<code>JobBuilder</code>のコンストラクタの<code>name</code> 属性を利用せず、<code>@Bean</code> が付与されたメソッドであるBean名をそのままジョブ名として利用することを推奨する。</p>
+</div>
+</td>
+</tr>
+</table>
+</div>
 </div>
 </div>
 <div class="sect2">
@@ -2523,6 +2590,9 @@ Taskletの実装例は、<a href="Ch05_DBAccess.html#Ch05_DBAccess_HowToUse_Inpu
 </li>
 </ul>
 </div>
+<div class="paragraph">
+<p><code>CommandLineJobRunner</code>は現在非推奨となっているが、TERASOLUNA Batch 5.xでの利用方針については<a href="Ch02_TerasolunaBatchStack.html#Ch02_SpringBatchArch_Overview_HelloWorld_DeprecatedCommandLineJobRunner">非推奨であるCommandLineJobRunnerを利用する理由</a>を参照されたい。</p>
+</div>
 </div>
 </div>
 <div class="exampleblock secondary">
@@ -2557,6 +2627,9 @@ Taskletの実装例は、<a href="Ch05_DBAccess.html#Ch05_DBAccess_HowToUse_Inpu
 </div>
 </li>
 </ul>
+</div>
+<div class="paragraph">
+<p><code>CommandLineJobRunner</code>は現在非推奨となっているが、TERASOLUNA Batch 5.xでの利用方針については<a href="Ch02_TerasolunaBatchStack.html#Ch02_SpringBatchArch_Overview_HelloWorld_DeprecatedCommandLineJobRunner">非推奨であるCommandLineJobRunnerを利用する理由</a>を参照されたい。</p>
 </div>
 </div>
 </div>
@@ -2667,7 +2740,7 @@ Taskletの実装例は、<a href="Ch05_DBAccess.html#Ch05_DBAccess_HowToUse_Inpu
 
   <div class="common-bg">
     <div class="information">
-      TERASOLUNA Batch Framework for Java (5.x) Development Guideline - version 5.7.0.RELEASE, 2025-3-31, commit-id:7ba4db3
+      TERASOLUNA Batch Framework for Java (5.x) Development Guideline - version 5.8.0.RELEASE, 2026-3-31, commit-id:f8c098e
     </div>
     <div class="index">
       <a href="index.html">&gt; INDEX</a>

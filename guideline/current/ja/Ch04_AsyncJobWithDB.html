@@ -15,7 +15,7 @@
 
 <div class="common-bg">
   <div class="information">
-    TERASOLUNA Batch Framework for Java (5.x) Development Guideline - version 5.7.0.RELEASE, 2025-3-31, commit-id:7ba4db3
+    TERASOLUNA Batch Framework for Java (5.x) Development Guideline - version 5.8.0.RELEASE, 2026-3-31, commit-id:f8c098e
   </div>
   <div class="index">
     <a href="index.html">&gt; INDEX</a>
@@ -533,7 +533,7 @@ TERASOLUNA Batch 5.xでは、テーブルを監視しジョブを起動するモ
 <td class="content">
 <div class="title">処理シーケンスの補足</div>
 <div class="paragraph">
-<p>Spring Batchのリファレンスでは、<code>JobLauncher</code>に<code>AsyncTaskExecutor</code>を設定することで非同期実行が実現できることを示している。
+<p>Spring Batchのリファレンスでは、<code>JobOperator</code>に<code>AsyncTaskExecutor</code>を設定することで非同期実行が実現できることを示している。
 しかし、この方法を採用すると<code>AsyncTaskExecutor</code>がジョブ実行が出来ない状態を検知できない。
 これは、ジョブに割り当てられるスレッドがない時などに発生し、その結果以下の事象に繋がる可能性がある。</p>
 </div>
@@ -681,7 +681,7 @@ EXECUTED : ジョブ実行済み</p></td>
 <td class="content">
 <div class="title">ジョブパラメータを複数指定する場合の留意点</div>
 <div class="paragraph">
-<p>Spring Batchが提供するSimpleJobOperatorの仕様変更に伴い、TERASOLUNA Batch 5.xでもジョブパラメータを複数指定する場合の区切り文字を変更している。<br>
+<p>Spring Batchが提供する<code>TaskExecutorJobOperator</code>の仕様変更に伴い、TERASOLUNA Batch 5.xでもジョブパラメータを複数指定する場合の区切り文字を変更している。<br>
 既にカンマ区切りが使用されている場合、空白区切りに変更すること。<br>
 詳細は、<a href="https://github.com/spring-projects/spring-batch/issues/2122">Spring Batch/BATCH-1461</a>を参照されたい。</p>
 </div>
@@ -972,6 +972,53 @@ Spring Batchから提供されている<code>JobOperator</code>の<code>start</c
 </tr>
 </table>
 </div>
+<div id="Ch04_AsyncJobWithDB_Arch_Components_AppCtx_Deprecated" class="admonitionblock important">
+<table>
+<tr>
+<td class="icon">
+<i class="fa icon-important" title="Important"></i>
+</td>
+<td class="content">
+<div class="title">非同期実行において非推奨APIを利用する理由</div>
+<div class="paragraph">
+<p>前述の <code>AutomaticJobRegistrar</code> とそれに関連する <code>ApplicationContextFactory</code> , <code>DefaultJobLoader</code> はSpring Batchバージョン6から非推奨となっている。<br>
+しかし、TERASOLUNA Batch Framework for Java (5.x)のバージョン5.8.0.RELEASEでは、以下の理由により引き続き <code>AutomaticJobRegistrar</code> , <code>ApplicationContextFactory</code> , <code>DefaultJobLoader</code> を利用する。<br></p>
+</div>
+<div class="ulist">
+<ul>
+<li>
+<p><code>AutomaticJobRegistrar</code></p>
+<div class="ulist">
+<ul>
+<li>
+<p>非同期実行(DBポーリング)においては、1つのバッチプロセス上に複数の異なるジョブ定義が準備され、さらに各ジョブのコンテキストは競合することなく並列実行できることが求められる。<br>
+そのため、 <code>AutomaticJobRegistrar</code> を明示的に使用し、ジョブ定義のモジュール化を行う必要がある。<br>
+Spring Batchバージョン6以降では、 <code>AutomaticJobRegistrar</code> の代替は提供されていない。</p>
+</li>
+</ul>
+</div>
+</li>
+<li>
+<p><code>ApplicationContextFactory</code> , <code>DefaultJobLoader</code></p>
+<div class="ulist">
+<ul>
+<li>
+<p><code>AutomaticJobRegistrar</code> と組み合わせて使用することで、ジョブ定義ごとにコンテキストを分離できる。<br>
+Spring Batchバージョン6以降では、 <code>ApplicationContextFactory</code> , <code>DefaultJobLoader</code> の代替は提供されていない。</p>
+</li>
+</ul>
+</div>
+</li>
+</ul>
+</div>
+<div class="paragraph">
+<p>このため、TERASOLUNA Batch Framework for Java (5.x)のバージョン5.8.0.RELEASEでは、現在Spring Batchで非推奨とされている <code>AutomaticJobRegistrar</code> , <code>ApplicationContextFactory</code> , <code>DefaultJobLoader</code> を引き続き利用する前提としている点に留意されたい。<br>
+加えて、次回リリースで非推奨APIの削除と付随する各機能の利用方法が変更される可能性がある点にも注意されたい。</p>
+</div>
+</td>
+</tr>
+</table>
+</div>
 </div>
 <div class="sect3">
 <h4 id="Ch04_AsyncJobWithDB_Arch_Config"><a class="anchor" href="#Ch04_AsyncJobWithDB_Arch_Config"></a>Bean定義の構成</h4>
@@ -1230,6 +1277,9 @@ async-batch-daemon.polling-stop-file-path=/tmp/stop-async-batch-daemon</code></p
 </tr>
 </tbody>
 </table>
+<div class="paragraph">
+<p><code>AutomaticJobRegistrar</code> , <code>ApplicationContextFactory</code> , <code>DefaultJobLoader</code> は現在非推奨となっているが、TERASOLUNA Batch 5.xでの利用方針については<a href="#Ch04_AsyncJobWithDB_Arch_Components_AppCtx_Deprecated">非同期実行において非推奨APIを利用する理由</a>を参照されたい。</p>
+</div>
 </div>
 </div>
 <div class="exampleblock secondary">
@@ -1292,6 +1342,9 @@ async-batch-daemon.polling-stop-file-path=/tmp/stop-async-batch-daemon</code></p
 </tr>
 </tbody>
 </table>
+<div class="paragraph">
+<p><code>AutomaticJobRegistrar</code> , <code>ApplicationContextFactory</code> , <code>DefaultJobLoader</code> は現在非推奨となっているが、TERASOLUNA Batch 5.xでの利用方針については<a href="#Ch04_AsyncJobWithDB_Arch_Components_AppCtx_Deprecated">非同期実行において非推奨APIを利用する理由</a>を参照されたい。</p>
+</div>
 </div>
 </div>
 <div class="admonitionblock tip">
@@ -1632,7 +1685,7 @@ ocation
 <td class="tableblock halign-left valign-top"><p class="tableblock">batch_step_execution_context</p></td>
 </tr>
 <tr>
-<td class="tableblock halign-left valign-top"><p class="tableblock">batch_job_seq</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">batch_job_instance_seq</p></td>
 </tr>
 <tr>
 <td class="tableblock halign-left valign-top"><p class="tableblock">batch_job_execution_seq</p></td>
@@ -2162,6 +2215,9 @@ ocation
 </tr>
 </tbody>
 </table>
+<div class="paragraph">
+<p><code>AutomaticJobRegistrar</code> は現在非推奨となっているが、TERASOLUNA Batch 5.xでの利用方針については<a href="#Ch04_AsyncJobWithDB_Arch_Components_AppCtx_Deprecated">非同期実行において非推奨APIを利用する理由</a>を参照されたい。</p>
+</div>
 <div class="olist arabic">
 <ol class="arabic" start="5">
 <li>
@@ -2251,6 +2307,9 @@ $ java -cp dependency/* org.terasoluna.batch.async.db.AsyncBatchDaemon</code></p
 </tr>
 </tbody>
 </table>
+<div class="paragraph">
+<p><code>AutomaticJobRegistrar</code> は現在非推奨となっているが、TERASOLUNA Batch 5.xでの利用方針については<a href="#Ch04_AsyncJobWithDB_Arch_Components_AppCtx_Deprecated">非同期実行において非推奨APIを利用する理由</a>を参照されたい。</p>
+</div>
 </div>
 </div>
 <div class="exampleblock secondary">
@@ -2298,6 +2357,9 @@ $ java -cp dependency/* org.terasoluna.batch.async.db.AsyncBatchDaemon</code></p
 </tr>
 </tbody>
 </table>
+<div class="paragraph">
+<p><code>AutomaticJobRegistrar</code> は現在非推奨となっているが、TERASOLUNA Batch 5.xでの利用方針については<a href="#Ch04_AsyncJobWithDB_Arch_Components_AppCtx_Deprecated">非同期実行において非推奨APIを利用する理由</a>を参照されたい。</p>
+</div>
 </div>
 </div>
 </div>
@@ -2380,7 +2442,7 @@ $ java -cp dependency/* org.terasoluna.batch.async.db.AsyncBatchDaemon</code></p
 
   <div class="common-bg">
     <div class="information">
-      TERASOLUNA Batch Framework for Java (5.x) Development Guideline - version 5.7.0.RELEASE, 2025-3-31, commit-id:7ba4db3
+      TERASOLUNA Batch Framework for Java (5.x) Development Guideline - version 5.8.0.RELEASE, 2026-3-31, commit-id:f8c098e
     </div>
     <div class="index">
       <a href="index.html">&gt; INDEX</a>

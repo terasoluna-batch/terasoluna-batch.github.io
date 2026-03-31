@@ -15,7 +15,7 @@
 
 <div class="common-bg">
   <div class="information">
-    TERASOLUNA Batch Framework for Java (5.x) Development Guideline - version 5.7.0.RELEASE, 2025-3-31, commit-id:7ba4db3
+    TERASOLUNA Batch Framework for Java (5.x) Development Guideline - version 5.8.0.RELEASE, 2026-3-31, commit-id:f8c098e
   </div>
   <div class="index">
     <a href="index.html">&gt; INDEX</a>
@@ -501,7 +501,7 @@ Spring Batchはチャンク処理中にエラーが発生した場合、<code>Ch
 <p>リスナーインタフェースを<code>implements</code>して実装する。</p>
 </li>
 <li>
-<p>コンポーネントにメソッドベースでアノテーションを付与して実装する。</p>
+<p>コンポーネントのメソッドにアノテーションを付与して実装する。</p>
 </li>
 </ol>
 </div>
@@ -564,13 +564,15 @@ Spring Batchはチャンク処理中にエラーが発生した場合、<code>Ch
 <span class="directive">public</span> Job chunkJobWithListener(JobRepository jobRepository,
                                         Step step01,
                                         <span class="annotation">@Qualifier</span>(<span class="string"><span class="delimiter">&quot;</span><span class="content">jobExecutionLoggingListener</span><span class="delimiter">&quot;</span></span>) JobExecutionLoggingListener listener) {
-    <span class="keyword">return</span> <span class="keyword">new</span> JobBuilder(<span class="string"><span class="delimiter">&quot;</span><span class="content">chunkJobWithListener</span><span class="delimiter">&quot;</span></span>,
-            jobRepository)
+    <span class="keyword">return</span> <span class="keyword">new</span> JobBuilder(jobRepository)
             .start(step01)
             .listener(listener) <span class="comment">// (4)</span>
             .build();
 }</code></pre>
 </div>
+</div>
+<div class="paragraph">
+<p>前述のジョブ定義例で利用している <code>StepBuilder#chunk(int chunkSize, PlatformTransactionManager transactionManager)</code> は現在非推奨となっているが、本バージョンでは利用を継続している。理由、および TERASOLUNA Batch 5.x での <code>SimpleStepBuilder</code> の利用方針については<a href="Ch03_CreateProject.html#Ch03_CreateProject_CreateJob_DeprecatedSimpleStepBuilder">非推奨であるSimpleStepBuilderを利用する理由</a>を参照されたい。</p>
 </div>
 </div>
 </div>
@@ -665,6 +667,24 @@ Spring Batchはチャンク処理中にエラーが発生した場合、<code>Ch
 <h4 id="Ch04_Listener_HowToUse_Impl_WithAnnotation"><a class="anchor" href="#Ch04_Listener_HowToUse_Impl_WithAnnotation"></a>アノテーションを付与する場合</h4>
 <div class="paragraph">
 <p>各種リスナーインタフェースに対応したアノテーションを付与する。必要に応じて、複数のアノテーションを同時に実装してもよい。</p>
+</div>
+<div class="admonitionblock warning">
+<table>
+<tr>
+<td class="icon">
+<i class="fa icon-warning" title="Warning"></i>
+</td>
+<td class="content">
+<div class="title">ChunkListenerに対応したアノテーションを付与して実装した場合の注意</div>
+<div class="paragraph">
+<p><a href="Ch03_CreateProject.html#Ch03_CreateProject_CreateJob_DeprecatedSimpleStepBuilder">非推奨であるSimpleStepBuilderを利用する理由</a>で説明している通り、本バージョンでは非推奨である<code>StepBuilder#chunk(int chunkSize, PlatformTransactionManager transactionManager)</code>を利用している。<br>
+しかし、<code>StepBuilder#chunk(int chunkSize, PlatformTransactionManager transactionManager)</code>を利用している場合、Spring Batchバージョン6では、バージョン5で動作していた<code>ChunkListener</code>インタフェースに対応するアノテーションが動作しない。<br>
+そのため、チャンク処理に対してリスナーを設定したい場合は、<code>ChunkListener</code>インタフェースを<code>implements</code>して実装する必要がある。<br>
+この件について、 Spring Batch開発チームに <a href="https://github.com/spring-projects/spring-batch/issues/5297">問い合わせ</a>を行っているが、回答の内容次第では、機能の利用方法について今後大幅な変更が生じる可能性がある。</p>
+</div>
+</td>
+</tr>
+</table>
 </div>
 <table class="tableblock frame-all grid-all stretch">
 <caption class="title">表 2. リスナーインタフェースとの対応表</caption>
@@ -783,12 +803,14 @@ Spring Batchはチャンク処理中にエラーが発生した場合、<code>Ch
 <span class="annotation">@Bean</span>
 <span class="directive">public</span> Job chunkJobWithListenerAnnotation(JobRepository jobRepository,
                                         Step step01) {
-    <span class="keyword">return</span> <span class="keyword">new</span> JobBuilder(<span class="string"><span class="delimiter">&quot;</span><span class="content">chunkJobWithListenerAnnotation</span><span class="delimiter">&quot;</span></span>,
-            jobRepository)
+    <span class="keyword">return</span> <span class="keyword">new</span> JobBuilder(jobRepository)
             .start(step01)
             .build();
 }</code></pre>
 </div>
+</div>
+<div class="paragraph">
+<p>前述のジョブ定義例で利用している <code>StepBuilder#chunk(int chunkSize, PlatformTransactionManager transactionManager)</code> は現在非推奨となっているが、本バージョンでは利用を継続している。理由、および TERASOLUNA Batch 5.x での <code>SimpleStepBuilder</code> の利用方針については<a href="Ch03_CreateProject.html#Ch03_CreateProject_CreateJob_DeprecatedSimpleStepBuilder">非推奨であるSimpleStepBuilderを利用する理由</a>を参照されたい。</p>
 </div>
 </div>
 </div>
@@ -946,7 +968,7 @@ Spring Batchはチャンク処理中にエラーが発生した場合、<code>Ch
 <span class="directive">public</span> Job chunkJob(JobRepository jobRepository,
                     Step step01,
                     JobExecutionListener listener) {
-    <span class="keyword">return</span> <span class="keyword">new</span> JobBuilder(<span class="string"><span class="delimiter">&quot;</span><span class="content">chunkJob</span><span class="delimiter">&quot;</span></span>, jobRepository)
+    <span class="keyword">return</span> <span class="keyword">new</span> JobBuilder(jobRepository)
             .start(step01)
             .listener(listener) <span class="comment">// (6)</span>
             .build();
@@ -968,7 +990,7 @@ Spring Batchはチャンク処理中にエラーが発生した場合、<code>Ch
 <span class="directive">public</span> Job taskletJob(JobRepository jobRepository,
                       Step step01,
                       <span class="annotation">@Qualifier</span>(<span class="string"><span class="delimiter">&quot;</span><span class="content">jobExecutionListener</span><span class="delimiter">&quot;</span></span>) JobExecutionListener listener) {
-    <span class="keyword">return</span> <span class="keyword">new</span> JobBuilder(<span class="string"><span class="delimiter">&quot;</span><span class="content">taskletJob</span><span class="delimiter">&quot;</span></span>, jobRepository)
+    <span class="keyword">return</span> <span class="keyword">new</span> JobBuilder(jobRepository)
             .start(step01)
             .listener(listener) <span class="comment">// (6)</span>
             .build();
@@ -1014,6 +1036,9 @@ Spring Batchはチャンク処理中にエラーが発生した場合、<code>Ch
 </tr>
 </tbody>
 </table>
+<div class="paragraph">
+<p>前述のジョブ定義例で利用している <code>StepBuilder#chunk(int chunkSize, PlatformTransactionManager transactionManager)</code> は現在非推奨となっているが、本バージョンでは利用を継続している。理由、および TERASOLUNA Batch 5.x での <code>SimpleStepBuilder</code> の利用方針については<a href="Ch03_CreateProject.html#Ch03_CreateProject_CreateJob_DeprecatedSimpleStepBuilder">非推奨であるSimpleStepBuilderを利用する理由</a>を参照されたい。</p>
+</div>
 </div>
 </div>
 <div class="exampleblock secondary">
@@ -1147,13 +1172,16 @@ Spring Batchはチャンク処理中にエラーが発生した場合、<code>Ch
                       Step step01,
                       <span class="annotation">@Qualifier</span>(<span class="string"><span class="delimiter">&quot;</span><span class="content">listenerC</span><span class="delimiter">&quot;</span></span>) JobExecutionListener listenerC,
                       <span class="annotation">@Qualifier</span>(<span class="string"><span class="delimiter">&quot;</span><span class="content">listenerD</span><span class="delimiter">&quot;</span></span>) JobExecutionListener listenerD) {
-    <span class="keyword">return</span> <span class="keyword">new</span> JobBuilder(<span class="string"><span class="delimiter">&quot;</span><span class="content">taskletJob</span><span class="delimiter">&quot;</span></span>, jobRepository)
+    <span class="keyword">return</span> <span class="keyword">new</span> JobBuilder(jobRepository)
             .start(step01)
             .listener(listenerC)
             .listener(listenerD)
             .build();
 }</code></pre>
 </div>
+</div>
+<div class="paragraph">
+<p>前述のジョブ定義例で利用している <code>StepBuilder#chunk(int chunkSize, PlatformTransactionManager transactionManager)</code> は現在非推奨となっているが、本バージョンでは利用を継続している。理由、および TERASOLUNA Batch 5.x での <code>SimpleStepBuilder</code> の利用方針については<a href="Ch03_CreateProject.html#Ch03_CreateProject_CreateJob_DeprecatedSimpleStepBuilder">非推奨であるSimpleStepBuilderを利用する理由</a>を参照されたい。</p>
 </div>
 </div>
 </div>
@@ -1339,12 +1367,14 @@ Spring Batchはチャンク処理中にエラーが発生した場合、<code>Ch
 <span class="annotation">@Bean</span>
 <span class="directive">public</span> Job chunkJobWithAbortListener(JobRepository jobRepository,
                                     Step step01) {
-    <span class="keyword">return</span> <span class="keyword">new</span> JobBuilder(<span class="string"><span class="delimiter">&quot;</span><span class="content">chunkJobWithAbortListener</span><span class="delimiter">&quot;</span></span>,
-            jobRepository)
+    <span class="keyword">return</span> <span class="keyword">new</span> JobBuilder(jobRepository)
             .start(step01)
             .build();
 }</code></pre>
 </div>
+</div>
+<div class="paragraph">
+<p>前述のジョブ定義例で利用している <code>StepBuilder#chunk(int chunkSize, PlatformTransactionManager transactionManager)</code> は現在非推奨となっているが、本バージョンでは利用を継続している。理由、および TERASOLUNA Batch 5.x での <code>SimpleStepBuilder</code> の利用方針については<a href="Ch03_CreateProject.html#Ch03_CreateProject_CreateJob_DeprecatedSimpleStepBuilder">非推奨であるSimpleStepBuilderを利用する理由</a>を参照されたい。</p>
 </div>
 </div>
 </div>
@@ -1414,7 +1444,7 @@ Spring Batchはチャンク処理中にエラーが発生した場合、<code>Ch
 
   <div class="common-bg">
     <div class="information">
-      TERASOLUNA Batch Framework for Java (5.x) Development Guideline - version 5.7.0.RELEASE, 2025-3-31, commit-id:7ba4db3
+      TERASOLUNA Batch Framework for Java (5.x) Development Guideline - version 5.8.0.RELEASE, 2026-3-31, commit-id:f8c098e
     </div>
     <div class="index">
       <a href="index.html">&gt; INDEX</a>

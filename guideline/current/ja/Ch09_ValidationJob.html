@@ -15,7 +15,7 @@
 
 <div class="common-bg">
   <div class="information">
-    TERASOLUNA Batch Framework for Java (5.x) Development Guideline - version 5.7.0.RELEASE, 2025-3-31, commit-id:7ba4db3
+    TERASOLUNA Batch Framework for Java (5.x) Development Guideline - version 5.8.0.RELEASE, 2026-3-31, commit-id:f8c098e
   </div>
   <div class="index">
     <a href="index.html">&gt; INDEX</a>
@@ -673,8 +673,8 @@ window.onload = function() {
 <h3 id="Ch09_Impl_ValidationJob_Chunk_ValidationRulesDefinition"><a class="anchor" href="#Ch09_Impl_ValidationJob_Chunk_ValidationRulesDefinition"></a>入力チェックルールの定義</h3>
 <div class="paragraph">
 <p>入力チェックを行うために、DTOクラスのチェック対象のフィールドにBean Validationのアノテーションを付与する。<br>
-入力チェック用のアノテーションについては、TERASOLUNA Server 5.x 開発ガイドラインの<a href="https://terasolunaorg.github.io/guideline/5.10.0.RELEASE/ja/ArchitectureInDetail/WebApplicationDetail/Validation.html#validation-jsr380-doc">Bean Validationのチェックルール</a>
-および<a href="https://terasolunaorg.github.io/guideline/5.10.0.RELEASE/ja/ArchitectureInDetail/WebApplicationDetail/Validation.html#validation-validator-list">Hibernate Validatorのチェックルール</a>を参照。</p>
+入力チェック用のアノテーションについては、TERASOLUNA Server 5.x 開発ガイドラインの<a href="https://terasolunaorg.github.io/guideline/5.11.0.RELEASE/ja/ArchitectureInDetail/WebApplicationDetail/Validation.html#validation-jsr380-doc">Bean Validationのチェックルール</a>
+および<a href="https://terasolunaorg.github.io/guideline/5.11.0.RELEASE/ja/ArchitectureInDetail/WebApplicationDetail/Validation.html#validation-validator-list">Hibernate Validatorのチェックルール</a>を参照。</p>
 </div>
 <div class="paragraph">
 <p>チャンクモデル/タスクレットモデルで共通して利用するため、既に実施している場合は読み飛ばしてよい。</p>
@@ -739,7 +739,7 @@ window.onload = function() {
 <pre class="CodeRay highlight"><code data-lang="java"><span class="comment">// Package and the other import are omitted.</span>
 
 <span class="keyword">import</span> <span class="include">jakarta.inject.Inject</span>;
-<span class="keyword">import</span> <span class="include">org.springframework.batch.item.validator.Validator</span>;
+<span class="keyword">import</span> <span class="include">org.springframework.batch.infrastructure.item.validator.Validator</span>;
 
 <span class="annotation">@Component</span>
 <span class="directive">public</span> <span class="type">class</span> <span class="class">PointAddItemProcessor</span> <span class="directive">implements</span> ItemProcessor&lt;MemberInfoDto, MemberInfoDto&gt; {
@@ -776,7 +776,7 @@ window.onload = function() {
 </tr>
 <tr>
 <td class="tableblock halign-left valign-top"><p class="tableblock">(2)</p></td>
-<td class="tableblock halign-left valign-top"><p class="tableblock"><code>org.springframework.batch.item.validator.Validator</code>の型引数には、
+<td class="tableblock halign-left valign-top"><p class="tableblock"><code>org.springframework.batch.infrastructure.item.validator.Validator</code>の型引数には、
 <code>ItemReader</code>を通じて取得するDTOを設定する。</p></td>
 </tr>
 <tr>
@@ -851,7 +851,7 @@ tutorial.insert-data.script=file:sqls/insert-member-info-error-data.sql</code></
 <p>処理が異常終了(FAILED)していること。</p>
 </li>
 <li>
-<p><code>org.springframework.batch.item.validator.ValidationException</code>が発生していること。</p>
+<p><code>org.springframework.batch.infrastructure.item.validator.ValidationException</code>が発生していること。</p>
 </li>
 </ul>
 </div>
@@ -863,9 +863,9 @@ tutorial.insert-data.script=file:sqls/insert-member-info-error-data.sql</code></
 [2020/03/27 13:26:39] [main] [o.s.b.c.l.s.TaskExecutorJobLauncher] [INFO ] Job: [FlowJob: [name=jobPointAddChunk]] launched with the following parameters: [{jsr_batch_run_id=182}]
 [2020/03/27 13:26:39] [main] [o.s.b.c.j.SimpleStepHandler] [INFO ] Executing step: [jobPointAddChunk.step01]
 [2020/03/27 13:26:40] [main] [o.s.b.c.s.AbstractStep] [ERROR] Encountered an error executing step jobPointAddChunk.step01 in job jobPointAddChunk
-org.springframework.batch.item.validator.ValidationException: Validation failed for org.terasoluna.batch.tutorial.common.dto.MemberInfoDto@4d0e54e0:
+org.springframework.batch.infrastructure.item.validator.ValidationException: Validation failed for org.terasoluna.batch.tutorial.common.dto.MemberInfoDto@4d0e54e0:
 Field error in object 'item' on field 'point': rejected value [1000001]; codes [Max.item.point,Max.point,Max.int,Max]; arguments [org.springframework.context.support.DefaultMessageSourceResolvable: codes [item.point,point]; arguments []; default message [point],1000000]; default message [must be less than or equal to 1000000]
-        at org.springframework.batch.item.validator.SpringValidator.validate(SpringValidator.java:54)
+        at org.springframework.batch.infrastructure.item.validator.SpringValidator.validate(SpringValidator.java:54)
 
 (.. omitted)
 
@@ -1085,8 +1085,8 @@ Field error in object 'item' on field 'point': rejected value [1000001]; codes [
 <h3 id="Ch09_Impl_ValidationJob_Tasklet_ValidationRulesDefinition"><a class="anchor" href="#Ch09_Impl_ValidationJob_Tasklet_ValidationRulesDefinition"></a>入力チェックルールの定義</h3>
 <div class="paragraph">
 <p>入力チェックを行うために、DTOクラスのチェック対象のフィールドにBean Validationのアノテーションを付与する。<br>
-入力チェック用のアノテーションについては、TERASOLUNA Server 5.x 開発ガイドラインの<a href="https://terasolunaorg.github.io/guideline/5.10.0.RELEASE/ja/ArchitectureInDetail/WebApplicationDetail/Validation.html#validation-jsr380-doc">Bean Validationのチェックルール</a>
-および<a href="https://terasolunaorg.github.io/guideline/5.10.0.RELEASE/ja/ArchitectureInDetail/WebApplicationDetail/Validation.html#validation-validator-list">Hibernate Validatorのチェックルール</a>を参照。</p>
+入力チェック用のアノテーションについては、TERASOLUNA Server 5.x 開発ガイドラインの<a href="https://terasolunaorg.github.io/guideline/5.11.0.RELEASE/ja/ArchitectureInDetail/WebApplicationDetail/Validation.html#validation-jsr380-doc">Bean Validationのチェックルール</a>
+および<a href="https://terasolunaorg.github.io/guideline/5.11.0.RELEASE/ja/ArchitectureInDetail/WebApplicationDetail/Validation.html#validation-validator-list">Hibernate Validatorのチェックルール</a>を参照。</p>
 </div>
 <div class="paragraph">
 <p>チャンクモデル/タスクレットモデルで共通して利用するため、既に実施している場合は読み飛ばしてよい。</p>
@@ -1151,7 +1151,7 @@ Field error in object 'item' on field 'point': rejected value [1000001]; codes [
 <pre class="CodeRay highlight"><code data-lang="java"><span class="comment">// Package and the other import are omitted.</span>
 
 <span class="keyword">import</span> <span class="include">jakarta.inject.Inject</span>;
-<span class="keyword">import</span> <span class="include">org.springframework.batch.item.validator.Validator</span>;
+<span class="keyword">import</span> <span class="include">org.springframework.batch.infrastructure.item.validator.Validator</span>;
 
 <span class="annotation">@Component</span>
 <span class="directive">public</span> <span class="type">class</span> <span class="class">PointAddTasklet</span> <span class="directive">implements</span> Tasklet {
@@ -1204,7 +1204,7 @@ Field error in object 'item' on field 'point': rejected value [1000001]; codes [
 </tr>
 <tr>
 <td class="tableblock halign-left valign-top"><p class="tableblock">(2)</p></td>
-<td class="tableblock halign-left valign-top"><p class="tableblock"><code>org.springframework.batch.item.validator.Validator</code>の型引数には、
+<td class="tableblock halign-left valign-top"><p class="tableblock"><code>org.springframework.batch.infrastructure.item.validator.Validator</code>の型引数には、
 <code>ItemReader</code>を通じて取得するDTOを設定する。</p></td>
 </tr>
 <tr>
@@ -1279,7 +1279,7 @@ tutorial.insert-data.script=file:sqls/insert-member-info-error-data.sql</code></
 <p>処理が異常終了(FAILED)していること。</p>
 </li>
 <li>
-<p><code>org.springframework.batch.item.validator.ValidationException</code>が発生していること。</p>
+<p><code>org.springframework.batch.infrastructure.item.validator.ValidationException</code>が発生していること。</p>
 </li>
 </ul>
 </div>
@@ -1291,9 +1291,9 @@ tutorial.insert-data.script=file:sqls/insert-member-info-error-data.sql</code></
 [2020/03/27 13:32:28] [main] [o.s.b.c.l.s.TaskExecutorJobLauncher] [INFO ] Job: [FlowJob: [name=jobPointAddTasklet]] launched with the following parameters: [{jsr_batch_run_id=184}]
 [2020/03/27 13:32:28] [main] [o.s.b.c.j.SimpleStepHandler] [INFO ] Executing step: [jobPointAddTasklet.step01]
 [2020/03/27 13:32:28] [main] [o.s.b.c.s.AbstractStep] [ERROR] Encountered an error executing step jobPointAddTasklet.step01 in job jobPointAddTasklet
-org.springframework.batch.item.validator.ValidationException: Validation failed for org.terasoluna.batch.tutorial.common.dto.MemberInfoDto@234cff57:
+org.springframework.batch.infrastructure.item.validator.ValidationException: Validation failed for org.terasoluna.batch.tutorial.common.dto.MemberInfoDto@234cff57:
 Field error in object 'item' on field 'point': rejected value [1000001]; codes [Max.item.point,Max.point,Max.int,Max]; arguments [org.springframework.context.support.DefaultMessageSourceResolvable: codes [item.point,point]; arguments []; default message [point],1000000]; default message [must be less than or equal to 1000000]
-        at org.springframework.batch.item.validator.SpringValidator.validate(SpringValidator.java:54)
+        at org.springframework.batch.infrastructure.item.validator.SpringValidator.validate(SpringValidator.java:54)
 
 (.. omitted)
 
@@ -1391,7 +1391,7 @@ Field error in object 'item' on field 'point': rejected value [1000001]; codes [
 
   <div class="common-bg">
     <div class="information">
-      TERASOLUNA Batch Framework for Java (5.x) Development Guideline - version 5.7.0.RELEASE, 2025-3-31, commit-id:7ba4db3
+      TERASOLUNA Batch Framework for Java (5.x) Development Guideline - version 5.8.0.RELEASE, 2026-3-31, commit-id:f8c098e
     </div>
     <div class="index">
       <a href="index.html">&gt; INDEX</a>

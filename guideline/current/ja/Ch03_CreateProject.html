@@ -15,7 +15,7 @@
 
 <div class="common-bg">
   <div class="information">
-    TERASOLUNA Batch Framework for Java (5.x) Development Guideline - version 5.7.0.RELEASE, 2025-3-31, commit-id:7ba4db3
+    TERASOLUNA Batch Framework for Java (5.x) Development Guideline - version 5.8.0.RELEASE, 2026-3-31, commit-id:f8c098e
   </div>
   <div class="index">
     <a href="index.html">&gt; INDEX</a>
@@ -201,7 +201,12 @@ window.onload = function() {
 <li><a href="#Ch03_CreateProject_AsyncBatchDaemon_Definition">非同期バッチデーモンのBean定義</a></li>
 </ul>
 </li>
-<li><a href="#bean定義の記述方法">Bean定義の記述方法</a></li>
+<li><a href="#bean定義の記述方法">Bean定義の記述方法</a>
+<ul class="sectlevel2">
+<li><a href="#Ch03_CreateProject_XMLConfig_DeprecationNote">XMLConfigが将来的に利用できなくなる可能性についての注意事項</a></li>
+<li><a href="#javaconfigに処理内容を直接実装しない">JavaConfigに処理内容を直接実装しない</a></li>
+</ul>
+</li>
 <li><a href="#Ch03_CreateProject_BeanDefinition_Classification">Bean定義の分類とBean定義ファイルの対応関係</a></li>
 <li><a href="#Ch03_CreateProject_blank">ブランクプロジェクトとは</a></li>
 <li><a href="#Ch03_CreateProject_HowToCreate">プロジェクトの作成</a></li>
@@ -239,7 +244,7 @@ window.onload = function() {
 </li>
 <li><a href="#Ch03_CreateProject_Appendix">Appendix</a>
 <ul class="sectlevel2">
-<li><a href="#Ch03_CreateProject_Appendix_DefaultBatchConfiguration">DefaultBatchConfiguration</a></li>
+<li><a href="#Ch03_CreateProject_Appendix_JdbcDefaultBatchConfiguration">JdbcDefaultBatchConfiguration</a></li>
 <li><a href="#Ch03_CreateProject_Appendix_TerasolunaBatchConfiguration">TerasolunaBatchConfiguration</a></li>
 </ul>
 </li>
@@ -389,8 +394,55 @@ window.onload = function() {
 </tr>
 </table>
 </div>
+<div class="sect2">
+<h3 id="Ch03_CreateProject_XMLConfig_DeprecationNote"><a class="anchor" href="#Ch03_CreateProject_XMLConfig_DeprecationNote"></a>XMLConfigが将来的に利用できなくなる可能性についての注意事項</h3>
 <div class="paragraph">
-<p>Springの各種OSSにおけるリファレンスドキュメントでは、コード例の提示がJavaConfigしかないケースが増えているため、開発元からの正式なアナウンスは現状ないものの、今後はSpring全体として、XMLConfigよりもJavaConfigにより注力すると考えられる。</p>
+<p>Spring Batch 6.0.0から、XMLConfigを用いたBean定義は非推奨となっているため、今後新たにブランクプロジェクトから開発プロジェクトを新規作成する場合、Bean定義にはJavaConfigを用いること。</p>
+</div>
+<div class="paragraph">
+<p>一方、現在開発プロジェクトでXMLConfigのBean定義を利用している場合、XMLConfigの非推奨化に伴い今後のリリースではXMLConfigのスキーマ定義(XSD)がアップデートされないことから、更新差分については部分的にJavaConfigのインポートが必要となる場合があるなどBean定義の管理が煩雑化する恐れがあるため、この機会にJavaConfigへの移行を推奨する。</p>
+</div>
+</div>
+<div class="sect2">
+<h3 id="javaconfigに処理内容を直接実装しない"><a class="anchor" href="#javaconfigに処理内容を直接実装しない"></a>JavaConfigに処理内容を直接実装しない</h3>
+<div class="paragraph">
+<p>JavaConfigに<code>ItemReader</code>/<code>ItemWriter</code>/<code>ItemProcessor</code>/<code>Tasklet</code>の実装に含まれるビジネスロジックやデータの変換や検証、処理分岐を直接記述してはならない。</p>
+</div>
+<div class="paragraph">
+<p>JavaConfigに処理内容を直接実装すると、業務処理が設定クラスに含まれることになり、JavaConfig自体がテスト対象となる。<br>
+そのため、<code>@Configuration</code>/<code>@Bean</code>や外部設定に依存しやすく、実装部分のテストでも毎回ジョブの起動が必要になり、JavaConfigではないクラスと比較して単体テストの記述が非常に困難になる。</p>
+</div>
+<div class="paragraph">
+<p>JavaConfigに処理内容を直接実装すると、以下のような問題が発生しやすい。</p>
+</div>
+<div class="ulist">
+<ul>
+<li>
+<p>業務処理が十分にテストされない</p>
+<div class="ulist">
+<ul>
+<li>
+<p>JavaConfigは一般的に設定と認識されやすく、テスト対象から除外されやすい。<br>
+そのため、JavaConfig内に業務処理を記述すると、意図せず未テストコードが発生するリスクが高まる。</p>
+</li>
+</ul>
+</div>
+</li>
+<li>
+<p>再利用性が低下する</p>
+<div class="ulist">
+<ul>
+<li>
+<p>Bean定義（スコープ、依存関係、プロパティ値など）の都合に実装が引きずられ、同様の処理でもジョブやステップごとに専用実装を用意しがちになり、再利用しづらくなる。</p>
+</li>
+</ul>
+</div>
+</li>
+</ul>
+</div>
+<div class="paragraph">
+<p>そのため、<code>ItemReader</code>/<code>ItemWriter</code>/<code>ItemProcessor</code>/<code>Tasklet</code>の実装はJavaConfigとは別のクラスに実装し、JavaConfigからはそれらのクラスをBeanとして登録する形で利用すること。</p>
+</div>
 </div>
 </div>
 </div>
@@ -437,13 +489,13 @@ launch-context.xml</p></td>
 </tbody>
 </table>
 <div class="paragraph">
-<p>上表からも明らかなように、JavaConfigの<code>TerasolunaBatchConfiguration.java</code>に相当するBean定義ファイルがXMLConfigには存在しない。この理由は、Spring Batchから提供される、Bean定義をサポートする仕組み（<code>DefaultBatchConfiguration</code>）が、JavaConfig向けにしかないためである。</p>
+<p>上表からも明らかなように、JavaConfigの<code>TerasolunaBatchConfiguration.java</code>に相当するBean定義ファイルがXMLConfigには存在しない。この理由は、Spring Batchから提供される、Bean定義をサポートする仕組み（<code>JdbcDefaultBatchConfiguration</code>）が、JavaConfig向けにしかないためである。</p>
 </div>
 <div class="paragraph">
-<p><code>DefaultBatchConfiguration</code>の詳細は、<a href="#Ch03_CreateProject_Appendix">Appendix</a>の<a href="#Ch03_CreateProject_Appendix_DefaultBatchConfiguration">DefaultBatchConfiguration</a>を参照のこと。</p>
+<p><code>JdbcDefaultBatchConfiguration</code>の詳細は、<a href="#Ch03_CreateProject_Appendix">Appendix</a>の<a href="#Ch03_CreateProject_Appendix_JdbcDefaultBatchConfiguration">JdbcDefaultBatchConfiguration</a>を参照のこと。</p>
 </div>
 <div class="paragraph">
-<p>TERASOLUNA Batch Framework for Java (5.x)では、<code>DefaultBatchConfiguration</code>を直接使用せず、その継承クラス<code>TerasolunaBatchConfiguration</code>を使用する。これは、TERASOLUNA Batch Framework for Java (5.x)の動作上、<code>DefaultBatchConfiguration</code>の一部のBean定義のカスタマイズが必須となるためである。</p>
+<p>TERASOLUNA Batch Framework for Java (5.x)では、<code>JdbcDefaultBatchConfiguration</code>を直接使用せず、その継承クラス<code>TerasolunaBatchConfiguration</code>を使用する。これは、TERASOLUNA Batch Framework for Java (5.x)の動作上、<code>JdbcDefaultBatchConfiguration</code>の一部のBean定義のカスタマイズが必須となるためである。</p>
 </div>
 <div class="paragraph">
 <p><code>TerasolunaBatchConfiguration</code>の詳細は、<a href="#Ch03_CreateProject_Appendix">Appendix</a>の<a href="#Ch03_CreateProject_Appendix_TerasolunaBatchConfiguration">TerasolunaBatchConfiguration</a>を参照のこと。</p>
@@ -562,7 +614,7 @@ launch-context.xml</p></td>
 <pre class="CodeRay highlight"><code data-lang="console">C:\xxx&gt;mvn archetype:generate ^
   -DarchetypeGroupId=org.terasoluna.batch ^
   -DarchetypeArtifactId=terasoluna-batch-archetype ^
-  -DarchetypeVersion=5.7.0.RELEASE</code></pre>
+  -DarchetypeVersion=5.8.0.RELEASE</code></pre>
 </div>
 </div>
 <div class="listingblock">
@@ -571,7 +623,7 @@ launch-context.xml</p></td>
 <pre class="CodeRay highlight"><code data-lang="console">$ mvn archetype:generate \
   -DarchetypeGroupId=org.terasoluna.batch \
   -DarchetypeArtifactId=terasoluna-batch-archetype \
-  -DarchetypeVersion=5.7.0.RELEASE</code></pre>
+  -DarchetypeVersion=5.8.0.RELEASE</code></pre>
 </div>
 </div>
 </div>
@@ -588,7 +640,7 @@ launch-context.xml</p></td>
 <pre class="CodeRay highlight"><code data-lang="console">C:\xxx&gt;mvn archetype:generate ^
   -DarchetypeGroupId=org.terasoluna.batch ^
   -DarchetypeArtifactId=terasoluna-batch-xmlconfig-archetype ^
-  -DarchetypeVersion=5.7.0.RELEASE</code></pre>
+  -DarchetypeVersion=5.8.0.RELEASE</code></pre>
 </div>
 </div>
 <div class="listingblock">
@@ -597,7 +649,7 @@ launch-context.xml</p></td>
 <pre class="CodeRay highlight"><code data-lang="console">$ mvn archetype:generate \
   -DarchetypeGroupId=org.terasoluna.batch \
   -DarchetypeArtifactId=terasoluna-batch-xmlconfig-archetype \
-  -DarchetypeVersion=5.7.0.RELEASE</code></pre>
+  -DarchetypeVersion=5.8.0.RELEASE</code></pre>
 </div>
 </div>
 </div>
@@ -661,7 +713,7 @@ launch-context.xml</p></td>
 <pre class="CodeRay highlight"><code data-lang="console">C:\xxx&gt;mvn archetype:generate ^
 More? -DarchetypeGroupId=org.terasoluna.batch ^
 More? -DarchetypeArtifactId=terasoluna-batch-archetype ^
-More? -DarchetypeVersion=5.7.0.RELEASE
+More? -DarchetypeVersion=5.8.0.RELEASE
 [INFO] Scanning for projects&#8230;&#8203;
 [INFO]
 [INFO] ------------------------------------------------------------------------
@@ -681,7 +733,7 @@ version: 1.0.0-SNAPSHOT
 package: com.example.batch
  Y: : y
 [INFO] ------------------------------------------------------------------------
-[INFO] Using following parameters for creating project from Archetype: terasolua-batch-archetype:5.7.0.RELEASE
+[INFO] Using following parameters for creating project from Archetype: terasolua-batch-archetype:5.8.0.RELEASE
 [INFO] ------------------------------------------------------------------------
 [INFO] Parameter: groupId, Value: com.example.batch
 [INFO] Parameter: artifactId, Value: batch
@@ -708,7 +760,7 @@ package: com.example.batch
 <pre class="CodeRay highlight"><code data-lang="console">$ mvn archetype:generate \
 &gt; -DarchetypeGroupId=org.terasoluna.batch \
 &gt; -DarchetypeArtifactId=terasoluna-batch-archetype \
-&gt; -DarchetypeVersion=5.7.0.RELEASE
+&gt; -DarchetypeVersion=5.8.0.RELEASE
 [INFO] Scanning for projects&#8230;&#8203;
 [INFO]
 [INFO] ------------------------------------------------------------------------
@@ -728,7 +780,7 @@ version: 1.0.0-SNAPSHOT
 package: com.example.batch
  Y: : y
 [INFO] ----------------------------------------------------------------------------
-[INFO] Using following parameters for creating project from Archetype: terasoluna-batch-archetype:5.7.0.RELEASE
+[INFO] Using following parameters for creating project from Archetype: terasoluna-batch-archetype:5.8.0.RELEASE
 [INFO] ----------------------------------------------------------------------------
 [INFO] Parameter: groupId, Value: com.example.batch
 [INFO] Parameter: artifactId, Value: batch
@@ -777,6 +829,9 @@ $ java -cp 'lib/*:target/*' \
 org.springframework.batch.core.launch.support.CommandLineJobRunner \
 com.example.batch.jobs.Job01Config job01</code></pre>
 </div>
+</div>
+<div class="paragraph">
+<p><code>CommandLineJobRunner</code>は現在非推奨となっているが、TERASOLUNA Batch 5.xでの利用方針については<a href="Ch02_TerasolunaBatchStack.html#Ch02_SpringBatchArch_Overview_HelloWorld_DeprecatedCommandLineJobRunner">非推奨であるCommandLineJobRunnerを利用する理由</a>を参照されたい。</p>
 </div>
 <div class="paragraph">
 <p>以下が確認出来れば、プロジェクトの作成は成功である。</p>
@@ -877,6 +932,9 @@ $ java -cp 'lib/*:target/*' \
 org.springframework.batch.core.launch.support.CommandLineJobRunner \
 META-INF/jobs/job01.xml job01</code></pre>
 </div>
+</div>
+<div class="paragraph">
+<p><code>CommandLineJobRunner</code>は現在非推奨となっているが、TERASOLUNA Batch 5.xでの利用方針については<a href="Ch02_TerasolunaBatchStack.html#Ch02_SpringBatchArch_Overview_HelloWorld_DeprecatedCommandLineJobRunner">非推奨であるCommandLineJobRunnerを利用する理由</a>を参照されたい。</p>
 </div>
 <div class="paragraph">
 <p>以下の出力が得られ、<code>C:\xxx\batch\target</code>配下に<code>output.csv</code>が作成されていれば、プロジェクトは正しく作成できている。</p>
@@ -1719,11 +1777,51 @@ Spring Batchは<strong>JobRepository</strong>にアクセスするため、デ�
 </tr>
 </tbody>
 </table>
+<div id="Ch03_CreateProject_CreateJob_DeprecatedSimpleStepBuilder" class="admonitionblock important">
+<table>
+<tr>
+<td class="icon">
+<i class="fa icon-important" title="Important"></i>
+</td>
+<td class="content">
+<div class="title">非推奨であるSimpleStepBuilderを利用する理由</div>
+<div class="paragraph">
+<p>前述のジョブ定義例では <code>StepBuilder#chunk(int chunkSize, PlatformTransactionManager transactionManager)</code> を利用してステップを定義しているが、Spring Batchバージョン6から <code>StepBuilder#chunk(int chunkSize, PlatformTransactionManager transactionManager)</code> は非推奨となっており、代替として <code>StepBuilder#chunk(int chunkSize)</code> の利用が推奨されている。<br>
+これは、 <code>StepBuilder#chunk(int chunkSize, PlatformTransactionManager transactionManager)</code> が返す <code>SimpleStepBuilder</code> クラスが非推奨となったためであり、 <code>StepBuilder#chunk(int chunkSize)</code> が返す <code>ChunkOrientedStepBuilder</code> に代替されたためである。<br>
+しかし、TERASOLUNA Batch Framework for Java (5.x)のバージョン5.8.0.RELEASEでは、以下の理由により引き続き <code>SimpleStepBuilder</code> を利用する。</p>
+</div>
+<div class="ulist">
+<ul>
+<li>
+<p>Spring Batchバージョン6.0.2での <code>ChunkOrientedStepBuilder</code> に関するIssueで、いくつかの不具合が報告されている。</p>
+<div class="ulist">
+<ul>
+<li>
+<p>チャンクトランザクションがロールバックした場合でも <code>ItemStream</code> の状態が更新され、再開時にデータ欠損が発生する可能性がある。 <a href="https://github.com/spring-projects/spring-batch/issues/5182">#5182</a></p>
+</li>
+<li>
+<p>ステップがマルチスレッドとして構成されている場合、 <code>@StepScope</code> で定義された <code>ItemProcessor</code> がワーカースレッド内で正しく解決されない。 <a href="https://github.com/spring-projects/spring-batch/issues/5183">#5183</a></p>
+</li>
+<li>
+<p><code>ChunkOrientedStep#doExecute()</code> がトランザクション境界外で <code>StepExecution</code> を更新するため、メタデータの不整合が発生する可能性がある。 <a href="https://github.com/spring-projects/spring-batch/issues/5199">#5199</a></p>
+</li>
+</ul>
+</div>
+</li>
+</ul>
+</div>
+<div class="paragraph">
+<p>次回リリースで <code>ChunkOrientedStepBuilder</code> への移行と、付随する各機能の利用方法が変更される可能性がある点に注意されたい。</p>
+</div>
+</td>
+</tr>
+</table>
+</div>
 </div>
 <div class="sect3">
 <h4 id="ジョブのフロー制御や並列処理で複数のステップを定義するとき"><a class="anchor" href="#ジョブのフロー制御や並列処理で複数のステップを定義するとき"></a>ジョブのフロー制御や並列処理で複数のステップを定義するとき</h4>
 <div class="paragraph">
-<p>フロー制御や並列処理では複数のステップを定義するため、型（<code>org.springframework.batch.core.Step</code>）が重複する。ジョブのBean定義にステップをインジェクションする際に、<code>@Qualifier</code>アノテーションを付与する。</p>
+<p>フロー制御や並列処理では複数のステップを定義するため、型（<code>org.springframework.batch.core.step.Step</code>）が重複する。ジョブのBean定義にステップをインジェクションする際に、<code>@Qualifier</code>アノテーションを付与する。</p>
 </div>
 <div class="paragraph">
 <p>以下は複数のステップを<code>@Qualifier</code>アノテーション付きでインジェクションする例となる。</p>
@@ -2024,6 +2122,9 @@ com.example.batch.jobs.Job01Config job01
 [2019/09/03 02:43:11] [main] [o.s.b.c.l.s.TaskExecutorJobLauncher] [INFO ] Job: [FlowJob: [name=job01]] completed with the following parameters: [{jsr_batch_run_id=1}] and the following status: [COMPLETED]</code></pre>
 </div>
 </div>
+<div class="paragraph">
+<p><code>CommandLineJobRunner</code>は現在非推奨となっているが、TERASOLUNA Batch 5.xでの利用方針については<a href="Ch02_TerasolunaBatchStack.html#Ch02_SpringBatchArch_Overview_HelloWorld_DeprecatedCommandLineJobRunner">非推奨であるCommandLineJobRunnerを利用する理由</a>を参照されたい。</p>
+</div>
 </div>
 </div>
 <div class="exampleblock secondary">
@@ -2054,6 +2155,9 @@ META-INF/jobs/job01.xml job01
 [2019/09/03 02:43:11] [main] [o.s.b.c.j.SimpleStepHandler] [INFO ] Executing step: [job01.step01]
 [2019/09/03 02:43:11] [main] [o.s.b.c.l.s.TaskExecutorJobLauncher] [INFO ] Job: [FlowJob: [name=job01]] completed with the following parameters: [{jsr_batch_run_id=1}] and the following status: [COMPLETED]</code></pre>
 </div>
+</div>
+<div class="paragraph">
+<p><code>CommandLineJobRunner</code>は現在非推奨となっているが、TERASOLUNA Batch 5.xでの利用方針については<a href="Ch02_TerasolunaBatchStack.html#Ch02_SpringBatchArch_Overview_HelloWorld_DeprecatedCommandLineJobRunner">非推奨であるCommandLineJobRunnerを利用する理由</a>を参照されたい。</p>
 </div>
 </div>
 </div>
@@ -2135,9 +2239,9 @@ fi</code></pre>
 <h2 id="Ch03_CreateProject_Appendix"><a class="anchor" href="#Ch03_CreateProject_Appendix"></a>Appendix</h2>
 <div class="sectionbody">
 <div class="sect2">
-<h3 id="Ch03_CreateProject_Appendix_DefaultBatchConfiguration"><a class="anchor" href="#Ch03_CreateProject_Appendix_DefaultBatchConfiguration"></a>DefaultBatchConfiguration</h3>
+<h3 id="Ch03_CreateProject_Appendix_JdbcDefaultBatchConfiguration"><a class="anchor" href="#Ch03_CreateProject_Appendix_JdbcDefaultBatchConfiguration"></a>JdbcDefaultBatchConfiguration</h3>
 <div class="paragraph">
-<p><code>org.springframework.batch.core.configuration.support.DefaultBatchConfiguration</code>は、Spring Batchにより、JavaConfig向けにのみ提供されるConfigurationクラスである。</p>
+<p><code>org.springframework.batch.core.configuration.support.JdbcDefaultBatchConfiguration</code>は、Spring Batchにより、JavaConfig向けにのみ提供されるConfigurationクラスである。</p>
 </div>
 <div class="paragraph">
 <p>詳しくは、Spring Batchの公式リファレンス（以下）を参照のこと。</p>
@@ -2145,15 +2249,12 @@ fi</code></pre>
 <div class="ulist">
 <ul>
 <li>
-<p><a href="https://docs.spring.io/spring-batch/reference/job/java-config.html">Java構成</a></p>
-</li>
-<li>
-<p><a href="https://docs.spring.io/spring-batch/docs/5.2.1/api/org/springframework/batch/core/configuration/support/DefaultBatchConfiguration.html">クラス DefaultBatchConfiguration</a></p>
+<p><a href="https://docs.spring.io/spring-batch/docs/6.0.x/api/org/springframework/batch/core/configuration/support/JdbcDefaultBatchConfiguration.html">クラス JdbcDefaultBatchConfiguration</a></p>
 </li>
 </ul>
 </div>
 <div class="paragraph">
-<p><code>DefaultBatchConfiguration</code>は、Spring Batchの動作に必要ないくつかのBean定義（以下）を、あらかじめ設定済みにして提供する。</p>
+<p><code>JdbcDefaultBatchConfiguration</code>は、Spring Batchの動作に必要ないくつかのBean定義（以下）を、あらかじめ設定済みにして提供する。</p>
 </div>
 <div class="ulist">
 <ul>
@@ -2161,27 +2262,18 @@ fi</code></pre>
 <p><code>JobRepository</code></p>
 </li>
 <li>
-<p><code>JobExplorer</code></p>
-</li>
-<li>
-<p><code>JobLauncher</code></p>
-</li>
-<li>
-<p><code>JobRegistry</code></p>
-</li>
-<li>
 <p><code>JobOperator</code></p>
 </li>
 </ul>
 </div>
 <div class="paragraph">
-<p><code>DefaultBatchConfiguration</code>に相当する仕組みは、XMLConfig向けには提供されない。そのためXMLConfigでは、上述の5つのBean定義は、<code>launch-context.xml</code>に記述している。</p>
+<p>Spring Batchでは、XMLConfig向けの<code>JdbcDefaultBatchConfiguration</code>に相当する仕組みが提供されていない。そのため、TERASOLUNA Batch 5.xのXMLConfigでは、上述の2つのBean定義を<code>launch-context.xml</code>に記述している。</p>
 </div>
 </div>
 <div class="sect2">
 <h3 id="Ch03_CreateProject_Appendix_TerasolunaBatchConfiguration"><a class="anchor" href="#Ch03_CreateProject_Appendix_TerasolunaBatchConfiguration"></a>TerasolunaBatchConfiguration</h3>
 <div class="paragraph">
-<p><code>TerasolunaBatchConfiguration</code>は、<code>DefaultBatchConfiguration</code>のBean定義をカスタマイズするために用意されている。Bean定義のカスタマイズは、<code>DefaultBatchConfiguration</code>の<code>Bean</code>メソッドをオーバーライドすることで実現する。</p>
+<p><code>TerasolunaBatchConfiguration</code>は、<code>JdbcDefaultBatchConfiguration</code>のBean定義を、TERASOLUNA Batch 5.xの機能のために拡張している。その中でも一部機能については、Bean定義のカスタマイズが必要であるため、<code>JdbcDefaultBatchConfiguration</code>の<code>Bean</code>定義メソッドをオーバーライドすることで実現している。</p>
 </div>
 <div class="paragraph">
 <p><code>TerasolunaBatchConfiguration</code>でカスタマイズするBeanと、カスタマイズ内容は以下となる。</p>
@@ -2208,75 +2300,98 @@ fi</code></pre>
 </ul>
 </div>
 </li>
+<li>
+<p><code>TaskExecutor</code></p>
+<div class="ulist">
+<ul>
+<li>
+<p>デフォルトの実装クラスとして<code>org.springframework.core.task.SyncTaskExecutor</code>を定義</p>
+</li>
+<li>
+<p>非同期実行時にBean定義の上書きを容易にするために明示的に定義している</p>
+</li>
+</ul>
+</div>
+</li>
+<li>
+<p><code>JobRegistry</code></p>
+<div class="ulist">
+<ul>
+<li>
+<p><code>org.springframework.batch.core.configuration.support.MapJobRegistry</code>を実装クラスとして定義</p>
+</li>
+</ul>
+</div>
+</li>
 </ul>
 </div>
 <div class="paragraph">
-<p>以下は、<code>JobRepository</code>と<code>JobOperator</code>のカスタマイズ箇所のコードとなる。</p>
+<p>以下は、<code>JobRepository</code>、<code>JobOperator</code>、<code>TaskExecutor</code>、<code>JobRegistry</code>それぞれのカスタマイズ箇所のコードとなる。</p>
 </div>
 <div class="listingblock">
 <div class="title">TerasolunaBatchConfiguration.java</div>
 <div class="content">
 <pre class="CodeRay highlight"><code data-lang="java"><span class="comment">// omitted.</span>
-<span class="annotation">@Override</span>
 <span class="annotation">@Bean</span>
+<span class="annotation">@Override</span>
 <span class="directive">public</span> JobRepository jobRepository() <span class="directive">throws</span> BatchConfigurationException {
-    JobRepositoryFactoryBean jobRepositoryFactoryBean = <span class="keyword">new</span> JobRepositoryFactoryBean();
-    jobRepositoryFactoryBean.setDataSource(
-            getDataSource());
-    jobRepositoryFactoryBean.setTransactionManager(
-            getTransactionManager());
-    jobRepositoryFactoryBean.setIncrementerFactory(getIncrementerFactory());
-    jobRepositoryFactoryBean.setClobType(getClobType());
-    jobRepositoryFactoryBean.setTablePrefix(getTablePrefix());
-    jobRepositoryFactoryBean.setSerializer(getExecutionContextSerializer());
-    jobRepositoryFactoryBean.setConversionService(getConversionService());
-    jobRepositoryFactoryBean.setJdbcOperations(getJdbcOperations());
-    jobRepositoryFactoryBean.setLobHandler(getLobHandler());
-    jobRepositoryFactoryBean.setCharset(getCharset());
-    jobRepositoryFactoryBean.setMaxVarCharLength(getMaxVarCharLength());
-    jobRepositoryFactoryBean.setIsolationLevelForCreateEnum(
-            Isolation.READ_COMMITTED); <span class="comment">// (1)</span>
-    jobRepositoryFactoryBean.setValidateTransactionState(
-            getValidateTransactionState());
-
-     <span class="keyword">try</span> {
+    JdbcJobRepositoryFactoryBean jobRepositoryFactoryBean = <span class="keyword">new</span> JdbcJobRepositoryFactoryBean();
+    <span class="keyword">try</span> {
+        jobRepositoryFactoryBean.setDataSource(getDataSource()); <span class="comment">// get and set adminDataSource</span>
+        jobRepositoryFactoryBean.setTransactionManager(getTransactionManager()); <span class="comment">// get and set adminTransactionManager</span>
         jobRepositoryFactoryBean.setDatabaseType(getDatabaseType());
+        jobRepositoryFactoryBean.setIncrementerFactory(getIncrementerFactory());
+        jobRepositoryFactoryBean.setJobKeyGenerator(getJobKeyGenerator());
+        jobRepositoryFactoryBean.setClobType(getClobType());
+        jobRepositoryFactoryBean.setTablePrefix(getTablePrefix());
+        jobRepositoryFactoryBean.setSerializer(getExecutionContextSerializer());
+        jobRepositoryFactoryBean.setConversionService(getConversionService());
+        jobRepositoryFactoryBean.setJdbcOperations(getJdbcOperations());
+        jobRepositoryFactoryBean.setCharset(getCharset());
+        jobRepositoryFactoryBean.setMaxVarCharLength(getMaxVarCharLength());
+        jobRepositoryFactoryBean.setIsolationLevelForCreateEnum(Isolation.READ_COMMITTED); <span class="comment">// changed from SERIALIZABLE</span>
+        jobRepositoryFactoryBean.setValidateTransactionState(getValidateTransactionState());
         jobRepositoryFactoryBean.afterPropertiesSet();
         <span class="keyword">return</span> jobRepositoryFactoryBean.getObject();
-
     } <span class="keyword">catch</span> (BatchConfigurationException e) {
         <span class="keyword">throw</span> e;
     } <span class="keyword">catch</span> (<span class="exception">Exception</span> e) {
-        <span class="keyword">throw</span> <span class="keyword">new</span> BatchConfigurationException(
-                <span class="string"><span class="delimiter">&quot;</span><span class="content">Unable to configure the customized job repository</span><span class="delimiter">&quot;</span></span>, e);
+        <span class="keyword">throw</span> <span class="keyword">new</span> BatchConfigurationException(<span class="string"><span class="delimiter">&quot;</span><span class="content">Unable to configure the customized job repository</span><span class="delimiter">&quot;</span></span>, e);
     }
 }
 <span class="comment">// omitted.</span>
-<span class="annotation">@Override</span>
 <span class="annotation">@Bean</span>
-<span class="directive">public</span> JobOperator jobOperator(JobRepository jobRepository, JobExplorer jobExplorer, JobRegistry jobRegistry, JobLauncher jobLauncher) <span class="directive">throws</span> BatchConfigurationException {
+<span class="annotation">@Override</span>
+<span class="directive">public</span> JobOperator jobOperator(JobRepository jobRepository) <span class="directive">throws</span> BatchConfigurationException {
     JobOperatorFactoryBean jobOperatorFactoryBean = <span class="keyword">new</span> JobOperatorFactoryBean();
-    jobOperatorFactoryBean.setTransactionManager(<span class="local-variable">this</span>.getTransactionManager());
     jobOperatorFactoryBean.setJobRepository(jobRepository);
-    jobOperatorFactoryBean.setJobExplorer(jobExplorer);
-    jobOperatorFactoryBean.setJobRegistry(jobRegistry);
-    jobOperatorFactoryBean.setJobLauncher(jobLauncher);
+    jobOperatorFactoryBean.setJobRegistry(jobRegistry());
+    jobOperatorFactoryBean.setTransactionManager(getTransactionManager());
+    jobOperatorFactoryBean.setObservationRegistry(getObservationRegistry());
     JobParametersConverterImpl jobParametersConverter = <span class="keyword">new</span> JobParametersConverterImpl(
-            getDataSource()); <span class="comment">// (2)</span>
+            getDataSource());
     jobOperatorFactoryBean.setJobParametersConverter(
-            jobParametersConverter);
-
+            jobParametersConverter); <span class="comment">// changed from JobParametersConverterImpl</span>
+    jobOperatorFactoryBean.setTaskExecutor(taskExecutor());
     <span class="keyword">try</span> {
         jobParametersConverter.afterPropertiesSet();
         jobOperatorFactoryBean.afterPropertiesSet();
         <span class="keyword">return</span> jobOperatorFactoryBean.getObject();
-
     } <span class="keyword">catch</span> (BatchConfigurationException e) {
         <span class="keyword">throw</span> e;
     } <span class="keyword">catch</span> (<span class="exception">Exception</span> e) {
-        <span class="keyword">throw</span> <span class="keyword">new</span> BatchConfigurationException(
-                <span class="string"><span class="delimiter">&quot;</span><span class="content">Unable to configure the customized job operator</span><span class="delimiter">&quot;</span></span>, e);
+        <span class="keyword">throw</span> <span class="keyword">new</span> BatchConfigurationException(<span class="string"><span class="delimiter">&quot;</span><span class="content">Unable to configure the customized job operator</span><span class="delimiter">&quot;</span></span>, e);
     }
+}
+
+<span class="annotation">@Bean</span>
+<span class="directive">public</span> TaskExecutor taskExecutor() {
+    <span class="keyword">return</span> <span class="keyword">new</span> SyncTaskExecutor(); <span class="comment">// (3)</span>
+}
+
+<span class="annotation">@Bean</span>
+<span class="directive">public</span> JobRegistry jobRegistry() {
+    <span class="keyword">return</span> <span class="keyword">new</span> MapJobRegistry(); <span class="comment">// (4)</span>
 }
 <span class="comment">// omitted.</span></code></pre>
 </div>
@@ -2301,8 +2416,42 @@ fi</code></pre>
 <td class="tableblock halign-left valign-top"><p class="tableblock">(2)</p></td>
 <td class="tableblock halign-left valign-top"><p class="tableblock"><code>JobParametersConverter</code>の実装クラスを<code>JobParametersConverterImpl</code>に変更する。</p></td>
 </tr>
+<tr>
+<td class="tableblock halign-left valign-top"><p class="tableblock">(3)</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">シングルスレッドで同期的にジョブを起動するための<code>TaskExecutor</code>として<code>SyncTaskExecutor</code>を定義する。<br>
+非同期実行を行う場合は、別途設定クラスで同名のBeanを定義して上書きすることで、<code>ThreadPoolTaskExecutor</code>を利用する。</p></td>
+</tr>
+<tr>
+<td class="tableblock halign-left valign-top"><p class="tableblock">(4)</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><code>JobRegistry</code>の実装クラスとして<code>MapJobRegistry</code>を定義する。<br>
+非同期実行で使用する<code>automaticJobRegistrar</code>のBean定義からも参照されるため、明示的に定義している。</p></td>
+</tr>
 </tbody>
 </table>
+<div id="Ch03_CreateProject_Appendix_TerasolunaBatchConfiguration_DeprecatedJobParametersConverter" class="admonitionblock important">
+<table>
+<tr>
+<td class="icon">
+<i class="fa icon-important" title="Important"></i>
+</td>
+<td class="content">
+<div class="title">非推奨であるJobOperatorFactoryBean#setJobParametersConverter()を利用する理由</div>
+<div class="paragraph">
+<p><code>JobOperatorFactoryBean#setJobParametersConverter()</code> はSpring Batchバージョン6から非推奨となっている。<br>
+しかし、TERASOLUNA Batch Framework for Java (5.x)のバージョン5.8.0.RELEASEでは、以下の理由により引き続き <code>JobOperatorFactoryBean#setJobParametersConverter()</code> を利用する。</p>
+</div>
+<div class="paragraph">
+<p><code>JobOperatorFactoryBean#setJobParametersConverter()</code> は、<a href="Ch04_JobParameter.html#Ch04_JobParameter_HowToUse_Converter">パラメータ変換クラスについて</a> で紹介されている <code>JobParametersConverter</code> のカスタム実装に不可欠である。<br>
+また、Spring Batchバージョン6以降では、 <code>JobOperatorFactoryBean#setJobParametersConverter()</code> の代替は提供されていない。</p>
+</div>
+<div class="paragraph">
+<p>このため、TERASOLUNA Batch Framework for Java (5.x)のバージョン5.8.0.RELEASEでは、現在Spring Batchで非推奨とされている <code>JobOperatorFactoryBean#setJobParametersConverter()</code> を引き続き利用する前提としている点に留意されたい。<br>
+加えて、次回リリースで <code>JobOperatorFactoryBean#setJobParametersConverter()</code> の削除と付随する各機能の利用方法が変更される可能性がある点にも注意されたい。</p>
+</div>
+</td>
+</tr>
+</table>
+</div>
 </div>
 </div>
 </div>
@@ -2311,7 +2460,7 @@ fi</code></pre>
 
   <div class="common-bg">
     <div class="information">
-      TERASOLUNA Batch Framework for Java (5.x) Development Guideline - version 5.7.0.RELEASE, 2025-3-31, commit-id:7ba4db3
+      TERASOLUNA Batch Framework for Java (5.x) Development Guideline - version 5.8.0.RELEASE, 2026-3-31, commit-id:f8c098e
     </div>
     <div class="index">
       <a href="index.html">&gt; INDEX</a>

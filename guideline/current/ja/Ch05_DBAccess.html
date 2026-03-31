@@ -15,7 +15,7 @@
 
 <div class="common-bg">
   <div class="information">
-    TERASOLUNA Batch Framework for Java (5.x) Development Guideline - version 5.7.0.RELEASE, 2025-3-31, commit-id:7ba4db3
+    TERASOLUNA Batch Framework for Java (5.x) Development Guideline - version 5.8.0.RELEASE, 2026-3-31, commit-id:f8c098e
   </div>
   <div class="index">
     <a href="index.html">&gt; INDEX</a>
@@ -239,10 +239,10 @@ MyBatisによるデータベースアクセスの基本的な利用方法は、T
 <div class="ulist">
 <ul>
 <li>
-<p><a href="https://terasolunaorg.github.io/guideline/5.10.0.RELEASE/ja/ArchitectureInDetail/DataAccessDetail/DataAccessCommon.html">データベースアクセス(共通編)</a></p>
+<p><a href="https://terasolunaorg.github.io/guideline/5.11.0.RELEASE/ja/ArchitectureInDetail/DataAccessDetail/DataAccessCommon.html">データベースアクセス(共通編)</a></p>
 </li>
 <li>
-<p><a href="https://terasolunaorg.github.io/guideline/5.10.0.RELEASE/ja/ArchitectureInDetail/DataAccessDetail/DataAccessMyBatis3.html">データベースアクセス(MyBatis3編)</a></p>
+<p><a href="https://terasolunaorg.github.io/guideline/5.11.0.RELEASE/ja/ArchitectureInDetail/DataAccessDetail/DataAccessMyBatis3.html">データベースアクセス(MyBatis3編)</a></p>
 </li>
 </ul>
 </div>
@@ -748,68 +748,25 @@ TERASOLUNA Batch 5.xでは、2つの<code>ExecutorType</code>が存在する。
 <h4 id="Ch05_DBAccess_HowToUse_Config_MapperXML"><a class="anchor" href="#Ch05_DBAccess_HowToUse_Config_MapperXML"></a>Mapper XMLの定義</h4>
 <div class="paragraph">
 <p>TERASOLUNA Batch 5.x特有の説明事項はないので、TERASOLUNA Server 5.x 開発ガイドラインの
-<a href="https://terasolunaorg.github.io/guideline/5.10.0.RELEASE/ja/ArchitectureInDetail/DataAccessDetail/DataAccessMyBatis3.html#dataaccessmybatis3howtodababaseaccess">データベースアクセス処理の実装</a>を参照。</p>
+<a href="https://terasolunaorg.github.io/guideline/5.11.0.RELEASE/ja/ArchitectureInDetail/DataAccessDetail/DataAccessMyBatis3.html#dataaccessmybatis3howtodababaseaccess">データベースアクセス処理の実装</a>を参照。</p>
 </div>
 </div>
 <div class="sect3">
 <h4 id="Ch05_DBAccess_HowToUse_Config_Scan"><a class="anchor" href="#Ch05_DBAccess_HowToUse_Config_Scan"></a>MyBatis-Springの設定</h4>
 <div class="paragraph">
-<p>MyBatis-Springが提供するItemReaderおよびItemWriterを使用する場合、MapperのConfigで使用するMapper XMLを設定する必要がある。</p>
+<p>TERASOLUNA Batch 5.xではMyBatis-Springが提供する開発者が用意したMybatisのMapperインタフェースをSpringのDIコンテナにBeanとして登録し、SQL操作を簡単に呼び出せる機能を利用している。<br>
+MapperインタフェースのBeanの登録方法として<code>@Bean/&lt;bean&gt;</code>で個別でMapperインタフェースを登録する方法と、<code>@MapperScan/&lt;mybatis:scan&gt;</code>で開発者が指定したパッケージ内にあるMapperインタフェースを探して自動でBeanとして登録する方法がある。</p>
 </div>
 <div class="paragraph">
-<p>設定方法としては、以下の2つが考えられる。</p>
-</div>
-<div class="olist arabic">
-<ol class="arabic">
-<li>
-<p>共通設定</p>
-<div class="ulist">
-<ul>
-<li>
-<p><code>LaunchContextConfig.java/launch-context.xml</code>に読み込むMapper XMLを記述する。</p>
-</li>
-</ul>
-</div>
-</li>
-<li>
-<p>個別設定</p>
-<div class="ulist">
-<ul>
-<li>
-<p><code>jobs/</code>配下のBean定義に、個々のジョブごとに必要なMapper XMLを記述する。</p>
-</li>
-</ul>
-</div>
-</li>
-</ol>
+<p><code>@MapperScan/&lt;mybatis:scan&gt;</code>は個別でMapperインタフェースをSpringのDIコンテナにBeanとして登録する方法と違い、
+ジョブで利用されるMapperインタフェースが配置されているパッケージを指定することにより、対象のMapperインタフェースを自動的にDIコンテナへ登録することができる。</p>
 </div>
 <div class="paragraph">
-<p>共通設定、個別設定共に<code>@MapperScan/&lt;mybatis:scan&gt;</code>のスキャン範囲を不必要に広くしてしまうと、実行するジョブ以外のジョブが使用するMapper XMLも読み込んでしまう。これにより、以下に示す弊害が生じる。</p>
-</div>
-<div class="ulist">
-<ul>
-<li>
-<p>ジョブの起動までに時間がかかる</p>
-</li>
-<li>
-<p>メモリリソースの消費が大きくなる</p>
-</li>
-</ul>
+<p>Mapperインタフェースを個別にBean定義として逐一記述する方式と比較して、<code>@MapperScan/&lt;mybatis:scan&gt;</code>で特定のジョブから利用されるMapperインタフェースが格納されているパッケージを指定することにより、パッケージ配下のMapperインタフェースとBean定義との整合性が保ちやすくなることから、
+TERASOLUNA Server 5.x 開発ガイドラインでは、Mapperインタフェースに対しては<code>@MapperScan/&lt;mybatis:scan&gt;</code>を使用することを原則としている。</p>
 </div>
 <div class="paragraph">
-<p>これを回避するため、スキャン範囲は最小限になるようにどのジョブでも使われるMapper XMLは共通設定で読み込み、個々のジョブ定義でそのジョブが必要とするMapper XMLは個別設定で読み込むなど使い分ける必要がある。</p>
-</div>
-<div class="paragraph">
-<p>基本的な設定方法については、TERASOLUNA Server 5.x 開発ガイドラインの
-<a href="https://terasolunaorg.github.io/guideline/5.10.0.RELEASE/ja/ArchitectureInDetail/DataAccessDetail/DataAccessMyBatis3.html#dataaccessmybatis3howtousesettingsmybatis-spring">MyBatis-Springの設定</a>を参照。</p>
-</div>
-<div class="paragraph">
-<p>TERASOLUNA Batch 5.xでは、複数の<code>SqlSessionFactory</code>および<code>SqlSessionTemplate</code>が定義されているため、
-どれを利用するか明示的に指定する必要がある。<br>
-基本的には<code>jobSqlSessionFactory</code>を指定すればよい。</p>
-</div>
-<div class="paragraph">
-<p>以下に設定例を示す。</p>
+<p>以下にMapperスキャンを有効化するための設定例を示す。</p>
 </div>
 <div class="exampleblock primary">
 <div class="title">JavaConfig</div>
@@ -817,7 +774,9 @@ TERASOLUNA Batch 5.xでは、2つの<code>ExecutorType</code>が存在する。
 <div class="listingblock">
 <div class="title">org.terasoluna.batch.jobs.common.JobSalesPlan01Config.java</div>
 <div class="content">
-<pre class="CodeRay highlight"><code data-lang="java"><span class="annotation">@MapperScan</span>(value = <span class="string"><span class="delimiter">&quot;</span><span class="content">org.terasoluna.batch.functionaltest.app.repository.plan</span><span class="delimiter">&quot;</span></span>, sqlSessionFactoryRef = <span class="string"><span class="delimiter">&quot;</span><span class="content">jobSqlSessionFactory</span><span class="delimiter">&quot;</span></span>)</code></pre>
+<pre class="CodeRay highlight"><code data-lang="java"><span class="annotation">@MapperScan</span>(
+    value = <span class="string"><span class="delimiter">&quot;</span><span class="content">org.terasoluna.batch.functionaltest.app.repository.plan</span><span class="delimiter">&quot;</span></span>, <span class="comment">// (1)</span>
+    sqlSessionFactoryRef = <span class="string"><span class="delimiter">&quot;</span><span class="content">jobSqlSessionFactory</span><span class="delimiter">&quot;</span></span>) <span class="comment">// (2)</span></code></pre>
 </div>
 </div>
 </div>
@@ -828,7 +787,7 @@ TERASOLUNA Batch 5.xでは、2つの<code>ExecutorType</code>が存在する。
 <div class="listingblock">
 <div class="title">jobSalesPlan01.xml</div>
 <div class="content">
-<pre class="CodeRay highlight"><code data-lang="xml"><span class="comment">&lt;!-- (1) --&gt;</span>
+<pre class="CodeRay highlight"><code data-lang="xml"><span class="comment">&lt;!-- (1), (2) --&gt;</span>
 <span class="tag">&lt;mybatis:scan</span>
     <span class="attribute-name">base-package</span>=<span class="string"><span class="delimiter">&quot;</span><span class="content">org.terasoluna.batch.functionaltest.app.repository.plan</span><span class="delimiter">&quot;</span></span>
     <span class="attribute-name">factory-ref</span>=<span class="string"><span class="delimiter">&quot;</span><span class="content">jobSqlSessionFactory</span><span class="delimiter">&quot;</span></span><span class="tag">/&gt;</span></code></pre>
@@ -851,12 +810,38 @@ TERASOLUNA Batch 5.xでは、2つの<code>ExecutorType</code>が存在する。
 <tbody>
 <tr>
 <td class="tableblock halign-left valign-top"><p class="tableblock">(1)</p></td>
-<td class="tableblock halign-left valign-top"><p class="tableblock"><code>@MapperScanのvalue属性/&lt;mybatis:scan&gt;要素のbase-package属性</code>にMapper XMLをスキャンするパッケージを設定する。
-指定するのはこのジョブが必要とするMapper XMLが直下に格納されているパッケージである。<br>
-<code>sqlSessionFactoryRef属性/factory-ref属性</code>には<code>jobSqlSessionFactory</code>を設定する。</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><code>value</code>属性 / <code>base-package</code>属性にMapperインタフェースを配置しているJavaのパッケージ名(例:<code>org.terasoluna.batch.functionaltest.app.repository.plan</code>)を指定する。<br>
+指定したパッケージ内にあるMapperインタフェースに加え、サブパッケージも含めて再帰的にMapperインタフェースがスキャンされる。</p></td>
+</tr>
+<tr>
+<td class="tableblock halign-left valign-top"><p class="tableblock">(2)</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><code>sqlSessionFactoryRef</code>属性 / <code>factory-ref</code>属性に<code>SqlSessionFactory</code> のBean名である <code>jobSqlSessionFactory</code> を設定する。<br>
+<code>SqlSessionFactory</code> は <code>jobSqlSessionFactory</code> というBean名で <code>LaunchContextConfig.java/launch-context.xml</code> で定義されており、同定義内のジョブ用に構成されたデータソースである <code>jobDataSource</code> を参照している。<br>
+またこの他に同定義内ではフレームワーク管理用のデータソースである <code>adminDataSource</code>と、それを参照している<code>adminSqlSessionFactory</code>もあるが、これはジョブからの利用には不適であるため、Bean定義の変更時などに誤って参照しないよう注意すること。</p></td>
 </tr>
 </tbody>
 </table>
+<div class="sect4">
+<h5 id="mapperのスキャン範囲を不必要に広くしないこと"><a class="anchor" href="#mapperのスキャン範囲を不必要に広くしないこと"></a>Mapperのスキャン範囲を不必要に広くしないこと</h5>
+<div class="paragraph">
+<p><code>@MapperScan/&lt;mybatis:scan&gt;</code>のスキャン範囲を広くしてしまうと、実行するジョブで利用しないMapperインタフェースも読み込まれる恐れがある。これにより、以下に示す弊害が考えられる。</p>
+</div>
+<div class="ulist">
+<ul>
+<li>
+<p>ジョブの起動までに想定以上の時間がかかる恐れ</p>
+</li>
+<li>
+<p>メモリリソースの消費が大きくなる</p>
+</li>
+</ul>
+</div>
+<div class="paragraph">
+<p>TERASOLUNA Batch 5.xが提供するブランクプロジェクトではパッケージの構造として、まず、ジョブIDで表されるパッケージを作り、その中に当該ジョブで使用するMapperインタフェースを配置している。<br>
+これは、新しくジョブを追加した場合であっても、既にジョブごとにパッケージが分割されていることから、配下に格納されたMapperインタフェースも他のジョブのMapperインタフェースと混在することがないよう、パッケージの構造としてスキャン範囲を適切に保つための意図である。<br>
+そのため、個別のジョブ定義ファイルの<code>@MapperScan</code>の<code>value</code>属性 / <code>&lt;mybatis:scan&gt;</code>の<code>base-package</code>属性に当該ジョブで使用するMapperインタフェースを格納したパッケージ名を指定し、当該ジョブの実行に必要なMapperインタフェースだけがBeanとして登録されるようにスキャン範囲を最小限にすることを推奨している。</p>
+</div>
+</div>
 </div>
 </div>
 <div class="sect2">
@@ -929,7 +914,7 @@ MyBatis-Springが提供する<code>MyBatisCursorItemReader</code>によるデー
 </div>
 <div class="paragraph">
 <p><code>MyBatisPagingItemReader</code>は、TERASOLUNA Server 5.x 開発ガイドラインの
-<a href="https://terasolunaorg.github.io/guideline/5.10.0.RELEASE/ja/ArchitectureInDetail/DataAccessDetail/DataAccessMyBatis3.html#entity-sql">Entityのページネーション検索(SQL絞り込み方式)</a>で
+<a href="https://terasolunaorg.github.io/guideline/5.11.0.RELEASE/ja/ArchitectureInDetail/DataAccessDetail/DataAccessMyBatis3.html#entity-sql">Entityのページネーション検索(SQL絞り込み方式)</a>で
 説明している仕組みを利用したItemReaderである。<br>
 一定件数を取得した後に再度SQLを発行するため、データの一貫性が保たれない可能性がある。
 そのため、バッチ処理で利用するには危険であることから、TERASOLUNA Batch 5.xでは原則使用しない。<br>
@@ -940,7 +925,7 @@ TERASOLUNA Batch 5.xではMyBatisと連携して、Cursorを利用し取得デ�
 <code>mybatis:scan</code>によって動的にMapper XMLを登録する方法を採用している。
 そのため、Mapper XMLに対応するインタフェースを用意する必要がある。
 詳細については、TERASOLUNA Server 5.x 開発ガイドラインの
-<a href="https://terasolunaorg.github.io/guideline/5.10.0.RELEASE/ja/ArchitectureInDetail/DataAccessDetail/DataAccessMyBatis3.html#dataaccessmybatis3howtodababaseaccess">データベースアクセス処理の実装</a>を参照。</p>
+<a href="https://terasolunaorg.github.io/guideline/5.11.0.RELEASE/ja/ArchitectureInDetail/DataAccessDetail/DataAccessMyBatis3.html#dataaccessmybatis3howtodababaseaccess">データベースアクセス処理の実装</a>を参照。</p>
 </div>
 <div class="admonitionblock warning">
 <table>
@@ -1016,12 +1001,15 @@ TERASOLUNA Batch 5.xではMyBatisと連携して、Cursorを利用し取得デ�
     <span class="annotation">@Bean</span>
     <span class="directive">public</span> Job outputAllCustomerList01(JobRepository jobRepository,
                                             Step step01) {
-        <span class="keyword">return</span> <span class="keyword">new</span> JobBuilder(<span class="string"><span class="delimiter">&quot;</span><span class="content">outputAllCustomerList01</span><span class="delimiter">&quot;</span></span>,jobRepository)
+        <span class="keyword">return</span> <span class="keyword">new</span> JobBuilder(jobRepository)
                 .start(step01)
                 .build();
     }
 }</code></pre>
 </div>
+</div>
+<div class="paragraph">
+<p>前述のジョブ定義例で利用している <code>StepBuilder#chunk(int chunkSize, PlatformTransactionManager transactionManager)</code> は現在非推奨となっているが、本バージョンでは利用を継続している。理由、および TERASOLUNA Batch 5.x での <code>SimpleStepBuilder</code> の利用方針については<a href="Ch03_CreateProject.html#Ch03_CreateProject_CreateJob_DeprecatedSimpleStepBuilder">非推奨であるSimpleStepBuilderを利用する理由</a>を参照されたい。</p>
 </div>
 </div>
 </div>
@@ -1222,8 +1210,7 @@ TERASOLUNA Batch 5.xではMyBatisと連携して、Cursorを利用し取得デ�
     <span class="directive">public</span> Job customizedJobExitCodeTaskletJob(JobRepository jobRepository,
                                                  Step step01,
                                                  JobExitCodeChangeListener jobExitCodeChangeListener) {
-        <span class="keyword">return</span> <span class="keyword">new</span> JobBuilder(<span class="string"><span class="delimiter">&quot;</span><span class="content">customizedJobExitCodeTaskletJob</span><span class="delimiter">&quot;</span></span>,
-                jobRepository)
+        <span class="keyword">return</span> <span class="keyword">new</span> JobBuilder(jobRepository)
                 .start(step01)
                 .listener(jobExitCodeChangeListener)
                 .build();
@@ -1413,8 +1400,11 @@ Bean定義にてMap形式でジョブパラメータから値を取得し、キ�
 <div class="listingblock">
 <div class="title">ジョブパラメータを指定した場合のジョブ起動コマンド</div>
 <div class="content">
-<pre class="CodeRay highlight"><code data-lang="sh">$ java -cp ${CLASSPATH} org.springframework.batch.core.launch.support.CommandLineJobRunner /META-INF/job/job001 job001 year=2017 month=12</code></pre>
+<pre class="CodeRay highlight"><code data-lang="sh">$ java -cp ${CLASSPATH} org.springframework.batch.core.launch.support.CommandLineJobRunner /META-INF/jobs/job001.xml job001 year=2017 month=12</code></pre>
 </div>
+</div>
+<div class="paragraph">
+<p><code>CommandLineJobRunner</code>は現在非推奨となっているが、TERASOLUNA Batch 5.xでの利用方針については<a href="Ch02_TerasolunaBatchStack.html#Ch02_SpringBatchArch_Overview_HelloWorld_DeprecatedCommandLineJobRunner">非推奨であるCommandLineJobRunnerを利用する理由</a>を参照されたい。</p>
 </div>
 <div class="listingblock">
 <div class="title">MapperXMLの実装例</div>
@@ -1715,7 +1705,7 @@ ItemProcessorでのデータベースアクセスは<code>BATCH</code>となる�
 TERASOLUNA Batch 5.xでは、タスクレットモデルで<code>Mapper</code>インタフェースを利用してデータベースアクセスする場合はCursorを利用することを基本とする。<br>
 Cursor同様に大量データを処理するうえで、ResultHandlerを利用することも有効である。
 ResultHandlerについては、TERASOLUNA Server 5.x 開発ガイドラインの
-<a href="https://terasolunaorg.github.io/guideline/5.10.0.RELEASE/ja/ArchitectureInDetail/DataAccessDetail/DataAccessMyBatis3.html#resulthandler">ResultHandlerの実装</a>を参照。</p>
+<a href="https://terasolunaorg.github.io/guideline/5.11.0.RELEASE/ja/ArchitectureInDetail/DataAccessDetail/DataAccessMyBatis3.html#resulthandler">ResultHandlerの実装</a>を参照。</p>
 </dd>
 </dl>
 </div>
@@ -1746,7 +1736,7 @@ ResultHandlerについては、TERASOLUNA Server 5.x 開発ガイドラインの
     <span class="annotation">@Bean</span>
     <span class="directive">public</span> Job jobSalesPlanCursorTasklet(JobRepository jobRepository,
                                          Step step01) {
-        <span class="keyword">return</span> <span class="keyword">new</span> JobBuilder(<span class="string"><span class="delimiter">&quot;</span><span class="content">jobSalesPlanCursorTasklet</span><span class="delimiter">&quot;</span></span>, jobRepository)
+        <span class="keyword">return</span> <span class="keyword">new</span> JobBuilder(jobRepository)
                 .start(step01)
                 .build();
     }
@@ -2024,11 +2014,13 @@ MyBatis-Springが提供する<code>MyBatisBatchItemWriter</code>によるデー�
     <span class="directive">public</span> Job DBAccessByMaybatisScan(JobRepository jobRepository,
                                             Step step01,
                                             JobExecutionLoggingListener listener) {
-        <span class="keyword">return</span> <span class="keyword">new</span> JobBuilder(<span class="string"><span class="delimiter">&quot;</span><span class="content">DBAccessByMaybatisScan</span><span class="delimiter">&quot;</span></span>,
-                jobRepository).start(step01).listener(listener).build();
+        <span class="keyword">return</span> <span class="keyword">new</span> JobBuilder(jobRepository).start(step01).listener(listener).build();
     }
 }</code></pre>
 </div>
+</div>
+<div class="paragraph">
+<p>前述のジョブ定義例で利用している <code>StepBuilder#chunk(int chunkSize, PlatformTransactionManager transactionManager)</code> は現在非推奨となっているが、本バージョンでは利用を継続している。理由、および TERASOLUNA Batch 5.x での <code>SimpleStepBuilder</code> の利用方針については<a href="Ch03_CreateProject.html#Ch03_CreateProject_CreateJob_DeprecatedSimpleStepBuilder">非推奨であるSimpleStepBuilderを利用する理由</a>を参照されたい。</p>
 </div>
 </div>
 </div>
@@ -2192,8 +2184,7 @@ MyBatis-Springが提供する<code>MyBatisBatchItemWriter</code>によるデー�
     <span class="directive">public</span> Job taskletJobWithListenerWithinJobScope(JobRepository jobRepository,
                                             Step jobScopeStep01,
                                             <span class="annotation">@Qualifier</span>(<span class="string"><span class="delimiter">&quot;</span><span class="content">allProcessListener</span><span class="delimiter">&quot;</span></span>) JobExecutionListener listener) {
-        <span class="keyword">return</span> <span class="keyword">new</span> JobBuilder(<span class="string"><span class="delimiter">&quot;</span><span class="content">taskletJobWithListenerWithinJobScope</span><span class="delimiter">&quot;</span></span>,
-                jobRepository)
+        <span class="keyword">return</span> <span class="keyword">new</span> JobBuilder(jobRepository)
                 .start(jobScopeStep01)
                 .listener(listener)
                 .build();
@@ -2449,7 +2440,7 @@ ItemWriterとは異なる更新処理をするためにItemProcessorで個別に
         exclusiveBranch.setBranchAddress(branch.getBranchAddress() + <span class="string"><span class="delimiter">&quot;</span><span class="content"> - </span><span class="delimiter">&quot;</span></span> + identifier);
         exclusiveBranch.setBranchTel(branch.getBranchTel());
         exclusiveBranch.setCreateDate(branch.getUpdateDate());
-        exclusiveBranch.setUpdateDate(<span class="keyword">new</span> <span class="predefined-type">Timestamp</span>(clock.millis()));
+        exclusiveBranch.setUpdateDate(LocalDateTime.now(clock));
         exclusiveBranch.setOldBranchName(branch.getBranchName());
 
         <span class="comment">// (3)</span>
@@ -2488,7 +2479,7 @@ ItemWriterとは異なる更新処理をするためにItemProcessorで個別に
     <span class="directive">public</span> Job taskletOptimisticLockCheckJob(JobRepository jobRepository,
                                             Step step01,
                                             JobExecutionLoggingListener listener) {
-        <span class="keyword">return</span> <span class="keyword">new</span> JobBuilder(<span class="string"><span class="delimiter">&quot;</span><span class="content">taskletOptimisticLockCheckJob</span><span class="delimiter">&quot;</span></span>,jobRepository)
+        <span class="keyword">return</span> <span class="keyword">new</span> JobBuilder(jobRepository)
                 .start(step01)
                 .listener(listener)
                 .build();
@@ -2716,11 +2707,13 @@ ItemWriterとは異なる更新処理をするためにItemProcessorで個別に
     <span class="directive">public</span> Job DBAccessByItemListener(JobRepository jobRepository,
                                             Step step01,
                                             JobExecutionLoggingListener listener) {
-        <span class="keyword">return</span> <span class="keyword">new</span> JobBuilder(<span class="string"><span class="delimiter">&quot;</span><span class="content">DBAccessByItemListener</span><span class="delimiter">&quot;</span></span>,
-                jobRepository).start(step01).listener(listener).build();
+        <span class="keyword">return</span> <span class="keyword">new</span> JobBuilder(jobRepository).start(step01).listener(listener).build();
     }
 }</code></pre>
 </div>
+</div>
+<div class="paragraph">
+<p>前述のジョブ定義例で利用している <code>StepBuilder#chunk(int chunkSize, PlatformTransactionManager transactionManager)</code> は現在非推奨となっているが、本バージョンでは利用を継続している。理由、および TERASOLUNA Batch 5.x での <code>SimpleStepBuilder</code> の利用方針については<a href="Ch03_CreateProject.html#Ch03_CreateProject_CreateJob_DeprecatedSimpleStepBuilder">非推奨であるSimpleStepBuilderを利用する理由</a>を参照されたい。</p>
 </div>
 </div>
 </div>
@@ -3030,12 +3023,14 @@ ItemWriterとは異なる更新処理をするためにItemProcessorで個別に
     <span class="directive">public</span> Job useCompositeItemWriter(JobRepository jobRepository,
                                             Step step01,
                                             JobExecutionLoggingListener listener) {
-        <span class="keyword">return</span> <span class="keyword">new</span> JobBuilder(<span class="string"><span class="delimiter">&quot;</span><span class="content">useCompositeItemWriter</span><span class="delimiter">&quot;</span></span>,
-                jobRepository).start(step01).listener(listener).build();
+        <span class="keyword">return</span> <span class="keyword">new</span> JobBuilder(jobRepository).start(step01).listener(listener).build();
     }
 
 }</code></pre>
 </div>
+</div>
+<div class="paragraph">
+<p>前述のジョブ定義例で利用している <code>StepBuilder#chunk(int chunkSize, PlatformTransactionManager transactionManager)</code> は現在非推奨となっているが、本バージョンでは利用を継続している。理由、および TERASOLUNA Batch 5.x での <code>SimpleStepBuilder</code> の利用方針については<a href="Ch03_CreateProject.html#Ch03_CreateProject_CreateJob_DeprecatedSimpleStepBuilder">非推奨であるSimpleStepBuilderを利用する理由</a>を参照されたい。</p>
 </div>
 </div>
 </div>
@@ -3061,14 +3056,14 @@ ItemWriterとは異なる更新処理をするためにItemProcessorで個別に
       <span class="attribute-name">p:sqlSessionTemplate-ref</span>=<span class="string"><span class="delimiter">&quot;</span><span class="content">batchModeSqlSessionTemplate</span><span class="delimiter">&quot;</span></span><span class="tag">/&gt;</span>
 
 <span class="comment">&lt;!-- (10) --&gt;</span>
-<span class="tag">&lt;bean</span> <span class="attribute-name">id</span>=<span class="string"><span class="delimiter">&quot;</span><span class="content">writer</span><span class="delimiter">&quot;</span></span> <span class="attribute-name">class</span>=<span class="string"><span class="delimiter">&quot;</span><span class="content">org.springframework.batch.item.support.CompositeItemWriter</span><span class="delimiter">&quot;</span></span><span class="tag">&gt;</span>
-    <span class="tag">&lt;property</span> <span class="attribute-name">name</span>=<span class="string"><span class="delimiter">&quot;</span><span class="content">delegates</span><span class="delimiter">&quot;</span></span><span class="tag">&gt;</span>
+<span class="tag">&lt;bean</span> <span class="attribute-name">id</span>=<span class="string"><span class="delimiter">&quot;</span><span class="content">writer</span><span class="delimiter">&quot;</span></span> <span class="attribute-name">class</span>=<span class="string"><span class="delimiter">&quot;</span><span class="content">org.springframework.batch.infrastructure.item.support.CompositeItemWriter</span><span class="delimiter">&quot;</span></span><span class="tag">&gt;</span>
+    <span class="tag">&lt;constructor-arg&gt;</span>
       <span class="comment">&lt;!-- (11)--&gt;</span>
         <span class="tag">&lt;list&gt;</span>
             <span class="tag">&lt;ref</span> <span class="attribute-name">bean</span>=<span class="string"><span class="delimiter">&quot;</span><span class="content">performanceWriter</span><span class="delimiter">&quot;</span></span><span class="tag">/&gt;</span>
             <span class="tag">&lt;ref</span> <span class="attribute-name">bean</span>=<span class="string"><span class="delimiter">&quot;</span><span class="content">planWriter</span><span class="delimiter">&quot;</span></span><span class="tag">/&gt;</span>
         <span class="tag">&lt;/list&gt;</span>
-    <span class="tag">&lt;/property&gt;</span>
+    <span class="tag">&lt;/constructor-arg&gt;</span>
 <span class="tag">&lt;/bean&gt;</span>
 
 <span class="comment">&lt;!-- (12) --&gt;</span>
@@ -3174,7 +3169,7 @@ MyBatisBatchItemWriterとFlatFileItemWriterを設定することで、データ�
 
   <div class="common-bg">
     <div class="information">
-      TERASOLUNA Batch Framework for Java (5.x) Development Guideline - version 5.7.0.RELEASE, 2025-3-31, commit-id:7ba4db3
+      TERASOLUNA Batch Framework for Java (5.x) Development Guideline - version 5.8.0.RELEASE, 2026-3-31, commit-id:f8c098e
     </div>
     <div class="index">
       <a href="index.html">&gt; INDEX</a>

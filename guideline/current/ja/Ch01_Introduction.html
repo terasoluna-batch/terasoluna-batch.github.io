@@ -15,7 +15,7 @@
 
 <div class="common-bg">
   <div class="information">
-    TERASOLUNA Batch Framework for Java (5.x) Development Guideline - version 5.7.0.RELEASE, 2025-3-31, commit-id:7ba4db3
+    TERASOLUNA Batch Framework for Java (5.x) Development Guideline - version 5.8.0.RELEASE, 2026-3-31, commit-id:f8c098e
   </div>
   <div class="index">
     <a href="index.html">&gt; INDEX</a>
@@ -247,7 +247,7 @@ window.onload = function() {
 </div>
 <div class="paragraph">
 <p>Spring Frameworkに関して、本ドキュメントを読むための基礎知識があるかどうかを測るために
-<a href="https://terasolunaorg.github.io/guideline/5.10.0.RELEASE/ja/Appendix/SpringComprehensionCheck.html">Spring Framework理解度チェックテスト</a>
+<a href="https://terasolunaorg.github.io/guideline/5.11.0.RELEASE/ja/Appendix/SpringComprehensionCheck.html">Spring Framework理解度チェックテスト</a>
 を実施するとよい。
 この理解度テストが4割回答できない場合は、別途以下のような書籍で学習することを推奨する。</p>
 </div>
@@ -271,7 +271,7 @@ window.onload = function() {
 <div class="sectionbody">
 <div class="paragraph">
 <p>まず、重要なこととして、本ガイドラインは
-<a href="https://terasolunaorg.github.io/guideline/5.10.0.RELEASE/ja/index.html">TERASOLUNA Server Framework for Java (5.x) Development Guideline</a>
+<a href="https://terasolunaorg.github.io/guideline/5.11.0.RELEASE/ja/index.html">TERASOLUNA Server Framework for Java (5.x) Development Guideline</a>
 (以降、TERASOLUNA Server 5.x 開発ガイドライン)のサブセットとして位置づけている。
 出来る限りTERASOLUNA Server 5.x 開発ガイドラインを活用し説明の重複を省くことで、ユーザの学習コスト低減を狙っている。
 よって随所にTERASOLUNA Server 5.x 開発ガイドラインへの参照を示しているため、両方のガイドを活用しながら開発を進めていってほしい。</p>
@@ -423,7 +423,7 @@ $ java -version # 行末コメント</code></pre>
 <div class="listingblock">
 <div class="title">ネームスペースを利用した記述</div>
 <div class="content">
-<pre class="CodeRay highlight"><code data-lang="xml"><span class="tag">&lt;bean</span> <span class="attribute-name">class</span>=<span class="string"><span class="delimiter">&quot;</span><span class="content">org.springframework.batch.item.file.mapping.DefaultLineMapper</span><span class="delimiter">&quot;</span></span><span class="tag">&gt;</span>
+<pre class="CodeRay highlight"><code data-lang="xml"><span class="tag">&lt;bean</span> <span class="attribute-name">class</span>=<span class="string"><span class="delimiter">&quot;</span><span class="content">org.springframework.batch.infrastructure.item.file.mapping.DefaultLineMapper</span><span class="delimiter">&quot;</span></span><span class="tag">&gt;</span>
     <span class="tag">&lt;property</span> <span class="attribute-name">name</span>=<span class="string"><span class="delimiter">&quot;</span><span class="content">lineTokenizer</span><span class="delimiter">&quot;</span></span><span class="tag">&gt;</span>
         <span class="tag">&lt;bean</span> <span class="attribute-name">class</span>=<span class="string"><span class="delimiter">&quot;</span><span class="content">org.terasoluna.batch.item.file.transform.FixedByteLengthLineTokenizer</span><span class="delimiter">&quot;</span></span>
               <span class="attribute-name">c:ranges</span>=<span class="string"><span class="delimiter">&quot;</span><span class="content">1-6, 7-10, 11-12, 13-22, 23-32</span><span class="delimiter">&quot;</span></span>
@@ -439,7 +439,7 @@ $ java -version # 行末コメント</code></pre>
 <div class="listingblock">
 <div class="title">ネームスペースを利用しない記述</div>
 <div class="content">
-<pre class="CodeRay highlight"><code data-lang="xml"><span class="tag">&lt;bean</span> <span class="attribute-name">class</span>=<span class="string"><span class="delimiter">&quot;</span><span class="content">org.springframework.batch.item.file.mapping.DefaultLineMapper</span><span class="delimiter">&quot;</span></span><span class="tag">&gt;</span>
+<pre class="CodeRay highlight"><code data-lang="xml"><span class="tag">&lt;bean</span> <span class="attribute-name">class</span>=<span class="string"><span class="delimiter">&quot;</span><span class="content">org.springframework.batch.infrastructure.item.file.mapping.DefaultLineMapper</span><span class="delimiter">&quot;</span></span><span class="tag">&gt;</span>
     <span class="tag">&lt;property</span> <span class="attribute-name">name</span>=<span class="string"><span class="delimiter">&quot;</span><span class="content">lineTokenizer</span><span class="delimiter">&quot;</span></span><span class="tag">&gt;</span>
         <span class="tag">&lt;bean</span> <span class="attribute-name">class</span>=<span class="string"><span class="delimiter">&quot;</span><span class="content">org.terasoluna.batch.item.file.transform.FixedByteLengthLineTokenizer</span><span class="delimiter">&quot;</span></span><span class="tag">&gt;</span>
             <span class="tag">&lt;constructor-arg</span> <span class="attribute-name">index</span>=<span class="string"><span class="delimiter">&quot;</span><span class="content">0</span><span class="delimiter">&quot;</span></span> <span class="attribute-name">value</span>=<span class="string"><span class="delimiter">&quot;</span><span class="content">1-6, 7-10, 11-12, 13-22, 23-32</span><span class="delimiter">&quot;</span></span><span class="tag">/&gt;</span>
@@ -583,7 +583,7 @@ $ java -version # 行末コメント</code></pre>
 
   <div class="common-bg">
     <div class="information">
-      TERASOLUNA Batch Framework for Java (5.x) Development Guideline - version 5.7.0.RELEASE, 2025-3-31, commit-id:7ba4db3
+      TERASOLUNA Batch Framework for Java (5.x) Development Guideline - version 5.8.0.RELEASE, 2026-3-31, commit-id:f8c098e
     </div>
     <div class="index">
       <a href="index.html">&gt; INDEX</a>

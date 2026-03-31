@@ -15,7 +15,7 @@
 
 <div class="common-bg">
   <div class="information">
-    TERASOLUNA Batch Framework for Java (5.x) Development Guideline - version 5.7.0.RELEASE, 2025-3-31, commit-id:7ba4db3
+    TERASOLUNA Batch Framework for Java (5.x) Development Guideline - version 5.8.0.RELEASE, 2026-3-31, commit-id:f8c098e
   </div>
   <div class="index">
     <a href="index.html">&gt; INDEX</a>
@@ -236,7 +236,7 @@ window.onload = function() {
 </div>
 <div class="paragraph">
 <p>入力チェックはTERASOLUNA Server 5.xの内容と重複するため、TERASOLUNA Server 5.x 開発ガイドラインの
-<a href="https://terasolunaorg.github.io/guideline/5.10.0.RELEASE/ja/ArchitectureInDetail/WebApplicationDetail/Validation.html">入力チェック</a>も合わせて参照。
+<a href="https://terasolunaorg.github.io/guideline/5.11.0.RELEASE/ja/ArchitectureInDetail/WebApplicationDetail/Validation.html">入力チェック</a>も合わせて参照。
 以下に、主な比較について示す。</p>
 </div>
 <table class="tableblock frame-all grid-all stretch">
@@ -271,7 +271,7 @@ window.onload = function() {
 <tr>
 <td class="tableblock halign-left valign-top"><p class="tableblock">エラーメッセージの設定</p></td>
 <td class="tableblock halign-left valign-top" colspan="2"><p class="tableblock">TERASOLUNA Server 5.x 開発ガイドラインの
-<a href="https://terasolunaorg.github.io/guideline/5.10.0.RELEASE/ja/ArchitectureInDetail/WebApplicationDetail/Validation.html#validation-message-def">エラーメッセージの定義</a>と概ね同様だが、
+<a href="https://terasolunaorg.github.io/guideline/5.11.0.RELEASE/ja/ArchitectureInDetail/WebApplicationDetail/Validation.html#validation-message-def">エラーメッセージの定義</a>と概ね同様だが、
 TERASOLUNA Server 5.xではメッセージキーにフォーム名を含められるのに対し、TERASOLUNA Batch 5.xではDTO名をメッセージキーに含めることができない。
 この差異はチェックの実行方法の違いによるものである。</p></td>
 </tr>
@@ -334,7 +334,7 @@ Hibernate ValidatorはBean Validationで定義されたアノテーションに�
 </div>
 <div class="paragraph">
 <p>この点は、
-TERASOLUNA Server 5.x 開発ガイドラインの <a href="https://terasolunaorg.github.io/guideline/5.10.0.RELEASE/ja/ArchitectureInDetail/WebApplicationDetail/Validation.html#id3">入力チェックの分類</a>
+TERASOLUNA Server 5.x 開発ガイドラインの <a href="https://terasolunaorg.github.io/guideline/5.11.0.RELEASE/ja/ArchitectureInDetail/WebApplicationDetail/Validation.html#id3">入力チェックの分類</a>
 と同様である。</p>
 </div>
 </div>
@@ -369,8 +369,8 @@ TERASOLUNA Server 5.x 開発ガイドラインの <a href="https://terasolunaorg
 <div class="ulist">
 <ul>
 <li>
-<p><code>ItemProcessor</code>に、<code>org.springframework.batch.item.validator.Validator</code>の実装である
-<code>org.springframework.batch.item.validator.SpringValidator</code>をインジェクションし<code>validate</code>メソッドを実行する。</p>
+<p><code>ItemProcessor</code>に、<code>org.springframework.batch.infrastructure.item.validator.Validator</code>の実装である
+<code>org.springframework.batch.infrastructure.item.validator.SpringValidator</code>をインジェクションし<code>validate</code>メソッドを実行する。</p>
 <div class="ulist">
 <ul>
 <li>
@@ -384,7 +384,7 @@ TERASOLUNA Server 5.x 開発ガイドラインの <a href="https://terasolunaorg
 </div>
 </li>
 <li>
-<p>何件目のデータで入力チェックエラーになったのかを判別するために<code>org.springframework.batch.item.ItemCountAware</code>を入力DTOに実装する。</p>
+<p>何件目のデータで入力チェックエラーになったのかを判別するために<code>org.springframework.batch.infrastructure.item.ItemCountAware</code>を入力DTOに実装する。</p>
 </li>
 </ul>
 </div>
@@ -415,7 +415,7 @@ TERASOLUNA Server 5.x 開発ガイドラインの <a href="https://terasolunaorg
 <div class="title">jakarta.validation.Validatorやorg.springframework.validation.Validatorといったバリデータは直接使用しない。</div>
 <div class="paragraph">
 <p><code>jakarta.validation.Validator</code>や<code>org.springframework.validation.Validator</code>といったバリデータは直接使用せず、
-<code>org.springframework.batch.item.validator.SpringValidator</code>を使用する。</p>
+<code>org.springframework.batch.infrastructure.item.validator.SpringValidator</code>を使用する。</p>
 </div>
 <div class="paragraph">
 <p><code>SpringValidator</code>は<code>org.springframework.validation.Validator</code>のラッパーである。<br>
@@ -436,7 +436,7 @@ TERASOLUNA Server 5.x 開発ガイドラインの <a href="https://terasolunaorg
 <i class="fa icon-important" title="Important"></i>
 </td>
 <td class="content">
-<div class="title">org.springframework.batch.item.validator.ValidatingItemProcessorは使用しない</div>
+<div class="title">org.springframework.batch.infrastructure.item.validator.ValidatingItemProcessorは使用しない</div>
 <div class="paragraph">
 <p><code>org.springframework.validation.Validator</code>による入力チェックは、
 Spring Batchが提供する<code>ValidatingItemProcessor</code>を使用しても実現可能である。</p>
@@ -550,7 +550,7 @@ Spring Batchが提供する<code>ValidatingItemProcessor</code>を使用して�
 <div class="listingblock">
 <div class="title">META-INF/spring/launch-context.xml</div>
 <div class="content">
-<pre class="CodeRay highlight"><code data-lang="xml"><span class="tag">&lt;bean</span> <span class="attribute-name">id</span>=<span class="string"><span class="delimiter">&quot;</span><span class="content">validator</span><span class="delimiter">&quot;</span></span> <span class="attribute-name">class</span>=<span class="string"><span class="delimiter">&quot;</span><span class="content">org.springframework.batch.item.validator.SpringValidator</span><span class="delimiter">&quot;</span></span>
+<pre class="CodeRay highlight"><code data-lang="xml"><span class="tag">&lt;bean</span> <span class="attribute-name">id</span>=<span class="string"><span class="delimiter">&quot;</span><span class="content">validator</span><span class="delimiter">&quot;</span></span> <span class="attribute-name">class</span>=<span class="string"><span class="delimiter">&quot;</span><span class="content">org.springframework.batch.infrastructure.item.validator.SpringValidator</span><span class="delimiter">&quot;</span></span>
       <span class="attribute-name">p:validator-ref</span>=<span class="string"><span class="delimiter">&quot;</span><span class="content">beanValidator</span><span class="delimiter">&quot;</span></span><span class="tag">/&gt;</span>
 
 <span class="tag">&lt;bean</span> <span class="attribute-name">id</span>=<span class="string"><span class="delimiter">&quot;</span><span class="content">beanValidator</span><span class="delimiter">&quot;</span></span>
@@ -562,7 +562,7 @@ Spring Batchが提供する<code>ValidatingItemProcessor</code>を使用して�
 <div class="paragraph">
 <div class="title">エラーメッセージの設定</div>
 <p>先にも述べたが、エラーメッセージの設定については、
-TERASOLUNA Server 5.x 開発ガイドラインの <a href="https://terasolunaorg.github.io/guideline/5.10.0.RELEASE/ja/ArchitectureInDetail/WebApplicationDetail/Validation.html#validation-message-def">エラーメッセージの定義</a>を参照。</p>
+TERASOLUNA Server 5.x 開発ガイドラインの <a href="https://terasolunaorg.github.io/guideline/5.11.0.RELEASE/ja/ArchitectureInDetail/WebApplicationDetail/Validation.html#validation-message-def">エラーメッセージの定義</a>を参照。</p>
 </div>
 </div>
 <div class="sect2">
@@ -574,7 +574,7 @@ TERASOLUNA Server 5.x 開発ガイドラインの <a href="https://terasolunaorg
 <div class="ulist">
 <ul>
 <li>
-<p>何件目のデータで入力チェックエラーになったのかを判別するために、<code>org.springframework.batch.item.ItemCountAware</code>を実装する。</p>
+<p>何件目のデータで入力チェックエラーになったのかを判別するために、<code>org.springframework.batch.infrastructure.item.ItemCountAware</code>を実装する。</p>
 <div class="ulist">
 <ul>
 <li>
@@ -588,7 +588,7 @@ TERASOLUNA Server 5.x 開発ガイドラインの <a href="https://terasolunaorg
 <div class="ulist">
 <ul>
 <li>
-<p>TERASOLUNA Server 5.x 開発ガイドラインの <a href="https://terasolunaorg.github.io/guideline/5.10.0.RELEASE/ja/ArchitectureInDetail/WebApplicationDetail/Validation.html">入力チェック</a> を参照。</p>
+<p>TERASOLUNA Server 5.x 開発ガイドラインの <a href="https://terasolunaorg.github.io/guideline/5.11.0.RELEASE/ja/ArchitectureInDetail/WebApplicationDetail/Validation.html">入力チェック</a> を参照。</p>
 </li>
 </ul>
 </div>
@@ -672,7 +672,7 @@ TERASOLUNA Server 5.x 開発ガイドラインの <a href="https://terasolunaorg
 <div class="ulist">
 <ul>
 <li>
-<p><code>ItemProcessor</code>の実装にて、<code>org.springframework.batch.item.validator.Validator#validate()</code>を実行する。</p>
+<p><code>ItemProcessor</code>の実装にて、<code>org.springframework.batch.infrastructure.item.validator.Validator#validate()</code>を実行する。</p>
 <div class="ulist">
 <ul>
 <li>
@@ -729,7 +729,7 @@ TERASOLUNA Server 5.x 開発ガイドラインの <a href="https://terasolunaorg
 <tr>
 <td class="tableblock halign-left valign-top"><p class="tableblock">(1)</p></td>
 <td class="tableblock halign-left valign-top"><p class="tableblock"><code>SpringValidator</code>のインスタンスをインジェクトする。<br>
-<code>org.springframework.batch.item.validator.Validator</code>の型引数には、<code>ItemReader</code>を通じて取得するDTOを設定する。</p></td>
+<code>org.springframework.batch.infrastructure.item.validator.Validator</code>の型引数には、<code>ItemReader</code>を通じて取得するDTOを設定する。</p></td>
 </tr>
 <tr>
 <td class="tableblock halign-left valign-top"><p class="tableblock">(2)</p></td>
@@ -851,7 +851,7 @@ TERASOLUNA Server 5.x 開発ガイドラインの <a href="https://terasolunaorg
 <tr>
 <td class="tableblock halign-left valign-top"><p class="tableblock">(4)</p></td>
 <td class="tableblock halign-left valign-top"><p class="tableblock">例外をスローする。<br>
-<code>org.springframework.batch.item.validator.ValidationException</code>は<code>RuntimeException</code>のサブクラスであるため、
+<code>org.springframework.batch.infrastructure.item.validator.ValidationException</code>は<code>RuntimeException</code>のサブクラスであるため、
 そのままスローしなおしてよい。</p></td>
 </tr>
 </tbody>
@@ -1042,7 +1042,7 @@ TERASOLUNA Server 5.x 開発ガイドラインの <a href="https://terasolunaorg
 <div class="paragraph">
 <p>入力チェックエラーが発生した場合にMessageSourceを使用することで、任意のエラーメッセージを出力することができる。
 エラーメッセージの設定については、TERASOLUNA Server 5.x 開発ガイドラインの
-<a href="https://terasolunaorg.github.io/guideline/5.10.0.RELEASE/ja/ArchitectureInDetail/WebApplicationDetail/Validation.html#validation-message-def">エラーメッセージの定義</a>を参照。
+<a href="https://terasolunaorg.github.io/guideline/5.11.0.RELEASE/ja/ArchitectureInDetail/WebApplicationDetail/Validation.html#validation-message-def">エラーメッセージの定義</a>を参照。
 エラーメッセージを出力する場合は以下の要領で実装する。</p>
 </div>
 <div class="paragraph">
@@ -1095,7 +1095,7 @@ TERASOLUNA Server 5.x 開発ガイドラインの <a href="https://terasolunaorg
             <span class="comment">// (5)</span>
             <span class="keyword">for</span> (FieldError fieldError : errors.getFieldErrors()) {
                 <span class="comment">// (6)</span>
-                logger.warn(messageSource.getMessage(fieldError, <span class="predefined-constant">null</span>) +
+                logger.warn(messageSource.getMessage(fieldError, <span class="predefined-type">Locale</span>.getDefault()) +
                                 <span class="string"><span class="delimiter">&quot;</span><span class="content">Skipping item because exception occurred in input validation at the {} th item. [message:{}]</span><span class="delimiter">&quot;</span></span>,
                                     item.getCount(), e.getMessage());
             <span class="comment">// (7)</span>
@@ -1207,7 +1207,7 @@ TERASOLUNA Server 5.x 開発ガイドラインの <a href="https://terasolunaorg
             <span class="comment">// (7)</span>
             <span class="keyword">for</span> (FieldError fieldError : errors.getFieldErrors()) {
                 <span class="predefined-type">String</span> itemNumber = item.getCount() + <span class="string"><span class="delimiter">&quot;</span><span class="content"> th item</span><span class="delimiter">&quot;</span></span>;
-                <span class="predefined-type">String</span> errorMessage = messageSource.getMessage(fieldError, <span class="predefined-constant">null</span>);
+                <span class="predefined-type">String</span> errorMessage = messageSource.getMessage(fieldError, <span class="predefined-type">Locale</span>.getDefault());
                 <span class="predefined-type">String</span> detailErrorMessage = e.getMessage();
 
                 <span class="predefined-type">String</span> message = <span class="predefined-type">MessageFormat</span>
@@ -1318,7 +1318,7 @@ TERASOLUNA Server 5.x 開発ガイドラインの <a href="https://terasolunaorg
 
   <div class="common-bg">
     <div class="information">
-      TERASOLUNA Batch Framework for Java (5.x) Development Guideline - version 5.7.0.RELEASE, 2025-3-31, commit-id:7ba4db3
+      TERASOLUNA Batch Framework for Java (5.x) Development Guideline - version 5.8.0.RELEASE, 2026-3-31, commit-id:f8c098e
     </div>
     <div class="index">
       <a href="index.html">&gt; INDEX</a>

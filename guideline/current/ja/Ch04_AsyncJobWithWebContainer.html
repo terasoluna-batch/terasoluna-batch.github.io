@@ -15,7 +15,7 @@
 
 <div class="common-bg">
   <div class="information">
-    TERASOLUNA Batch Framework for Java (5.x) Development Guideline - version 5.7.0.RELEASE, 2025-3-31, commit-id:7ba4db3
+    TERASOLUNA Batch Framework for Java (5.x) Development Guideline - version 5.8.0.RELEASE, 2026-3-31, commit-id:f8c098e
   </div>
   <div class="index">
     <a href="index.html">&gt; INDEX</a>
@@ -232,6 +232,25 @@ window.onload = function() {
 </div>
 </div>
 <div id="content">
+<div id="preamble">
+<div class="sectionbody">
+<div id="Ch04_AsyncJobWithWeb_Web_DeprecationWarning" class="admonitionblock important">
+<table>
+<tr>
+<td class="icon">
+<i class="fa icon-important" title="Important"></i>
+</td>
+<td class="content">
+<div class="title">非同期実行方式(Webコンテナ)は次期リリースで非推奨となる。</div>
+<div class="paragraph">
+<p>詳細は、 <a href="Ch02_TerasolunaBatchArchitecture.html#Ch02_TerasolunaBatchArch_LaunchMethod_Async_Web_DeprecationWarning">"非同期実行方式(Webコンテナ)の非推奨化へ向けた重要な勧告"</a> を参照すること。</p>
+</div>
+</td>
+</tr>
+</table>
+</div>
+</div>
+</div>
 <div class="sect1">
 <h2 id="Ch04_AsyncJobWithWeb_Overview"><a class="anchor" href="#Ch04_AsyncJobWithWeb_Overview"></a>Overview</h2>
 <div class="sectionbody">
@@ -347,10 +366,10 @@ Webリクエスト送信により直ちに実行するため、起動までの�
 <p>Webクライアントはジョブ実行IDを<code>JobController</code>をWebコンテナに送信する。</p>
 </li>
 <li>
-<p><code>JobController</code>はジョブ実行IDを用い<code>JobExplorer</code>にジョブの実行結果を問い合わせる。</p>
+<p><code>JobController</code>はジョブ実行IDを用い<code>JobRepository</code>にジョブの実行結果を問い合わせる。</p>
 </li>
 <li>
-<p><code>JobExplorer</code>はジョブの実行結果を返却する。</p>
+<p><code>JobRepository</code>はジョブの実行結果を返却する。</p>
 </li>
 <li>
 <p><code>JobController</code>はWebクライアントに対しレスポンスを返却する。</p>
@@ -384,7 +403,7 @@ Webリクエスト送信により直ちに実行するため、起動までの�
 </td>
 <td class="content">
 <div class="paragraph">
-<p><code>JobRepository</code>、<code>JobExplorer</code>を使用して直接RDBMSを参照し、ジョブの実行状態を確認することもできる。
+<p><code>JobRepository</code>を使用して直接RDBMSを参照し、ジョブの実行状態を確認することもできる。
 ジョブの実行状態・結果を参照する機能の詳細については、<a href="Ch07_JobManagement.html#Ch07_JobManagement">ジョブの管理</a>を参照。</p>
 </div>
 </td>
@@ -454,12 +473,12 @@ Webリクエスト送信により直ちに実行するため、起動までの�
 <div class="paragraph">
 <p>「ジョブ起動時の異常」は Spring MVCコントローラ内で発生する例外として検知できる。
 ここでは説明を割愛するので、別途 TERASOLUNA Server 5.x 開発ガイドラインの
-<a href="https://terasolunaorg.github.io/guideline/5.10.0.RELEASE/ja/ArchitectureInDetail/WebServiceDetail/REST.html#resthowtouseexceptionhandling">例外のハンドリングの実装</a>を参照。</p>
+<a href="https://terasolunaorg.github.io/guideline/5.11.0.RELEASE/ja/ArchitectureInDetail/WebServiceDetail/REST.html#resthowtouseexceptionhandling">例外のハンドリングの実装</a>を参照。</p>
 </div>
 <div class="paragraph">
 <p>また、ジョブパラメータとして利用するリクエストの入力チェックは必要に応じて Spring MVC のコントローラ内で行うこと。<br>
 具体的な実装方法については、TERASOLUNA Server 5.x 開発ガイドラインの
-<a href="https://terasolunaorg.github.io/guideline/5.10.0.RELEASE/ja/ArchitectureInDetail/WebApplicationDetail/Validation.html">入力チェック</a>を参照。</p>
+<a href="https://terasolunaorg.github.io/guideline/5.11.0.RELEASE/ja/ArchitectureInDetail/WebApplicationDetail/Validation.html">入力チェック</a>を参照。</p>
 </div>
 </td>
 </tr>
@@ -475,7 +494,7 @@ Webリクエスト送信により直ちに実行するため、起動までの�
 <div class="title">スレッドプール枯渇によるジョブの起動失敗はジョブ起動時に捕捉できない</div>
 <div class="paragraph">
 <p>スレッドプール枯渇によるジョブの起動失敗は、<code>JobOperator</code>から例外があがってこないため、別途確認する必要がある。
-確認方法の1つは、ジョブの実行状態確認時に<code>JobExplorer</code>を用い、以下の条件に合致しているかどうかである。</p>
+確認方法の1つは、ジョブの実行状態確認時に<code>JobRepository</code>を用い、以下の条件に合致しているかどうかである。</p>
 </div>
 <div class="ulist">
 <ul>
@@ -504,6 +523,9 @@ Webリクエスト送信により直ちに実行するため、起動までの�
 <a href="#Ch04_AsyncJobWithWeb_Arch_AppCtx">"ApplicationContextの構成"</a>を参照。<br>
 具体的な<code>async</code>プロファイルと<code>AutomaticJobRegistrar</code>の設定方法については
 <a href="#Ch04_AsyncJobWithWeb_HowToUse_Impl">"非同期実行(Webコンテナ)によるアプリケーションの実装方法について"</a>で後述する。</p>
+</div>
+<div class="paragraph">
+<p><code>AutomaticJobRegistrar</code> は現在非推奨となっているが、TERASOLUNA Batch 5.xでの利用方針については<a href="Ch04_AsyncJobWithDB.html#Ch04_AsyncJobWithDB_Arch_Components_AppCtx_Deprecated">非同期実行において非推奨APIを利用する理由</a>を参照されたい。</p>
 </div>
 <div class="sect3">
 <h4 id="Ch04_AsyncJobWithWeb_Arch_AppCtx"><a class="anchor" href="#Ch04_AsyncJobWithWeb_Arch_AppCtx"></a>ApplicationContextの構成</h4>
@@ -754,7 +776,7 @@ Spring MVCコントローラが、<code>JobOperator</code>によりジョブを�
 <div class="title">Webアプリケーションの実装</div>
 <p>TERASOLUNA Server 5.xが提供するブランクプロジェクトを用い、Webアプリケーションの実装方法を説明する。
 詳細は、TERASOLUNA Server 5.x 開発ガイドラインの
-<a href="https://terasolunaorg.github.io/guideline/5.10.0.RELEASE/ja/ImplementationAtEachLayer/CreateWebApplicationProject.html">Webアプリケーション向け開発プロジェクトの作成</a>を参照。</p>
+<a href="https://terasolunaorg.github.io/guideline/5.11.0.RELEASE/ja/ImplementationAtEachLayer/CreateWebApplicationProject.html">Webアプリケーション向け開発プロジェクトの作成</a>を参照。</p>
 </div>
 <div class="paragraph">
 <p>ここでは非同期実行アプリケーションプロジェクトと同様、以下の名称で作成したものとして説明する。</p>
@@ -943,7 +965,7 @@ Webアプリケーションとは別プロジェクトとする場合はこの�
 <p>ここではWebアプリケーションとして、以下TERASOLUNA Server 5.x 開発ガイドラインを参考に、RESTful Webサービスを作成する。</p>
 </div>
 <div class="paragraph">
-<p><a href="https://terasolunaorg.github.io/guideline/5.10.0.RELEASE/ja/ArchitectureInDetail/WebServiceDetail/REST.html#restful-web-servicespring-mvc">RESTful Web Serviceで必要となるSpring MVCのコンポーネントを有効化するための設定</a></p>
+<p><a href="https://terasolunaorg.github.io/guideline/5.11.0.RELEASE/ja/ArchitectureInDetail/WebServiceDetail/REST.html#restful-web-servicespring-mvc">RESTful Web Serviceで必要となるSpring MVCのコンポーネントを有効化するための設定</a></p>
 </div>
 <div class="sect3">
 <h4 id="Ch04_AsyncJobWithWeb_HowToUse_WebApp_Config"><a class="anchor" href="#Ch04_AsyncJobWithWeb_HowToUse_WebApp_Config"></a>Webアプリケーションの設定</h4>
@@ -960,6 +982,48 @@ Webアプリケーションとは別プロジェクトとする場合はこの�
 <div class="paragraph">
 <p>説明の都合上、バッチアプリケーションの実装形態としてRESTful Web Service を用いた実装を行っている。<br>
 従来のWebアプリケーション(Servlet/JSP)やSOAPを使用した場合でも同様な手順となるので、適宜読み替えること。</p>
+</div>
+</td>
+</tr>
+</table>
+</div>
+<div id="Ch04_AsyncJobWithWeb_caution_HttpMessageConverter" class="admonitionblock caution">
+<table>
+<tr>
+<td class="icon">
+<i class="fa icon-caution" title="Caution"></i>
+</td>
+<td class="content">
+<div class="title">使用するHttpMessageConverterについて</div>
+<div class="paragraph">
+<p>RESTful Web Serviceの要求・応答では、JSON形式の電文とJavaオブジェクト間の変換を行う際、 <code>HttpMessageConverter</code> の実装クラスが利用されるが、JavaConfig/XMLConfig のBean定義による制約により、以下の通り使い分ける必要がある。</p>
+</div>
+<div class="ulist">
+<ul>
+<li>
+<p>JavaConfig</p>
+<div class="ulist">
+<ul>
+<li>
+<p>JavaConfigのBuilderパターンで定義可能なObjectMapperが提供されているため、Jackson3の <code>JacksonJsonHttpMessageConverter</code> を利用する。</p>
+</li>
+</ul>
+</div>
+</li>
+<li>
+<p>XMLConfig</p>
+<div class="ulist">
+<ul>
+<li>
+<p>現在、JavaConfigのBuilderパターンと機能上の互換性が保たれた定義体が用意されていないため、Jackson2 の <code>MappingJackson2HttpMessageConverter</code> (非推奨)を使用する。</p>
+</li>
+</ul>
+</div>
+</li>
+</ul>
+</div>
+<div class="paragraph">
+<p>上記のXMLConfigで、JavaConfigと互換性が保たれていない事情の詳細については、TERASOLUNA Server 5.x 開発ガイドラインにある <a href="https://terasolunaorg.github.io/guideline/5.11.0.RELEASE/ja/ArchitectureInDetail/WebServiceDetail/REST.html#restoverviewaboutrestfulwebservicedevelopment">RESTful Web Serviceの開発について</a>  内の注意書きを確認すること。</p>
 </div>
 </td>
 </tr>
@@ -1023,32 +1087,8 @@ Webアプリケーションとは別プロジェクトとする場合はこの�
 <span class="annotation">@EnableWebMvc</span>
 <span class="directive">public</span> <span class="type">class</span> <span class="class">SpringMvcRestConfig</span> <span class="directive">implements</span> WebMvcConfigurer {
 
-    <span class="annotation">@Bean</span>(<span class="string"><span class="delimiter">&quot;</span><span class="content">jsonMessageConverter</span><span class="delimiter">&quot;</span></span>)
-    <span class="directive">public</span> MappingJackson2HttpMessageConverter jsonMessageConverter(
-            ObjectMapper objectMapper) {
-        MappingJackson2HttpMessageConverter bean = <span class="keyword">new</span> MappingJackson2HttpMessageConverter();
-        bean.setObjectMapper(objectMapper);
-        <span class="keyword">return</span> bean;
-    }
-
-    <span class="annotation">@Bean</span>(<span class="string"><span class="delimiter">&quot;</span><span class="content">objectMapper</span><span class="delimiter">&quot;</span></span>)
-    <span class="directive">public</span> ObjectMapper objectMapper() {
-        Jackson2ObjectMapperFactoryBean bean = <span class="keyword">new</span> Jackson2ObjectMapperFactoryBean();
-        bean.setDateFormat(stdDateFormat());
-        bean.afterPropertiesSet();
-        <span class="keyword">return</span> bean.getObject();
-    }
-
-    <span class="annotation">@Bean</span>
-    <span class="directive">public</span> StdDateFormat stdDateFormat() {
-        <span class="keyword">return</span> <span class="keyword">new</span> StdDateFormat();
-    }
-
     <span class="comment">// (3)</span>
-    <span class="annotation">@Override</span>
-    <span class="directive">public</span> <span class="type">void</span> configureMessageConverters(<span class="predefined-type">List</span>&lt;HttpMessageConverter&lt;?&gt;&gt; converters) {
-        converters.add(jsonMessageConverter(objectMapper()));
-    }
+    <span class="comment">// Springが提供するデフォルトのMessageConverter(JacksonJsonHttpMessageConverter)を使用するため、configureMessageConvertersでは何も登録しない。</span>
 
     <span class="comment">// (4)</span>
     <span class="annotation">@Bean</span>
@@ -1080,15 +1120,6 @@ Webアプリケーションとは別プロジェクトとする場合はこの�
         <span class="keyword">return</span> taskExecutor;
     }
 
-    <span class="comment">// (6)</span>
-    <span class="annotation">@Bean</span>
-    <span class="directive">public</span> JobLauncher jobLauncher(JobRepository jobRepository,
-        TaskExecutor taskExecutor) {
-        TaskExecutorJobLauncher jobLauncher = <span class="keyword">new</span> TaskExecutorJobLauncher();
-        jobLauncher.setJobRepository(jobRepository);
-        jobLauncher.setTaskExecutor(taskExecutor);
-        <span class="keyword">return</span> jobLauncher;
-    }
 }</code></pre>
 </div>
 </div>
@@ -1105,15 +1136,7 @@ Webアプリケーションとは別プロジェクトとする場合はこの�
 <span class="tag">&lt;import</span> <span class="attribute-name">resource</span>=<span class="string"><span class="delimiter">&quot;</span><span class="content">classpath:META-INF/spring/launch-context.xml</span><span class="delimiter">&quot;</span></span><span class="tag">/&gt;</span>
 
 <span class="tag">&lt;bean</span> <span class="attribute-name">id</span>=<span class="string"><span class="delimiter">&quot;</span><span class="content">jsonMessageConverter</span><span class="delimiter">&quot;</span></span>
-      <span class="attribute-name">class</span>=<span class="string"><span class="delimiter">&quot;</span><span class="content">org.springframework.http.converter.json.MappingJackson2HttpMessageConverter</span><span class="delimiter">&quot;</span></span>
-      <span class="attribute-name">p:objectMapper-ref</span>=<span class="string"><span class="delimiter">&quot;</span><span class="content">objectMapper</span><span class="delimiter">&quot;</span></span><span class="tag">/&gt;</span>
-
-<span class="tag">&lt;bean</span> <span class="attribute-name">id</span>=<span class="string"><span class="delimiter">&quot;</span><span class="content">objectMapper</span><span class="delimiter">&quot;</span></span>
-      <span class="attribute-name">class</span>=<span class="string"><span class="delimiter">&quot;</span><span class="content">org.springframework.http.converter.json.Jackson2ObjectMapperFactoryBean</span><span class="delimiter">&quot;</span></span><span class="tag">&gt;</span>
-  <span class="tag">&lt;property</span> <span class="attribute-name">name</span>=<span class="string"><span class="delimiter">&quot;</span><span class="content">dateFormat</span><span class="delimiter">&quot;</span></span><span class="tag">&gt;</span>
-      <span class="tag">&lt;bean</span> <span class="attribute-name">class</span>=<span class="string"><span class="delimiter">&quot;</span><span class="content">com.fasterxml.jackson.databind.util.StdDateFormat</span><span class="delimiter">&quot;</span></span><span class="tag">/&gt;</span>
-  <span class="tag">&lt;/property&gt;</span>
-<span class="tag">&lt;/bean&gt;</span>
+      <span class="attribute-name">class</span>=<span class="string"><span class="delimiter">&quot;</span><span class="content">org.springframework.http.converter.json.MappingJackson2HttpMessageConverter</span><span class="delimiter">&quot;</span></span><span class="tag">/&gt;</span>
 
 <span class="comment">&lt;!-- (3) --&gt;</span>
 <span class="tag">&lt;mvc:annotation-driven&gt;</span>
@@ -1146,11 +1169,6 @@ Webアプリケーションとは別プロジェクトとする場合はこの�
 
 <span class="comment">&lt;!-- (5) --&gt;</span>
 <span class="tag">&lt;task:executor</span> <span class="attribute-name">id</span>=<span class="string"><span class="delimiter">&quot;</span><span class="content">taskExecutor</span><span class="delimiter">&quot;</span></span> <span class="attribute-name">pool-size</span>=<span class="string"><span class="delimiter">&quot;</span><span class="content">3</span><span class="delimiter">&quot;</span></span> <span class="attribute-name">queue-capacity</span>=<span class="string"><span class="delimiter">&quot;</span><span class="content">10</span><span class="delimiter">&quot;</span></span><span class="tag">/&gt;</span>
-
-<span class="comment">&lt;!-- (6) --&gt;</span>
-<span class="tag">&lt;bean</span> <span class="attribute-name">id</span>=<span class="string"><span class="delimiter">&quot;</span><span class="content">jobLauncher</span><span class="delimiter">&quot;</span></span> <span class="attribute-name">class</span>=<span class="string"><span class="delimiter">&quot;</span><span class="content">org.springframework.batch.core.launch.support.TaskExecutorJobLauncher</span><span class="delimiter">&quot;</span></span>
-      <span class="attribute-name">p:jobRepository-ref</span>=<span class="string"><span class="delimiter">&quot;</span><span class="content">jobRepository</span><span class="delimiter">&quot;</span></span>
-      <span class="attribute-name">p:taskExecutor-ref</span>=<span class="string"><span class="delimiter">&quot;</span><span class="content">taskExecutor</span><span class="delimiter">&quot;</span></span><span class="tag">/&gt;</span>
 <span class="comment">&lt;!-- omitted --&gt;</span></code></pre>
 </div>
 </div>
@@ -1192,12 +1210,12 @@ Webアプリケーションとは別プロジェクトとする場合はこの�
     <span class="tag">&lt;/init-param&gt;</span>
     <span class="tag">&lt;init-param&gt;</span>
         <span class="tag">&lt;param-name&gt;</span>contextConfigLocation<span class="tag">&lt;/param-name&gt;</span>
-        <span class="comment">&lt;!-- (7) --&gt;</span>
+        <span class="comment">&lt;!-- (6) --&gt;</span>
         <span class="tag">&lt;param-value&gt;</span>
           org.terasoluna.batch.sample.config.web.SpringMvcRestConfig
         <span class="tag">&lt;/param-value&gt;</span>
     <span class="tag">&lt;/init-param&gt;</span>
-    <span class="comment">&lt;!-- (8) --&gt;</span>
+    <span class="comment">&lt;!-- (7) --&gt;</span>
     <span class="tag">&lt;init-param&gt;</span>
         <span class="tag">&lt;param-name&gt;</span>spring.profiles.active<span class="tag">&lt;/param-name&gt;</span>
         <span class="tag">&lt;param-value&gt;</span>async<span class="tag">&lt;/param-value&gt;</span>
@@ -1237,10 +1255,10 @@ Webアプリケーションとは別プロジェクトとする場合はこの�
     <span class="tag">&lt;servlet-class&gt;</span>org.springframework.web.servlet.DispatcherServlet<span class="tag">&lt;/servlet-class&gt;</span>
     <span class="tag">&lt;init-param&gt;</span>
         <span class="tag">&lt;param-name&gt;</span>contextConfigLocation<span class="tag">&lt;/param-name&gt;</span>
-        <span class="comment">&lt;!-- (7) --&gt;</span>
+        <span class="comment">&lt;!-- (6) --&gt;</span>
         <span class="tag">&lt;param-value&gt;</span>classpath*:META-INF/spring/spring-mvc-rest.xml<span class="tag">&lt;/param-value&gt;</span>
     <span class="tag">&lt;/init-param&gt;</span>
-    <span class="comment">&lt;!-- (8) --&gt;</span>
+    <span class="comment">&lt;!-- (7) --&gt;</span>
     <span class="tag">&lt;init-param&gt;</span>
         <span class="tag">&lt;param-name&gt;</span>spring.profiles.active<span class="tag">&lt;/param-name&gt;</span>
         <span class="tag">&lt;param-value&gt;</span>async<span class="tag">&lt;/param-value&gt;</span>
@@ -1280,10 +1298,16 @@ Webアプリケーションとは別プロジェクトとする場合はこの�
 </tr>
 <tr>
 <td class="tableblock halign-left valign-top"><p class="tableblock">(3)</p></td>
-<td class="tableblock halign-left valign-top"><p class="tableblock"><code>RESTful Web Service</code>を提供するために必要となる<code>Spring MVC</code>のフレームワークコンポーネントをbean登録する。
-本設定を行うことで、リソースのフォーマットとしてJSONを使用する事ができる。
-上記例では、<code>configureMessageConverters/&lt;mvc:message-converters&gt;タグ</code>を実装することでデフォルトの<code>MessageConverter</code>を登録させないようにしており、リソースの形式はJSONに限定される。</p>
-<p class="tableblock">リソースのフォーマットとしてXMLを使用する場合は、XXE 対策が行われているXML用の<code>MessageConverter</code>を指定すること。指定方法は、「<a href="https://terasolunaorg.github.io/guideline/5.10.0.RELEASE/ja/ArchitectureInDetail/WebServiceDetail/REST.html#restappendixenabledxxeprotection">XXE 対策の有効化</a>」を参照されたい。</p></td>
+<td class="tableblock halign-left valign-top"><div class="content"><div class="paragraph">
+<p>ここでは MessageConverter のBean定義を記述するが、
+JavaConfigの場合、標準的な機能として Springが提供するデフォルトの <code>HttpMessageConverter</code> である<code>JacksonJsonHttpMessageConverter</code>が用意されており、固有のBean定義を記述する必要はない。<br>
+非同期実行(Webコンテナ)では、機能の十分性を鑑みたうえで MessageConverterをデフォルトのままで使用しているが、この挙動の詳細とデフォルトからの変更が必要となる場合は、別途「<a href="https://terasolunaorg.github.io/guideline/5.11.0.RELEASE/ja/ArchitectureInDetail/WebServiceDetail/REST.html#restmessageconverterextend">MessageConverterの拡張</a>」を参照されたい。</p>
+</div>
+<div class="paragraph">
+<p>一方で、XMLConfigの場合は、Jackson2用の<code>MappingJackson2HttpMessageConverter</code>を利用するためのBean定義を記述する。<br>
+「<a href="#Ch04_AsyncJobWithWeb_caution_HttpMessageConverter">使用するHttpMessageConverterについて</a>」にて説明している通り、Spring MVCが提供するデフォルトのMessageConverterではなく、Jackson2用の<code>MappingJackson2HttpMessageConverter</code>を確実に利用するため、MessageConverterを明示する。<br>
+Jackson2とJackson3ではJSONのデフォルトの挙動が異なるため、両構成で同一の挙動としたい場合は、後述のNOTEを参照されたい。</p>
+</div></div></td>
 </tr>
 <tr>
 <td class="tableblock halign-left valign-top"><p class="tableblock">(4)</p></td>
@@ -1292,8 +1316,9 @@ Webアプリケーションとは別プロジェクトとする場合はこの�
 <tr>
 <td class="tableblock halign-left valign-top"><p class="tableblock">(5)</p></td>
 <td class="tableblock halign-left valign-top"><p class="tableblock">非同期で実行するジョブが用いる<code>TaskExecutor</code>を定義する。<br>
-JobLauncherの<code>TaskExecutor</code>に<code>AsyncTaskExecutor</code>実装クラスを設定することで非同期実行が可能となる。
+<code>JobOperator</code>の<code>TaskExecutor</code>に<code>AsyncTaskExecutor</code>実装クラスを設定することで非同期実行が可能となる。
 <code>AsyncTaskExecutor</code>実装クラスの1つである<code>ThreadPoolTaskExecutor</code>を利用する。</p>
+<p class="tableblock">本定義を行うことで、<code>TerasolunaBatchConfiguration</code>で定義されているデフォルトの<code>SyncTaskExecutor</code>が上書きされ、<code>JobOperator</code>はここで定義した<code>ThreadPoolTaskExecutor</code>を利用するようになる。</p>
 <p class="tableblock">また、並列起動可能なスレッドの多重度を指定ことができる。<br>
 この例では3スレッドがジョブの実行に割り当てられ、それを超えたリクエストは10までがキューイングされる。
 キューイングされたジョブは未開始の状態ではあるが、REST リクエストは成功とみなされる。<br>
@@ -1302,19 +1327,18 @@ JobLauncherの<code>TaskExecutor</code>に<code>AsyncTaskExecutor</code>実装�
 </tr>
 <tr>
 <td class="tableblock halign-left valign-top"><p class="tableblock">(6)</p></td>
-<td class="tableblock halign-left valign-top"><p class="tableblock">(5)の<code>taskExecutor</code>を有効化するため、<code>LaunchContextConfig.java/launch-context.xml</code>で定義されている<code>jobLauncher</code>をオーバーライドする。</p></td>
-</tr>
-<tr>
-<td class="tableblock halign-left valign-top"><p class="tableblock">(7)</p></td>
 <td class="tableblock halign-left valign-top"><p class="tableblock"><code>DispatcherServlet</code>が読み込むBean定義として、<br>
 上述で記載した<code>SpringMvcRestConfig.java/spring-mvc-rest.xml</code>を指定する。</p></td>
 </tr>
 <tr>
-<td class="tableblock halign-left valign-top"><p class="tableblock">(8)</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">(7)</p></td>
 <td class="tableblock halign-left valign-top"><p class="tableblock">Spring Framework のプロファイルとして、非同期バッチを表す<code>async</code>を明示する。</p></td>
 </tr>
 </tbody>
 </table>
+<div class="paragraph">
+<p><code>AutomaticJobRegistrar</code> , <code>ApplicationContextFactory</code> , <code>DefaultJobLoader</code> は現在非推奨となっているが、TERASOLUNA Batch 5.xでの利用方針については<a href="Ch04_AsyncJobWithDB.html#Ch04_AsyncJobWithDB_Arch_Components_AppCtx_Deprecated">非同期実行において非推奨APIを利用する理由</a>を参照されたい。</p>
+</div>
 <div class="admonitionblock warning">
 <table>
 <tr>
@@ -1351,6 +1375,56 @@ JobLauncherの<code>TaskExecutor</code>に<code>AsyncTaskExecutor</code>実装�
 <p>また、スレッドプール枯渇に伴う<code>TaskRejectException</code>発生の確認、および再実行は
 Webクライアントから別途リクエストを送信する必要がある。
 そのため、スレッドプール枯渇時、ジョブ起動を待機させる<code>queue-capacity</code>は必ず設定すること。</p>
+</div>
+</td>
+</tr>
+</table>
+</div>
+<div class="admonitionblock note">
+<table>
+<tr>
+<td class="icon">
+<i class="fa icon-note" title="Note"></i>
+</td>
+<td class="content">
+<div class="title">XMLConfigにおいてJavaConfigのJSONの挙動を揃える設定例</div>
+<div class="paragraph">
+<p>XMLConfigとJavaConfigでは、使用する<code>HttpMessageConverter</code>の違いにより、日付形式、<code>@JsonView</code>の扱い、不明なプロパティの扱いなど、JSONの挙動が異なる場合がある。<br>
+本ガイドラインでは、TERASOLUNA Server 5.x 開発ガイドラインの「<a href="https://terasolunaorg.github.io/guideline/5.11.0.RELEASE/ja/ArchitectureInDetail/WebServiceDetail/REST.html#restful-web-servicespring-mvc">RESTful Web Serviceで必要となるSpring MVCのコンポーネントを有効化するための設定</a>」に記載されているXMLConfigの設定例に合わせ、
+Jackson2を利用する場合も、JavaConfigで利用されるJackson3と同様の挙動にするための設定例を以下に示す。</p>
+</div>
+<div class="ulist">
+<ul>
+<li>
+<p>日付を文字列として扱う場合にJackson3と同様の<code>ISO-8601</code>を利用する場合は、ObjectMapperの日付フォーマットに<code>StdDateFormat</code>を設定する</p>
+</li>
+<li>
+<p><code>@JsonView</code>使用時に、<code>@JsonView</code>が設定されていないプロパティが出力されないように<code>MapperFeature.DEFAULT_VIEW_INCLUSION</code>を無効化する</p>
+</li>
+<li>
+<p>JSONに不明なプロパティが含まれていても処理を失敗させず、例外を発生させないように<code>DeserializationFeature.FAIL_ON_UNKNOWN_PROPERTIES</code>を無効化する</p>
+</li>
+</ul>
+</div>
+<div class="listingblock">
+<div class="title">設定例</div>
+<div class="content">
+<pre class="CodeRay highlight"><code data-lang="xml"><span class="tag">&lt;bean</span> <span class="attribute-name">id</span>=<span class="string"><span class="delimiter">&quot;</span><span class="content">jsonMessageConverter</span><span class="delimiter">&quot;</span></span>
+      <span class="attribute-name">class</span>=<span class="string"><span class="delimiter">&quot;</span><span class="content">org.springframework.http.converter.json.MappingJackson2HttpMessageConverter</span><span class="delimiter">&quot;</span></span>
+      <span class="attribute-name">p:objectMapper-ref</span>=<span class="string"><span class="delimiter">&quot;</span><span class="content">objectMapper</span><span class="delimiter">&quot;</span></span><span class="tag">/&gt;</span>
+
+<span class="tag">&lt;bean</span> <span class="attribute-name">id</span>=<span class="string"><span class="delimiter">&quot;</span><span class="content">objectMapper</span><span class="delimiter">&quot;</span></span> <span class="attribute-name">class</span>=<span class="string"><span class="delimiter">&quot;</span><span class="content">org.springframework.http.converter.json.Jackson2ObjectMapperFactoryBean</span><span class="delimiter">&quot;</span></span><span class="tag">&gt;</span>
+    <span class="tag">&lt;property</span> <span class="attribute-name">name</span>=<span class="string"><span class="delimiter">&quot;</span><span class="content">dateFormat</span><span class="delimiter">&quot;</span></span><span class="tag">&gt;</span>
+        <span class="tag">&lt;bean</span> <span class="attribute-name">class</span>=<span class="string"><span class="delimiter">&quot;</span><span class="content">com.fasterxml.jackson.databind.util.StdDateFormat</span><span class="delimiter">&quot;</span></span><span class="tag">/&gt;</span>
+    <span class="tag">&lt;/property&gt;</span>
+    <span class="tag">&lt;property</span> <span class="attribute-name">name</span>=<span class="string"><span class="delimiter">&quot;</span><span class="content">featuresToDisable</span><span class="delimiter">&quot;</span></span><span class="tag">&gt;</span>
+        <span class="tag">&lt;array&gt;</span>
+            <span class="tag">&lt;util:constant</span> <span class="attribute-name">static-field</span>=<span class="string"><span class="delimiter">&quot;</span><span class="content">com.fasterxml.jackson.databind.MapperFeature.DEFAULT_VIEW_INCLUSION</span><span class="delimiter">&quot;</span></span> <span class="tag">/&gt;</span>
+            <span class="tag">&lt;util:constant</span> <span class="attribute-name">static-field</span>=<span class="string"><span class="delimiter">&quot;</span><span class="content">com.fasterxml.jackson.databind.DeserializationFeature.FAIL_ON_UNKNOWN_PROPERTIES</span><span class="delimiter">&quot;</span></span> <span class="tag">/&gt;</span>
+        <span class="tag">&lt;/array&gt;</span>
+    <span class="tag">&lt;/property&gt;</span>
+<span class="tag">&lt;/bean&gt;</span></code></pre>
+</div>
 </div>
 </td>
 </tr>
@@ -1545,7 +1619,7 @@ Webクライアントから別途リクエストを送信する必要がある�
 
     <span class="comment">// (2)</span>
     <span class="annotation">@Inject</span>
-    JobExplorer jobExplorer;
+    JobRepository jobRepository;
 
     <span class="annotation">@RequestMapping</span>(value = <span class="string"><span class="delimiter">&quot;</span><span class="content">{jobName}</span><span class="delimiter">&quot;</span></span>, method = RequestMethod.POST)
     <span class="directive">public</span> ResponseEntity&lt;JobOperationResource&gt; launch(<span class="annotation">@PathVariable</span>(<span class="string"><span class="delimiter">&quot;</span><span class="content">jobName</span><span class="delimiter">&quot;</span></span>) <span class="predefined-type">String</span> jobName,
@@ -1577,7 +1651,7 @@ Webクライアントから別途リクエストを送信する必要がある�
             responseResource.setJobExecutionId(jobExecutionId);
             responseResource.setResultMessage(<span class="string"><span class="delimiter">&quot;</span><span class="content">Job launching task is scheduled.</span><span class="delimiter">&quot;</span></span>);
             <span class="keyword">return</span> ResponseEntity.ok().body(responseResource);
-        } <span class="keyword">catch</span> (NoSuchJobException | JobInstanceAlreadyExistsException | JobParametersInvalidException e) {
+        } <span class="keyword">catch</span> (NoSuchJobException | JobInstanceAlreadyExistsException | InvalidJobParametersException e) {
             responseResource.setError(e);
             <span class="keyword">return</span> ResponseEntity.badRequest().body(responseResource);
         }
@@ -1591,7 +1665,7 @@ Webクライアントから別途リクエストを送信する必要がある�
         responseResource.setJobExecutionId(jobExecutionId);
 
         <span class="comment">// (4)</span>
-        JobExecution jobExecution = jobExplorer.getJobExecution(jobExecutionId);
+        JobExecution jobExecution = jobRepository.getJobExecution(jobExecutionId);
 
         <span class="keyword">if</span> (jobExecution == <span class="predefined-constant">null</span>) {
             responseResource.setErrorMessage(<span class="string"><span class="delimiter">&quot;</span><span class="content">Job execution not found.</span><span class="delimiter">&quot;</span></span>);
@@ -1641,7 +1715,7 @@ REST APIの基底パスは<code><em>contextName</em>/api/v1/job/</code>となる
 </tr>
 <tr>
 <td class="tableblock halign-left valign-top"><p class="tableblock">(2)</p></td>
-<td class="tableblock halign-left valign-top"><p class="tableblock"><code>JobOperator</code>、<code>JobExplorer</code>のフィールドインジェクションを記述する。</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><code>JobOperator</code>、<code>JobRepository</code>のフィールドインジェクションを記述する。</p></td>
 </tr>
 <tr>
 <td class="tableblock halign-left valign-top"><p class="tableblock">(3)</p></td>
@@ -1650,7 +1724,7 @@ REST APIの基底パスは<code><em>contextName</em>/api/v1/job/</code>となる
 </tr>
 <tr>
 <td class="tableblock halign-left valign-top"><p class="tableblock">(4)</p></td>
-<td class="tableblock halign-left valign-top"><p class="tableblock"><code>JobExplorer</code> を使用し、ジョブ実行IDをもとにジョブの実行状態(<code>JobExecution</code>)を取得する。<br>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><code>JobRepository</code> を使用し、ジョブ実行IDをもとにジョブの実行状態(<code>JobExecution</code>)を取得する。<br>
 あらかじめ設計された電文フォーマットに変換した上でRESTクライアントに返却する。</p></td>
 </tr>
 </tbody>
@@ -1663,7 +1737,7 @@ REST APIの基底パスは<code><em>contextName</em>/api/v1/job/</code>となる
 </td>
 <td class="content">
 <div class="paragraph">
-<p>Spring Batchが提供するSimpleJobOperatorの仕様変更に伴い、
+<p>Spring Batchが提供する<code>TaskExecutorJobOperator</code>の仕様変更に伴い、
 JobControllerの実装も下記のように変更している。<br></p>
 </div>
 <div class="ulist">
@@ -1680,6 +1754,31 @@ JobControllerの実装も下記のように変更している。<br></p>
 詳細は、<a href="https://github.com/spring-projects/spring-batch/issues/4304">Spring Batch/BATCH-4304</a>を参照されたい。</p>
 </li>
 </ul>
+</div>
+</td>
+</tr>
+</table>
+</div>
+<div class="admonitionblock important">
+<table>
+<tr>
+<td class="icon">
+<i class="fa icon-important" title="Important"></i>
+</td>
+<td class="content">
+<div class="title">非推奨であるJobOperator#start(String jobName, Properties parameters)を利用する理由</div>
+<div class="paragraph">
+<p>前述のコントローラ実装例では、<code>JobOperator#start(String jobName, Properties parameters)</code>を利用してジョブを起動している。<br>
+このメソッドはSpring Batchのバージョン6以降で非推奨となっており、代替として<code>JobOperator#start(Job job, JobParameters jobParameters)</code>の利用が推奨されている。<br>
+しかし、TERASOLUNA Batch Framework for Java (5.x)のバージョン5.8.0.RELEASEでは、以下の理由により引き続き非推奨である<code>JobOperator#start(String jobName, Properties parameters)</code>を利用する。<br></p>
+</div>
+<div class="paragraph">
+<p>推奨されているメソッドでは、<a href="Ch04_JobParameter.html#Ch04_JobParameter_HowToUse_Converter">パラメータ変換クラスについて</a>で紹介されている<code>JobParametersConverter</code>によるジョブパラメータの変換機能が利用できない。<br></p>
+</div>
+<div class="paragraph">
+<p>このため、TERASOLUNA Batch Framework for Java (5.x)のバージョン5.8.0.RELEASEでは、現在Spring Batchで非推奨とされている<code>JobOperator#start(String jobName, Properties parameters)</code>を引き続き利用する前提としている点に留意されたい。<br>
+なお、非推奨となった <code>JobOperator#start(String jobName, Properties parameters)</code> の <code>throws</code> 句で宣言されている例外  <code>JobInstanceAlreadyExistsException</code> も併せて非推奨となったが、 このメソッドと例外の組み合わせは <code>JobOperator</code> インタフェースで定義されているため、例外のみ推奨されるものに代替することはできない。 そのため、引き続き <code>JobInstanceAlreadyExistsException</code> も利用することになる。<br>
+加えて、次回リリースで<code>JobOperator#start(Job job, JobParameters jobParameters)</code>への移行と、付随する機能の利用方法が変更される可能性がある点にも注意されたい。</p>
 </div>
 </td>
 </tr>
@@ -1748,7 +1847,7 @@ RDBMSスキーマ初期化もそれぞれ異なるモジュールの設定に応
 そのため、ここでは以下方法によりCSRF対策を無効化した前提で説明している。</p>
 </div>
 <div class="paragraph">
-<p><a href="https://terasolunaorg.github.io/guideline/5.10.0.RELEASE/ja/ArchitectureInDetail/WebServiceDetail/REST.html#csrf">CSRF対策</a></p>
+<p><a href="https://terasolunaorg.github.io/guideline/5.11.0.RELEASE/ja/ArchitectureInDetail/WebServiceDetail/REST.html#csrf">CSRF対策</a></p>
 </div>
 <div class="paragraph">
 <p>ここで作成されるWebアプリケーションはインターネット上には公開されず、CSRFを攻撃手段として
@@ -1952,15 +2051,16 @@ curlコマンドでHTTPステータスのみを確認する場合は<code>curl -
       JobOperationResource responseResource = <span class="keyword">new</span> JobOperationResource();
       responseResource.setJobExecutionId(jobExecutionId);
       <span class="type">boolean</span> result = <span class="predefined-constant">false</span>;
+      JobExecution jobExecution = jobRepository.getJobExecution(jobExecutionId);
       <span class="keyword">try</span> {
           <span class="comment">// (1)</span>
-          result = jobOperator.stop(jobExecutionId);
+          result = jobOperator.stop(jobExecution);
           <span class="keyword">if</span> (!result) {
               responseResource.setErrorMessage(<span class="string"><span class="delimiter">&quot;</span><span class="content">stop failed.</span><span class="delimiter">&quot;</span></span>);
               <span class="keyword">return</span> ResponseEntity.badRequest().body(responseResource);
           }
           <span class="keyword">return</span> ResponseEntity.ok().body(responseResource);
-      } <span class="keyword">catch</span> (NoSuchJobExecutionException | JobExecutionNotRunningException e) {
+      } <span class="keyword">catch</span> (JobExecutionNotRunningException e) {
           responseResource.setError(e);
           <span class="keyword">return</span> ResponseEntity.badRequest().body(responseResource);
       }
@@ -1974,14 +2074,13 @@ curlコマンドでHTTPステータスのみを確認する場合は<code>curl -
 
         JobOperationResource responseResource = <span class="keyword">new</span> JobOperationResource();
         responseResource.setJobExecutionId(jobExecutionId);
+        JobExecution jobExecution = jobRepository.getJobExecution(jobExecutionId);
         <span class="keyword">try</span> {
             <span class="comment">// (2)</span>
-            <span class="predefined-type">Long</span> id = jobOperator.restart(jobExecutionId);
-            responseResource.setJobExecutionId(id);
+            JobExecution restartedJobExecution = jobOperator.restart(jobExecution);
+            responseResource.setResultMessage(<span class="string"><span class="delimiter">&quot;</span><span class="content">Job restarted on job execution id = </span><span class="delimiter">&quot;</span></span> + restartedJobExecution.getJobInstanceId());
             <span class="keyword">return</span> ResponseEntity.ok().body(responseResource);
-        } <span class="keyword">catch</span> (JobInstanceAlreadyCompleteException |
-                  NoSuchJobExecutionException | NoSuchJobException |
-                  JobRestartException | JobParametersInvalidException e) {
+        } <span class="keyword">catch</span> (JobRestartException e) {
             responseResource.setErrorMessage(e.getMessage());
             <span class="keyword">return</span> ResponseEntity.badRequest().body(responseResource);
         }
@@ -2058,7 +2157,7 @@ curlコマンドでHTTPステータスのみを確認する場合は<code>curl -
 
   <div class="common-bg">
     <div class="information">
-      TERASOLUNA Batch Framework for Java (5.x) Development Guideline - version 5.7.0.RELEASE, 2025-3-31, commit-id:7ba4db3
+      TERASOLUNA Batch Framework for Java (5.x) Development Guideline - version 5.8.0.RELEASE, 2026-3-31, commit-id:f8c098e
     </div>
     <div class="index">
       <a href="index.html">&gt; INDEX</a>

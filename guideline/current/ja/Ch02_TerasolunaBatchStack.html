@@ -14,7 +14,7 @@
 
 <div class="common-bg">
   <div class="information">
-    TERASOLUNA Batch Framework for Java (5.x) Development Guideline - version 5.7.0.RELEASE, 2025-3-31, commit-id:7ba4db3
+    TERASOLUNA Batch Framework for Java (5.x) Development Guideline - version 5.8.0.RELEASE, 2026-3-31, commit-id:f8c098e
   </div>
   <div class="index">
     <a href="index.html">&gt; INDEX</a>
@@ -197,6 +197,7 @@ window.onload = function() {
 <li><a href="#Ch02_TerasolunaBatchStack_Stack">TERASOLUNA Batch Framework for Java (5.x)のスタック</a>
 <ul class="sectlevel2">
 <li><a href="#Ch02_TerasolunaBatchStack_Stack_OSS">利用するOSSのバージョン</a></li>
+<li><a href="#Ch02_TerasolunaBatchStack_TerasolunaBOM">TERASOLUNA Framework for Java (5.x) Dependencies</a></li>
 </ul>
 </li>
 <li><a href="#Ch02_TerasolunaBatchStack_Components">TERASOLUNA Batch Framework for Java (5.x)の構成要素</a>
@@ -236,7 +237,7 @@ window.onload = function() {
 <div class="sect2">
 <h3 id="Ch02_TerasolunaBatchStack_Stack_OSS"><a class="anchor" href="#Ch02_TerasolunaBatchStack_Stack_OSS"></a>利用するOSSのバージョン</h3>
 <div class="paragraph">
-<p>TERASOLUNA Batch Framework for Java (5.x)のバージョン5.7.0.RELEASEで利用するOSSのバージョン一覧を以下に示す。</p>
+<p>TERASOLUNA Batch Framework for Java (5.x)のバージョン5.8.0.RELEASEで利用するOSSのバージョン一覧を以下に示す。</p>
 </div>
 <div class="admonitionblock note">
 <table>
@@ -247,8 +248,8 @@ window.onload = function() {
 <td class="content">
 <div class="paragraph">
 <p>TERASOLUNA Batch Framework for Java (5.x)で使用するOSSのバージョンは、原則として、Spring Boot Dependenciesの定義に準じている。
-なお、バージョン5.7.0.RELEASEにおけるSpring Boot Dependenciesのバージョンは、
-<a href="https://docs.spring.io/spring-boot/3.4.1/index.html">3.4.1</a>である。</p>
+なお、バージョン5.8.0.RELEASEにおけるSpring Boot Dependenciesのバージョンは、
+<a href="https://docs.spring.io/spring-boot/4.0.2/index.html">4.0.2</a>である。</p>
 </div>
 </td>
 </tr>
@@ -279,85 +280,85 @@ window.onload = function() {
 <td class="tableblock halign-left valign-top"><p class="tableblock">バッチフレームワークを拡張する。</p></td>
 <td class="tableblock halign-left valign-top"><p class="tableblock">org.terasoluna.batch</p></td>
 <td class="tableblock halign-left valign-top"><p class="tableblock"><a href="https://terasoluna-batch.github.io/">terasoluna-batch</a></p></td>
-<td class="tableblock halign-left valign-top"><p class="tableblock">5.7.0.RELEASE</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">5.8.0.RELEASE</p></td>
 </tr>
 <tr>
 <td class="tableblock halign-left valign-top" rowspan="2"><p class="tableblock">バッチフレームワーク</p></td>
 <td class="tableblock halign-left valign-top" rowspan="2"><p class="tableblock">バッチフレームワークとして、Spring Batchを利用する。</p></td>
 <td class="tableblock halign-left valign-top"><p class="tableblock">org.springframework.batch</p></td>
-<td class="tableblock halign-left valign-top"><p class="tableblock"><a href="https://docs.spring.io/spring-batch/reference/5.2.1/index.html">spring-batch-core</a></p></td>
-<td class="tableblock halign-left valign-top"><p class="tableblock">5.2.1</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><a href="https://docs.spring.io/spring-batch/reference/6.0.2/index.html">spring-batch-core</a></p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">6.0.2</p></td>
 </tr>
 <tr>
 <td class="tableblock halign-left valign-top"><p class="tableblock">org.springframework.batch</p></td>
 <td class="tableblock halign-left valign-top"><p class="tableblock">spring-batch-infrastructure</p></td>
-<td class="tableblock halign-left valign-top"><p class="tableblock">5.2.1</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">6.0.2</p></td>
 </tr>
 <tr>
 <td class="tableblock halign-left valign-top" rowspan="10"><p class="tableblock">基盤フレームワーク</p></td>
 <td class="tableblock halign-left valign-top" rowspan="9"><p class="tableblock">フレームワークの基盤として、利用する。</p></td>
 <td class="tableblock halign-left valign-top"><p class="tableblock">org.springframework</p></td>
 <td class="tableblock halign-left valign-top"><p class="tableblock">spring-aop</p></td>
-<td class="tableblock halign-left valign-top"><p class="tableblock">6.2.1</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">7.0.3</p></td>
 </tr>
 <tr>
 <td class="tableblock halign-left valign-top"><p class="tableblock">org.springframework</p></td>
 <td class="tableblock halign-left valign-top"><p class="tableblock">spring-beans</p></td>
-<td class="tableblock halign-left valign-top"><p class="tableblock">6.2.1</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">7.0.3</p></td>
 </tr>
 <tr>
 <td class="tableblock halign-left valign-top"><p class="tableblock">org.springframework</p></td>
 <td class="tableblock halign-left valign-top"><p class="tableblock">spring-context</p></td>
-<td class="tableblock halign-left valign-top"><p class="tableblock">6.2.1</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">7.0.3</p></td>
 </tr>
 <tr>
 <td class="tableblock halign-left valign-top"><p class="tableblock">org.springframework</p></td>
 <td class="tableblock halign-left valign-top"><p class="tableblock">spring-expression</p></td>
-<td class="tableblock halign-left valign-top"><p class="tableblock">6.2.1</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">7.0.3</p></td>
 </tr>
 <tr>
 <td class="tableblock halign-left valign-top"><p class="tableblock">org.springframework</p></td>
-<td class="tableblock halign-left valign-top"><p class="tableblock"><a href="https://docs.spring.io/spring-framework/reference/6.2.1/core.html">spring-core</a></p></td>
-<td class="tableblock halign-left valign-top"><p class="tableblock">6.2.1</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><a href="https://docs.spring.io/spring-framework/reference/7.0.3/core.html">spring-core</a></p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">7.0.3</p></td>
 </tr>
 <tr>
 <td class="tableblock halign-left valign-top"><p class="tableblock">org.springframework</p></td>
 <td class="tableblock halign-left valign-top"><p class="tableblock">spring-tx</p></td>
-<td class="tableblock halign-left valign-top"><p class="tableblock">6.2.1</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">7.0.3</p></td>
 </tr>
 <tr>
 <td class="tableblock halign-left valign-top"><p class="tableblock">org.springframework</p></td>
 <td class="tableblock halign-left valign-top"><p class="tableblock">spring-jdbc</p></td>
-<td class="tableblock halign-left valign-top"><p class="tableblock">6.2.1</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">7.0.3</p></td>
 </tr>
 <tr>
 <td class="tableblock halign-left valign-top"><p class="tableblock">org.springframework</p></td>
 <td class="tableblock halign-left valign-top"><p class="tableblock">spring-oxm</p></td>
-<td class="tableblock halign-left valign-top"><p class="tableblock">6.2.1</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">7.0.3</p></td>
 </tr>
 <tr>
 <td class="tableblock halign-left valign-top"><p class="tableblock">org.springframework.retry</p></td>
-<td class="tableblock halign-left valign-top"><p class="tableblock"><a href="https://docs.spring.io/spring-batch/reference/5.2.1/retry.html#retry">spring-retry</a></p></td>
-<td class="tableblock halign-left valign-top"><p class="tableblock">2.0.11</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><a href="https://docs.spring.io/spring-batch/reference/6.0.2/retry.html#retry">spring-retry</a></p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">2.0.12</p></td>
 </tr>
 <tr>
 <td class="tableblock halign-left valign-top"><p class="tableblock">Webコンテナ起動の際に、Spring Batchと連携する。</p></td>
 <td class="tableblock halign-left valign-top"><p class="tableblock">org.springframework</p></td>
-<td class="tableblock halign-left valign-top"><p class="tableblock"><a href="https://docs.spring.io/spring-framework/docs/6.2.1/reference/html/web.html#mvc">spring-webmvc</a></p></td>
-<td class="tableblock halign-left valign-top"><p class="tableblock">6.2.1</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><a href="https://docs.spring.io/spring-framework/reference/7.0.3/web/webmvc.html#mvc">spring-webmvc</a></p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">7.0.3</p></td>
 </tr>
 <tr>
 <td class="tableblock halign-left valign-top" rowspan="2"><p class="tableblock">O/R Mapper</p></td>
 <td class="tableblock halign-left valign-top"></td>
 <td class="tableblock halign-left valign-top"><p class="tableblock">org.mybatis</p></td>
 <td class="tableblock halign-left valign-top"><p class="tableblock"><a href="https://mybatis.org/mybatis-3/">mybatis</a></p></td>
-<td class="tableblock halign-left valign-top"><p class="tableblock">3.5.17</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">3.5.19</p></td>
 </tr>
 <tr>
 <td class="tableblock halign-left valign-top"></td>
 <td class="tableblock halign-left valign-top"><p class="tableblock">org.mybatis</p></td>
 <td class="tableblock halign-left valign-top"><p class="tableblock"><a href="https://mybatis.org/spring/">mybatis-spring</a></p></td>
-<td class="tableblock halign-left valign-top"><p class="tableblock">3.0.4</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">4.0.0</p></td>
 </tr>
 <tr>
 <td class="tableblock halign-left valign-top"><p class="tableblock">DI</p></td>
@@ -367,83 +368,108 @@ window.onload = function() {
 <td class="tableblock halign-left valign-top"><p class="tableblock">2.0.1</p></td>
 </tr>
 <tr>
-<td class="tableblock halign-left valign-top" rowspan="3"><p class="tableblock">ログ出力</p></td>
-<td class="tableblock halign-left valign-top" rowspan="3"><p class="tableblock">実装にLogbackを利用し、SLF4Jはロギングの抽象化レイヤーを提供する。</p></td>
+<td class="tableblock halign-left valign-top" rowspan="2"><p class="tableblock">ログ出力</p></td>
+<td class="tableblock halign-left valign-top" rowspan="2"><p class="tableblock">実装にLogbackを利用し、SLF4Jはロギングの抽象化レイヤーを提供する。</p></td>
 <td class="tableblock halign-left valign-top"><p class="tableblock">ch.qos.logback</p></td>
 <td class="tableblock halign-left valign-top"><p class="tableblock"><a href="https://logback.qos.ch/">logback-classic</a></p></td>
-<td class="tableblock halign-left valign-top"><p class="tableblock">1.5.12</p></td>
-</tr>
-<tr>
-<td class="tableblock halign-left valign-top"><p class="tableblock">org.slf4j</p></td>
-<td class="tableblock halign-left valign-top"><p class="tableblock"><a href="https://www.slf4j.org/legacy.html#jclOverSLF4J">jcl-over-slf4j</a></p></td>
-<td class="tableblock halign-left valign-top"><p class="tableblock">2.0.16</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">1.5.25</p></td>
 </tr>
 <tr>
 <td class="tableblock halign-left valign-top"><p class="tableblock">org.slf4j</p></td>
 <td class="tableblock halign-left valign-top"><p class="tableblock"><a href="https://www.slf4j.org/">slf4j-api</a></p></td>
-<td class="tableblock halign-left valign-top"><p class="tableblock">2.0.16</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">2.0.17</p></td>
 </tr>
 <tr>
 <td class="tableblock halign-left valign-top" rowspan="2"><p class="tableblock">入力チェック</p></td>
 <td class="tableblock halign-left valign-top" rowspan="2"><p class="tableblock">単項目チェックにJakarta Validationを利用し、実装にはHibernate Validatorを使用する。</p></td>
 <td class="tableblock halign-left valign-top"><p class="tableblock">jakarta.validation</p></td>
-<td class="tableblock halign-left valign-top"><p class="tableblock"><a href="https://jakarta.ee/specifications/bean-validation/3.0/jakarta-bean-validation-spec-3.0.html">jakarta.validation-api</a></p></td>
-<td class="tableblock halign-left valign-top"><p class="tableblock">3.0.2</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><a href="https://jakarta.ee/specifications/bean-validation/3.1/jakarta-validation-spec-3.1">jakarta.validation-api</a></p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">3.1.1</p></td>
 </tr>
 <tr>
 <td class="tableblock halign-left valign-top"><p class="tableblock">org.hibernate.validator</p></td>
-<td class="tableblock halign-left valign-top"><p class="tableblock"><a href="https://docs.jboss.org/hibernate/validator/8.0/reference/en-US/html_single/">hibernate-validator</a></p></td>
-<td class="tableblock halign-left valign-top"><p class="tableblock">8.0.2.Final</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><a href="https://docs.hibernate.org/validator/9.1/reference/en-US/html_single/">hibernate-validator</a></p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">9.1.0.Final</p></td>
 </tr>
 <tr>
 <td class="tableblock halign-left valign-top"><p class="tableblock">コネクションプール</p></td>
 <td class="tableblock halign-left valign-top"></td>
 <td class="tableblock halign-left valign-top"><p class="tableblock">org.apache.commons</p></td>
 <td class="tableblock halign-left valign-top"><p class="tableblock"><a href="https://commons.apache.org/proper/commons-dbcp/">commons-dbcp2</a></p></td>
-<td class="tableblock halign-left valign-top"><p class="tableblock">2.12.0</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">2.13.0</p></td>
 </tr>
 <tr>
 <td class="tableblock halign-left valign-top"><p class="tableblock">EL式</p></td>
 <td class="tableblock halign-left valign-top"></td>
 <td class="tableblock halign-left valign-top"><p class="tableblock">org.apache.tomcat.embed</p></td>
 <td class="tableblock halign-left valign-top"><p class="tableblock"><a href="https://tomcat.apache.org/">tomcat-embed-el</a></p></td>
-<td class="tableblock halign-left valign-top"><p class="tableblock">10.1.34</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">11.0.15</p></td>
 </tr>
 <tr>
 <td class="tableblock halign-left valign-top"><p class="tableblock">インメモリデータベース</p></td>
 <td class="tableblock halign-left valign-top"><p class="tableblock">H2をデフォルトで使用しているが切り替え可能。</p></td>
 <td class="tableblock halign-left valign-top"><p class="tableblock">com.h2database</p></td>
 <td class="tableblock halign-left valign-top"><p class="tableblock"><a href="https://www.h2database.com/html/main.html">h2</a></p></td>
-<td class="tableblock halign-left valign-top"><p class="tableblock">2.3.232</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">2.4.240</p></td>
 </tr>
 <tr>
 <td class="tableblock halign-left valign-top"><p class="tableblock">JDBCドライバ</p></td>
 <td class="tableblock halign-left valign-top"></td>
 <td class="tableblock halign-left valign-top"><p class="tableblock">org.postgresql</p></td>
 <td class="tableblock halign-left valign-top"><p class="tableblock"><a href="https://jdbc.postgresql.org/">postgresql</a></p></td>
-<td class="tableblock halign-left valign-top"><p class="tableblock">42.7.4</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">42.7.9</p></td>
 </tr>
 <tr>
-<td class="tableblock halign-left valign-top"><p class="tableblock">JSON</p></td>
-<td class="tableblock halign-left valign-top"><p class="tableblock">JSONデータのシリアライズおよびデシリアライズに使用する。</p></td>
+<td class="tableblock halign-left valign-top" rowspan="2"><p class="tableblock">JSON</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">JSONデータのシリアライズおよびデシリアライズに使用する。<br>
+JavaConfigではJackson3を使用する。</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">tools.jackson.core</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><a href="https://github.com/FasterXML/jackson-databind/blob/3.0/README.md">jackson-databind</a></p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">3.0.4</p></td>
+</tr>
+<tr>
+<td class="tableblock halign-left valign-top"><p class="tableblock">XMLConfigではJackson2を使用する。</p></td>
 <td class="tableblock halign-left valign-top"><p class="tableblock">com.fasterxml.jackson.core</p></td>
-<td class="tableblock halign-left valign-top"><p class="tableblock"><a href="https://github.com/FasterXML/jackson-databind/blob/2.18/README.md">jackson-databind</a></p></td>
-<td class="tableblock halign-left valign-top"><p class="tableblock">2.18.2</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><a href="https://github.com/FasterXML/jackson-databind/blob/2.20/README.md">jackson-databind</a></p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">2.20.2</p></td>
 </tr>
 <tr>
 <td class="tableblock halign-left valign-top" rowspan="3"><p class="tableblock">XML</p></td>
 <td class="tableblock halign-left valign-top" rowspan="3"><p class="tableblock">XMLデータのシリアライズおよびデシリアライズに使用する。</p></td>
 <td class="tableblock halign-left valign-top"><p class="tableblock">jakarta.xml.bind</p></td>
 <td class="tableblock halign-left valign-top"><p class="tableblock"><a href="https://jakarta.ee/ja/specifications/xml-binding/4.0/">jakarta.xml.bind-api</a></p></td>
-<td class="tableblock halign-left valign-top"><p class="tableblock">4.0.2</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">4.0.4</p></td>
 </tr>
 <tr>
 <td class="tableblock halign-left valign-top"><p class="tableblock">com.sun.xml.bind</p></td>
 <td class="tableblock halign-left valign-top"><p class="tableblock">jaxb-impl</p></td>
-<td class="tableblock halign-left valign-top"><p class="tableblock">4.0.5</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">4.0.6</p></td>
 </tr>
 </tbody>
 </table>
+</div>
+<div class="sect2">
+<h3 id="Ch02_TerasolunaBatchStack_TerasolunaBOM"><a class="anchor" href="#Ch02_TerasolunaBatchStack_TerasolunaBOM"></a>TERASOLUNA Framework for Java (5.x) Dependencies</h3>
+<div class="paragraph">
+<p>TERASOLUNA Framework for Java (5.x) Dependencies (<a href="https://github.com/terasolunaorg/terasoluna-dependencies/tree/3.0.0.RELEASE">terasoluna-dependencies</a>)はTERASOLUNA Batch Framework for Java (5.x)で使用するOSSライブラリのバージョンを一元管理するためのBOM(Project Object Model)プロジェクトである。
+terasoluna-dependenciesでは以下を定義している。</p>
+</div>
+<div class="ulist">
+<ul>
+<li>
+<p>TERASOLUNA Batch Framework for Java (5.x)が参照する <a href="https://docs.spring.io/spring-boot/reference/using/build-systems.html#using.build-systems.dependency-management">spring-boot-dependencies</a>のバージョン</p>
+</li>
+<li>
+<p>spring-boot-dependenciesが管理しているライブラリ以外でTERASOLUNA Batch Framework for Java (5.x)が参照するライブラリのバージョン</p>
+</li>
+</ul>
+</div>
+<div class="paragraph">
+<p>terasoluna-dependenciesで管理されているライブラリのバージョンをそのまま利用する場合は、アプリケーション側のpom.xmlにおいて、ライブラリのバージョンを定義する必要はない。</p>
+</div>
+<div class="paragraph">
+<p>terasoluna-dependenciesで定義しているライブラリとそのバージョンについては、 <a href="https://github.com/terasolunaorg/terasoluna-dependencies/wiki#managed-dependency-coordinates">Managed Dependency Coordinates</a>で公開している。</p>
+</div>
 </div>
 </div>
 </div>
@@ -486,7 +512,7 @@ window.onload = function() {
 </dd>
 <dt class="hdlist1">ファイルアクセス</dt>
 <dd>
-<p><a href="https://docs.spring.io/spring-batch/reference/5.2.1/readers-and-writers/flat-files.html">Spring Batchから提供されている機能</a>
+<p><a href="https://docs.spring.io/spring-batch/reference/6.0.2/readers-and-writers/flat-files.html">Spring Batchから提供されている機能</a>
 に加えて、補助機能をTERASOLUNA Batch Framework for Java (5.x)が提供する。</p>
 <div class="ulist">
 <ul>
@@ -506,7 +532,7 @@ window.onload = function() {
 <div class="ulist">
 <ul>
 <li>
-<p><a href="https://docs.spring.io/spring-framework/reference/6.2.1/core/validation.html">Spring Validation</a></p>
+<p><a href="https://docs.spring.io/spring-framework/reference/7.0.3/core/validation.html">Spring Validation</a></p>
 </li>
 </ul>
 </div>
@@ -556,7 +582,7 @@ window.onload = function() {
 
   <div class="common-bg">
     <div class="information">
-      TERASOLUNA Batch Framework for Java (5.x) Development Guideline - version 5.7.0.RELEASE, 2025-3-31, commit-id:7ba4db3
+      TERASOLUNA Batch Framework for Java (5.x) Development Guideline - version 5.8.0.RELEASE, 2026-3-31, commit-id:f8c098e
     </div>
     <div class="index">
       <a href="index.html">&gt; INDEX</a>

@@ -15,7 +15,7 @@
 
 <div class="common-bg">
   <div class="information">
-    TERASOLUNA Batch Framework for Java (5.x) Development Guideline - version 5.7.0.RELEASE, 2025-3-31, commit-id:7ba4db3
+    TERASOLUNA Batch Framework for Java (5.x) Development Guideline - version 5.8.0.RELEASE, 2026-3-31, commit-id:f8c098e
   </div>
   <div class="index">
     <a href="index.html">&gt; INDEX</a>
@@ -256,7 +256,7 @@ window.onload = function() {
 </div>
 <div class="paragraph">
 <p>排他制御に関する概念は、オンライン処理と同様であるため、TERASOLUNA Server 5.x 開発ガイドラインにある
-<a href="https://terasolunaorg.github.io/guideline/5.10.0.RELEASE/ja/ArchitectureInDetail/DataAccessDetail/ExclusionControl.html">排他制御</a>を参照。</p>
+<a href="https://terasolunaorg.github.io/guideline/5.11.0.RELEASE/ja/ArchitectureInDetail/DataAccessDetail/ExclusionControl.html">排他制御</a>を参照。</p>
 </div>
 <div class="paragraph">
 <p>ここでは、TERASOLUNA Server 5.xでは説明されていない部分を中心に説明をする。</p>
@@ -268,7 +268,7 @@ window.onload = function() {
 <h3 id="Ch05_ExclusiveControl_Overview_Necessity"><a class="anchor" href="#Ch05_ExclusiveControl_Overview_Necessity"></a>排他制御の必要性</h3>
 <div class="paragraph">
 <p>排他制御の必要性に関しては、TERASOLUNA Server 5.x 開発ガイドラインにある
-<a href="https://terasolunaorg.github.io/guideline/5.10.0.RELEASE/ja/ArchitectureInDetail/DataAccessDetail/ExclusionControl.html#exclusioncontrol-necessity">排他制御の必要性</a>を参照。</p>
+<a href="https://terasolunaorg.github.io/guideline/5.11.0.RELEASE/ja/ArchitectureInDetail/DataAccessDetail/ExclusionControl.html#exclusioncontrol-necessity">排他制御の必要性</a>を参照。</p>
 </div>
 </div>
 <div class="sect2">
@@ -343,7 +343,7 @@ window.onload = function() {
 そのため、ファイルの更新順序をルール化することが重要である。<br>
 デッドロックの予防に関してはデータベースのテーブル間でのデッドロック防止と同様である。
 詳細については、TERASOLUNA Server 5.x 開発ガイドラインの
-<a href="https://terasolunaorg.github.io/guideline/5.10.0.RELEASE/ja/ArchitectureInDetail/DataAccessDetail/ExclusionControl.html#id9">デッドロックの予防</a>を参照。</p>
+<a href="https://terasolunaorg.github.io/guideline/5.11.0.RELEASE/ja/ArchitectureInDetail/DataAccessDetail/ExclusionControl.html#id9">デッドロックの予防</a>を参照。</p>
 </div>
 </td>
 </tr>
@@ -354,7 +354,7 @@ window.onload = function() {
 <h3 id="Ch05_ExclusiveControl_Overview_DB"><a class="anchor" href="#Ch05_ExclusiveControl_Overview_DB"></a>データベースの排他制御</h3>
 <div class="paragraph">
 <p>データベースの排他制御に関しては、TERASOLUNA Server 5.x 開発ガイドラインにある
-<a href="https://terasolunaorg.github.io/guideline/5.10.0.RELEASE/ja/ArchitectureInDetail/DataAccessDetail/ExclusionControl.html#id5">データベースのロック機能による排他制御</a>
+<a href="https://terasolunaorg.github.io/guideline/5.11.0.RELEASE/ja/ArchitectureInDetail/DataAccessDetail/ExclusionControl.html#id5">データベースのロック機能による排他制御</a>
 で詳しく説明されているため、そちらを参照。</p>
 </div>
 </div>
@@ -377,11 +377,11 @@ window.onload = function() {
 </thead>
 <tbody>
 <tr>
-<td class="tableblock halign-left valign-top"><p class="tableblock"><a href="https://terasolunaorg.github.io/guideline/5.10.0.RELEASE/ja/ArchitectureInDetail/DataAccessDetail/ExclusionControl.html#id7">楽観ロック</a></p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><a href="https://terasolunaorg.github.io/guideline/5.11.0.RELEASE/ja/ArchitectureInDetail/DataAccessDetail/ExclusionControl.html#id7">楽観ロック</a></p></td>
 <td class="tableblock halign-left valign-top"><p class="tableblock">同時実行時におけるトランザクションで、別トランザクションの更新結果を処理対象外にして処理を継続できる場合</p></td>
 </tr>
 <tr>
-<td class="tableblock halign-left valign-top"><p class="tableblock"><a href="https://terasolunaorg.github.io/guideline/5.10.0.RELEASE/ja/ArchitectureInDetail/DataAccessDetail/ExclusionControl.html#id8">悲観ロック</a></p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><a href="https://terasolunaorg.github.io/guideline/5.11.0.RELEASE/ja/ArchitectureInDetail/DataAccessDetail/ExclusionControl.html#id8">悲観ロック</a></p></td>
 <td class="tableblock halign-left valign-top"><p class="tableblock">処理時間が長く、処理中に対象データの状況が変化したことによるやり直しが難しい処理<br>
 ファイルに対する排他制御が必要な処理</p></td>
 </tr>
@@ -692,17 +692,17 @@ ItemProcessorでデータが取得できない場合は、他のトランザク�
 <div class="content">
 <div class="listingblock">
 <div class="content">
-<pre class="CodeRay highlight"><code data-lang="xml"><span class="tag">&lt;bean</span> <span class="attribute-name">id</span>=<span class="string"><span class="delimiter">&quot;</span><span class="content">writer</span><span class="delimiter">&quot;</span></span> <span class="attribute-name">class</span>=<span class="string"><span class="delimiter">&quot;</span><span class="content">org.springframework.batch.item.file.FlatFileItemWriter</span><span class="delimiter">&quot;</span></span> <span class="attribute-name">scope</span>=<span class="string"><span class="delimiter">&quot;</span><span class="content">step</span><span class="delimiter">&quot;</span></span>
+<pre class="CodeRay highlight"><code data-lang="xml"><span class="tag">&lt;bean</span> <span class="attribute-name">id</span>=<span class="string"><span class="delimiter">&quot;</span><span class="content">writer</span><span class="delimiter">&quot;</span></span> <span class="attribute-name">class</span>=<span class="string"><span class="delimiter">&quot;</span><span class="content">org.springframework.batch.infrastructure.item.file.FlatFileItemWriter</span><span class="delimiter">&quot;</span></span> <span class="attribute-name">scope</span>=<span class="string"><span class="delimiter">&quot;</span><span class="content">step</span><span class="delimiter">&quot;</span></span>
       <span class="attribute-name">p:resource</span>=<span class="string"><span class="delimiter">&quot;</span><span class="content">file:#{jobParameters['outputFile']}</span><span class="delimiter">&quot;</span></span>
       <span class="attribute-name">p:transactional</span>=<span class="string"><span class="delimiter">&quot;</span><span class="content">false</span><span class="delimiter">&quot;</span></span><span class="tag">&gt;</span>  <span class="comment">&lt;!-- (1) --&gt;</span>
-    <span class="tag">&lt;property</span> <span class="attribute-name">name</span>=<span class="string"><span class="delimiter">&quot;</span><span class="content">lineAggregator</span><span class="delimiter">&quot;</span></span><span class="tag">&gt;</span>
-        <span class="tag">&lt;bean</span> <span class="attribute-name">class</span>=<span class="string"><span class="delimiter">&quot;</span><span class="content">org.springframework.batch.item.file.transform.DelimitedLineAggregator</span><span class="delimiter">&quot;</span></span><span class="tag">&gt;</span>
+    <span class="tag">&lt;constructor-arg&gt;</span>
+        <span class="tag">&lt;bean</span> <span class="attribute-name">class</span>=<span class="string"><span class="delimiter">&quot;</span><span class="content">org.springframework.batch.infrastructure.item.file.transform.DelimitedLineAggregator</span><span class="delimiter">&quot;</span></span><span class="tag">&gt;</span>
             <span class="tag">&lt;property</span> <span class="attribute-name">name</span>=<span class="string"><span class="delimiter">&quot;</span><span class="content">fieldExtractor</span><span class="delimiter">&quot;</span></span><span class="tag">&gt;</span>
-                <span class="tag">&lt;bean</span> <span class="attribute-name">class</span>=<span class="string"><span class="delimiter">&quot;</span><span class="content">org.springframework.batch.item.file.transform.BeanWrapperFieldExtractor</span><span class="delimiter">&quot;</span></span>
+                <span class="tag">&lt;bean</span> <span class="attribute-name">class</span>=<span class="string"><span class="delimiter">&quot;</span><span class="content">org.springframework.batch.infrastructure.item.file.transform.BeanWrapperFieldExtractor</span><span class="delimiter">&quot;</span></span>
                       <span class="attribute-name">p:names</span>=<span class="string"><span class="delimiter">&quot;</span><span class="content">processName,plan.branchId,plan.year,plan.month,plan.customerId,plan.amount</span><span class="delimiter">&quot;</span></span><span class="tag">/&gt;</span>
             <span class="tag">&lt;/property&gt;</span>
         <span class="tag">&lt;/bean&gt;</span>
-    <span class="tag">&lt;/property&gt;</span>
+    <span class="tag">&lt;/constructor-arg&gt;</span>
 <span class="tag">&lt;/bean&gt;</span></code></pre>
 </div>
 </div>
@@ -901,9 +901,9 @@ ItemProcessorでデータが取得できない場合は、他のトランザク�
 </div>
 <div class="paragraph">
 <p>データベースの排他制御実装は、TERASOLUNA Server 5.x 開発ガイドラインにある
-<a href="https://terasolunaorg.github.io/guideline/5.10.0.RELEASE/ja/ArchitectureInDetail/DataAccessDetail/ExclusionControl.html#mybatis3">MyBatis3使用時の実装方法</a>が基本である。
+<a href="https://terasolunaorg.github.io/guideline/5.11.0.RELEASE/ja/ArchitectureInDetail/DataAccessDetail/ExclusionControl.html#mybatis3">MyBatis3使用時の実装方法</a>が基本である。
 本ガイドラインでは、
-<a href="https://terasolunaorg.github.io/guideline/5.10.0.RELEASE/ja/ArchitectureInDetail/DataAccessDetail/ExclusionControl.html#mybatis3">MyBatis3使用時の実装方法</a>ができている前提で説明を行う。</p>
+<a href="https://terasolunaorg.github.io/guideline/5.11.0.RELEASE/ja/ArchitectureInDetail/DataAccessDetail/ExclusionControl.html#mybatis3">MyBatis3使用時の実装方法</a>ができている前提で説明を行う。</p>
 </div>
 <div class="paragraph">
 <p><a href="#Ch05_ExclusiveControl_Overview_Component">排他制御とコンポーネントの関係</a>にあるとおり、処理モデル・コンポーネントの組み合わせによるバリエーションがある。</p>
@@ -949,7 +949,7 @@ ItemProcessorでデータが取得できない場合は、他のトランザク�
 </table>
 <div class="paragraph">
 <p>タスクレットモデルで<code>Mapper</code>インタフェースを使用する場合は、
-<a href="https://terasolunaorg.github.io/guideline/5.10.0.RELEASE/ja/ArchitectureInDetail/DataAccessDetail/ExclusionControl.html#mybatis3">MyBatis3使用時の実装方法</a>のとおりであるため、説明を割愛する。</p>
+<a href="https://terasolunaorg.github.io/guideline/5.11.0.RELEASE/ja/ArchitectureInDetail/DataAccessDetail/ExclusionControl.html#mybatis3">MyBatis3使用時の実装方法</a>のとおりであるため、説明を割愛する。</p>
 </div>
 <div class="paragraph">
 <p>タスクレットモデルでItemReader/ItemWriterを使用する場合は、<code>Mapper</code>インタフェースでの呼び出し部分がItemReader/ItemWriterに代わるだけなので、これも説明を割愛する。</p>
@@ -1029,13 +1029,16 @@ ItemProcessorでデータが取得できない場合は、他のトランザク�
     <span class="directive">public</span> Job chunkOptimisticLockCheckJob(JobRepository jobRepository,
                                             Step step01,
                                             JobExecutionLoggingListener jobExecutionLoggingListener) {
-        <span class="keyword">return</span> <span class="keyword">new</span> JobBuilder(<span class="string"><span class="delimiter">&quot;</span><span class="content">chunkOptimisticLockCheckJob</span><span class="delimiter">&quot;</span></span>,jobRepository)
+        <span class="keyword">return</span> <span class="keyword">new</span> JobBuilder(jobRepository)
                 .start(step01)
                 .listener(jobExecutionLoggingListener)
                 .build();
     }
 }</code></pre>
 </div>
+</div>
+<div class="paragraph">
+<p>前述のジョブ定義例で利用している <code>StepBuilder#chunk(int chunkSize, PlatformTransactionManager transactionManager)</code> は現在非推奨となっているが、本バージョンでは利用を継続している。理由、および TERASOLUNA Batch 5.x での <code>SimpleStepBuilder</code> の利用方針については<a href="Ch03_CreateProject.html#Ch03_CreateProject_CreateJob_DeprecatedSimpleStepBuilder">非推奨であるSimpleStepBuilderを利用する理由</a>を参照されたい。</p>
 </div>
 </div>
 </div>
@@ -1174,13 +1177,16 @@ ItemProcessorでデータが取得できない場合は、他のトランザク�
     <span class="directive">public</span> Job chunkPessimisticLockCheckJob(JobRepository jobRepository,
                                             Step step01,
                                             JobExecutionLoggingListener jobExecutionLoggingListener) {
-        <span class="keyword">return</span> <span class="keyword">new</span> JobBuilder(<span class="string"><span class="delimiter">&quot;</span><span class="content">chunkPessimisticLockCheckJob</span><span class="delimiter">&quot;</span></span>,jobRepository)
+        <span class="keyword">return</span> <span class="keyword">new</span> JobBuilder(jobRepository)
                 .start(step01)
                 .listener(jobExecutionLoggingListener)
                 .build();
     }
 }</code></pre>
 </div>
+</div>
+<div class="paragraph">
+<p>前述のジョブ定義例で利用している <code>StepBuilder#chunk(int chunkSize, PlatformTransactionManager transactionManager)</code> は現在非推奨となっているが、本バージョンでは利用を継続している。理由、および TERASOLUNA Batch 5.x での <code>SimpleStepBuilder</code> の利用方針については<a href="Ch03_CreateProject.html#Ch03_CreateProject_CreateJob_DeprecatedSimpleStepBuilder">非推奨であるSimpleStepBuilderを利用する理由</a>を参照されたい。</p>
 </div>
 </div>
 </div>
@@ -1255,7 +1261,7 @@ ItemProcessorでデータが取得できない場合は、他のトランザク�
             updatedBranch.setBranchAddress(branch.getBranchAddress() + <span class="string"><span class="delimiter">&quot;</span><span class="content"> - </span><span class="delimiter">&quot;</span></span> + identifier);
             updatedBranch.setBranchTel(branch.getBranchTel());
             updatedBranch.setCreateDate(branch.getUpdateDate());
-            updatedBranch.setUpdateDate(<span class="keyword">new</span> <span class="predefined-type">Timestamp</span>(clock.millis()));
+            updatedBranch.setUpdateDate(LocalDateTime.now(clock));
             updatedBranch.setOldBranchName(branch.getBranchName());
 
             <span class="keyword">return</span> updatedBranch;
@@ -1345,7 +1351,7 @@ NO WAITやタイムアウトを設定して悲観ロックを行い、他のト�
 
   <div class="common-bg">
     <div class="information">
-      TERASOLUNA Batch Framework for Java (5.x) Development Guideline - version 5.7.0.RELEASE, 2025-3-31, commit-id:7ba4db3
+      TERASOLUNA Batch Framework for Java (5.x) Development Guideline - version 5.8.0.RELEASE, 2026-3-31, commit-id:f8c098e
     </div>
     <div class="index">
       <a href="index.html">&gt; INDEX</a>

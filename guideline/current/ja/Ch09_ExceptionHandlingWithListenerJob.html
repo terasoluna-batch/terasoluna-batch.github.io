@@ -15,7 +15,7 @@
 
 <div class="common-bg">
   <div class="information">
-    TERASOLUNA Batch Framework for Java (5.x) Development Guideline - version 5.7.0.RELEASE, 2025-3-31, commit-id:7ba4db3
+    TERASOLUNA Batch Framework for Java (5.x) Development Guideline - version 5.8.0.RELEASE, 2026-3-31, commit-id:f8c098e
   </div>
   <div class="index">
     <a href="index.html">&gt; INDEX</a>
@@ -813,9 +813,9 @@ errors.maxInteger=The {0} exceeds {1}.</code></pre>
 
 <span class="keyword">import</span> <span class="include">org.slf4j.Logger</span>;
 <span class="keyword">import</span> <span class="include">org.slf4j.LoggerFactory</span>;
-<span class="keyword">import</span> <span class="include">org.springframework.batch.core.ChunkListener</span>;
+<span class="keyword">import</span> <span class="include">org.springframework.batch.core.listener.ChunkListener</span>;
 <span class="keyword">import</span> <span class="include">org.springframework.batch.core.scope.context.ChunkContext</span>;
-<span class="keyword">import</span> <span class="include">org.springframework.batch.item.validator.ValidationException</span>;
+<span class="keyword">import</span> <span class="include">org.springframework.batch.infrastructure.item.validator.ValidationException</span>;
 <span class="keyword">import</span> <span class="include">org.springframework.context.MessageSource</span>;
 <span class="keyword">import</span> <span class="include">org.springframework.stereotype.Component</span>;
 
@@ -919,12 +919,15 @@ errors.maxInteger=The {0} exceeds {1}.</code></pre>
     <span class="annotation">@Bean</span>
     <span class="directive">public</span> Job jobPointAddChunk(JobRepository jobRepository,
                                              Step step01) {
-        <span class="keyword">return</span> <span class="keyword">new</span> JobBuilder(<span class="string"><span class="delimiter">&quot;</span><span class="content">jobPointAddChunk</span><span class="delimiter">&quot;</span></span>, jobRepository)
+        <span class="keyword">return</span> <span class="keyword">new</span> JobBuilder(jobRepository)
                 .start(step01)
                 .build();
     }
 }</code></pre>
 </div>
+</div>
+<div class="paragraph">
+<p>前述のジョブ定義例で利用している <code>StepBuilder#chunk(int chunkSize, PlatformTransactionManager transactionManager)</code> は現在非推奨となっているが、本バージョンでは利用を継続している。理由、および TERASOLUNA Batch 5.x での <code>SimpleStepBuilder</code> の利用方針については<a href="Ch03_CreateProject.html#Ch03_CreateProject_CreateJob_DeprecatedSimpleStepBuilder">非推奨であるSimpleStepBuilderを利用する理由</a>を参照されたい。</p>
 </div>
 </div>
 </div>
@@ -1024,11 +1027,11 @@ errors.maxInteger=The {0} exceeds {1}.</code></pre>
 </dl>
 </div>
 <div class="paragraph">
-<p>異常系データを利用するために、<code>batch-application.proeprties</code>のDatabase Initializeで
+<p>異常系データを利用するために、<code>batch-application.properties</code>のDatabase Initializeで
 正常系データのスクリプトをコメントアウトし、異常系データのスクリプトのコメントアウトを解除する。</p>
 </div>
 <div class="listingblock">
-<div class="title">src/main/resources/batch-application.proeprties</div>
+<div class="title">src/main/resources/batch-application.properties</div>
 <div class="content">
 <pre class="CodeRay highlight"><code data-lang="xml"># Database Initialize
 tutorial.create-table.script=file:sqls/create-member-info-table.sql
@@ -1061,7 +1064,7 @@ tutorial.insert-data.script=file:sqls/insert-member-info-error-data.sql</code></
 <p>処理が異常終了(FAILED)していること。</p>
 </li>
 <li>
-<p><code>org.springframework.batch.item.validator.ValidationException</code>が発生していること。</p>
+<p><code>org.springframework.batch.infrastructure.item.validator.ValidationException</code>が発生していること。</p>
 </li>
 <li>
 <p><code>org.terasoluna.batch.tutorial.common.listener.ChunkErrorLoggingListener</code>がERRORログとして次のメッセージを出力していること。</p>
@@ -1084,9 +1087,9 @@ tutorial.insert-data.script=file:sqls/insert-member-info-error-data.sql</code></
 [2020/03/27 13:47:10] [main] [o.s.b.c.j.SimpleStepHandler] [INFO ] Executing step: [jobPointAddChunk.step01]
 [2020/03/27 13:47:11] [main] [o.t.b.t.c.l.ChunkErrorLoggingListener] [ERROR] The point exceeds 1000000.
 [2020/03/27 13:47:11] [main] [o.s.b.c.s.AbstractStep] [ERROR] Encountered an error executing step jobPointAddChunk.step01 in job jobPointAddChunk
-org.springframework.batch.item.validator.ValidationException: Validation failed for org.terasoluna.batch.tutorial.common.dto.MemberInfoDto@6ebc9573:
+org.springframework.batch.infrastructure.item.validator.ValidationException: Validation failed for org.terasoluna.batch.tutorial.common.dto.MemberInfoDto@6ebc9573:
 Field error in object 'item' on field 'point': rejected value [1000001]; codes [Max.item.point,Max.point,Max.int,Max]; arguments [org.springframework.context.support.DefaultMessageSourceResolvable: codes [item.point,point]; arguments []; default message [point],1000000]; default message [must be less than or equal to 1000000]
-        at org.springframework.batch.item.validator.SpringValidator.validate(SpringValidator.java:54)
+        at org.springframework.batch.infrastructure.item.validator.SpringValidator.validate(SpringValidator.java:54)
 
 (.. omitted)
 
@@ -1411,9 +1414,9 @@ errors.maxInteger=The {0} exceeds {1}.</code></pre>
 
 <span class="keyword">import</span> <span class="include">org.slf4j.Logger</span>;
 <span class="keyword">import</span> <span class="include">org.slf4j.LoggerFactory</span>;
-<span class="keyword">import</span> <span class="include">org.springframework.batch.core.ChunkListener</span>;
+<span class="keyword">import</span> <span class="include">org.springframework.batch.core.listener.ChunkListener</span>;
 <span class="keyword">import</span> <span class="include">org.springframework.batch.core.scope.context.ChunkContext</span>;
-<span class="keyword">import</span> <span class="include">org.springframework.batch.item.validator.ValidationException</span>;
+<span class="keyword">import</span> <span class="include">org.springframework.batch.infrastructure.item.validator.ValidationException</span>;
 <span class="keyword">import</span> <span class="include">org.springframework.context.MessageSource</span>;
 <span class="keyword">import</span> <span class="include">org.springframework.stereotype.Component</span>;
 
@@ -1511,7 +1514,7 @@ errors.maxInteger=The {0} exceeds {1}.</code></pre>
     <span class="annotation">@Bean</span>
     <span class="directive">public</span> Job jobPointAddTasklet(JobRepository jobRepository,
                                              Step step01) {
-        <span class="keyword">return</span> <span class="keyword">new</span> JobBuilder(<span class="string"><span class="delimiter">&quot;</span><span class="content">jobPointAddTasklet</span><span class="delimiter">&quot;</span></span>, jobRepository)
+        <span class="keyword">return</span> <span class="keyword">new</span> JobBuilder(jobRepository)
                 .start(step01)
                 .build();
     }
@@ -1614,11 +1617,11 @@ errors.maxInteger=The {0} exceeds {1}.</code></pre>
 </dl>
 </div>
 <div class="paragraph">
-<p>異常系データを利用するために、<code>batch-application.proeprties</code>のDatabase Initializeで
+<p>異常系データを利用するために、<code>batch-application.properties</code>のDatabase Initializeで
 正常系データのスクリプトをコメントアウトし、異常系データのスクリプトのコメントアウトを解除する。</p>
 </div>
 <div class="listingblock">
-<div class="title">src/main/resources/batch-application.proeprties</div>
+<div class="title">src/main/resources/batch-application.properties</div>
 <div class="content">
 <pre class="CodeRay highlight"><code data-lang="xml"># Database Initialize
 tutorial.create-table.script=file:sqls/create-member-info-table.sql
@@ -1651,7 +1654,7 @@ tutorial.insert-data.script=file:sqls/insert-member-info-error-data.sql</code></
 <p>処理が異常終了(FAILED)していること。</p>
 </li>
 <li>
-<p><code>org.springframework.batch.item.validator.ValidationException</code>が発生していること。</p>
+<p><code>org.springframework.batch.infrastructure.item.validator.ValidationException</code>が発生していること。</p>
 </li>
 <li>
 <p><code>org.terasoluna.batch.tutorial.common.listener.ChunkErrorLoggingListener</code>がERRORログとして次のメッセージを出力していること。</p>
@@ -1674,9 +1677,9 @@ tutorial.insert-data.script=file:sqls/insert-member-info-error-data.sql</code></
 [2020/03/27 13:52:22] [main] [o.s.b.c.j.SimpleStepHandler] [INFO ] Executing step: [jobPointAddTasklet.step01]
 [2020/03/27 13:52:22] [main] [o.t.b.t.c.l.ChunkErrorLoggingListener] [ERROR] The point exceeds 1000000.
 [2020/03/27 13:52:22] [main] [o.s.b.c.s.AbstractStep] [ERROR] Encountered an error executing step jobPointAddTasklet.step01 in job jobPointAddTasklet
-org.springframework.batch.item.validator.ValidationException: Validation failed for org.terasoluna.batch.tutorial.common.dto.MemberInfoDto@53e76c11:
+org.springframework.batch.infrastructure.item.validator.ValidationException: Validation failed for org.terasoluna.batch.tutorial.common.dto.MemberInfoDto@53e76c11:
 Field error in object 'item' on field 'point': rejected value [1000001]; codes [Max.item.point,Max.point,Max.int,Max]; arguments [org.springframework.context.support.DefaultMessageSourceResolvable: codes [item.point,point]; arguments []; default message [point],1000000]; default message [must be less than or equal to 1000000]
-        at org.springframework.batch.item.validator.SpringValidator.validate(SpringValidator.java:54)
+        at org.springframework.batch.infrastructure.item.validator.SpringValidator.validate(SpringValidator.java:54)
 
 (.. omitted)
 
@@ -1776,7 +1779,7 @@ Field error in object 'item' on field 'point': rejected value [1000001]; codes [
 
   <div class="common-bg">
     <div class="information">
-      TERASOLUNA Batch Framework for Java (5.x) Development Guideline - version 5.7.0.RELEASE, 2025-3-31, commit-id:7ba4db3
+      TERASOLUNA Batch Framework for Java (5.x) Development Guideline - version 5.8.0.RELEASE, 2026-3-31, commit-id:f8c098e
     </div>
     <div class="index">
       <a href="index.html">&gt; INDEX</a>
